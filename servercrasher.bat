@@ -147,7 +147,8 @@ echo 1
 @ping -n 1 localhost> nul
 @ping -n 1 localhost> nul
 echo Opening...
-
+start "" "https://www.example.com"
+goto credits
 
 :setting
 cls 
