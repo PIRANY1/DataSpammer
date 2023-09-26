@@ -2,6 +2,10 @@
 @title Data Spammer
 color 2
 
+SETLOCAL EnableDelayedExpansion
+SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
+SETLOCAL DisableDelayedExpansion
+
 :getvar
 setlocal enabledelayedexpansion
 set "stdrc1="
