@@ -108,9 +108,9 @@ echo.
 @ping -n 1 localhost> nul
 echo. 
 @ping -n 1 localhost> nul
-echo Please Contact me for any Errors/Bugs on Discord (pirany)
+echo If you found any Bugs/Glitches or have a Problem With this software please 
 @ping -n 1 localhost> nul
-echo.
+echo Create a Issue on the Github-Repo
 @ping -n 1 localhost> nul
 echo. 
 @ping -n 1 localhost> nul
@@ -120,13 +120,34 @@ echo [1] Go back
 @ping -n 1 localhost> nul
 echo.
 @ping -n 1 localhost> nul
-echo [2] Exit
+echo [2] Open the Github-Repo
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [3] Exit
 @ping -n 1 localhost> nul
 echo.
 @ping -n 1 localhost> nul
 set /p menu3=Choose an Option from Above:
 If %menu3% == 1 goto menu
-If %menu3% == 2 goto cancel
+If %menu3% == 3 goto cancel
+If %menu3% == 2 goto GitRepo
+
+:GitRepo
+cls 
+echo Opening Github-Repo 
+@ping -n 1 localhost> nul
+echo 3
+@ping -n 1 localhost> nul
+@ping -n 1 localhost> nul
+echo 2
+@ping -n 1 localhost> nul
+@ping -n 1 localhost> nul
+echo 1
+@ping -n 1 localhost> nul
+@ping -n 1 localhost> nul
+echo Opening...
+
 
 :setting
 cls 
