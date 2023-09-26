@@ -3,6 +3,7 @@ setlocal enabledelayedexpansion
 set "error=0"
 @title Starting Up...
 echo Starting Up....
+echo Checking for Files...
 cd %~dp0
 
 :1
@@ -28,7 +29,7 @@ if not exist "servercrasher.bat" (
 
 :4
 rem StandartDirectoryCrash
-if not exist "stdrcch.txt" (
+if not exist "startupcheck.bat" (
     set /a "error+=1" 
     goto finish
 )
@@ -41,10 +42,54 @@ if !error! gtr 1 (
     goto done
 )
 
+setlocal enabledelayedexpansion
+set "owner=PIRANY"
+set "repo=DataSpammer"
+set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
+for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do (
+    set "latest_version=%%i"
+)
+set "text_file=gitver.txt"
+for /f "delims=" %%j in (%text_file%) do (
+    set "text_content=%%j"
+)
+
+if "%text_content%"=="%latest_version%" (
+    echo Version Up-To-Date
+) else (
+    echo Version Outdated!
+    echo Please consider downloading the new Version. 
+    echo [1] Open the GitHub-Repo
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [2] Continue Anyways
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    set /p menu4=Choose an Option from Above:
+    If %menu4% == 1 exit
+    If %menu4% == 2 start "" "https://github.com/PIRANY1/DataSpammer"
+)
+
+endlocal
+
 :error 
 echo There was an Error (%error%)
-echo Please redownload the Script.
-rem ////Downloadlink
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [1] Open GitHub for Versions.
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [2] Continue Anyways(Script has a very high Chance of not working)
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+set /p menu3=Choose an Option from Above:
+If %menu3% == 1 exit
+If %menu3% == 2 start "" "https://github.com/PIRANY1/DataSpammer"
 
 :done 
 startupcheck.bat

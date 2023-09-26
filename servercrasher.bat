@@ -254,11 +254,11 @@ echo.
 echo [3] Back
 echo.
 echo.
-set /p menu1=Choose an Option from Above:
+set /p menu0=Choose an Option from Above:
 
-If %menu1% == 1 goto autostartsetup
-If %menu1% == 2 goto autostartdelete
-If %menu1% == 3 goto menu
+If %menu0% == 1 goto autostartsetup
+If %menu0% == 2 goto autostartdelete
+If %menu0% == 3 goto menu
 
 :autostartsetup
 echo This Setup will 
@@ -421,9 +421,9 @@ echo.
 echo [2] Menu
 echo.
 @ping -n 1 localhost> nul
-set /p menu2=Choose an Option from Above:
-If %menu2% == 1 goto cancel
-If %menu2% == 2 goto menu
+set /p menu9=Choose an Option from Above:
+If %menu9% == 1 goto cancel
+If %menu9% == 2 goto menu
 
 
 

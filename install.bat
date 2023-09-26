@@ -41,8 +41,31 @@ echo Are you sure you want to run the installer and move the Files into the spec
 @ping -n 1 localhost> nul
 set /p ynins=[y]Yes [n]No:
 If %ynins% == n goto cancel
-If %ynins% == y goto insgo
+If %ynins% == y goto gitins
 
+:gitins
+echo.
+@ping -n 1 localhost> nul
+echo When you want the script to auto upgrade itself when you start it you can download the Git Programm too. 
+echo When you choose to Install Git too it needs Administrator privileges too.
+echo.
+@ping -n 1 localhost> nul
+echo [1] Install Git too
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [2] View Information about Git
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [3] Dont install Git
+echo.
+@ping -n 1 localhost> nul
+echo.
+set /p menu3=Choose an Option from Above:
+If %menu3% == 1 set "gitinsyn=1"
+If %menu3% == 2 start "" "https://git-scm.com"
+If %menu3% == 3 goto insgo
 
 :insgo
 mkdir "%directory%\%foldername%" 
@@ -53,7 +76,19 @@ xcopy "%~dp0\start.bat" "%directory%\%foldername%"
 echo. > "instdone.txt"
 echo. > "stdfil.txt"
 echo. > "stdrcch.txt"
+echo. > "gitver.txt"
+winget install jqlang.jq.
+y
 
+setlocal
+if "%gitinsyn%"=="1" (
+    winget install --id Git.Git -e --source winget
+) else (
+    goto insdone
+)
+endlocal
+
+:insdone
 if %errorlevel% equ 0 (
     echo Success.
     goto direcdone
@@ -112,10 +147,10 @@ pause
 goto direcdone
 
 :listreadme
-set "liscensefad=%~dp0\README.md"
+set "liscensefad1=%~dp0\README.md"
 
-if exist "%liscensefad%" (
-    for /f "tokens=*" %%a in (%liscensefad%) do (
+if exist "%liscensefad1%" (
+    for /f "tokens=*" %%a in (%liscensefad1%) do (
         echo %%a
     )
 ) else (
