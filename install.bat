@@ -7,7 +7,18 @@ cls
 
 rem if exist installdone für installer bearbeiten
 
+SETLOCAL EnableDelayedExpansion
+SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
+SETLOCAL DisableDelayedExpansion
 
+%$Echo% "    _____                           _____               _                 __  __           _        _             _____ _____ _____            _   ___     __
+%$Echo% "   / ____|                         / ____|             | |               |  \/  |         | |      | |           |  __ \_   _|  __ \     /\   | \ | \ \   / /
+%$Echo% "  | (___   ___ _ ____   _____ _ __| |     _ __ __ _ ___| |__   ___ _ __  | \  / | __ _  __| | ___  | |__  _   _  | |__) || | | |__) |   /  \  |  \| |\ \_/ / 
+%$Echo% "   \___ \ / _ \ '__\ \ / / _ \ '__| |    | '__/ _` / __| '_ \ / _ \ '__| | |\/| |/ _` |/ _` |/ _ \ | '_ \| | | | |  ___/ | | |  _  /   / /\ \ | . ` | \   /  
+%$Echo% "   ____) |  __/ |   \ V /  __/ |  | |____| | | (_| \__ \ | | |  __/ |    | |  | | (_| | (_| |  __/ | |_) | |_| | | |    _| |_| | \ \  / ____ \| |\  |  | |   
+%$Echo% "  |_____/ \___|_|    \_/ \___|_|   \_____|_|  \__,_|___/_| |_|\___|_|    |_|  |_|\__,_|\__,_|\___| |_.__/ \__, | |_|   |_____|_|  \_\/_/    \_\_| \_|  |_|   
+%$Echo% "                                                                                                           __/ |                                             
+%$Echo% "                                                                                                          |___/   
 echo.
 @ping -n 1 localhost> nul
 echo.

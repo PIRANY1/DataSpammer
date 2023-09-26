@@ -1,12 +1,23 @@
 # DataSpammer
+   _____                           _____               _
+  / ____|                         / ____|             | |
+ | (___   ___ _ ____   _____ _ __| |     _ __ __ _ ___| |__   ___ _ __
+  \___ \ / _ \ '__\ \ / / _ \ '__| |    | '__/ _` / __| '_ \ / _ \ '__|
+  ____) |  __/ |   \ V /  __/ |  | |____| | | (_| \__ \ | | |  __/ |
+ |_____/ \___|_|    \_/ \___|_|   \_____|_|  \__,_|___/_| |_|\___|_|
+
 With this fully Batch Script you can mass-create full custom files. This runs on for example Servers too.
 To install this Script simply open the Install.bat file.
-
 Dont Change any Filenames or text inside the files.
-
 No Liability.
 Only Private Use.
 
+# Beta
+At the Moment this Script has 1 function and only the interface/ui is done.
+More functions coming soon!
+
+
+# License
 Use only under the following License
 
 Boost Software License - Version 1.0 - August 17th, 2003
