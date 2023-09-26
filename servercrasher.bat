@@ -35,6 +35,7 @@ cls
 %$Echo% "  |_____/ \___|_|    \_/ \___|_|   \_____|_|  \__,_|___/_| |_|\___|_|    |_|  |_|\__,_|\__,_|\___| |_.__/ \__, | |_|   |_____|_|  \_\/_/    \_\_| \_|  |_|   
 %$Echo% "                                                                                                           __/ |                                             
 %$Echo% "                                                                                                          |___/   
+
 @ping -n 1 localhost> nul
 echo Made by PIRANY (pirany on discord)
 @ping -n 1 localhost> nul
@@ -234,6 +235,7 @@ goto setting
 
 :autostart
 echo.
+cls
 echo.
 echo ==================
 echo Autostart Settings
@@ -261,7 +263,8 @@ If %menu0% == 2 goto autostartdelete
 If %menu0% == 3 goto menu
 
 :autostartsetup
-echo This Setup will 
+echo This Setup will --------------------------------------------------------------------------------------------------------------------------------
+
 
 :start
 if defined stdrc1 (
@@ -398,7 +401,7 @@ echo.
 %$Echo% "   ____) |  __/ |   \ V /  __/ |  | |____| | | (_| \__ \ | | |  __/ |    | |  | | (_| | (_| |  __/ | |_) | |_| | | |    _| |_| | \ \  / ____ \| |\  |  | |   
 %$Echo% "  |_____/ \___|_|    \_/ \___|_|   \_____|_|  \__,_|___/_| |_|\___|_|    |_|  |_|\__,_|\__,_|\___| |_.__/ \__, | |_|   |_____|_|  \_\/_/    \_\_| \_|  |_|   
 %$Echo% "                                                                                                           __/ |                                             
-%$Echo% "
+
 @ping -n 1 localhost> nul
 echo.
 @ping -n 1 localhost> nul
