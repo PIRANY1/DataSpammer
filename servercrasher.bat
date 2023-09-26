@@ -147,7 +147,7 @@ echo 1
 @ping -n 1 localhost> nul
 @ping -n 1 localhost> nul
 echo Opening...
-start "" "https://www.example.com"
+start "" "https://github.com/PIRANY1/DataSpammer"
 goto credits
 
 :setting
