@@ -1,5 +1,7 @@
 @echo off
 setlocal enabledelayedexpansion
+set "gitver12=v1.1"
+echo %gitver12% > "gitver.txt"
 set "error=0"
 @title Starting Up...
 echo Starting Up....
@@ -59,7 +61,7 @@ if "%text_content%"=="%latest_version%" (
 ) else (
     echo Version Outdated!
     echo Please consider downloading the new Version. 
-    echo [1] Open the GitHub-Repo
+    echo [1] Update
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
@@ -68,11 +70,17 @@ if "%text_content%"=="%latest_version%" (
     echo.
     @ping -n 1 localhost> nul
     set /p menu4=Choose an Option from Above:
-    If %menu4% == 1 exit
-    If %menu4% == 2 start "" "https://github.com/PIRANY1/DataSpammer"
+    If %menu4% == 1 goto gitupt
+    If %menu4% == 2 done
 )
 
 endlocal
+
+:gitupt
+git clone https://github.com/PIRANY1/DataSpammer %~dp0
+echo Update done!
+pause
+goto done
 
 :error 
 echo There was an Error (%error%)

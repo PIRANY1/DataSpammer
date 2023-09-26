@@ -264,7 +264,8 @@ If %menu0% == 3 goto menu
 
 :autostartsetup
 echo This Setup will --------------------------------------------------------------------------------------------------------------------------------
-
+pause 
+goto menu
 
 :start
 if defined stdrc1 (
