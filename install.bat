@@ -4,7 +4,7 @@ set "foldername=ServerCrasherbyPIRANY"
 cd %~dp0
 color 2
 cls
-
+:instdone100
 rem if exist installdone für installer bearbeiten SU WIP
 setlocal
 if exist "instdone.txt" (
@@ -31,7 +31,20 @@ if exist "instdone.txt" (
     goto instmain
 )
 
-:instdone100
+:delscriptconf
+echo. 
+@ping -n 1 localhost> nul
+echo You are about to delete the whole script.
+@ping -n 1 localhost> nul 
+echo Are you sure about this decision?
+@ping -n 1 localhost> nul
+echo If the script is bugged or you want to download the new Version please 
+@ping -n 1 localhost> nul
+echo Visit the GitHub Repo
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [1]
 
 
 endlocal
