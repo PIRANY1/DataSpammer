@@ -44,8 +44,26 @@ echo Visit the GitHub Repo
 @ping -n 1 localhost> nul
 echo.
 @ping -n 1 localhost> nul
-echo [1]
+echo [1] Yes, Delete the Whole Script
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [2] Open the Github-Repo
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [3] No Please Go back
+@ping -n 1 localhost> nul
+echo.
+echo.
+set /p delscrconf
+If %delscrconf% == 1 delscriptconfy
+If %delscrconf% == 2 githubrepo190
+If %delscrconf% == 3 goto instdone100
 
+:githubrepo190
+
+delscriptconfy
 
 endlocal
 
