@@ -15,10 +15,11 @@ More functions coming soon!
 
 Every Version is supported but only the newest one is guaranteed to have zero or few Issues/Bugs/Glitches
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
+| Version | Supported          |Comments                |
+| ------- | ------------------ |----------------------- |
+| 5.0.0   | :x:                |                        |
+| 5.0.1   | :x:                |                        |
+| 5.1.0.  | :white_check_mark: | ASCII Art breaks input |
 
 ## Reporting a Bug
 If you encountered a Glitch/Bug/Vulnerability please create an [Issue](https://github.com/PIRANY1/DataSpammer/issues)
