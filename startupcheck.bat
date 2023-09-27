@@ -11,7 +11,16 @@ if not exist "stdrcch.txt" (
     set /a "error+=1" 
     goto 2
 )
-
+if not exist "stdrcch.txt" (
+    set /a "error+=1" 
+) else (
+    )
+    if not exist "stdrcch.txt" (
+    set /a "error+=1" 
+    ) else (
+    
+    )   
+)
 
 :2
 rem Installer DOne
