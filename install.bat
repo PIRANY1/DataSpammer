@@ -5,16 +5,34 @@ cd %~dp0
 color 2
 cls
 
-rem if exist installdone für installer bearbeiten
+rem if exist installdone für installer bearbeiten SU WIP
 setlocal
 if exist "instdone.txt" (
     echo The Installer was already executed.
-    echo Press a Key to open the Main Script.
-    pause 
-    start.bat
+    @ping -n 1 localhost> nul
+    echo You can either delete The Script from here or you can open the main script
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [1] Open the Main Script
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [2] Open Settings
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [3] Delete Script
+    set /p insdone123
+    If %insdone123% == 1 start.bat
+    If %insdone123% == 2 ---------settingsmainscript---------------------------------
+    If %insdone123% == 3 goto delscriptconf
 ) else (
     goto instmain
 )
+
+:instdone100
+
 
 endlocal
 
