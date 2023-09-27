@@ -27,6 +27,7 @@ If you encountered a Glitch/Bug/Vulnerability please create an [Issue](https://g
 # Credits
 ## ASCII-Art
 [TAAG](https://patorjk.com/software/taag/)
+
 Note: Dont use [ChatGTP](chat.openai.com)
 
 # License
