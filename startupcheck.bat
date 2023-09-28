@@ -18,7 +18,11 @@ if not exist "stdrcch.txt" (
     if not exist "stdrcch.txt" (
     set /a "error+=1" 
     ) else (
-    
+    )
+    if not exist ""
+        goto ...
+        ) else (
+        )
     )   
 )
 
