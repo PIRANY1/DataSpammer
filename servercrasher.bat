@@ -326,20 +326,40 @@ If %viewdocsmenu% == 1 goto autostartsetup
 If %viewdocsmenu% == 2 goto desktopiconsetup
 If %viewdocsmenu% == 3 goto autostartsetupconfyy
 
+:autostartdelete
+:echo Please provide the Letter of the Drive that has Windows installed. Often it is C but it can be for example G too
+@ping -n 1 localhost> nul
+set /p autostartdriveletter=Please type the Letter here:
+@ping -n 1 localhost> nul
+cd %autostartdriveletter%:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
+del autostart.bat
+cd %~dp0
+
 :autostartsetupconfyy
-echo Please provide the Letter of your Drive. Often it is C but it can be for example G too
+echo Please provide the Letter of the Drive that has Windows installed. Often it is C but it can be for example G too
 @ping -n 1 localhost> nul
 set /p autostartdriveletter=Please type the Letter here:
 @ping -n 1 localhost> nul
 echo The Setup for Autostart is now starting...
 cd %autostartdriveletter%:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
 @ping -n 1 localhost> nul
-set 
+echo. > DataSpammer.bat
 (
 echo @echo off
 echo cd %~dp0
 start.bat
 ) > autostart.bat
+cd %~dp0
+
+
+:desktopiconsetup
+echo. > DataSpammer.bat
+(
+echo @echo off
+echo cd %~dp0
+start.bat
+) > DataSpammer.bat
+
 
 :autostartdesktsett
 echo.
