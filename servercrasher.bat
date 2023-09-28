@@ -22,19 +22,17 @@ for /f "usebackq delims=" %%a in ("%~dp0\stdfil.txt") do (
     set "stdfile=!text!!zeile!"
 )
 endlocal
-
-
-
 :menu
 cls
-%$Echo% "    _____                           _____               _                 __  __           _        _             _____ _____ _____            _   ___     __
-%$Echo% "   / ____|                         / ____|             | |               |  \/  |         | |      | |           |  __ \_   _|  __ \     /\   | \ | \ \   / /
-%$Echo% "  | (___   ___ _ ____   _____ _ __| |     _ __ __ _ ___| |__   ___ _ __  | \  / | __ _  __| | ___  | |__  _   _  | |__) || | | |__) |   /  \  |  \| |\ \_/ / 
-%$Echo% "   \___ \ / _ \ '__\ \ / / _ \ '__| |    | '__/ _` / __| '_ \ / _ \ '__| | |\/| |/ _` |/ _` |/ _ \ | '_ \| | | | |  ___/ | | |  _  /   / /\ \ | . ` | \   /  
-%$Echo% "   ____) |  __/ |   \ V /  __/ |  | |____| | | (_| \__ \ | | |  __/ |    | |  | | (_| | (_| |  __/ | |_) | |_| | | |    _| |_| | \ \  / ____ \| |\  |  | |   
-%$Echo% "  |_____/ \___|_|    \_/ \___|_|   \_____|_|  \__,_|___/_| |_|\___|_|    |_|  |_|\__,_|\__,_|\___| |_.__/ \__, | |_|   |_____|_|  \_\/_/    \_\_| \_|  |_|   
-%$Echo% "                                                                                                           __/ |                                             
-%$Echo% "                                                                                                          |___/   
+%$Echo% " 
+%$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
+%$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
+%$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
+%$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
+%$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
+%$Echo% "                             |_|                                              |___/                                     
+%$Echo% " 
+
 
 @ping -n 1 localhost> nul
 echo Made by PIRANY (pirany on discord)
@@ -256,6 +254,10 @@ echo [3] Delete DesktopIcon
 echo.
 @ping -n 1 localhost> nul
 echo [4] Back
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [5] Settings
 echo.
 echo.
 set /p menu000=Choose an Option from Above:
@@ -264,6 +266,7 @@ If %menu000% == 1 goto autostartsetup
 If %menu000% == 2 goto autostartdelete
 If %menu000% == 4 goto menu
 If %menu000% == 3 goto desktopicdel
+If %menu000% == 5 goto autostartdesktsett
 :autostartsetup
 echo This Setup will lead you trough the Autostart/Desktopicon Setup.
 @ping -n 1 localhost> nul
@@ -304,6 +307,8 @@ echo You can create an Desktop Icon too if you dont want the Script to open
 @ping -n 1 localhost> nul
 echo Every time you boot.
 @ping -n 1 localhost> nul
+echo Please note that if you change the Directory you also need to change it in the Autostart Settings.
+@ping -n 1 localhost> nul
 echo [1] Go back
 @ping -n 1 localhost> nul
 echo.
@@ -318,10 +323,32 @@ echo.
 set /p viewdocsmenu=Choose an Option from above:
 
 If %viewdocsmenu% == 1 goto autostartsetup
-If %viewdocsmenu% == 2 goto desktopiconsetuo
+If %viewdocsmenu% == 2 goto desktopiconsetup
 If %viewdocsmenu% == 3 goto autostartsetupconfyy
-pause 
-goto menu
+
+:autostartsetupconfyy
+echo Please provide the Letter of your Drive. Often it is C but it can be for example G too
+@ping -n 1 localhost> nul
+set /p autostartdriveletter=Please type the Letter here:
+@ping -n 1 localhost> nul
+echo The Setup for Autostart is now starting...
+cd %autostartdriveletter%:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
+@ping -n 1 localhost> nul
+set 
+(
+echo @echo off
+echo cd %~dp0
+start.bat
+) > autostart.bat
+
+:autostartdesktsett
+echo.
+@ping -n 1 localhost> nul
+echo If you have moved the Directory please Delete the Autostart and Then Set it up new
+@ping -n 1 localhost> nul
+pause
+goto autostartdeskic
+
 
 :start
 if defined stdrc1 (
@@ -451,13 +478,14 @@ cls
 
 :done 
 echo.
-%$Echo% "    _____                           _____               _                 __  __           _        _             _____ _____ _____            _   ___     __
-%$Echo% "   / ____|                         / ____|             | |               |  \/  |         | |      | |           |  __ \_   _|  __ \     /\   | \ | \ \   / /
-%$Echo% "  | (___   ___ _ ____   _____ _ __| |     _ __ __ _ ___| |__   ___ _ __  | \  / | __ _  __| | ___  | |__  _   _  | |__) || | | |__) |   /  \  |  \| |\ \_/ / 
-%$Echo% "   \___ \ / _ \ '__\ \ / / _ \ '__| |    | '__/ _` / __| '_ \ / _ \ '__| | |\/| |/ _` |/ _` |/ _ \ | '_ \| | | | |  ___/ | | |  _  /   / /\ \ | . ` | \   /  
-%$Echo% "   ____) |  __/ |   \ V /  __/ |  | |____| | | (_| \__ \ | | |  __/ |    | |  | | (_| | (_| |  __/ | |_) | |_| | | |    _| |_| | \ \  / ____ \| |\  |  | |   
-%$Echo% "  |_____/ \___|_|    \_/ \___|_|   \_____|_|  \__,_|___/_| |_|\___|_|    |_|  |_|\__,_|\__,_|\___| |_.__/ \__, | |_|   |_____|_|  \_\/_/    \_\_| \_|  |_|   
-%$Echo% "                                                                                                           __/ |                                             
+%$Echo% " 
+%$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
+%$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
+%$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
+%$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
+%$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
+%$Echo% "                             |_|                                              |___/                                     
+%$Echo% "                                                                                                 
 
 @ping -n 1 localhost> nul
 echo.

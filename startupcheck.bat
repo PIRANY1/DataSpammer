@@ -4,69 +4,49 @@ set "error=0"
 color 02
 cd %~dp0
 echo Checking for Data...
-
-:1
-rem StandartDirectoryCrash
+@echo off
 if not exist "stdrcch.txt" (
-    set /a "error+=1" 
-    goto 2
-)
-if not exist "stdrcch.txt" (
-    set /a "error+=1" 
+    goto Error
 ) else (
-    )
-    if not exist "stdrcch.txt" (
-    set /a "error+=1" 
+    if not exist "stdfil.txt" (
+    goto Error
     ) else (
-    )
-    if not exist ""
-        goto ...
+        if not exist "instdone.txt" (
+        goto Error
         ) else (
-        )
-    )   
-)
-
-:2
-rem Installer DOne
-if not exist "instdone.txt" (
-    set /a "error+=1" 
-    goto 3
-)
-
-
-:3
-rem Standart Filename
-if not exist "stdfil.txt" (
-    set /a "error+=1" 
-    goto finish
-)
-
-
-:finish
-
-if !error! gtr 1 (
-    goto error
-) else (
-    goto done
+        if not exist "gitver.txt" (
+            goto Error
+            ) else (  
+            goto start
+            )
+        )  
+    ) 
 )
 
 :error 
 cls
-echo There were %error% Error(s)
+echo There was an Error. 
+@ping -n 1 localhost> nul
+echo Please consider rerunning the installer to make sure the script can run accurately.
+@ping -n 1 localhost> nul
+echo Do you want to reinstall the Script or do you want to cancel?
+@ping -n 1 localhost> nul
 echo.
-echo.
-echo Do you want to install the Script or do you want to cancel?
-echo.
-echo.
+@ping -n 1 localhost> nul
 echo [1] Open the Installer
+@ping -n 1 localhost> nul
 echo.
+@ping -n 1 localhost> nul
+echo [2] Cancel
+@ping -n 1 localhost> nul
 echo.
-echo [2] Close this Script/Cancel
-echo.
-echo.
+@ping -n 1 localhost> nul
+echo [3] Open the Script anyways
+@ping -n 1 localhost> nul
 set /p menu=Choose an Option from Above:
 If %menu% == 1 goto openins
-If %menu% == 1 goto done
+If %menu% == 2 exit
+If %menu% == 3 goto openanyways
 
 :openins
 cd %~dp0
@@ -74,11 +54,12 @@ install.bat
 if %errorlevel% equ 0 (
     cls
     echo Installer is running....
+    cls
 ) else (
     echo There was an Error. Please open the install.bat File manually.
 )
 
 
-:done 
+:openanyways
 servercrasher.bat
 
