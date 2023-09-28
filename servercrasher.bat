@@ -66,7 +66,7 @@ echo.
 @ping -n 1 localhost> nul
 echo.
 @ping -n 1 localhost> nul
-echo [6] Autostart after Boot
+echo [6] Autostart/Desktop Icon
 echo.
 echo.
 set /p menu1=Choose an Option from Above:
@@ -256,14 +256,61 @@ echo.
 echo [3] Back
 echo.
 echo.
-set /p menu0=Choose an Option from Above:
+set /p menu000=Choose an Option from Above:
 
-If %menu0% == 1 goto autostartsetup
-If %menu0% == 2 goto autostartdelete
-If %menu0% == 3 goto menu
+If %menu000% == 1 goto autostartsetup
+If %menu000% == 2 goto autostartdelete
+If %menu000% == 3 goto menu
 
 :autostartsetup
-echo This Setup will --------------------------------------------------------------------------------------------------------------------------------
+echo This Setup will lead you trough the Autostart-Setup.
+@ping -n 1 localhost> nul
+echo If you are not sure what that is please take a look at the Information.
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [1] Start Setup
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [2] View Information
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [3] Go Back
+@ping -n 1 localhost> nul
+echo.
+set /p menu123134=Choose an Option from Above:
+
+If %menu123134% == 2 goto viewdocs 
+If %menu123134% == 1 goto autostartsetupconfyy
+If %menu123134% == 3 goto autostart
+
+:viewdocs 
+@ping -n 1 localhost> nul
+echo If you put for example Links or Programms into your Autostart Folder 
+@ping -n 1 localhost> nul
+echo They will automaticly launch if you boot your Device.
+@ping -n 1 localhost> nul
+echo Your System cant be more vulnerable if you do this.
+@ping -n 1 localhost> nul
+echo You can create an Desktop Icon too if you dont want the Script to open 
+@ping -n 1 localhost> nul
+echo Every time you boot.
+@ping -n 1 localhost> nul
+echo [1] Go back
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [2] Open Desktop Icon Setup.
+@ping -n 1 localhost> nul
+echo.
+set /p viewdocsmenu=Choose an Option from above:
+
+If %viewdocsmenu% == 
+If %viewdocsmenu% == 
+If %viewdocsmenu% == 
+ 
 pause 
 goto menu
 
