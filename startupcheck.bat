@@ -4,7 +4,9 @@ set "error=0"
 color 02
 cd %~dp0
 echo Checking for Data...
+if NOT defined noerror (start.bat) else (goto :noerr)
 @echo off
+:noerr
 if not exist "stdrcch.txt" (
     goto Error
 ) else (
@@ -61,5 +63,6 @@ if %errorlevel% equ 0 (
 
 
 :openanyways
+set "noerror2=10000"
 servercrasher.bat
 

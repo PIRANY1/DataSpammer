@@ -8,42 +8,27 @@ echo Starting Up....
 echo Checking for Files...
 cd %~dp0
 
-:1
-rem StandartDirectoryCrash
 if not exist "start.bat" (
-    set /a "error+=1" 
-    goto 2
-)
-
-:2
-rem StandartDirectoryCrash
-if not exist "install.bat" (
-    set /a "error+=1" 
-    goto 3
-)
-
-:3
-rem StandartDirectoryCrash
-if not exist "servercrasher.bat" (
-    set /a "error+=1" 
-    goto 4
-)
-
-:4
-rem StandartDirectoryCrash
-if not exist "startupcheck.bat" (
-    set /a "error+=1" 
-    goto finish
-)
-
-:finish
-
-if !error! gtr 1 (
-    goto error
+    goto Error
 ) else (
-    goto done
+    if not exist "install.bat" (
+    goto Error
+    ) else (
+        if not exist "servercrasher.bat" (
+        goto Error
+        ) else (
+        if not exist "startupcheck.bat" (
+            goto Error
+            ) else (  
+            goto start
+            )
+        )  
+    ) 
 )
 
+
+
+:start
 setlocal enabledelayedexpansion
 set "owner=PIRANY"
 set "repo=DataSpammer"
@@ -59,20 +44,24 @@ for /f "delims=" %%j in (%text_file%) do (
 if "%text_content%"=="%latest_version%" (
     echo Version Up-To-Date
 ) else (
-    echo Version Outdated!
-    echo Please consider downloading the new Version. 
-    echo [1] Update
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [2] Continue Anyways
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    set /p menu4=Choose an Option from Above:
-    If %menu4% == 1 goto gitupt
-    If %menu4% == 2 done
+    goto gitverout
 )
+
+:gitverout
+echo Version Outdated!
+echo Please consider downloading the new Version. 
+echo [1] Update
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [2] Continue Anyways
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+set /p menu4=Choose an Option from Above:
+If %menu4% == 1 goto gitupt
+If %menu4% == 2 done
+
 
 endlocal
 
@@ -83,7 +72,7 @@ pause
 goto done
 
 :error 
-echo There was an Error (%error%)
+echo There was an Error. There are important Files missing.
 @ping -n 1 localhost> nul
 echo.
 @ping -n 1 localhost> nul
@@ -96,8 +85,9 @@ echo [2] Continue Anyways(Script has a very high Chance of not working)
 echo.
 @ping -n 1 localhost> nul
 set /p menu3=Choose an Option from Above:
-If %menu3% == 1 exit
-If %menu3% == 2 start "" "https://github.com/PIRANY1/DataSpammer"
+If %menu3% == 2 goto done
+If %menu3% == 1 start "" "https://github.com/PIRANY1/DataSpammer"
 
 :done 
+set "noerror=1000"
 startupcheck.bat
