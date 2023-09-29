@@ -6,14 +6,41 @@ color 2
 cls  
 color 2
 :instdone100
-rem if exist installdone fr installer bearbeiten SU WIP
 rem New install poss
 if exist "instdone.txt" (
     goto instdoneconf
 ) else (
     goto instmain
 )
-pause
+
+:instdoneconf
+echo The Installer was already executed.
+@ping -n 1 localhost> nul
+echo You can either delete The Script from here or you can open the main script
+@ping -n 1 localhost> nul
+echo You can install the Script to antother Directory too.
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [1] Open the Main Script
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [2] Open Settings
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [3] Delete Script
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [4] Reinstall Script
+set /p insdone123=Choose an Option from above
+    
+If %insdone123% == 1 start.bat
+If %insdone123% == 2 goto settingsmainscript
+If %insdone123% == 3 goto delscriptconf
+If %insdone123% == 4 goto instmain
 :delscriptconf
 echo. 
 @ping -n 1 localhost> nul
@@ -46,35 +73,49 @@ If %delscrconf% == 2 goto githubrepo190
 If %delscrconf% == 3 goto instdone100
 
 :githubrepo190
+start "" "https://github.com/PIRANY1/DataSpammer"
+goto instdoneconf
 
-:startbatnorm
-echo not here yet
+:settingsmainscript
+set "settingsmainscriptvar=1"
+start start.bat
 
-:instdoneconf
-echo The Installer was already executed.
-@ping -n 1 localhost> nul
-echo You can either delete The Script from here or you can open the main script
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-echo [1] Open the Main Script
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-echo [2] Open Settings
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-echo [3] Delete Script
-set /p insdone123=Choose an Option from above
-    
-If %insdone123% == 1 start.bat
-If %insdone123% == 2 echo  ---------settingsmainscript---------------------------------
-If %insdone123% == 3 goto delscriptconf
 
 :delscriptconfy
-echo Not implemented yet
-goto instdoneconf
+echo The Script is now Deleting itself....
+@ping -n 1 localhost> nul
+echo 1/10 Files deleted
+del LICENSE
+@ping -n 1 localhost> nul
+echo 2/10 Files deleted
+del README.md
+@ping -n 1 localhost> nul
+echo 3/10 Files deleted
+del gitver.txt
+@ping -n 1 localhost> nul
+echo 4/10 Files deleted
+del stdrcch.txt
+@ping -n 1 localhost> nul
+echo 5/10 Files deleted
+del stdfil.txt
+@ping -n 1 localhost> nul
+echo 6/10 Files deleted
+del instdone.txt
+@ping -n 1 localhost> nul
+echo 7/10 Files deleted
+del servercrasher.bat
+@ping -n 1 localhost> nul
+echo 8/10 Files deleted
+del start.bat
+@ping -n 1 localhost> nul
+echo 9/10 Files deleted
+del startupcheck.bat
+@ping -n 1 localhost> nul
+echo 10/10 Files deleted
+del install.bat
+@ping -n 1 localhost> nul
+echo The Script deleted itself successfully.
+exit
 
 :instmain
 SETLOCAL EnableDelayedExpansion
