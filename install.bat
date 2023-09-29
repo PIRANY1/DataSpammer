@@ -206,6 +206,7 @@ xcopy "%~dp0\servercrasher.bat" "%directory%\%foldername%\"
 xcopy "%~dp0\startupcheck.bat" "%directory%\%foldername%\"  
 xcopy "%~dp0\install.bat" "%directory%\%foldername%\"  
 xcopy "%~dp0\start.bat" "%directory%\%foldername%\"  
+cd %directory%\%foldername%\
 echo. > "instdone.txt"
 echo. > "stdfil.txt"
 echo. > "stdrcch.txt"
