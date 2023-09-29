@@ -1,36 +1,19 @@
-@echo off
+@echo off 
 @title Script Installer by PIRANY
 set "foldername=ServerCrasherbyPIRANY"
 cd %~dp0
 color 2
-cls
+cls  
+color 2
 :instdone100
-rem if exist installdone für installer bearbeiten SU WIP
-setlocal
+rem if exist installdone fr installer bearbeiten SU WIP
+rem New install poss
 if exist "instdone.txt" (
-    echo The Installer was already executed.
-    @ping -n 1 localhost> nul
-    echo You can either delete The Script from here or you can open the main script
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [1] Open the Main Script
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [2] Open Settings
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [3] Delete Script
-    set /p insdone123
-    If %insdone123% == 1 start.bat
-    If %insdone123% == 2 ---------settingsmainscript---------------------------------
-    If %insdone123% == 3 goto delscriptconf
+    goto instdoneconf
 ) else (
     goto instmain
 )
-
+pause
 :delscriptconf
 echo. 
 @ping -n 1 localhost> nul
@@ -56,35 +39,59 @@ echo [3] No Please Go back
 @ping -n 1 localhost> nul
 echo.
 echo.
-set /p delscrconf
-If %delscrconf% == 1 delscriptconfy
-If %delscrconf% == 2 githubrepo190
+set /p delscrconf=Choose an Option from Above
+
+If %delscrconf% == 1 goto delscriptconfy
+If %delscrconf% == 2 goto githubrepo190
 If %delscrconf% == 3 goto instdone100
 
 :githubrepo190
 
-delscriptconfy
+:startbatnorm
+echo not here yet
 
-endlocal
+:instdoneconf
+echo The Installer was already executed.
+@ping -n 1 localhost> nul
+echo You can either delete The Script from here or you can open the main script
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [1] Open the Main Script
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [2] Open Settings
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [3] Delete Script
+set /p insdone123=Choose an Option from above
+    
+If %insdone123% == 1 start.bat
+If %insdone123% == 2 echo  ---------settingsmainscript---------------------------------
+If %insdone123% == 3 goto delscriptconf
+
+:delscriptconfy
+echo Not implemented yet
+goto instdoneconf
 
 :instmain
 SETLOCAL EnableDelayedExpansion
 SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
 SETLOCAL DisableDelayedExpansion
 
-%$Echo% " 
 %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
 %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
 %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
 %$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
 %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
 %$Echo% "                             |_|                                              |___/                                     
-%$Echo% "                                                                                                 
 
 
 echo.
 @ping -n 1 localhost> nul
-echo Please turn the CMD Windows to FullScreen. Then the Graphics will be displayed correctly.
+echo Please turn the CMD Windows to FullScreen. The Graphics will only be then displayed correctly.
 @ping -n 1 localhost> nul
 echo This Installer will lead you throuh the Process of Installing the Servercrasher.
 @ping -n 1 localhost> nul
@@ -166,7 +173,7 @@ echo. > "gitver.txt"
 :insdone
 if %errorlevel% equ 0 (
     echo Success.
-    goto gitins4
+    goto jqins3
 ) else (
     echo There was an Error.
     echo Please Restart the Script.
@@ -176,7 +183,7 @@ if %errorlevel% equ 0 (
 
 :jqins3
 setlocal
-if "%jqins%"=="1" (
+if "%jqins%"=="0" (
     winget install jqlang.jq.
 ) else (
     goto gitins4
@@ -193,7 +200,9 @@ if "%gitinsyn%"=="1" (
 endlocal
 
 :direcdone
+color 02
 cls 
+color 02
 echo Dow you want to delete the LICENSE and README files?
 @ping -n 1 localhost> nul
 echo Those are not needed for the script to work.
