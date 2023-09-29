@@ -344,9 +344,10 @@ echo The Setup for Autostart is now starting...
 cd %autostartdriveletter%:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
 @ping -n 1 localhost> nul
 echo. > DataSpammer.bat
+set "varlinkauto=%~dp0"
 (
 echo @echo off
-echo cd %~dp0
+echo cd %varlinkauto%
 start.bat
 ) > autostart.bat
 cd %~dp0
@@ -354,12 +355,13 @@ cd %~dp0
 
 :desktopiconsetup
 echo. > DataSpammer.bat
+set "varlinkauto=%~dp0"
 (
 echo @echo off
-echo cd %~dp0
+echo cd %varlinkauto%
 start.bat
 ) > DataSpammer.bat
-
+                                                                                                    
 
 :autostartdesktsett
 echo.
