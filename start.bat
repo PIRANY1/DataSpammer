@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-set "gitver12=v1.1"
+set "gitver12=v1.2"
 echo %gitver12% > "gitver.txt"
 set "error=0"
 @title Starting Up...

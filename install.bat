@@ -211,6 +211,11 @@ echo. > "instdone.txt"
 echo. > "stdfil.txt"
 echo. > "stdrcch.txt"
 echo. > "gitver.txt"
+cd %~dp0
+del servercrasher.bat
+del start.bat
+del startupcheck.bat
+cd %directory%\%foldername%\
 
 :insdone
 if %errorlevel% equ 0 (
@@ -333,9 +338,13 @@ echo If you want to start the Script please only open start.bat not the servercr
   start "Batch Runner" "start.bat"
 ) > "scoopinsttemp.bat"
 scoopinsttemp.bat
+cd %~dp0
+del install.bat
+
 @ping -n 3 localhost> nul
 exit
 :cancel
 echo The installer is now closing....
 pause  
 exit
+rem Start.bat from new folder
