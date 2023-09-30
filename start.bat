@@ -69,8 +69,9 @@ endlocal
 
 :gitupt
 set "foldername=ServerCrasherbyPIRANY"
-mkdir "%~dp0\%gitver12%" 
-git clone https://github.com/PIRANY1/DataSpammer %~dp0\%gitver12%
+cd ..
+mkdir %gitver12%
+git clone https://github.com/PIRANY1/DataSpammer %cd%
 echo Downloaded
 cd %~dp0\%gitver12%
 cls
