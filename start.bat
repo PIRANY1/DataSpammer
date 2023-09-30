@@ -29,8 +29,8 @@ if not exist "start.bat" (
 
 
 :start
-setlocal enabledelayedexpansion
-set "owner=PIRANY"
+setlocal enabledelayedexpansion 
+set "owner=PIRANY1"
 set "repo=DataSpammer"
 set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
 for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do (
@@ -48,7 +48,9 @@ if "%text_content%"=="%latest_version%" (
 )
 
 :gitverout
+echo.
 echo Version Outdated!
+echo.
 echo Please consider downloading the new Version. 
 echo [1] Update
 @ping -n 1 localhost> nul
@@ -66,10 +68,13 @@ If %menu4% == 2 done
 endlocal
 
 :gitupt
-git clone https://github.com/PIRANY1/DataSpammer %~dp0
-echo Update done!
-pause
-goto done
+set "foldername=ServerCrasherbyPIRANY"
+mkdir "%~dp0\%gitver12%" 
+git clone https://github.com/PIRANY1/DataSpammer %~dp0\%gitver12%
+echo Downloaded
+cd %~dp0\%gitver12%
+cls
+install.bat
 
 :error 
 echo There was an Error. There are important Files missing.

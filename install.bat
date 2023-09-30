@@ -1,6 +1,7 @@
 @echo off 
 @title Script Installer by PIRANY
 set "foldername=ServerCrasherbyPIRANY"
+set "gitver12=v1.2"
 cd %~dp0
 color 2
 cls  
@@ -201,12 +202,12 @@ If %menu3% == 2 set "jqins=0"
 If %menu3% == 3 set "jqins=0"
 
 :insgo
-mkdir "%directory%\%foldername%" 
-xcopy "%~dp0\servercrasher.bat" "%directory%\%foldername%\"  
-xcopy "%~dp0\startupcheck.bat" "%directory%\%foldername%\"  
-xcopy "%~dp0\install.bat" "%directory%\%foldername%\"  
-xcopy "%~dp0\start.bat" "%directory%\%foldername%\"  
-cd %directory%\%foldername%\
+mkdir "%directory%\%foldername%\%gitver12%%" 
+xcopy "%~dp0\servercrasher.bat" "%directory%\%foldername%\%gitver12%%" 
+xcopy "%~dp0\startupcheck.bat" "%directory%\%foldername%\%gitver12%%"   
+xcopy "%~dp0\install.bat" "%directory%\%foldername%\%gitver12%%"   
+xcopy "%~dp0\start.bat" "%directory%\%foldername%\%gitver12%%"   
+cd %directory%\%foldername%\%gitver12%
 echo. > "instdone.txt"
 echo. > "stdfil.txt"
 echo. > "stdrcch.txt"
@@ -215,7 +216,7 @@ cd %~dp0
 del servercrasher.bat
 del start.bat
 del startupcheck.bat
-cd %directory%\%foldername%\
+cd %directory%\%foldername%\%gitver12%
 
 :insdone
 if %errorlevel% equ 0 (
@@ -283,7 +284,14 @@ If %ynins1% == 1 goto listlicense
 If %ynins1% == 2 goto listreadme
 If %ynins1% == 3 goto dellisence
 If %ynins1% == 4 goto delreadme
-If %ynins1% == 5 goto instdone1
+If %ynins1% == 5 goto copyreadlic
+
+:copyreadlic
+xcopy "%~dp0\README.md" "%directory%\%foldername%\%gitver12%%"    
+xcopy "%~dp0\LICENSE" "%directory%\%foldername%\%gitver12%%"     
+del %~dp0\LICENSE
+del %~dp0\README.md
+goto instdone1
 
 :listlicense
 set "liscensefad=%~dp0\LICENSE"
@@ -347,4 +355,3 @@ exit
 echo The installer is now closing....
 pause  
 exit
-rem Start.bat from new folder
