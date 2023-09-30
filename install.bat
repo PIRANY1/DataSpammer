@@ -226,7 +226,9 @@ if %errorlevel% equ 0 (
 :jqins3
 setlocal
 if "%jqins%"=="0" (
-    winget install jqlang.jq.
+    PowerShell -Command "Set-ExecutionPolicy RemoteSigned -Scope CurrentUser"
+    PowerShell -Command "iex (irm https://get.scoop.sh)"
+    goto gitins4
 ) else (
     goto gitins4
 )
@@ -321,11 +323,18 @@ if exist "%~dp0\README.md" (
 goto direcdone
 
 :instdone1
-echo The Installer is now done!
-@ping -n 1 localhost> nul
+echo Finishing Installation....
+echo The Script will open itself now...
 echo If you want to start the Script please only open start.bat not the servercrasher.bat directly.
-goto cancel
-
+(
+  @echo off
+  echo Dies ist die erste Batch-Datei.
+  del "%~f0"
+  start "Batch Runner" "start.bat"
+) > "scoopinsttemp.bat"
+scoopinsttemp.bat
+@ping -n 3 localhost> nul
+exit
 :cancel
 echo The installer is now closing....
 pause  
