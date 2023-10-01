@@ -1,22 +1,19 @@
 @echo off 
 @title Script Installer by PIRANY
 set "foldername=ServerCrasherbyPIRANY"
-set "gitver12=v1.3"
+set "gitver12=v1.4"
 cd %~dp0
 color 2
 cls  
 color 2
 
 :gitupdtcheck
-setlocal
-set expected_parent_folder_name=ServerCrasherbyPIRANY
-set "batch_dir=%~dp0"
-for %%F in ("%batch_dir%\..") do set "parent_folder=%%~nxF"
-if "%parent_folder%"=="%expected_parent_folder_name%" (
+if "%setupaftgitcl%"=="1" (
     goto updateinstall
 ) else (
     goto instdone100
 )
+
 
 :updateinstall
 cd %~dp0
@@ -36,7 +33,6 @@ if exist "instdone.txt" (
 ) else (
     goto instmain
 )
-
 :instdoneconf
 echo The Installer was already executed.
 @ping -n 1 localhost> nul
@@ -362,7 +358,7 @@ echo The Script will open itself now...
 echo If you want to start the Script please only open start.bat not the servercrasher.bat directly.
 (
   @echo off
-  echo Dies ist die erste Batch-Datei.
+  scoop install jq
   del "%~f0"
   cd %~dp0\%foldername%\%gitver12%
   start "Batch Runner" "start.bat"

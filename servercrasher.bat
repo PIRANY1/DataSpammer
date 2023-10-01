@@ -68,6 +68,11 @@ echo.
 @ping -n 1 localhost> nul
 echo [6] Autostart/Desktop Icon
 echo.
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [7] Check for Updates
+echo.
 echo.
 set /p menu1=Choose an Option from Above:
 
@@ -77,6 +82,12 @@ If %menu1% == 3 goto cancel
 If %menu1% == 4 goto credits
 If %menu1% == 5 goto setting
 If %menu1% == 6 goto autostartdeskic
+If %menu1% == 7 goto checkgitupdt
+
+
+:checkgitupdt
+rem Check for update
+
 
 :info
 cls

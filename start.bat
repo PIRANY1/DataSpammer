@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-set "gitver12=v1.3"
+set "gitver12=v1.4"
 set "foldername=ServerCrasherbyPIRANY"
 set "error=0"
 @title Starting Up...
@@ -81,6 +81,7 @@ cd %latest_version%
 git clone https://github.com/PIRANY1/DataSpammer %cd%
 echo Downloaded
 set "source_dir_start=%~dp0"
+set "setupaftgitcl=1"
 install.bat
 
 
