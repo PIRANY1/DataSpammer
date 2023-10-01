@@ -6,6 +6,36 @@ cd %~dp0
 color 2
 cls  
 color 2
+
+:gitupdtcheck
+setlocal
+set expected_parent_folder_name=ServerCrasherbyPIRANY
+set "batch_dir=%~dp0"
+for %%F in ("%batch_dir%\..") do set "parent_folder=%%~nxF"
+if "%parent_folder%"=="%expected_parent_folder_name%" (
+    goto updateinstall
+) else (
+    goto instdone100
+)
+
+:updateinstall
+:targetdirset
+cd ..
+cd %gitver12%
+set "target_dir=%cd%""
+
+:sourcedirset
+set "source_dir=source_dir_start"
+
+:actionnn1233
+copy %source_dir%\instdone.txt %target_dir%
+copy %source_dir%\stdfil.txt %target_dir%
+copy %source_dir%\stdrcch.txt %target_dir%
+cd %~dp0
+
+echo Update was Successful
+start.bat
+
 :instdone100
 rem New install poss
 if exist "instdone.txt" (

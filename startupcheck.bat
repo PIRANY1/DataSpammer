@@ -2,7 +2,6 @@
 setlocal enabledelayedexpansion
 set "error=0"
 color 02
-cd %~dp0
 echo Checking for Data...
 if NOT defined noerror (start.bat) else (goto :noerr)
 @echo off
@@ -16,11 +15,7 @@ if not exist "stdrcch.txt" (
         if not exist "instdone.txt" (
         goto Error
         ) else (
-        if not exist "gitver.txt" (
-            goto Error
-            ) else (  
-            goto start
-            )
+            goto start   
         )  
     ) 
 )
@@ -61,6 +56,9 @@ if %errorlevel% equ 0 (
     echo There was an Error. Please open the install.bat File manually.
 )
 
+:start
+set "noerror2=10000"
+servercrasher.bat
 
 :openanyways
 set "noerror2=10000"

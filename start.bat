@@ -46,6 +46,7 @@ if %latest_version% == %gitver12% (goto UpToDate) else (goto gitverout)
 :UpToDate
 @ping -n 1 localhost> nul
 echo The Version you are currently Using is the newest one (%latest_version%)
+goto done
 
 :gitverout
 echo.
@@ -74,12 +75,12 @@ If %menu4% == 1 goto gitupt
 If %menu4% == 2 done
 
 :gitupt
-set "foldername=ServerCrasherbyPIRANY"
 cd ..
-mkdir %gitver12%
+mkdir %latest_version%
 git clone https://github.com/PIRANY1/DataSpammer %cd%
 echo Downloaded
-cd %~dp0\%gitver12%
+cd %latest_version%
+set "source_dir_start=%~dp0"
 cls
 install.bat
 
