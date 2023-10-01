@@ -2,11 +2,12 @@
 setlocal enabledelayedexpansion
 set "gitver12=v1.3"
 echo %gitver12% > "gitver.txt"
+set "foldername=ServerCrasherbyPIRANY"
 set "error=0"
 @title Starting Up...
 echo Starting Up....
 echo Checking for Files...
-cd %~dp0
+cd %~dp0\%foldername%\%gitver12%
 
 if not exist "start.bat" (
     goto Error
