@@ -1,7 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
 set "gitver12=v1.3"
-echo %gitver12% > "gitver.txt"
 set "foldername=ServerCrasherbyPIRANY"
 set "error=0"
 @title Starting Up...
@@ -33,25 +32,35 @@ setlocal enabledelayedexpansion
 set "owner=PIRANY1"
 set "repo=DataSpammer"
 set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
+echo Getting Git Url....
+@ping -n 1 localhost> nul
 for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do (
     set "latest_version=%%i"
 )
-set "text_file=gitver.txt"
-for /f "delims=" %%j in (%text_file%) do (
-    set "text_content=%%j"
-)
+echo Script Version is %gitver12%
+@ping -n 1 localhost> nul
+echo Scanning for Newest Version....
+@ping -n 1 localhost> nul
+if %latest_version% == %gitver12% (goto UpToDate) else (goto gitverout)
 
-if "%text_content%"=="%latest_version%" (
-    echo Version Up-To-Date
-) else (
-    goto gitverout
-)
+:UpToDate
+@ping -n 1 localhost> nul
+echo The Version you are currently Using is the newest one (%latest_version%)
 
 :gitverout
 echo.
+@ping -n 1 localhost> nul
 echo Version Outdated!
+@ping -n 1 localhost> nul
 echo.
+@ping -n 1 localhost> nul
 echo Please consider downloading the new Version. 
+@ping -n 1 localhost> nul
+echo The Version you are currently using is %gitver12%
+@ping -n 1 localhost> nul 
+echo The newest Version avaiable is %latest_version%
+@ping -n 1 localhost> nul
+echo.
 echo [1] Update
 @ping -n 1 localhost> nul
 echo.
@@ -64,9 +73,6 @@ set /p menu4=Choose an Option from Above:
 If %menu4% == 1 goto gitupt
 If %menu4% == 2 done
 
-
-endlocal
-
 :gitupt
 set "foldername=ServerCrasherbyPIRANY"
 cd ..
@@ -76,6 +82,7 @@ echo Downloaded
 cd %~dp0\%gitver12%
 cls
 install.bat
+
 
 :error 
 echo There was an Error. There are important Files missing.

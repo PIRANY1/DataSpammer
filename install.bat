@@ -92,7 +92,6 @@ echo 2/10 Files deleted
 del README.md
 @ping -n 1 localhost> nul
 echo 3/10 Files deleted
-del gitver.txt
 @ping -n 1 localhost> nul
 echo 4/10 Files deleted
 del stdrcch.txt
@@ -211,7 +210,6 @@ cd %directory%\%foldername%\%gitver12%
 echo. > "instdone.txt"
 echo. > "stdfil.txt"
 echo. > "stdrcch.txt"
-echo. > "gitver.txt"
 cd %~dp0
 del servercrasher.bat
 del start.bat
