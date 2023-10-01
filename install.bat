@@ -343,6 +343,7 @@ echo If you want to start the Script please only open start.bat not the servercr
   @echo off
   echo Dies ist die erste Batch-Datei.
   del "%~f0"
+  cd %~dp0\%foldername%\%gitver12%
   start "Batch Runner" "start.bat"
 ) > "scoopinsttemp.bat"
 scoopinsttemp.bat
