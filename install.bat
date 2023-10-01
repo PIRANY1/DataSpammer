@@ -19,20 +19,13 @@ if "%parent_folder%"=="%expected_parent_folder_name%" (
 )
 
 :updateinstall
-:targetdirset
-cd ..
-cd %gitver12%
+cd %~dp0
 set "target_dir=%cd%""
-
-:sourcedirset
-set "source_dir=source_dir_start"
-
-:actionnn1233
+set "source_dir=%source_dir_start%"
 copy %source_dir%\instdone.txt %target_dir%
 copy %source_dir%\stdfil.txt %target_dir%
 copy %source_dir%\stdrcch.txt %target_dir%
 cd %~dp0
-
 echo Update was Successful
 start.bat
 

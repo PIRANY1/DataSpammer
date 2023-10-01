@@ -77,11 +77,10 @@ If %menu4% == 2 done
 :gitupt
 cd ..
 mkdir %latest_version%
+cd %latest_version%
 git clone https://github.com/PIRANY1/DataSpammer %cd%
 echo Downloaded
-cd %latest_version%
 set "source_dir_start=%~dp0"
-cls
 install.bat
 
 
