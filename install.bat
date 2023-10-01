@@ -233,6 +233,7 @@ cd %~dp0
 del servercrasher.bat
 del start.bat
 del startupcheck.bat
+del install.bat
 cd %directory%\%foldername%\%gitver12%
 
 :insdone
@@ -251,6 +252,7 @@ setlocal
 if "%jqins%"=="0" (
     PowerShell -Command "Set-ExecutionPolicy RemoteSigned -Scope CurrentUser"
     PowerShell -Command "iex (irm https://get.scoop.sh)"
+    scoop install jq
     goto gitins4
 ) else (
     goto gitins4
@@ -356,16 +358,7 @@ goto direcdone
 echo Finishing Installation....
 echo The Script will open itself now...
 echo If you want to start the Script please only open start.bat not the servercrasher.bat directly.
-(
-  @echo off
-  scoop install jq
-  del "%~f0"
-  cd %~dp0\%foldername%\%gitver12%
-  start "Batch Runner" "start.bat"
-) > "scoopinsttemp.bat"
-scoopinsttemp.bat
-cd %~dp0
-del install.bat
+pause 
 
 @ping -n 3 localhost> nul
 exit
