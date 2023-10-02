@@ -414,17 +414,60 @@ If %spammethod% == 3 goto start
 @ping -n 1 localhost> nul
 echo This Method will Spam your Desktop with Files
 @ping -n 1 localhost> nul
-echo You can customise three things here. 
+echo You can customise four things here. 
 @ping -n 1 localhost> nul
 echo 1:Filename
 @ping -n 1 localhost> nul
 echo 2:Format of the File (for example .txt or .bat)
 @ping -n 1 localhost> nul
 echo 3:The Text in the File
+@ping -n 1 localhost> nul
+echo 4:Count of Files
+@ping -n 1 localhost> nul
+echo.
+echo [1] Start 
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [2] Go Back
+@ping -n 1 localhost> nul
+echo.
+echo.
+set /p menu1877=Choose an Option from Above:
+If %menu1877% == 1 goto start
+If %menu1877% == 2 goto deskiconspam1
 
+:deskiconspam1
+echo How Should the File be named?
+@ping -n 1 localhost> nul
+echo The filename cant include one of the following Character(s):\ / : * ? " < > |"
+@ping -n 1 localhost> nul
+set /p deskiconspamname=Choose a Filename:
+goto deskiconspam2
 
+:deskiconspam2
+echo Now Choose the Format of the File
+@ping -n 1 localhost> nul
+echo If you are not sure type txt
+@ping -n 1 localhost> nul
+echo Please not include the dot
+@ping -n 1 localhost> nul
+set /p deskiconspamformat=Choose the Format:
+goto deskiconspam3
 
+:deskiconspam3
+echo Now Choose the Content the File should include
+@ping -n 1 localhost> nul
+set /p deskiconspamcontent=Type something in:
+goto deskiconspam4
 
+:deskiconspam4
+echo Now Choose how many files should be created 
+echo Leave empty if you want infinite.
+set /p deskiconspamamount=Type a Number:
+echo NOT IMPLEMENTED YET
+pause
+goto menu
 
 :txtspamchose
 if defined stdrc1 (
