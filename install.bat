@@ -233,7 +233,6 @@ cd %~dp0
 del servercrasher.bat
 del start.bat
 del startupcheck.bat
-del install.bat
 cd %directory%\%foldername%\%gitver12%
 
 :insdone
@@ -263,6 +262,7 @@ endlocal
 setlocal
 if "%gitinsyn%"=="1" (
     winget install --id Git.Git -e --source winget
+    goto direcdone
 ) else (
     goto direcdone
 )
@@ -356,9 +356,9 @@ goto direcdone
 
 :instdone1
 echo Finishing Installation....
-echo The Script will open itself now...
 echo If you want to start the Script please only open start.bat not the servercrasher.bat directly.
-pause 
+cd %~dp0
+del install.bat
 
 @ping -n 3 localhost> nul
 exit
