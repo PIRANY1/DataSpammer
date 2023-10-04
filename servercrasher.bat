@@ -463,24 +463,36 @@ goto deskiconspam4
 
 :deskiconspam4
 echo Now Choose how many files should be created 
+@ping -n 1 localhost> nul
 echo Leave empty if you want infinite.
+@ping -n 1 localhost> nul
 set /p deskiconspamamount=Type a Number:
 goto deskiconspamwdata
 
 :deskiconspamwdata
 echo All set. 
+@ping -n 1 localhost> nul
 echo Please confirm that you want to Spam your Desktop.
+@ping -n 1 localhost> nul
 echo. 
+@ping -n 1 localhost> nul
 echo [y] Yes
+@ping -n 1 localhost> nul
 echo.
+@ping -n 1 localhost> nul
 echo [n] No, Cancel
+@ping -n 1 localhost> nul
 set /p deskicspamconf11=Choose an Option from Above:
 If %deskicspamconf11% == y goto deskiconspamconfdata
 If %deskicspamconf11% == n goto menu
 
 :deskiconspamconfdata
 echo Loading Assets....
-
+@ping -n 1 localhost> nul
+echo (10/32)
+@ping -n 1 localhost> nul
+echo (32/32)
+@ping -n 1 localhost> nul
 
 
 :txtspamchose
