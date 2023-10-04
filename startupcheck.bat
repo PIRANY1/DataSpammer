@@ -63,4 +63,3 @@ servercrasher.bat
 :openanyways
 set "noerror2=10000"
 servercrasher.bat
-

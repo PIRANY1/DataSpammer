@@ -434,13 +434,13 @@ echo [2] Go Back
 echo.
 echo.
 set /p menu1877=Choose an Option from Above:
-If %menu1877% == 1 goto start
-If %menu1877% == 2 goto deskiconspam1
+If %menu1877% == 2 goto start
+If %menu1877% == 1 goto deskiconspam1
 
 :deskiconspam1
-echo How Should the File be named?
+echo How Should the Files be named?
 @ping -n 1 localhost> nul
-echo The filename cant include one of the following Character(s):\ / : * ? " < > |"
+echo The Filename cant include one of the following Character(s):\ / : * ? " < > |"
 @ping -n 1 localhost> nul
 set /p deskiconspamname=Choose a Filename:
 goto deskiconspam2
@@ -487,13 +487,47 @@ If %deskicspamconf11% == y goto deskiconspamconfdata
 If %deskicspamconf11% == n goto menu
 
 :deskiconspamconfdata
-echo Loading Assets....
+set "assetcount=1"
+:assetcounttop
+color 02
 @ping -n 1 localhost> nul
-echo (10/32)
-@ping -n 1 localhost> nul
-echo (32/32)
-@ping -n 1 localhost> nul
+echo Loading Assets(%assetcount%/32)
+set /a "assetcount+=1"
+If %assetcount% == 33 (goto deskiconspamsetdonestart) else (goto assetcounttop)
 
+
+:deskiconspamsetdonestart
+cls
+color 02
+echo The Desktopiconspammer is about to start....
+@ping -n 2 localhost> nul
+echo 3 Seconds Left
+echo If you want to stop this, Simply close the CMD-Window
+@ping -n 2 localhost> nul
+echo 2 Seconds Left
+@ping -n 2 localhost> nul
+echo 1 Seconds Left
+@ping -n 1 localhost> nul
+echo Starting.....
+cd %userprofile%\Desktop
+If not defined %deskiconspamamount% (goto infinitespam) else (goto limitedspam)
+
+exit
+:infinitespam
+:deskspamtop
+echo %deskiconspamcontent% > %deskiconspamname%.%deskiconspamformat%
+goto deskspamtop
+exit
+
+:limitedspam
+color 02
+set "deskspamlimitedvar=0"
+:limitedspam1
+If %deskspamlimitedvar% == %deskiconspamamount% (goto done) else (goto limitedspam1)
+echo Created deskspamlimitedvar File(s)
+echo %deskiconspamcontent% > %deskiconspamname%%deskspamlimitedvar%.%deskiconspamformat%
+set /a "deskspamlimitedvar+=1"
+goto limitedspam1
 
 :txtspamchose
 if defined stdrc1 (
