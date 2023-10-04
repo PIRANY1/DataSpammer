@@ -465,9 +465,19 @@ goto deskiconspam4
 echo Now Choose how many files should be created 
 echo Leave empty if you want infinite.
 set /p deskiconspamamount=Type a Number:
-echo NOT IMPLEMENTED YET
-pause
-goto menu
+goto deskiconspamwdata
+
+:deskiconspamwdata
+echo All set. 
+echo Please confirm that you want to Spam your Desktop.
+echo. 
+echo [y] Yes
+echo.
+echo [n] No, Cancel
+set /p deskicspamconf11=Choose an Option from Above:
+If %deskicspamconf11% == y goto deskiconspamconfdata
+If %deskicspamconf11% == n goto menu
+
 
 :txtspamchose
 if defined stdrc1 (
