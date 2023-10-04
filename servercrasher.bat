@@ -478,6 +478,10 @@ set /p deskicspamconf11=Choose an Option from Above:
 If %deskicspamconf11% == y goto deskiconspamconfdata
 If %deskicspamconf11% == n goto menu
 
+:deskiconspamconfdata
+echo Loading Assets....
+
+
 
 :txtspamchose
 if defined stdrc1 (
