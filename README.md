@@ -29,10 +29,9 @@ Every Version is supported but only the newest one is guaranteed to have zero or
 If you encountered a Glitch/Bug/Vulnerability please create an [Issue](https://github.com/PIRANY1/DataSpammer/issues)
 
 # Credits
-## ASCII-Art
 [TAAG](https://patorjk.com/software/taag/)
-
-Note: Dont use [ChatGTP](chat.openai.com)
+[jq](https://jqlang.github.io/jq/)
+[Scoop](https://scoop.sh/#/)
 
 # License
 Use only under the following License
