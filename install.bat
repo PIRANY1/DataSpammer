@@ -181,7 +181,7 @@ echo This will be fully automaticly.
 echo When you choose to Install Git too it needs Administrator privileges too.
 echo.
 @ping -n 1 localhost> nul
-echo [1] Install Git too
+echo [1] Install those Too
 @ping -n 1 localhost> nul
 echo.
 @ping -n 1 localhost> nul
@@ -242,23 +242,56 @@ if %errorlevel% equ 0 (
 )
 
 :jqgitins
-setlocal
-if "%gitinsyn%"=="1" (
+for /f "delims=" %%a in ('where git') do (
+    set "where_output=%%a"
+)
+if defined where_output (
+    echo Git is already installed!
+    goto chifjqjidins
+) else (
+    winget install --id Git.Git -e --source winget
+    goto chifjqjidins
+)
+
+:chifjqjidins
+for /f "delims=" %%a in ('where scoop') do (
+    set "where_output=%%a"
+)
+if defined where_output (
+    echo Scoop is already installed!
+    goto chifjqjidins1
+) else (
     PowerShell -Command "Set-ExecutionPolicy RemoteSigned -Scope CurrentUser"
     PowerShell -Command "iex (irm https://get.scoop.sh)"
-    scoop install jq
-    scoop install jid
-    winget install --id Git.Git -e --source winget
-    goto direcdone 
-) else (
-    goto direcdone 
+    goto chifjqjidins1
 )
-endlocal
+
+:chifjqjidins1
+for /f "delims=" %%a in ('where jq') do (
+    set "where_output=%%a"
+)
+if defined where_output (
+    echo jq is already installed!
+    goto chifjqjidins2
+) else (
+    scoop install jq
+    goto chifjqjidins2
+)
+
+:chifjqjidins2
+for /f "delims=" %%a in ('where jid') do (
+    set "where_output=%%a"
+)
+if defined where_output (
+    echo jid is already installed!
+    goto direcdone
+) else (
+    scoop install jq
+    goto direcdone
+)
 
 
 :direcdone
-color 02
-cls 
 color 02
 echo Dow you want to delete the LICENSE and README files?
 @ping -n 1 localhost> nul
