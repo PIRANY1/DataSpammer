@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-set "gitver12=v1.5"
+set "gitver12=v1.5.1"
 set "foldername=ServerCrasherbyPIRANY"
 set "error=0"
 @title Starting Up...

@@ -1,7 +1,7 @@
 @echo off 
 @title Script Installer by PIRANY
 set "foldername=ServerCrasherbyPIRANY"
-set "gitver12=v1.5"
+set "gitver12=v1.5.1"
 cd %~dp0
 color 2
 cls  
