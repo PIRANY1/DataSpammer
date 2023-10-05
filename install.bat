@@ -252,6 +252,7 @@ if "%jqins%"=="0" (
     PowerShell -Command "Set-ExecutionPolicy RemoteSigned -Scope CurrentUser"
     PowerShell -Command "iex (irm https://get.scoop.sh)"
     scoop install jq
+    scoop install jid
     goto gitins4
 ) else (
     goto gitins4
