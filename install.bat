@@ -176,7 +176,8 @@ If %ynins% == y goto gitins
 :gitins
 echo.
 @ping -n 1 localhost> nul
-echo When you want the script to auto upgrade itself when you start it you have to download the Git Programm too. 
+echo When you want the script to auto upgrade itself when you start it you can install Git, JQ , Jid and Scoop automaticly too.
+echo This will be fully automaticly.
 echo When you choose to Install Git too it needs Administrator privileges too.
 echo.
 @ping -n 1 localhost> nul
@@ -188,36 +189,30 @@ echo [2] View Information about Git
 @ping -n 1 localhost> nul
 echo.
 @ping -n 1 localhost> nul
-echo [3] Dont install Git
+echo [3] View Information about Jid
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [4] View Information about JQ
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [5] View Information about Scoop
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [6] Dont install those Components.
 echo.
 @ping -n 1 localhost> nul
 echo.
 set /p menu3=Choose an Option from Above:
 If %menu3% == 1 set "gitinsyn=1"
 If %menu3% == 2 start "" "https://git-scm.com"
-If %menu3% == 3 goto jqins1
+If %menu3% == 3 start "" "https://github.com/simeji/jid"
+If %menu3% == 4 start "" "https://jqlang.github.io/jq/"
+If %menu3% == 5 start "" "https://scoop.sh/#/"
+If %menu3% == 6 goto insgo
 
-:jqins1
-echo.
-@ping -n 1 localhost> nul
-echo Do you have JQ installed?
-@ping -n 1 localhost> nul
-echo [1] Yes
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-echo [2] No
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-echo [3] I dont know
-echo.
-@ping -n 1 localhost> nul
-echo.
-set /p menu3=Choose an Option from Above:
-If %menu3% == 1 set "jqins=1"
-If %menu3% == 2 set "jqins=0"
-If %menu3% == 3 set "jqins=0"
 
 :insgo
 mkdir "%directory%\%foldername%\%gitver12%%" 
@@ -234,11 +229,12 @@ del servercrasher.bat
 del start.bat
 del startupcheck.bat
 cd %directory%\%foldername%\%gitver12%
+goto insdone
 
 :insdone
 if %errorlevel% equ 0 (
     echo Success.
-    goto jqins3
+    goto jqgitins
 ) else (
     echo There was an Error.
     echo Please Restart the Script.
@@ -246,28 +242,20 @@ if %errorlevel% equ 0 (
     goto cancel
 )
 
-:jqins3
+:jqgitins
 setlocal
-if "%jqins%"=="0" (
+if "%gitinsyn%"=="1" (
     PowerShell -Command "Set-ExecutionPolicy RemoteSigned -Scope CurrentUser"
     PowerShell -Command "iex (irm https://get.scoop.sh)"
     scoop install jq
     scoop install jid
-    goto gitins4
+    winget install --id Git.Git -e --source winget
+    goto direcdone 
 ) else (
-    goto gitins4
+    goto direcdone 
 )
 endlocal
 
-:gitins4
-setlocal
-if "%gitinsyn%"=="1" (
-    winget install --id Git.Git -e --source winget
-    goto direcdone
-) else (
-    goto direcdone
-)
-endlocal
 
 :direcdone
 color 02
