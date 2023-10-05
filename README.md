@@ -15,11 +15,15 @@ More functions coming soon!
 
 Every Version is supported but only the newest one is guaranteed to have zero or few Issues/Bugs/Glitches
 
-| Version | Supported          |Comments                |
-| ------- | ------------------ |----------------------- |
-| 5.0.0   | :x:                |                        |
-| 5.0.1   | :x:                |                        |
-| 5.1.0.  | :white_check_mark: | ASCII Art breaks input |
+|Version | Supported          |Comments                |
+|------- | ------------------ |----------------------- |
+|v1.0  | :x:|None|
+|v1.0.1| :x:|ASCII Art breaks input|
+|v1.1|:x:|Updater first introduced but not working|
+|v1.2|:x:|Desktop Icon Introduced, Updater not working,|
+|v1.3|:x:|New Installer Options| 
+|v1.4|:x:|Updater done, but has some errors still| 
+|v1.5|✅| Updater done has one error, Desktop Icons done.|
 
 ## Reporting a Bug
 If you encountered a Glitch/Bug/Vulnerability please create an [Issue](https://github.com/PIRANY1/DataSpammer/issues)
