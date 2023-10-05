@@ -207,12 +207,11 @@ echo.
 echo.
 set /p menu3=Choose an Option from Above:
 If %menu3% == 1 set "gitinsyn=1"
-If %menu3% == 2 start "" "https://git-scm.com"
-If %menu3% == 3 start "" "https://github.com/simeji/jid"
-If %menu3% == 4 start "" "https://jqlang.github.io/jq/"
-If %menu3% == 5 start "" "https://scoop.sh/#/"
+If %menu3% == 2 start "" "https://git-scm.com" | goto gitins
+If %menu3% == 3 start "" "https://github.com/simeji/jid" | goto gitins
+If %menu3% == 4 start "" "https://jqlang.github.io/jq/" | goto gitins
+If %menu3% == 5 start "" "https://scoop.sh/#/" | goto gitins
 If %menu3% == 6 goto insgo
-
 
 :insgo
 mkdir "%directory%\%foldername%\%gitver12%%" 
