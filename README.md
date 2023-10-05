@@ -31,8 +31,10 @@ If you encountered a Glitch/Bug/Vulnerability please create an [Issue](https://g
 # Credits
 [TAAG](https://patorjk.com/software/taag/)
 .
+
 [jq](https://jqlang.github.io/jq/)
 .
+
 [Scoop](https://scoop.sh/#/)
 .
 
