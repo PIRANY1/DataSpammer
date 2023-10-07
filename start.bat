@@ -1,8 +1,8 @@
 @echo off
+:topppp
 setlocal enabledelayedexpansion
 set "gitver12=v1.5.1"
 set "foldername=ServerCrasherbyPIRANY"
-set "error=0"
 @title Starting Up...
 echo Starting Up....
 echo Checking for Files...
@@ -103,12 +103,13 @@ If %menu3% == 2 goto done
 If %menu3% == 1 start "" "https://github.com/PIRANY1/DataSpammer"
 
 :done 
-
-rem ------------------------------------------------------------
-
+set "seclaypart=true"
+rem -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 :PARTSTUPCCK
+if %seclaypart% == true (goto seclaytr) else (goto topppp)
+
+:seclaytr
 setlocal enabledelayedexpansion
-set "error=0"
 color 02
 echo Checking for Data...
 :noerr
