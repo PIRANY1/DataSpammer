@@ -1,10 +1,15 @@
 @echo off
 @title Data Spammer
 color 2
-if NOT defined noerror (start.bat) else (if NOT defined noerror2 (start.bat) else (goto :noerr))
-settingsmainscriptvar=1
-if %settingsmainscriptvar% == 1 goto setting
+if "%noerror2%" == "true" (
+    goto noerr
+) else (
+    start.bat
+)
+
 :noerr
+if "%settingsmainscriptvar%" == "1" goto setting
+
 SETLOCAL EnableDelayedExpansion
 SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
 SETLOCAL DisableDelayedExpansion
