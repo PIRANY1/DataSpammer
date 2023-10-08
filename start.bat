@@ -17,13 +17,9 @@ if not exist "start.bat" (
         if not exist "servercrasher.bat" (
         goto Error
         ) else (
-        if not exist "startupcheck.bat" (
-            goto Error
-            ) else (  
-            echo Files are Ok
-            echo Checking For Updates
-            goto gitvercheck
-            )
+        echo Files are Ok
+        echo Checking For Updates
+        goto gitvercheck    
         )  
     ) 
 )
