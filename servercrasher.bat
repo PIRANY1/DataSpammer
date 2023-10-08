@@ -415,7 +415,7 @@ echo [2] Desktop Icon Spam
 @ping -n 1 localhost> nul
 echo.
 @ping -n 1 localhost> nul
-echo [3] More Coming soon..
+echo [3] Go Back
 @ping -n 1 localhost> nul
 echo.
 @ping -n 1 localhost> nul
@@ -424,7 +424,7 @@ set /p spammethod=Choose an Option from Above:
 
 If %spammethod% == 1 goto txtspamchose
 If %spammethod% == 2 goto deskiconspam
-If %spammethod% == 3 goto start
+If %spammethod% == 3 goto menu
 
 
 :deskiconspam
@@ -459,7 +459,7 @@ echo How Should the Files be named?
 @ping -n 1 localhost> nul
 echo The Filename cant include one of the following Character(s):\ / : * ? " < > |"
 @ping -n 1 localhost> nul
-set /p deskiconspamname=Choose a Filename:
+set /p "deskiconspamname=Choose a Filename:"
 goto deskiconspam2
 
 :deskiconspam2
@@ -469,13 +469,13 @@ echo If you are not sure type txt
 @ping -n 1 localhost> nul
 echo Please not include the dot
 @ping -n 1 localhost> nul
-set /p deskiconspamformat=Choose the Format:
+set /p "deskiconspamformat=Choose the Format:"
 goto deskiconspam3
 
 :deskiconspam3
 echo Now Choose the Content the File should include
 @ping -n 1 localhost> nul
-set /p deskiconspamcontent=Type something in:
+set /p "deskiconspamcontent=Type something in:"
 goto deskiconspam4
 
 :deskiconspam4
@@ -483,7 +483,7 @@ echo Now Choose how many files should be created
 @ping -n 1 localhost> nul
 echo Leave empty if you want infinite.
 @ping -n 1 localhost> nul
-set /p deskiconspamamount=Type a Number:
+set /p "deskiconspamamount=Type a Number:"
 goto deskiconspamwdata
 
 :deskiconspamwdata
@@ -527,7 +527,11 @@ echo 1 Seconds Left
 @ping -n 1 localhost> nul
 echo Starting.....
 cd %userprofile%\Desktop
-If not defined %deskiconspamamount% (goto infinitespam) else (goto limitedspam)
+if not defined deskiconspamamount (
+    goto infinitespam
+) else (
+    goto limitedspam
+)
 
 exit
 :infinitespam
@@ -538,10 +542,11 @@ exit
 
 :limitedspam
 color 02
-set "deskspamlimitedvar=0"
+set "deskspamlimitedvar=1"
 :limitedspam1
-If %deskspamlimitedvar% == %deskiconspamamount% (goto done) else (goto limitedspam1)
-echo Created deskspamlimitedvar File(s)
+If %deskspamlimitedvar% == %deskiconspamamount% (goto done2) else (goto limitedspam2)
+:limitedspam2
+echo Created %deskspamlimitedvar% File(s)
 echo %deskiconspamcontent% > %deskiconspamname%%deskspamlimitedvar%.%deskiconspamformat%
 set /a "deskspamlimitedvar+=1"
 goto limitedspam1
@@ -672,16 +677,14 @@ if %x% equ %filecount% (
 )
 cls
 
-:done 
+:done
 echo.
-%$Echo% " 
 %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
 %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
 %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
 %$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
 %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
-%$Echo% "                             |_|                                              |___/                                     
-%$Echo% "                                                                                                 
+%$Echo% "                             |_|                                              |___/                                                                                                                                     
 
 @ping -n 1 localhost> nul
 echo.
@@ -709,15 +712,48 @@ set /p menu9=Choose an Option from Above:
 If %menu9% == 1 goto cancel
 If %menu9% == 2 goto menu
 
+:done2
+echo.
+%$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
+%$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
+%$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
+%$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
+%$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
+%$Echo% "                             |_|                                              |___/                                     
+                                                                                              
 
-
-
-
-
-
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo The Script Created %deskspamlimitedvar% Files.
+echo.
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo Do you want to Close the Script or Go to the Menu?
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [1] Close
+echo.
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [2] Menu
+echo.
+@ping -n 1 localhost> nul
+set /p menu9=Choose an Option from Above:
+If %menu9% == 1 goto cancel
+If %menu9% == 2 goto menu
 
 
 
 :cancel 
 exit
 exit
+
+:dtd
+set /p dtd1=.:.
+%dtd1%
