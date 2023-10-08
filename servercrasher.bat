@@ -86,7 +86,7 @@ If %menu1% == 7 goto checkgitupdt
 
 
 :checkgitupdt
-rem Check for update
+echo Fetching Git
 
 
 :info

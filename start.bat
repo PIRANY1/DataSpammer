@@ -1,11 +1,12 @@
 @echo off
 :topppp
 setlocal enabledelayedexpansion
-set "gitver12=v1.5.1"
+set "gitver12=v1.5.2"
 set "foldername=ServerCrasherbyPIRANY"
 @title Starting Up...
 echo Starting Up....
 echo Checking for Files...
+
 
 if not exist "start.bat" (
     goto Error
@@ -19,7 +20,9 @@ if not exist "start.bat" (
         if not exist "startupcheck.bat" (
             goto Error
             ) else (  
-            goto start
+            echo Files are Ok
+            echo Checking For Updates
+            goto gitvercheck
             )
         )  
     ) 
@@ -27,12 +30,13 @@ if not exist "start.bat" (
 
 
 
-:start
-setlocal enabledelayedexpansion 
+
+:gitvercheck
+:set_version
 set "owner=PIRANY1"
 set "repo=DataSpammer"
 set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
-echo Getting Git Url....
+echo Fetching Git Url....
 @ping -n 1 localhost> nul
 for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do (
     set "latest_version=%%i"
@@ -41,12 +45,18 @@ echo Script Version is %gitver12%
 @ping -n 1 localhost> nul
 echo Scanning for Newest Version....
 @ping -n 1 localhost> nul
-if %latest_version% == %gitver12% (goto UpToDate) else (goto gitverout)
+
+if %latest_version% == v1.5.2 (
+    goto UpToDate
+) else (
+    goto gitverout
+)
 
 :UpToDate
 @ping -n 1 localhost> nul
 echo The Version you are currently Using is the newest one (%latest_version%)
 goto done
+
 
 :gitverout
 echo.
@@ -122,7 +132,7 @@ if not exist "stdrcch.txt" (
         if not exist "instdone.txt" (
         goto Error
         ) else (
-            goto start   
+            goto start1   
         )  
     ) 
 )
@@ -150,7 +160,7 @@ echo [3] Open the Script anyways
 set /p menu=Choose an Option from Above:
 If %menu% == 1 goto openins
 If %menu% == 2 exit
-If %menu% == 3 goto openanyways
+If %menu% == 3 goto start1
 
 :openins
 cd %~dp0
@@ -163,11 +173,6 @@ if %errorlevel% equ 0 (
     echo There was an Error. Please open the install.bat File manually.
 )
 
-:start
+:start1
 set "noerror2=10000"
 servercrasher.bat
-
-:openanyways
-set "noerror2=10000"
-servercrasher.bat
-
