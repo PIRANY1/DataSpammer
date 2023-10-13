@@ -5,7 +5,7 @@ set "gitver12=v1.6"
 @title Starting Up...
 echo Checking for Files...
 if not exist "start.bat" (
-    set "errorlvlstart=1"#
+    set "errorlvlstart=1"
 		goto Error
 ) else (
     if not exist "install.bat" (
@@ -76,7 +76,9 @@ install.bat
 
 
 :Error 
-echo There was an Error. There are important Files missing.
+if %errorlvlstart% == 1 echo Error: start.bat isnt in the Directory.
+if %errorlvlstart% == 2 echo Error: install.bat isnt in the Directory
+if %errorlvlstart% == 3 echo Error: The Main Script isnt in the Directory.
 @ping -n 1 localhost> nul
 echo.
 @ping -n 1 localhost> nul
