@@ -31,7 +31,9 @@ Every Version is supported but only the newest one is guaranteed to have zero or
 |v1.4|:x:|Updater done, but has some errors still| 
 |v1.5|✅| Updater done has one error, Desktop Icons done.|
 |v1.5.1|:x:| Has a Bug|
-|v1.5.2|✅|Works but may have a bug|
+|v1.5.2|:x:|
+|v1.5.3|:x:|
+|v1.6|✅| Desktop Spam is working now. Has Improvements too.|
 
 ## Reporting a Bug
 If you encountered a Glitch/Bug/Vulnerability please create an [Issue](https://github.com/PIRANY1/DataSpammer/issues)
