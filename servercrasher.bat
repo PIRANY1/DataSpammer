@@ -403,6 +403,19 @@ goto autostartdeskic
 
 
 :start
+cls
+set "verify=%random%"
+echo Please Verify that you want to use a Spam Method.
+echo Please have in Mind that this can make your Installation Unusable.
+echo Please enter %verify% in the Field Below
+set /p verifyans=Type %verify%:
+if "%verifyans%"=="%verify%" (
+    goto start187
+) else (
+    goto start
+)
+
+:start187
 echo Choose the Method you want to use:
 @ping -n 1 localhost> nul
 echo.

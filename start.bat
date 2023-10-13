@@ -1,7 +1,7 @@
 @echo off
 :topppp
 setlocal enabledelayedexpansion
-set "gitver12=v1.6"
+set "gitver12=v1.7"
 @title Starting Up...
 echo Checking for Files...
 if not exist "start.bat" (
