@@ -107,12 +107,15 @@ echo Opening....
 :seclaytr
     echo Checking for Data...
     if not exist "stdrcch.txt" (
+        set "errorlvlstart2=1"
         goto Error1
     ) else (
         if not exist "stdfil.txt" (
+            set "errorlvlstart2=2"
             goto Error1
         ) else (
             if not exist "instdone.txt" (
+                set "errorlvlstart2=3"
                 goto Error1
             ) else (
                 goto start1
@@ -122,11 +125,14 @@ echo Opening....
 
 :error1
     cls
-    echo There was an Error. 
+    if %errorlvlstart% == 1 echo Error Code 15
+    if %errorlvlstart% == 2 echo Error Code 16
+    if %errorlvlstart% == 3 echo Error Code 17
+    echo Please view README.md for more Details about Error Codes.
     @ping -n 1 localhost> nul
     echo Please consider rerunning the installer to make sure the script can run accurately.
     @ping -n 1 localhost> nul
-    echo Do you want to reinstall the Script or do you want to cancel?
+    echo Do you want to reinstall the Script or do you want to open the Script anyways?
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul

@@ -48,18 +48,24 @@ If you encountered a Glitch/Bug/Vulnerability please create an [Issue](https://g
 
 # Error
 
-## Error Code 12
-This means that the Script cant Start and you may have deleted the File after you opened it.
-
-## Error Code 13
-This is not that bad but you cant reinstall or delete the Script. It can work tho.
-
-## Error Code 14
-This means that the Main Script was deleted. 
-
-## Fixing Errors
+## Fixing Errors 12, 13, 14
 First, make sure all files (start.bat, install.bat, servercrasher.bat) are in the same Directory. 
 If one of the Files is missing please redownload the Script. 
+
+### Error Code 12
+This means that the Script cant Start and you may have deleted the File after you opened it.
+
+### Error Code 13
+This is not that bad but you cant reinstall or delete the Script. It can work tho.
+
+### Error Code 14
+This means that the Main Script was deleted. 
+
+## Fixing Errors 15, 16, 17
+Simply reinstall the Script or check if all files are in the same Directory.
+
+### Error Code 15, 16, 17
+One of the .txt Files is missing.
 
 # License
 Use only under the following License
