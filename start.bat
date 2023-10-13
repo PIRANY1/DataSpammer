@@ -2,20 +2,19 @@
 :topppp
 setlocal enabledelayedexpansion
 set "gitver12=v1.6"
-set "foldername=ServerCrasherbyPIRANY"
 @title Starting Up...
-echo Starting Up....
 echo Checking for Files...
-
-
 if not exist "start.bat" (
-    goto Error
+    set "errorlvlstart=1"#
+		goto Error
 ) else (
     if not exist "install.bat" (
-    goto Error
+		set "errorlvlstart=2"
+		goto Error
     ) else (
         if not exist "servercrasher.bat" (
-        goto Error
+				set "errorlvlstart=3"
+				goto Error
         ) else (
         echo Files are Ok
         echo Checking For Updates
@@ -23,10 +22,6 @@ if not exist "start.bat" (
         )  
     ) 
 )
-
-
-
-
 :gitvercheck
 :set_version
 set "owner=PIRANY1"
