@@ -232,6 +232,7 @@ goto insdone
 :insdone
 if %errorlevel% equ 0 (
     echo Success.
+    cls
     goto jqgitins
 ) else (
     echo There was an Error.
@@ -239,9 +240,12 @@ if %errorlevel% equ 0 (
     pause
     goto cancel
 )
-updt.txt
 :jqgitins
-if %gitinsyn% == 1 (goto jqgitins) else (goto direcdone)
+if defined "gitinsyn" (
+    goto jqgitins1
+) else (
+    goto direcdone
+)
 :jqgitins1
 for /f "delims=" %%a in ('where git') do (
     set "where_output=%%a"
