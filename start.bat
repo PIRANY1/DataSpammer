@@ -17,8 +17,7 @@ if not exist "start.bat" (
 				goto Error
         ) else (
         echo Files are Ok
-        echo Checking For Updates
-        goto gitvercheck    
+        if exist "updt.txt" (echo Checking For Updates | goto gitvercheck) else (goto seclaytr)
         )  
     ) 
 )

@@ -239,8 +239,10 @@ if %errorlevel% equ 0 (
     pause
     goto cancel
 )
-
+updt.txt
 :jqgitins
+if %gitinsyn% == 1 (goto jqgitins) else (goto direcdone)
+:jqgitins1
 for /f "delims=" %%a in ('where git') do (
     set "where_output=%%a"
 )
@@ -286,6 +288,7 @@ if defined where_output (
     goto direcdone
 ) else (
     scoop install jq
+    echo. > "updt.txt"
     goto direcdone
 )
 
