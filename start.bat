@@ -101,7 +101,8 @@ If %menu3% == 3 goto readmeopen
 
 :readmeopen
 echo Opening....
-
+start "" "https://github.com/PIRANY1/DataSpammer/blob/main/README.md"
+goto Error
 
 :seclaytr
     echo Checking for Data...
