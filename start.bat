@@ -76,9 +76,10 @@ install.bat
 
 
 :Error 
-if %errorlvlstart% == 1 echo Error: start.bat isnt in the Directory.
-if %errorlvlstart% == 2 echo Error: install.bat isnt in the Directory
-if %errorlvlstart% == 3 echo Error: The Main Script isnt in the Directory.
+if %errorlvlstart% == 1 echo Error Code 12
+if %errorlvlstart% == 2 echo Error Code 13
+if %errorlvlstart% == 3 echo Error Code 14
+echo View README.md for more Details.
 @ping -n 1 localhost> nul
 echo.
 @ping -n 1 localhost> nul
@@ -90,9 +91,17 @@ echo [2] Continue Anyways(Script has a very high Chance of not working)
 @ping -n 1 localhost> nul
 echo.
 @ping -n 1 localhost> nul
+echo [3] GitHub Error Info
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
 set /p menu3=Choose an Option from Above:
 If %menu3% == 2 goto seclaytr
 If %menu3% == 1 start "" "https://github.com/PIRANY1/DataSpammer"
+If %menu3% == 3 goto readmeopen
+
+:readmeopen
+echo Opening....
 
 
 :seclaytr

@@ -5,6 +5,12 @@ Dont Change any Filenames or text inside the files.
 No Liability.
 Only Private Use.
 
+# Install
+Git:
+```
+git clone https://github.com/PIRANY1/DataSpammer
+```
+Otherwise please download the latest Release.
 # Beta
 At the Moment this Script has 1 function and only the interface/ui is done.
 More functions coming soon!
@@ -39,6 +45,21 @@ If you encountered a Glitch/Bug/Vulnerability please create an [Issue](https://g
 
 [Scoop](https://scoop.sh/#/)
 .
+
+# Error
+
+## Error Code 12
+This means that the Script cant Start and you may have deleted the File after you opened it.
+
+## Error Code 13
+This is not that bad but you cant reinstall or delete the Script. It can work tho.
+
+## Error Code 14
+This means that the Main Script was deleted. 
+
+## Fixing Errors
+First, make sure all files (start.bat, install.bat, servercrasher.bat) are in the same Directory. 
+If one of the Files is missing please redownload the Script. 
 
 # License
 Use only under the following License
