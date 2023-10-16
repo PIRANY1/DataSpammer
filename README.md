@@ -65,10 +65,10 @@ This is not that bad but you cant reinstall or delete the Script. It can work th
 This means that the Main Script was deleted. 
 
 ## Fixing Errors 15, 16, 17
-Simply reinstall the Script or check if all files are in the same Directory.
+If you run install.bat it should be fixed
 
-### Error Code 15, 16, 17
-One of the .txt Files is missing.
+### Error Code 15
+Installer probably didnt run or Settings.txt isnt existing
 
 # License
 Use only under the following License
