@@ -14,22 +14,20 @@ SETLOCAL EnableDelayedExpansion
 SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
 SETLOCAL DisableDelayedExpansion
 
-:getvar
 setlocal enabledelayedexpansion
-set "stdrc1="
-for /f "usebackq delims=" %%a in ("%~dp0\stdrcch.txt") do (
-    set "zeile=%%a"
-    set "stdrc1=!text!!zeile!"
+set "file=settings.txt"
+set nr=0
+for /l %%i in (1,1,100) do (
+    set "line%%i="
 )
-endlocal
-:getvar2
-setlocal enabledelayedexpansion
-set "stdfile="
-for /f "usebackq delims=" %%a in ("%~dp0\stdfil.txt") do (
-    set "zeile1=%%a"
-    set "stdfile=!text!!zeile!"
+for /f "delims=" %%a in (%file%) do (
+    set /a "nr+=1"
+    set "line!nr!=%%a"
 )
-endlocal
+set "insdonevar1=!line1!"
+set "stdfil1=!line2!"
+set "stdrcch1=!line3!"
+
 :menu
 cls
 %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
@@ -88,7 +86,7 @@ If %menu1% == 4 goto credits
 If %menu1% == 5 goto setting
 If %menu1% == 6 goto autostartdeskic
 If %menu1% == 7 goto checkgitupdt
-
+goto menu
 
 :checkgitupdt
 set "owner=PIRANY1"
@@ -97,7 +95,7 @@ set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
 echo Fetching Git Url....
 @ping -n 1 localhost> nul
 for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do (set "latest_version=%%i")
-if %latest_version% == v1.5.3 (goto UpToDate) else (start.bat)
+if %latest_version% == v2 (goto UpToDate) else (start.bat)
 
 :UpToDate
 @ping -n 1 localhost> nul
@@ -133,6 +131,7 @@ echo.
 set /p menu2=Choose an Option from Above:
 If %menu2% == 1 goto menu
 If %menu2% == 2 goto cancel
+goto info
 
 :credits
 cls 
@@ -170,6 +169,7 @@ set /p menu3=Choose an Option from Above:
 If %menu3% == 1 goto menu
 If %menu3% == 3 goto cancel
 If %menu3% == 2 goto GitRepo
+goto credits
 
 :GitRepo
 cls 
@@ -221,17 +221,25 @@ set /p menu4=Choose an Option from Above:
 If %menu4% == 1 goto filenamechange
 If %menu4% == 2 goto stddirectorycrash
 If %menu4% == 3 goto menu
-
+goto setting
 
 :filenamechange
 cls 
 echo The Filename cant have the following Character(s):\ / : * ? " < > |"
 set /p mainfilename=Type in the Filename you want to use.
 setlocal enabledelayedexpansion
-set "filestdname=%~dp0\stdfil.txt"
-type nul > "%filestdname%"
-echo !mainfilename! > "%filestdname%"
-endlocal
+set "file=settings.txt"
+set "tmpfile=temp.txt"
+set linenumber=0
+(for /f "tokens=*" %%a in (!file!) do (
+    set /a "linenumber+=1"
+    if !linenumber! equ 2 (
+        echo !mainfilename!
+    ) else (
+        echo %%a
+    )
+)) > !tmpfile!
+move /y !tmpfile! !file!
 echo The Standart Filename was saved!
 cls
 goto setting
@@ -242,24 +250,26 @@ cls
 echo.
 echo.
 set /p directory0=Type Your Directory Here:
-
-cd %directory0%
-if %ERRORLEVEL% neq 0 (
-    echo There was an Error. Please check if the Directory is correct or retry later. 
-) else (
-    echo The Directory was Correct!
-    goto varcheckdone
-)
-
-:varcheckdone
 setlocal enabledelayedexpansion
-set "stdvarset=%~dp0\stdrcch.txt"
-type nul > "%stdvarset%"
-echo !directory0! > "%stdvarset%"
-endlocal
+set "setfile=settings.txt"
+set "tmpfile=temp.txt"
+set "lineCounter=0"
+
+(
+  for /f "tokens=*" %%a in (!setfile!) do (
+    set /a "lineCounter+=1"
+    if !lineCounter! equ 3 (
+      echo !directory0!
+    ) else (
+      echo %%a
+    )
+  )
+) > !tmpfile!
+move /y !tmpfile! !setfile!
 echo The Directory was saved!
 cls
 goto setting
+
 
 :autostartdeskic
 echo.
@@ -297,6 +307,8 @@ If %menu000% == 2 goto autostartdelete
 If %menu000% == 4 goto menu
 If %menu000% == 3 goto desktopicdel
 If %menu000% == 5 goto autostartdesktsett
+goto autostartdeskic
+
 :autostartsetup
 echo This Setup will lead you trough the Autostart/Desktopicon Setup.
 @ping -n 1 localhost> nul
@@ -325,6 +337,8 @@ If %menu123134% == 3 goto viewdocs
 If %menu123134% == 1 goto autostartsetupconfyy
 If %menu123134% == 4 goto autostart
 If %menu123134% == 2 goto desktopiconsetup
+goto autostartsetup
+
 :viewdocs 
 @ping -n 1 localhost> nul
 echo If you put for example Links or Programms into your Autostart Folder 
@@ -355,6 +369,7 @@ set /p viewdocsmenu=Choose an Option from above:
 If %viewdocsmenu% == 1 goto autostartsetup
 If %viewdocsmenu% == 2 goto desktopiconsetup
 If %viewdocsmenu% == 3 goto autostartsetupconfyy
+goto viewdocs
 
 :autostartdelete
 :echo Please provide the Letter of the Drive that has Windows installed. Often it is C but it can be for example G too
@@ -438,7 +453,7 @@ set /p spammethod=Choose an Option from Above:
 If %spammethod% == 1 goto txtspamchose
 If %spammethod% == 2 goto deskiconspam
 If %spammethod% == 3 goto menu
-
+goto start187
 
 :deskiconspam
 @ping -n 1 localhost> nul
@@ -466,6 +481,7 @@ echo.
 set /p menu1877=Choose an Option from Above:
 If %menu1877% == 2 goto start
 If %menu1877% == 1 goto deskiconspam1
+goto deskiconspam
 
 :deskiconspam1
 echo How Should the Files be named?
@@ -515,6 +531,7 @@ echo [n] No, Cancel
 set /p deskicspamconf11=Choose an Option from Above:
 If %deskicspamconf11% == y goto deskiconspamconfdata
 If %deskicspamconf11% == n goto menu
+goto deskiconspamwdata
 
 :deskiconspamconfdata
 set "assetcount=1"
@@ -645,6 +662,7 @@ echo If you choose No the script will run for eternity.
 set /p menu6=Yes[y]  No [n]:
 If %menu6% == y goto timerset
 If %menu6% == n goto cddone
+goto timerask
 
 :timerset 
 cls
@@ -724,6 +742,7 @@ echo.
 set /p menu9=Choose an Option from Above:
 If %menu9% == 1 goto cancel
 If %menu9% == 2 goto menu
+goto done
 
 :done2
 echo.
@@ -760,7 +779,7 @@ echo.
 set /p menu9=Choose an Option from Above:
 If %menu9% == 1 goto cancel
 If %menu9% == 2 goto menu
-
+goto done2
 
 
 :cancel 

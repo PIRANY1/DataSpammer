@@ -1,7 +1,7 @@
 @echo off 
 @title Script Installer by PIRANY
 set "foldername=ServerCrasherbyPIRANY"
-set "gitver12=v1.7"
+set "gitver12=v2"
 cd %~dp0
 color 2
 cls  
@@ -26,8 +26,7 @@ echo Update was Successful
 start.bat
 
 :instdone100
-rem New install poss
-if exist "instdone.txt" (
+if exist "settings.txt" (
     goto instdoneconf
 ) else (
     goto instmain
@@ -60,6 +59,8 @@ If %insdone123% == 1 start.bat
 If %insdone123% == 2 goto settingsmainscript
 If %insdone123% == 3 goto delscriptconf
 If %insdone123% == 4 goto instmain
+goto instdoneconf
+
 :delscriptconf
 echo. 
 @ping -n 1 localhost> nul
@@ -90,6 +91,8 @@ set /p delscrconf=Choose an Option from Above
 If %delscrconf% == 1 goto delscriptconfy
 If %delscrconf% == 2 goto githubrepo190
 If %delscrconf% == 3 goto instdone100
+goto delscriptconf
+
 
 :githubrepo190
 start "" "https://github.com/PIRANY1/DataSpammer"
@@ -112,13 +115,11 @@ del README.md
 echo 3/10 Files deleted
 @ping -n 1 localhost> nul
 echo 4/10 Files deleted
-del stdrcch.txt
 @ping -n 1 localhost> nul
 echo 5/10 Files deleted
-del stdfil.txt
 @ping -n 1 localhost> nul
 echo 6/10 Files deleted
-del instdone.txt
+del settings.txt
 @ping -n 1 localhost> nul
 echo 7/10 Files deleted
 del servercrasher.bat
@@ -171,6 +172,7 @@ echo Are you sure you want to run the installer and move the Files into the spec
 set /p ynins=[y]Yes [n]No:
 If %ynins% == n goto cancel
 If %ynins% == y goto gitins
+goto instmain
 
 :gitins
 echo.
@@ -219,9 +221,16 @@ xcopy "%~dp0\startupcheck.bat" "%directory%\%foldername%\%gitver12%%"
 xcopy "%~dp0\install.bat" "%directory%\%foldername%\%gitver12%%"   
 xcopy "%~dp0\start.bat" "%directory%\%foldername%\%gitver12%%"   
 cd %directory%\%foldername%\%gitver12%
-echo. > "instdone.txt"
-echo. > "stdfil.txt"
-echo. > "stdrcch.txt"
+setlocal enabledelayedexpansion
+set "insdonevar=insdone"
+set "stdfil=n.a"
+set "stdrcch=n.a"
+set "file=settings.txt"
+echo !insdonevar! >> %file%
+echo !stdfil! >> %file%
+echo !stdrcch! >> %file%
+echo Settings.txt was created.
+
 cd %~dp0
 del servercrasher.bat
 del start.bat
@@ -240,62 +249,69 @@ if %errorlevel% equ 0 (
     pause
     goto cancel
 )
+
 :jqgitins
-if defined "gitinsyn" (
+if defined gitinsyn (
     goto jqgitins1
 ) else (
     goto direcdone
 )
+
 :jqgitins1
 for /f "delims=" %%a in ('where git') do (
     set "where_output=%%a"
 )
 if defined where_output (
     echo Git is already installed!
-    goto chifjqjidins
 ) else (
     winget install --id Git.Git -e --source winget
-    goto chifjqjidins
 )
 
-:chifjqjidins
 for /f "delims=" %%a in ('where scoop') do (
     set "where_output=%%a"
 )
 if defined where_output (
     echo Scoop is already installed!
-    goto chifjqjidins1
 ) else (
     PowerShell -Command "Set-ExecutionPolicy RemoteSigned -Scope CurrentUser"
     PowerShell -Command "iex (irm https://get.scoop.sh)"
-    goto chifjqjidins1
 )
 
-:chifjqjidins1
 for /f "delims=" %%a in ('where jq') do (
     set "where_output=%%a"
 )
 if defined where_output (
     echo jq is already installed!
-    goto chifjqjidins2
 ) else (
     scoop install jq
-    goto chifjqjidins2
 )
 
-:chifjqjidins2
 for /f "delims=" %%a in ('where jid') do (
     set "where_output=%%a"
 )
 if defined where_output (
     echo jid is already installed!
-    goto direcdone
 ) else (
-    scoop install jq
-    echo. > "updt.txt"
-    goto direcdone
+    scoop install jid
 )
 
+:addupdcheck
+cd %directory%\%foldername%\%gitver12%
+set "line1=insdone"
+set "line2=notused"
+set "line3=notused"
+set "line4=uy"
+set "setfile=settings.txt"
+if exist !setfile! (
+    del !setfile!
+)
+(
+    echo !line1!
+    echo !line2!
+    echo !line3!
+    echo !line4!
+) > !setfile!
+goto direcdone
 
 :direcdone
 color 02
@@ -331,6 +347,7 @@ If %ynins1% == 2 goto listreadme
 If %ynins1% == 3 goto dellisence
 If %ynins1% == 4 goto delreadme
 If %ynins1% == 5 goto copyreadlic
+goto direcdone
 
 :copyreadlic
 xcopy "%~dp0\README.md" "%directory%\%foldername%\%gitver12%%"    

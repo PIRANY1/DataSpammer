@@ -1,9 +1,18 @@
 @echo off
 :topppp
 setlocal enabledelayedexpansion
-set "gitver12=v1.7"
+set "gitver12=v2"
 @title Starting Up...
 echo Checking for Files...
+echo Checking for Data...
+if not exist "settings.txt" (
+    set "errorlvlstart2=1"
+    goto Error1
+) else (
+    goto topppp2
+)
+
+:topppp2
 if not exist "start.bat" (
     set "errorlvlstart=1"
 		goto Error
@@ -17,11 +26,28 @@ if not exist "start.bat" (
 				goto Error
         ) else (
         echo Files are Ok
-        if exist "updt.txt" (echo Checking For Updates | goto gitvercheck) else (goto seclaytr)
+        goto updtsearch
         )  
     ) 
 )
+:updtsearch
+setlocal enabledelayedexpansion
+set "file=settings.txt"
+set "linenumber=4"
+set "varupdtcheck=0"
+
+for /f "tokens=1* delims=:" %%a in ('findstr /n "^" %file%') do (
+    if %%a equ %linenumber% (
+        set "line=%%b"
+        if "!line!" equ "uy" (
+            set "varupdtcheck=1"
+        )
+        goto :gitvercheck
+    )
+)
+
 :gitvercheck
+if defined %varupdtcheck% (goto set_version) else (goto seclaytr)
 :set_version
 set "owner=PIRANY1"
 set "repo=DataSpammer"
@@ -29,7 +55,7 @@ set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
 echo Fetching Git Url....
 @ping -n 1 localhost> nul
 for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do (set "latest_version=%%i")
-if %latest_version% == v1.6 (goto UpToDate) else (goto gitverout)
+if %latest_version% == v2 (goto UpToDate) else (goto gitverout)
 
 :UpToDate
 @ping -n 1 localhost> nul
@@ -62,6 +88,7 @@ echo.
 set /p menu4=Choose an Option from Above:
 If %menu4% == 1 goto gitupt
 If %menu4% == 2 goto seclaytr
+goto gitverout
 
 :gitupt
 cd ..
@@ -96,8 +123,13 @@ echo.
 @ping -n 1 localhost> nul
 set /p menu3=Choose an Option from Above:
 If %menu3% == 2 goto seclaytr
-If %menu3% == 1 start "" "https://github.com/PIRANY1/DataSpammer"
+If %menu3% == 1 goto gitopen
 If %menu3% == 3 goto readmeopen
+goto Error
+
+:gitopen
+start "" "https://github.com/PIRANY1/DataSpammer"
+goto Error
 
 :readmeopen
 echo Opening....
@@ -106,28 +138,16 @@ goto Error
 
 :seclaytr
     echo Checking for Data...
-    if not exist "stdrcch.txt" (
+    if not exist "settings.txt" (
         set "errorlvlstart2=1"
         goto Error1
     ) else (
-        if not exist "stdfil.txt" (
-            set "errorlvlstart2=2"
-            goto Error1
-        ) else (
-            if not exist "instdone.txt" (
-                set "errorlvlstart2=3"
-                goto Error1
-            ) else (
-                goto start1
-            )
-        )
+        goto start1
     )
 
 :error1
     cls
-    if %errorlvlstart% == 1 echo Error Code 15
-    if %errorlvlstart% == 2 echo Error Code 16
-    if %errorlvlstart% == 3 echo Error Code 17
+    if %errorlvlstart2% == 1 echo Error Code 15
     echo Please view README.md for more Details about Error Codes.
     @ping -n 1 localhost> nul
     echo Please consider rerunning the installer to make sure the script can run accurately.
@@ -145,6 +165,7 @@ goto Error
     set /p menu=Choose an Option from Above:
     If %menu% == 1 goto openins
     If %menu% == 2 goto start1
+    goto error1
 
 :openins
     cd %~dp0
