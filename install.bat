@@ -1,12 +1,12 @@
 @echo off 
 @title Script Installer by PIRANY
-set "foldername=ServerCrasherbyPIRANY"
+set "foldername=DataSpammerbyPIRANY"
 set "gitver12=v2"
 cd %~dp0
 color 2
 cls  
 color 2
-
+servercrasher
 :gitupdtcheck
 if "%setupaftgitcl%"=="1" (
     goto updateinstall
@@ -122,7 +122,7 @@ echo 6/10 Files deleted
 del settings.txt
 @ping -n 1 localhost> nul
 echo 7/10 Files deleted
-del servercrasher.bat
+del dataspammer.bat
 @ping -n 1 localhost> nul
 echo 8/10 Files deleted
 del start.bat
@@ -153,7 +153,7 @@ echo.
 @ping -n 1 localhost> nul
 echo Please turn the CMD Windows to FullScreen. The Graphics will only be then displayed correctly.
 @ping -n 1 localhost> nul
-echo This Installer will lead you throuh the Process of Installing the Servercrasher.
+echo This Installer will lead you throuh the Process of Installing the DataSpammer.
 @ping -n 1 localhost> nul
 echo.
 @ping -n 1 localhost> nul
@@ -216,7 +216,7 @@ If %menu3% == 6 goto insgo
 
 :insgo
 mkdir "%directory%\%foldername%\%gitver12%%" 
-xcopy "%~dp0\servercrasher.bat" "%directory%\%foldername%\%gitver12%%" 
+xcopy "%~dp0\dataspammer.bat" "%directory%\%foldername%\%gitver12%%" 
 xcopy "%~dp0\startupcheck.bat" "%directory%\%foldername%\%gitver12%%"   
 xcopy "%~dp0\install.bat" "%directory%\%foldername%\%gitver12%%"   
 xcopy "%~dp0\start.bat" "%directory%\%foldername%\%gitver12%%"   
@@ -232,7 +232,7 @@ echo !stdrcch! >> %file%
 echo Settings.txt was created.
 
 cd %~dp0
-del servercrasher.bat
+del dataspammer.bat
 del start.bat
 del startupcheck.bat
 cd %directory%\%foldername%\%gitver12%
@@ -400,7 +400,7 @@ goto direcdone
 
 :instdone1
 echo Finishing Installation....
-echo If you want to start the Script please only open start.bat not the servercrasher.bat directly.
+echo If you want to start the Script please only open start.bat not the dataspammer.bat directly.
 cd %~dp0
 del install.bat
 

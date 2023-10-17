@@ -21,7 +21,7 @@ if not exist "start.bat" (
 		set "errorlvlstart=2"
 		goto Error
     ) else (
-        if not exist "servercrasher.bat" (
+        if not exist "dataspammer.bat" (
 				set "errorlvlstart=3"
 				goto Error
         ) else (
@@ -173,4 +173,4 @@ goto Error
     if %errorlevel% equ 0 (cls | echo Installer is running....) else (echo There was an Error. Please open the install.bat File manually.)
 :start1
     set "noerror2=true"
-    ".\servercrasher.bat"
+    ".\dataspammer.bat
