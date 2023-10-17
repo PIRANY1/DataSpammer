@@ -1,4 +1,4 @@
-@echo off
+@if not defined debug_assist @ECHO OFF
 :topppp
 setlocal enabledelayedexpansion
 set "gitver12=v2"

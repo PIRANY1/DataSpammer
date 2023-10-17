@@ -1,4 +1,4 @@
-@echo off 
+@if not defined debug_assist @ECHO OFF
 @title Script Installer by PIRANY
 set "foldername=DataSpammerbyPIRANY"
 set "gitver12=v2"
@@ -59,7 +59,43 @@ If %insdone123% == 1 start.bat
 If %insdone123% == 2 goto settingsmainscript
 If %insdone123% == 3 goto delscriptconf
 If %insdone123% == 4 goto instmain
+If %insdone123% == easteregg goto adddevtool
 goto instdoneconf
+
+:adddevtool
+(
+:topp
+    @echo off 
+    @title DevTool
+    if exist dataspammer.bat (goto dataspammerdevtool) else (goto notsamefolderbatchtoolcheck)
+:notsamefolderbatchtoolcheck
+    if exist index.bat (goto batchtooldevtool) else (goto errornofile)
+:errornofile
+    echo For the Script to work efficently it has to be in the same Directory.
+    @ping -n 1 localhost> nul
+    echo Please move the Script.
+    @ping -n 1 localhost> nul
+    pause
+    exit
+:dataspammerdevtool
+    echo [1] Echo On Debug
+    echo [2] DevConsole Input
+    set /P dataspammerdevtoolvar=Choose an Answer from Above
+    if %dataspammerdevtoolvar% == 1 goto echoondebug
+    if %dataspammerdevtoolvar% == 2 goto devconsoleinput
+    goto dataspammerdevtool
+:devconsoleinput
+    echo Only dataspammer.bat supported.
+    set /P devconsoleinputvar=For which File:
+    set "devtools=1"
+    %devconsoleinputvar%
+:echoondebug
+    set /P echoondebugvar=For Which File:
+    set "debug_assist=1"
+    %echoondebugvar%
+:batchtooldevtool
+    echo Not Implemented Yet
+) > devtool.bat
 
 :delscriptconf
 echo. 
