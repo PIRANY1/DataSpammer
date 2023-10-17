@@ -6,7 +6,6 @@ cd %~dp0
 color 2
 cls  
 color 2
-servercrasher
 :gitupdtcheck
 if "%setupaftgitcl%"=="1" (
     goto updateinstall
