@@ -58,43 +58,47 @@ If %insdone123% == 1 start.bat
 If %insdone123% == 2 goto settingsmainscript
 If %insdone123% == 3 goto delscriptconf
 If %insdone123% == 4 goto instmain
-If %insdone123% == easteregg goto adddevtool
+If %insdone123% == 6 goto adddevtool
 goto instdoneconf
 
 :adddevtool
 (
-:topp
-    @echo off 
-    @title DevTool
-    if exist dataspammer.bat (goto dataspammerdevtool) else (goto notsamefolderbatchtoolcheck)
-:notsamefolderbatchtoolcheck
-    if exist index.bat (goto batchtooldevtool) else (goto errornofile)
-:errornofile
-    echo For the Script to work efficently it has to be in the same Directory.
-    @ping -n 1 localhost> nul
-    echo Please move the Script.
-    @ping -n 1 localhost> nul
-    pause
-    exit
-:dataspammerdevtool
-    echo [1] Echo On Debug
-    echo [2] DevConsole Input
-    set /P dataspammerdevtoolvar=Choose an Answer from Above
-    if %dataspammerdevtoolvar% == 1 goto echoondebug
-    if %dataspammerdevtoolvar% == 2 goto devconsoleinput
-    goto dataspammerdevtool
-:devconsoleinput
-    echo Only dataspammer.bat supported.
-    set /P devconsoleinputvar=For which File:
-    set "devtools=1"
-    %devconsoleinputvar%
-:echoondebug
-    set /P echoondebugvar=For Which File:
-    set "debug_assist=1"
-    %echoondebugvar%
-:batchtooldevtool
-    echo Not Implemented Yet
+    echo :topp
+    echo @echo off 
+    echo @title DevTool
+    echo if exist dataspammer.bat (goto dataspammerdevtool) else (goto notsamefolderbatchtoolcheck)
+    echo :notsamefolderbatchtoolcheck
+    echo if exist index.bat (goto batchtooldevtool) else (goto errornofile)
+    echo :errornofile
+    echo echo For the Script to work efficiently it has to be in the same Directory.
+    echo @ping -n 1 localhost> nul
+    echo echo Please move the Script.
+    echo @ping -n 1 localhost> nul
+    echo pause
+    echo exit
+    echo :dataspammerdevtool
+    echo echo [1] Echo On Debug
+    echo echo [2] DevConsole Input
+    echo set /P dataspammerdevtoolvar=Choose an Answer from Above
+    echo if %%dataspammerdevtoolvar%% == 1 goto echoondebug
+    echo if %%dataspammerdevtoolvar%% == 2 goto devconsoleinput
+    echo goto dataspammerdevtool
+    echo :devconsoleinput
+    echo echo Only dataspammer.bat supported.
+    echo set /P devconsoleinputvar=For which File:
+    echo set "devtools=1"
+    echo %%devconsoleinputvar%%
+    echo :echoondebug
+    echo set /P echoondebugvar=For Which File:
+    echo set "debug_assist=1"
+    echo %%echoondebugvar%%
+    echo :batchtooldevtool
+    echo echo Not Implemented Yet
 ) > devtool.bat
+echo Die Telemedialen Freunde Beglueckwuenschen Dich!
+pause
+
+exit
 
 :delscriptconf
 echo. 
