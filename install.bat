@@ -191,6 +191,8 @@ echo Please turn the CMD Windows to FullScreen. The Graphics will only be then d
 @ping -n 1 localhost> nul
 echo This Installer will lead you throuh the Process of Installing the DataSpammer.
 @ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
 echo [1] Install in Custom Directory (For Experienced Users)
 @ping -n 1 localhost> nul
 echo.
@@ -208,19 +210,19 @@ goto instmain
 
 :stdprogdrc
 set "directory=%CommonProgramFiles%"
-set "n1=1"
-set "n2=2"
-set "n3=3"
+set "n1=Not Included"
+set "n2=Not Included"
+set "n3=Not Included"
 echo The Script will install itself in the Following Directory: %CommonProgramFiles%
 echo For Better Accessibility of the Script you can create for example a Startmenu Shortcut or a Desktop Shortcut
 echo Please note that you need to reinstall those if you move the Script into another Folder.
 echo Please Choose the Options you want to install:
 echo.
-echo [%n1%] Startmenu Shortcut
+echo [1] (%n1%) Startmenu Shortcut
 echo. 
-echo [%n2%] Desktop Shortcut
+echo [2] (%n2%) Desktop Shortcut
 echo. 
-echo [%n3%] Start with Windows
+echo [1] (%n3%) Start with Windows
 echo.
 echo [4] Done/Skip
 set /P stdprogdrcvar=Choose the Options from Above
@@ -228,16 +230,25 @@ if %stdprogdrcvar% == 1 goto n1varinst
 if %stdprogdrcvar% == 2 goto n2varinst
 if %stdprogdrcvar% == 3 goto n3varinst
 if %stdprogdrcvar% == 4 goto gitins
+goto stdprogdrc
 
 :n1varinst
-set "n1=?"
+cls
+set "n1=Included"
 set "startmenshortcut=1"
+goto stdprogdrc
+
 :n2varinst
-set "n2=?"
+cls
+set "n2=Included"
 set "desktopic=1"
+goto stdprogdrc
+
 :n3varinst
-set "n3=?"
+cls
+set "n3=Included"
 set "autostart=1"
+goto stdprogdrc
 
 :customdirectory
 @ping -n 1 localhost> nul
@@ -248,6 +259,25 @@ echo.
 echo It can be any Directory as long as you have write/read access to it.
 @ping -n 1 localhost> nul
 set /p directory=Type Your Directory Here: 
+cd %directory%
+if not defined ERRORLEVEL (
+    goto drcsetch
+) else (
+    goto drccheck2
+)
+:drccheck2
+chdir %directory%
+if not defined ERRORLEVEL (
+    goto drcsetch
+) else (
+    echo The Directory doesnt exist or isnt correctly spelled.
+    echo Please check if the Directory is correct.
+    pause
+    goto customdirectory
+)
+
+
+:drcsetch
 @ping -n 1 localhost> nul
 echo Are you sure you want to run the installer and move the Files into the specified Directory?
 @ping -n 1 localhost> nul
@@ -298,10 +328,10 @@ If %menu3% == 6 goto insgo
 
 :insgo
 mkdir "%directory%\%foldername%\%gitver12%%" 
-xcopy "%~dp0\dataspammer.bat" "%directory%\%foldername%\%gitver12%%" 
-xcopy "%~dp0\startupcheck.bat" "%directory%\%foldername%\%gitver12%%"   
-xcopy "%~dp0\install.bat" "%directory%\%foldername%\%gitver12%%"   
-xcopy "%~dp0\start.bat" "%directory%\%foldername%\%gitver12%%"   
+xcopy "%~dp0\dataspammer.bat" "%directory%\%foldername%\%gitver12%" 
+xcopy "%~dp0\startupcheck.bat" "%directory%\%foldername%\%gitver12%"   
+xcopy "%~dp0\install.bat" "%directory%\%foldername%\%gitver12%"   
+xcopy "%~dp0\start.bat" "%directory%\%foldername%\%gitver12%"   
 cd %directory%\%foldername%\%gitver12%
 setlocal enabledelayedexpansion
 set "insdonevar=insdone"
