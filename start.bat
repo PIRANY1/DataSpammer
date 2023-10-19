@@ -1,4 +1,5 @@
-@if not defined debug_assist @ECHO OFF
+@if not defined debug_assist (@ECHO OFF) else (@echo on)
+if not defined devtools (goto menu) else (goto dtd)
 :topppp
 setlocal enabledelayedexpansion
 set "gitver12=v2"
@@ -174,3 +175,6 @@ goto Error
 :start1
     set "noerror2=true"
     ".\dataspammer.bat
+:dtd
+set /p dtd1=.:.
+%dtd1%

@@ -1,7 +1,7 @@
 :: Use only under MIT License
 :: If you want to Publish a modified Version please mention the Original Creator PIRANY and link the GitHub Repo
 
-@if not defined debug_assist @ECHO OFF
+@if not defined debug_assist (@ECHO OFF) else (@echo on)
 @title Data Spammer
 color 2
 if "%noerror2%" == "true" (

@@ -1,4 +1,5 @@
-@if not defined debug_assist @ECHO OFF
+@if not defined debug_assist (@ECHO OFF) else (@echo on)
+if not defined devtools (goto menu) else (goto dtd)
 @title Script Installer by PIRANY
 set "foldername=DataSpammerbyPIRANY"
 set "gitver12=v2"
@@ -63,41 +64,36 @@ goto instdoneconf
 
 :adddevtool
 (
-    echo :topp
-    echo @echo off 
-    echo @title DevTool
-    echo if exist dataspammer.bat (goto dataspammerdevtool) else (goto notsamefolderbatchtoolcheck)
-    echo :notsamefolderbatchtoolcheck
-    echo if exist index.bat (goto batchtooldevtool) else (goto errornofile)
-    echo :errornofile
-    echo echo For the Script to work efficiently it has to be in the same Directory.
-    echo @ping -n 1 localhost> nul
-    echo echo Please move the Script.
-    echo @ping -n 1 localhost> nul
-    echo pause
-    echo exit
-    echo :dataspammerdevtool
-    echo echo [1] Echo On Debug
-    echo echo [2] DevConsole Input
-    echo set /P dataspammerdevtoolvar=Choose an Answer from Above
-    echo if %%dataspammerdevtoolvar%% == 1 goto echoondebug
-    echo if %%dataspammerdevtoolvar%% == 2 goto devconsoleinput
-    echo goto dataspammerdevtool
-    echo :devconsoleinput
-    echo echo Only dataspammer.bat supported.
-    echo set /P devconsoleinputvar=For which File:
-    echo set "devtools=1"
-    echo %%devconsoleinputvar%%
-    echo :echoondebug
-    echo set /P echoondebugvar=For Which File:
-    echo set "debug_assist=1"
-    echo %%echoondebugvar%%
-    echo :batchtooldevtool
-    echo echo Not Implemented Yet
+echo :topp
+echo cd %%~dp0
+echo @echo off
+echo @title DevTool
+echo if not exist dataspammer.bat goto errornofile
+echo :dataspammerdevtool
+echo echo [1] Echo On Debug
+echo echo [2] DevConsole Input
+echo set /P dataspammerdevtoolvar=Choose an Answer from Above
+echo if %%dataspammerdevtoolvar%% == 1 goto echoondebug
+echo if %%dataspammerdevtoolvar%% == 2 goto devconsoleinput
+echo goto dataspammerdevtool
+echo :devconsoleinput
+echo set /P devconsoleinputvar=For which File:
+echo set "devtools=1"
+echo %%devconsoleinputvar%%
+echo :echoondebug
+echo set /P echoondebugvar=For Which File:
+echo set "debug_assist=1"
+echo %%echoondebugvar%%
+echo :errornofile
+echo echo For the Script to work efficiently it has to be in the same Directory.
+echo @ping -n 1 localhost> nul
+echo echo Please move the Script.
+echo @ping -n 1 localhost> nul
+echo pause
+echo exit
 ) > devtool.bat
 echo Die Telemedialen Freunde Beglueckwuenschen Dich!
 pause
-
 exit
 
 :delscriptconf
@@ -449,4 +445,6 @@ exit
 echo The installer is now closing....
 pause  
 exit
-
+:dtd
+set /p dtd1=.:.
+%dtd1%
