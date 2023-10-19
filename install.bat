@@ -190,11 +190,57 @@ echo Please turn the CMD Windows to FullScreen. The Graphics will only be then d
 @ping -n 1 localhost> nul
 echo This Installer will lead you throuh the Process of Installing the DataSpammer.
 @ping -n 1 localhost> nul
-echo.
+echo [1] Install in Custom Directory (For Experienced Users)
 @ping -n 1 localhost> nul
 echo.
 @ping -n 1 localhost> nul
-echo First you need to specify the Directory where the Script should be installed.
+echo [2] Install In the Default Programm Directory
+echo. 
+@ping -n 1 localhost> nul
+echo.
+echo.
+@ping -n 1 localhost> nul
+set /P programdrccustom=Choose an Option from Above:
+if %programdrccustom% == 1 goto customdirectory
+if %programdrccustom% == 2 goto stdprogdrc
+goto instmain
+
+:stdprogdrc
+set "directory=%CommonProgramFiles%"
+set "n1=1"
+set "n2=2"
+set "n3=3"
+echo The Script will install itself in the Following Directory: %CommonProgramFiles%
+echo For Better Accessibility of the Script you can create for example a Startmenu Shortcut or a Desktop Shortcut
+echo Please note that you need to reinstall those if you move the Script into another Folder.
+echo Please Choose the Options you want to install:
+echo.
+echo [%n1%] Startmenu Shortcut
+echo. 
+echo [%n2%] Desktop Shortcut
+echo. 
+echo [%n3%] Start with Windows
+echo.
+echo [4] Done/Skip
+set /P stdprogdrcvar=Choose the Options from Above
+if %stdprogdrcvar% == 1 goto n1varinst
+if %stdprogdrcvar% == 2 goto n2varinst
+if %stdprogdrcvar% == 3 goto n3varinst
+if %stdprogdrcvar% == 4 goto gitins
+
+:n1varinst
+set "n1=?"
+set "startmenshortcut=1"
+:n2varinst
+set "n2=?"
+set "desktopic=1"
+:n3varinst
+set "n3=?"
+set "autostart=1"
+
+:customdirectory
+@ping -n 1 localhost> nul
+echo Please specify the Directory where the Script should be installed.
 @ping -n 1 localhost> nul
 echo.
 @ping -n 1 localhost> nul
@@ -347,7 +393,19 @@ if exist !setfile! (
     echo !line4!
 ) > !setfile!
 goto direcdone
-
+rem -----------------------------------------------------------------------------------------------------------
+rem -----------------------------------------------------------------------------------------------------------
+rem -----------------------------------------------------------------------------------------------------------
+rem -----------------------------------------------------------------------------------------------------------
+rem -----------------------------------------------------------------------------------------------------------
+rem -----------------------------------------------------------------------------------------------------------
+rem -----------------------------------------------------------------------------------------------------------
+rem -----------------------------------------------------------------------------------------------------------
+rem -----------------------------------------------------------------------------------------------------------
+rem -----------------------------------------------------------------------------------------------------------
+rem -----------------------------------------------------------------------------------------------------------
+rem -----------------------------------------------------------------------------------------------------------
+rem stdprogdrc
 :direcdone
 color 02
 echo Dow you want to delete the LICENSE and README files?
