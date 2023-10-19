@@ -1,5 +1,6 @@
 @if not defined debug_assist (@ECHO OFF) else (@echo on)
-if not defined devtools (goto menu) else (goto dtd)
+if not defined devtools (goto nodev) else (goto dtd)
+:nodev
 @title Script Installer by PIRANY
 set "foldername=DataSpammerbyPIRANY"
 set "gitver12=v2"
