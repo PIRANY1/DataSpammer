@@ -59,6 +59,10 @@ for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do 
 if %latest_version% == v2 (goto UpToDate) else (goto gitverout)
 
 :UpToDate
+scoop update
+scoop update jq
+scoop update jid
+winget upgrade --id Git.Git -e --source winget
 @ping -n 1 localhost> nul
 echo The Version you are currently Using is the newest one (%latest_version%)
 goto seclaytr
