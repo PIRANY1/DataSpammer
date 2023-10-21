@@ -10,6 +10,10 @@ Git:
 ```
 git clone https://github.com/PIRANY1/DataSpammer
 ```
+Github CLI:
+```
+gh repo clone PIRANY1/DataSpammer
+```
 Otherwise please download the latest Release.
 # Beta
 At the Moment this Script has 1 function and only the interface/ui is done.
