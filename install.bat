@@ -197,7 +197,7 @@ echo [1] Install in Custom Directory (For Experienced Users)
 @ping -n 1 localhost> nul
 echo.
 @ping -n 1 localhost> nul
-echo [2] Install In the Default Programm Directory
+echo [2] Install In the Default Programm Directory (In developement)
 echo. 
 @ping -n 1 localhost> nul
 echo.
