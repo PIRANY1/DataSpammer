@@ -465,6 +465,7 @@ If %spammethod% == 4 goto menu
 goto start187
 
 :remotespam
+goto start187
 echo In Order to work the Remote Spam Method needs 6 components.
 @ping -n 1 localhost> nul
 echo 1: The IP of the Device you want to spam
@@ -537,6 +538,8 @@ echo 1
 echo Starting.....
 @ping -n 2 localhost> nul
 set "remotespamcount=1"
+scp file.txt root@serverip:~/file.txt
+
 
 
 :deskiconspam
