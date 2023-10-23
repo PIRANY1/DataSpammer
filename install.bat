@@ -259,7 +259,7 @@ echo.
 echo It can be any Directory as long as you have write/read access to it.
 @ping -n 1 localhost> nul
 set /p directory=Type Your Directory Here: 
-cd %directory%
+cd /d %directory%
 if not defined ERRORLEVEL (
     goto drcsetch
 ) else (

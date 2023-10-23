@@ -447,7 +447,11 @@ echo [2] Desktop Icon Spam
 @ping -n 1 localhost> nul
 echo.
 @ping -n 1 localhost> nul
-echo [3] Go Back
+echo [3] Remote Spam (Under developement)
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [4] Go Back
 @ping -n 1 localhost> nul
 echo.
 @ping -n 1 localhost> nul
@@ -456,8 +460,84 @@ set /p spammethod=Choose an Option from Above:
 
 If %spammethod% == 1 goto txtspamchose
 If %spammethod% == 2 goto deskiconspam
-If %spammethod% == 3 goto menu
+If %spammethod% == 3 goto remotespam
+If %spammethod% == 4 goto menu
 goto start187
+
+:remotespam
+echo In Order to work the Remote Spam Method needs 6 components.
+@ping -n 1 localhost> nul
+echo 1: The IP of the Device you want to spam
+@ping -n 1 localhost> nul
+echo 2: The Account you want to Use
+@ping -n 1 localhost> nul
+echo 3: The Passwort of the Account you want to spam
+@ping -n 1 localhost> nul
+echo 4: A Filename
+@ping -n 1 localhost> nul
+echo 5: The Directory you want to Spam.
+@ping -n 1 localhost> nul
+echo 6: How many Files you want to create
+@ping -n 1 localhost> nul
+echo The Device has to be turned on too and has to be connected to the Internet.
+@ping -n 1 localhost> nul
+echo.
+echo If you dont know which IP the Device has type help
+set /P remotespamip=Enter the IP:
+if %remotespamip% == help (
+    start "" "https://support.ucsd.edu/services?id=kb_article_view&sysparm_article=KB0032480"
+) else (
+    goto remotespamsetup
+)
+:remotespamsetup
+setlocal enabledelayedexpansion
+echo !remotespamip! | findstr /R "^([0-9]{1,3}\.){3}[0-9]{1,3}$"
+if %errorlevel% equ 0 (
+    goto remotespamsetup2
+) else (
+    goto remotespam
+)
+
+:remotespamsetup2
+set /P remotespamaccname=Enter an Account Name:
+set /P remotespampasswrd=Enter the Password of the Account
+set /P remotespamdrc=Enter the Directory:
+echo The Filename cant include the following Character(s):\ / : * ? " < > |"
+set /P remotespamfilename=Enter a Filename:
+set /P remotespamfilecount=How many files do you want to create:
+:remotespamverify
+cls
+set "verify=%random%"
+echo Please Verify that you want to this Spam Method.
+echo Please have in Mind that this can make your Installation Unusable.
+echo Please enter %verify% in the Field Below
+set /p verifyans=Type %verify%:
+if "%verifyans%"=="%verify%" (
+    goto startremotespam
+) else (
+    goto remotespamverify
+)
+
+:startremotespam
+set "assetcount=1"
+:assetcounttop
+color 02
+@ping -n 1 localhost> nul
+echo Loading Assets(%assetcount%/32)
+set /a "assetcount+=1"
+If %assetcount% == 33 (goto remotespamstart) else (goto assetcounttop)
+
+:remotespamstart
+echo 3
+@ping -n 2 localhost> nul
+echo 2
+@ping -n 2 localhost> nul
+echo 1
+@ping -n 2 localhost> nul
+echo Starting.....
+@ping -n 2 localhost> nul
+set "remotespamcount=1"
+
 
 :deskiconspam
 @ping -n 1 localhost> nul
