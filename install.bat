@@ -209,46 +209,79 @@ if %programdrccustom% == 2 goto stdprogdrc
 goto instmain
 
 :stdprogdrc
-set "directory=%CommonProgramFiles%"
-set "n1=Not Included"
-set "n2=Not Included"
-set "n3=Not Included"
-echo The Script will install itself in the Following Directory: %CommonProgramFiles%
-echo For Better Accessibility of the Script you can create for example a Startmenu Shortcut or a Desktop Shortcut
-echo Please note that you need to reinstall those if you move the Script into another Folder.
-echo Please Choose the Options you want to install:
-echo.
-echo [1] (%n1%) Startmenu Shortcut
-echo. 
-echo [2] (%n2%) Desktop Shortcut
-echo. 
-echo [1] (%n3%) Start with Windows
-echo.
-echo [4] Done/Skip
-set /P stdprogdrcvar=Choose the Options from Above
-if %stdprogdrcvar% == 1 goto n1varinst
-if %stdprogdrcvar% == 2 goto n2varinst
-if %stdprogdrcvar% == 3 goto n3varinst
-if %stdprogdrcvar% == 4 goto gitins
-goto stdprogdrc
+    set "directory=%CommonProgramFiles%"
+    set "chdircheck=0"
+    for /f %%A in ("!directory!") do (
+    set "chdircheck=1"
+    goto chdircheck4
+    )
+    :chdircheck4
+    if !chdircheck! equ 1 (
+        chdir %directory%
+        goto stdprogdrc3
+    ) else (
+        cd /d %directory%
+        goto stdprogdrc3
+    )
+:stdprogdrc3
+    set "startmenushortcut=Not Included"
+    set "desktopic=Not Included"
+    set "autostart=Not Included"
+:stdprogdrc2
+    echo The Script will install itself in the Following Directory: %CommonProgramFiles%
+    @ping -n 1 localhost> nul
+    echo For Better Accessibility of the Script you can create for example a Startmenu Shortcut or a Desktop Shortcut
+    @ping -n 1 localhost> nul
+    echo Please note that you need to reinstall those if you move the Script into another Folder.
+    @ping -n 1 localhost> nul
+    echo Please Choose the Options you want to install:
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [1] %startmenushortcut% Startmenu Shortcut
+    @ping -n 1 localhost> nul
+    echo. 
+    @ping -n 1 localhost> nul
+    echo [2] %desktopic% Desktop Shortcut
+    @ping -n 1 localhost> nul
+    echo. 
+    @ping -n 1 localhost> nul
+    echo [3] %autostart% Start with Windows
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [4] Done/Skip
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [5] De-select / Cancel Options
+    set /P stdprogdrcvar=Choose the Options from Above:
+    if %stdprogdrcvar% == 1 goto n1varinst
+    if %stdprogdrcvar% == 2 goto n2varinst
+    if %stdprogdrcvar% == 3 goto n3varinst
+    if %stdprogdrcvar% == 4 goto gitins
+    if %stdprogdrcvar% == 5 goto stdprogdrc
+    goto stdprogdrc
 
-:n1varinst
-cls
-set "n1=Included"
-set "startmenshortcut=1"
-goto stdprogdrc
 
-:n2varinst
-cls
-set "n2=Included"
-set "desktopic=1"
-goto stdprogdrc
+    :n1varinst
+    cls
+    set "startmenushortcut=Included"
+    set "startmenushortcut1=1"
+    goto stdprogdrc2
 
-:n3varinst
-cls
-set "n3=Included"
-set "autostart=1"
-goto stdprogdrc
+    :n2varinst
+    cls
+    set "desktopic=Included"
+    set "desktopic1=1"
+    goto stdprogdrc2
+
+    :n3varinst
+    cls
+    set "autostart=Included"
+    set "autostart1=1"
+    goto stdprogdrc2
+
 
 :customdirectory
 @ping -n 1 localhost> nul
