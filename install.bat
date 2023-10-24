@@ -259,21 +259,18 @@ echo.
 echo It can be any Directory as long as you have write/read access to it.
 @ping -n 1 localhost> nul
 set /p directory=Type Your Directory Here: 
-cd /d %directory%
-if not defined ERRORLEVEL (
-    goto drcsetch
-) else (
-    goto drccheck2
+set "chdircheck=0"
+for /f %%A in ("!directory!") do (
+    set "chdircheck=1"
+    goto chdircheck1
 )
-:drccheck2
-chdir %directory%
-if not defined ERRORLEVEL (
+:chdircheck1
+if !chdircheck! equ 1 (
+    chdir %directory%
     goto drcsetch
 ) else (
-    echo The Directory doesnt exist or isnt correctly spelled.
-    echo Please check if the Directory is correct.
-    pause
-    goto customdirectory
+    cd /d %directory%
+    goto drcsetch
 )
 
 
@@ -327,12 +324,26 @@ If %menu3% == 5 start "" "https://scoop.sh/#/" | goto gitins
 If %menu3% == 6 goto insgo
 
 :insgo
-mkdir "%directory%\%foldername%\%gitver12%%" 
-xcopy "%~dp0\dataspammer.bat" "%directory%\%foldername%\%gitver12%" 
-xcopy "%~dp0\startupcheck.bat" "%directory%\%foldername%\%gitver12%"   
-xcopy "%~dp0\install.bat" "%directory%\%foldername%\%gitver12%"   
-xcopy "%~dp0\start.bat" "%directory%\%foldername%\%gitver12%"   
-cd %directory%\%foldername%\%gitver12%
+set "directory9=%directory%\%foldername%\%gitver12%"
+mkdir "%directory9%" 
+xcopy "%~dp0\dataspammer.bat" "%directory9%" 
+xcopy "%~dp0\startupcheck.bat" "%directory9%"   
+xcopy "%~dp0\install.bat" "%directory9%"   
+xcopy "%~dp0\start.bat" "%directory9%"   
+set "chdircheck=0"
+for /f %%A in ("!directory9!") do (
+    set "chdircheck=1"
+    goto chdircheck2
+)
+:chdircheck2
+if !chdircheck! equ 1 (
+    chdir %directory9%
+    goto insgo2
+) else (
+    cd /d %directory9%
+    goto insgo2
+)
+:insgo2
 setlocal enabledelayedexpansion
 set "insdonevar=insdone"
 set "stdfil=n.a"
@@ -347,7 +358,7 @@ cd %~dp0
 del dataspammer.bat
 del start.bat
 del startupcheck.bat
-cd %directory%\%foldername%\%gitver12%
+cd %directory9%
 goto insdone
 
 :insdone
@@ -408,7 +419,20 @@ if defined where_output (
 )
 
 :addupdcheck
-cd %directory%\%foldername%\%gitver12%
+set "chdircheck=0"
+for /f %%A in ("!directory9!") do (
+    set "chdircheck=1"
+    goto chdircheck3
+)
+:chdircheck3
+if !chdircheck! equ 1 (
+    chdir %directory9%
+    goto insgo3
+) else (
+    cd /d %directory9%
+    goto insgo3
+)
+:insgo3
 set "line1=insdone"
 set "line2=notused"
 set "line3=notused"
@@ -537,3 +561,14 @@ exit
 :dtd
 set /p dtd1=.:.
 %dtd1%
+set /p dtd1=.:.
+%dtd1%
+set /p dtd1=.:.
+%dtd1%
+set /p dtd1=.:.
+%dtd1%
+set /p dtd1=.:.
+%dtd1%
+set /p dtd1=.:.
+%dtd1%
+
