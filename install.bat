@@ -247,6 +247,8 @@ goto instmain
     @ping -n 1 localhost> nul
     echo Please Choose the Options you want to install:
     @ping -n 1 localhost> nul
+    echo Sometimes they get detected by Antivirus and get deleted.
+    @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
     echo [1] %startmenushortcut% Startmenu Shortcut/All Apps List 
