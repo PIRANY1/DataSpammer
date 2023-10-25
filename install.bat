@@ -218,10 +218,10 @@ goto instmain
     :chdircheck4
     if !chdircheck! equ 1 (
         chdir %directory%
-        goto stdprogdrc3
+        goto stdprogdrc4
     ) else (
         cd /d %directory%
-        goto stdprogdrc3
+        goto stdprogdrc4
     )
 :stdprogdrc4
     setlocal enableextensions ENABLEDELAYEDEXPANSION 
@@ -371,7 +371,6 @@ If %menu3% == 6 goto insgo
 set "directory9=%directory%\%foldername%\%gitver12%"
 mkdir "%directory9%" 
 xcopy "%~dp0\dataspammer.bat" "%directory9%" 
-xcopy "%~dp0\startupcheck.bat" "%directory9%"   
 xcopy "%~dp0\install.bat" "%directory9%"   
 xcopy "%~dp0\start.bat" "%directory9%"   
 set "chdircheck=0"
@@ -503,7 +502,7 @@ set "varlinkauto=%~dp0\%directory9%"
 (
 echo @echo off
 echo cd /d %varlinkauto%
-start.bat
+echo start.bat
 ) > DataSpammer.bat
 echo Added Startmenu Shortcut
 goto desktopiccheck
@@ -518,7 +517,7 @@ set "varlinkauto1=%~dp0\%directory9%"
 (
 echo @echo off
 echo cd /d %varlinkauto1%
-start.bat
+echo start.bat
 ) > DataSpammer.bat
 echo Added Desktop Shortcut
 goto autostartdeskic
@@ -536,7 +535,7 @@ set "varlinkauto2=%~dp0\%directory9%"
 (
 echo @echo off
 echo cd /d %varlinkauto2%
-start.bat
+echo start.bat
 ) > autostart.bat
 cd /d %~dp0
 echo Added Autostart Shortcut!
