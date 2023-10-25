@@ -2,7 +2,7 @@
 if not defined devtools (goto topppp) else (goto dtd)
 :topppp
 setlocal enabledelayedexpansion
-set "gitver12=v2.1"
+set "gitver12=v2.2"
 @title Starting Up...
 echo Checking for Files...
 echo Checking for Data...
@@ -56,7 +56,7 @@ set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
 echo Fetching Git Url....
 @ping -n 1 localhost> nul
 for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do (set "latest_version=%%i")
-if %latest_version% == v2.1 (goto UpToDate) else (goto gitverout)
+if %latest_version% == v2.2 (goto UpToDate) else (goto gitverout)
 
 :UpToDate
 scoop update

@@ -99,7 +99,7 @@ set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
 echo Fetching Git Url....
 @ping -n 1 localhost> nul
 for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do (set "latest_version=%%i")
-if %latest_version% == v2.1 (goto UpToDate) else (start.bat)
+if %latest_version% == v2.2 (goto UpToDate) else (start.bat)
 
 :UpToDate
 @ping -n 1 localhost> nul
