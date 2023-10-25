@@ -209,7 +209,7 @@ if %programdrccustom% == 2 goto stdprogdrc
 goto instmain
 
 :stdprogdrc
-    set "directory=%CommonProgramFiles%"
+    set "directory=%ProgramFiles%"
     set "chdircheck=0"
     for /f %%A in ("!directory!") do (
     set "chdircheck=1"
@@ -228,7 +228,7 @@ goto instmain
     set "desktopic=Not Included"
     set "autostart=Not Included"
 :stdprogdrc2
-    echo The Script will install itself in the Following Directory: %CommonProgramFiles%
+    echo The Script will install itself in the Following Directory: %ProgramFiles%
     @ping -n 1 localhost> nul
     echo For Better Accessibility of the Script you can create for example a Startmenu Shortcut or a Desktop Shortcut
     @ping -n 1 localhost> nul
