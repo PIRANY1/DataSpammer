@@ -523,7 +523,7 @@ echo Added Desktop Shortcut
 goto autostartdeskic
                                                                                                    
 :autostartdeskic
-if defined autostart (goto autostartsetup) else (goto additionalsdone)
+if defined autostart (goto addautostart) else (goto additionalsdone)
 
 :addautostart
 @ping -n 1 localhost> nul
