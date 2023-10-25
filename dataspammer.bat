@@ -99,7 +99,7 @@ set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
 echo Fetching Git Url....
 @ping -n 1 localhost> nul
 for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do (set "latest_version=%%i")
-if %latest_version% == v2 (goto UpToDate) else (start.bat)
+if %latest_version% == v2.1 (goto UpToDate) else (start.bat)
 
 :UpToDate
 @ping -n 1 localhost> nul
@@ -376,40 +376,38 @@ If %viewdocsmenu% == 3 goto autostartsetupconfyy
 goto viewdocs
 
 :autostartdelete
-:echo Please provide the Letter of the Drive that has Windows installed. Often it is C but it can be for example G too
 @ping -n 1 localhost> nul
-set /p autostartdriveletter=Please type the Letter here:
-@ping -n 1 localhost> nul
-cd %autostartdriveletter%:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
+cd /d C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
 del autostart.bat
-cd %~dp0
+cd /d %~dp0
 
 :autostartsetupconfyy
-echo Please provide the Letter of the Drive that has Windows installed. Often it is C but it can be for example G too
-@ping -n 1 localhost> nul
-set /p autostartdriveletter=Please type the Letter here:
 @ping -n 1 localhost> nul
 echo The Setup for Autostart is now starting...
-cd %autostartdriveletter%:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
+cd /d C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
 @ping -n 1 localhost> nul
 echo. > DataSpammer.bat
 set "varlinkauto=%~dp0"
 (
 echo @echo off
-echo cd %varlinkauto%
+echo cd /d %varlinkauto%
 start.bat
 ) > autostart.bat
-cd %~dp0
+cd /d %~dp0
 
 
 :desktopiconsetup
+cd %userprofile%\Desktop
 echo. > DataSpammer.bat
 set "varlinkauto=%~dp0"
 (
 echo @echo off
-echo cd %varlinkauto%
+echo cd /d %varlinkauto%
 start.bat
 ) > DataSpammer.bat
+echo Done!
+pause
+goto autostartdeskic
                                                                                                     
 
 :autostartdesktsett
@@ -643,7 +641,7 @@ echo 2 Seconds Left
 echo 1 Seconds Left
 @ping -n 1 localhost> nul
 echo Starting.....
-cd %userprofile%\Desktop
+cd /d %userprofile%\Desktop
 if not defined deskiconspamamount (
     goto infinitespam
 ) else (
@@ -670,7 +668,7 @@ goto limitedspam1
 
 :txtspamchose
 if defined stdrc1 (
-    cd %stdrc1%
+    cd /d %stdrc1%
     goto nameset
 ) else (
     goto novarset
@@ -705,14 +703,14 @@ If %menu5% == 1 goto userdrc
 If %menu5% == 2 goto manualcd
 
 :userdrc 
-cd %userprofile%
+cd /d %userprofile%
 
 :manualcd
 echo.
 echo.
 set /p directory1=Type Your Directory Here:
 
-cd %directory1%
+cd /d %directory1%
 
 if %ERRORLEVEL% neq 0 (
     echo There was an Error. Please check if the Directory is correct or retry later. 

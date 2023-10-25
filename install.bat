@@ -197,7 +197,7 @@ echo [1] Install in Custom Directory (For Experienced Users)
 @ping -n 1 localhost> nul
 echo.
 @ping -n 1 localhost> nul
-echo [2] Install In the Default Programm Directory (In developement)
+echo [2] Install In the Default Programm Directory
 echo. 
 @ping -n 1 localhost> nul
 echo.
@@ -238,7 +238,7 @@ goto instmain
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [1] %startmenushortcut% Startmenu Shortcut
+    echo [1] %startmenushortcut% Startmenu Shortcut/All Apps List 
     @ping -n 1 localhost> nul
     echo. 
     @ping -n 1 localhost> nul
@@ -246,7 +246,7 @@ goto instmain
     @ping -n 1 localhost> nul
     echo. 
     @ping -n 1 localhost> nul
-    echo [3] %autostart% Start with Windows
+    echo [3] %autostart% Start with Windows/Autostart
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
@@ -480,20 +480,66 @@ if exist !setfile! (
     echo !line3!
     echo !line4!
 ) > !setfile!
+goto additionalsadd
+
+:additionalsadd
+if defined startmenushortcut1 (goto startmenuiconsetup) else (goto desktopiccheck)
+
+:startmenuiconsetup
+set "startMenuPrograms=%ProgramData%\Microsoft\Windows\Start Menu\Programs"
+cd %startMenuPrograms%
+echo. > DataSpammer.bat
+set "varlinkauto=%~dp0\%directory9%"
+(
+echo @echo off
+echo cd /d %varlinkauto%
+start.bat
+) > DataSpammer.bat
+echo Added Startmenu Shortcut
+goto desktopiccheck
+
+:desktopiccheck
+if defined desktopic (goto desktopiconsetup) else (goto autostartcheck)
+
+:desktopiconsetup
+cd /d %userprofile%\Desktop
+echo. > DataSpammer.bat
+set "varlinkauto1=%~dp0\%directory9%"
+(
+echo @echo off
+echo cd /d %varlinkauto1%
+start.bat
+) > DataSpammer.bat
+echo Added Desktop Shortcut
+goto autostartdeskic
+                                                                                                   
+:autostartdeskic
+if defined autostart (goto autostartsetup) else (goto additionalsdone)
+
+:addautostart
+@ping -n 1 localhost> nul
+echo The Setup for Autostart is now starting...
+cd /d C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
+@ping -n 1 localhost> nul
+echo. > DataSpammer.bat
+set "varlinkauto2=%~dp0\%directory9%"
+(
+echo @echo off
+echo cd /d %varlinkauto2%
+start.bat
+) > autostart.bat
+cd /d %~dp0
+echo Added Autostart Shortcut!
+goto additionalsdone
+
+:additionalsdone
+echo Done!
+echo You might need to restart your Device in order for all changes to apply.
+pause 
 goto direcdone
-rem -----------------------------------------------------------------------------------------------------------
-rem -----------------------------------------------------------------------------------------------------------
-rem -----------------------------------------------------------------------------------------------------------
-rem -----------------------------------------------------------------------------------------------------------
-rem -----------------------------------------------------------------------------------------------------------
-rem -----------------------------------------------------------------------------------------------------------
-rem -----------------------------------------------------------------------------------------------------------
-rem -----------------------------------------------------------------------------------------------------------
-rem -----------------------------------------------------------------------------------------------------------
-rem -----------------------------------------------------------------------------------------------------------
-rem -----------------------------------------------------------------------------------------------------------
-rem -----------------------------------------------------------------------------------------------------------
-rem stdprogdrc
+
+
+
 :direcdone
 color 02
 echo Dow you want to delete the LICENSE and README files?
