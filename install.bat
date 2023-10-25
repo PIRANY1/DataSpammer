@@ -197,7 +197,7 @@ echo [1] Install in Custom Directory (For Experienced Users)
 @ping -n 1 localhost> nul
 echo.
 @ping -n 1 localhost> nul
-echo [2] Install In the Default Programm Directory
+echo [2] Install In the Default Programm Directory (Needs to run as Administrator)
 echo. 
 @ping -n 1 localhost> nul
 echo.
@@ -222,6 +222,17 @@ goto instmain
     ) else (
         cd /d %directory%
         goto stdprogdrc3
+    )
+:stdprogdrc4
+    setlocal enableextensions ENABLEDELAYEDEXPANSION 
+    net session >nul 2>&1
+    if %errorLevel% == 0 (
+    goto stdprogdrc3
+    ) else (
+       echo Please start the Script as Administrator in order to install.
+       echo To do this right click the install.bat File and click "Run As Administrator"
+       pause
+       exit
     )
 :stdprogdrc3
     set "startmenushortcut=Not Included"
@@ -390,7 +401,6 @@ echo Settings.txt was created.
 cd %~dp0
 del dataspammer.bat
 del start.bat
-del startupcheck.bat
 cd %directory9%
 goto insdone
 
