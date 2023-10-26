@@ -19,15 +19,12 @@ cd DataSpammer
 install.bat
 ```
 Otherwise please download the latest Release.
-# Beta
-At the Moment this Script has 1 function and only the interface/ui is done.
-More functions coming soon!
 
 # Security Policy
 
 ## Supported Versions
 
-Every Version is supported but only the newest one is guaranteed to have zero or few Issues/Bugs/Glitches
+Please use the newest Version and Update the Script. Older Versions have more Bugs.
 
 |Version | Supported          |Comments                |
 |------- | ------------------ |----------------------- |
@@ -51,14 +48,9 @@ Every Version is supported but only the newest one is guaranteed to have zero or
 If you encountered a Glitch/Bug/Vulnerability please create an [Issue](https://github.com/PIRANY1/DataSpammer/issues)
 
 # Credits
-[TAAG](https://patorjk.com/software/taag/)
-.
-
-[jq](https://jqlang.github.io/jq/)
-.
-
-[Scoop](https://scoop.sh/#/)
-.
+[TAAG](https://patorjk.com/software/taag/) , 
+[jq](https://jqlang.github.io/jq/) , 
+[Scoop](https://scoop.sh/#/) , 
 
 # Error
 
