@@ -142,31 +142,28 @@ start start.bat
 :delscriptconfy
 echo The Script is now Deleting itself....
 @ping -n 1 localhost> nul
-echo 1/10 Files deleted
+echo 1/9 Files deleted
 del LICENSE
 @ping -n 1 localhost> nul
-echo 2/10 Files deleted
+echo 2/9 Files deleted
 del README.md
 @ping -n 1 localhost> nul
-echo 3/10 Files deleted
+echo 3/9 Files deleted
 @ping -n 1 localhost> nul
-echo 4/10 Files deleted
+echo 4/9 Files deleted
 @ping -n 1 localhost> nul
-echo 5/10 Files deleted
+echo 5/9 Files deleted
 @ping -n 1 localhost> nul
-echo 6/10 Files deleted
+echo 6/9 Files deleted
 del settings.txt
 @ping -n 1 localhost> nul
-echo 7/10 Files deleted
+echo 7/9 Files deleted
 del dataspammer.bat
 @ping -n 1 localhost> nul
-echo 8/10 Files deleted
+echo 8/9 Files deleted
 del start.bat
 @ping -n 1 localhost> nul
-echo 9/10 Files deleted
-del startupcheck.bat
-@ping -n 1 localhost> nul
-echo 10/10 Files deleted
+echo 9/9 Files deleted
 del install.bat
 @ping -n 1 localhost> nul
 echo The Script deleted itself successfully.
@@ -555,8 +552,6 @@ goto direcdone
 color 02
 echo Dow you want to delete the LICENSE and README files?
 @ping -n 1 localhost> nul
-echo Those are not needed for the script to work.
-@ping -n 1 localhost> nul
 echo.
 @ping -n 1 localhost> nul
 echo [1] List content of README
@@ -646,19 +641,8 @@ del install.bat
 exit
 :cancel
 echo The installer is now closing....
-pause  
 exit
+
 :dtd
 set /p dtd1=.:.
 %dtd1%
-set /p dtd1=.:.
-%dtd1%
-set /p dtd1=.:.
-%dtd1%
-set /p dtd1=.:.
-%dtd1%
-set /p dtd1=.:.
-%dtd1%
-set /p dtd1=.:.
-%dtd1%
-
