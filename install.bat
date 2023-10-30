@@ -140,70 +140,57 @@ start start.bat
 
 
 :delscriptconfy
-echo The Script is now Deleting itself....
+if exist "%~dp0\LICENSE" del "%~dp0\LICENSE"
+echo 1/5 Files Deleted
 @ping -n 1 localhost> nul
-echo 1/9 Files deleted
-del LICENSE
+if exist "%~dp0\README.md" del "%~dp0\README.md"
+echo 2/5 Files Deleted
 @ping -n 1 localhost> nul
-echo 2/9 Files deleted
-del README.md
+if exist "%~dp0\dataspammer.bat" del "%~dp0\dataspammer.bat"
+echo 3/5 Files Deleted
 @ping -n 1 localhost> nul
-echo 3/9 Files deleted
+if exist "%~dp0\start.bat" del "%~dp0\start.bat"
+echo 4/5 Files Deleted
 @ping -n 1 localhost> nul
-echo 4/9 Files deleted
-@ping -n 1 localhost> nul
-echo 5/9 Files deleted
-@ping -n 1 localhost> nul
-echo 6/9 Files deleted
-del settings.txt
-@ping -n 1 localhost> nul
-echo 7/9 Files deleted
-del dataspammer.bat
-@ping -n 1 localhost> nul
-echo 8/9 Files deleted
-del start.bat
-@ping -n 1 localhost> nul
-echo 9/9 Files deleted
-del install.bat
-@ping -n 1 localhost> nul
-echo The Script deleted itself successfully.
-exit
+if exist "%~dp0\install.bat" del "%~dp0\install.bat"
+echo 5/5 Files Deleted
+echo Thanks for Using and have a great Day!
 
 :instmain
-SETLOCAL EnableDelayedExpansion
-SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
-SETLOCAL DisableDelayedExpansion
+    SETLOCAL EnableDelayedExpansion
+    SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
+    SETLOCAL DisableDelayedExpansion
 
-%$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
-%$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
-%$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
-%$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
-%$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
-%$Echo% "                             |_|                                              |___/                                     
+    %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
+    %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
+    %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
+    %$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
+    %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
+    %$Echo% "                             |_|                                              |___/                                     
 
 
-echo.
-@ping -n 1 localhost> nul
-echo Please turn the CMD Windows to FullScreen. The Graphics will only be then displayed correctly.
-@ping -n 1 localhost> nul
-echo This Installer will lead you throuh the Process of Installing the DataSpammer.
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-echo [1] Install in Custom Directory (For Experienced Users)
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-echo [2] Install In the Default Programm Directory (Needs to run as Administrator)
-echo. 
-@ping -n 1 localhost> nul
-echo.
-echo.
-@ping -n 1 localhost> nul
-set /P programdrccustom=Choose an Option from Above:
-if %programdrccustom% == 1 goto customdirectory
-if %programdrccustom% == 2 goto stdprogdrc
-goto instmain
+    echo.
+    @ping -n 1 localhost> nul
+    echo Please turn the CMD Windows to FullScreen. The Graphics will only be then displayed correctly.
+    @ping -n 1 localhost> nul
+    echo This Installer will lead you throuh the Process of Installing the DataSpammer.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [1] Install in Custom Directory (For Experienced Users)
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [2] Install In the Default Programm Directory (Needs to run as Administrator)
+    echo. 
+    @ping -n 1 localhost> nul
+    echo.
+    echo.
+    @ping -n 1 localhost> nul
+    set /P programdrccustom=Choose an Option from Above:
+    if %programdrccustom% == 1 goto customdirectory
+    if %programdrccustom% == 2 goto stdprogdrc
+    goto instmain
 
 :stdprogdrc
     set "directory=%ProgramFiles%"
@@ -619,7 +606,7 @@ goto direcdone
 if exist "%~dp0\LICENSE" (
     del "%~dp0\LICENSE"
 ) else (
-    echo File wasnt found.
+    goto direcdone
 )
 goto direcdone
 
@@ -627,7 +614,7 @@ goto direcdone
 if exist "%~dp0\README.md" (
     del "%~dp0\README.md"
 ) else (
-    echo File wasnt found.
+    goto direcdone
 )
 goto direcdone
 
