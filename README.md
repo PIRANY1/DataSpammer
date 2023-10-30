@@ -19,7 +19,7 @@ cd DataSpammer
 install.bat
 ```
 ## OneFile Install
-Otherwise please download the [latest Release](github.com/PIRANY1/DataSpammer/releases/latest)
+Otherwise please download the [latest Release](https://www.github.com/PIRANY1/DataSpammer/releases/latest)
 
 # Security Policy
 
