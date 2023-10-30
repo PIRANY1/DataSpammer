@@ -6,19 +6,20 @@ No Liability.
 Only Private Use.
 
 # Install
-Git:
+## Git:
 ```
 git clone https://github.com/PIRANY1/DataSpammer
 cd DataSpammer
 install.bat
 ```
-Github CLI:
+## Github CLI:
 ```
 gh repo clone PIRANY1/DataSpammer
 cd DataSpammer
 install.bat
 ```
-Otherwise please download the latest Release.
+## OneFile Install
+Otherwise please download the [latest Release](github.com/PIRANY1/DataSpammer/releases/latest)
 
 # Security Policy
 
