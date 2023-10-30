@@ -15,6 +15,12 @@ if "%setupaftgitcl%"=="1" (
     goto instdone100
 )
 
+:noelev
+echo Please start the Script as Administrator in order to install.
+echo To do this right click the install.bat File and click "Run As Administrator"
+pause
+exit
+
 :updateinstall
 cd %~dp0
 set "target_dir=%cd%""
@@ -49,7 +55,7 @@ echo [2] Open Settings
 @ping -n 1 localhost> nul
 echo.
 @ping -n 1 localhost> nul
-echo [3] Delete Script
+echo [3] Delete Script (Script need to run as Administator!)
 @ping -n 1 localhost> nul
 echo.
 @ping -n 1 localhost> nul
@@ -140,20 +146,37 @@ start start.bat
 
 
 :delscriptconfy
+setlocal enableextensions ENABLEDELAYEDEXPANSION 
+net session >nul 2>&1
+if %errorLevel% == 0 (goto delscriptconfy2) else (goto noelev)
+
+:delscriptconfy2
 if exist "%~dp0\LICENSE" del "%~dp0\LICENSE"
-echo 1/5 Files Deleted
+echo 1/7 Files Deleted
 @ping -n 1 localhost> nul
 if exist "%~dp0\README.md" del "%~dp0\README.md"
-echo 2/5 Files Deleted
+echo 2/7 Files Deleted
 @ping -n 1 localhost> nul
 if exist "%~dp0\dataspammer.bat" del "%~dp0\dataspammer.bat"
-echo 3/5 Files Deleted
+echo 3/7 Files Deleted
 @ping -n 1 localhost> nul
 if exist "%~dp0\start.bat" del "%~dp0\start.bat"
-echo 4/5 Files Deleted
+echo 4/7 Files Deleted
 @ping -n 1 localhost> nul
 if exist "%~dp0\install.bat" del "%~dp0\install.bat"
-echo 5/5 Files Deleted
+echo 5/7 Files Deleted
+cd /d C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
+if exist "autostart.bat" del "autostart.bat"
+echo 6/7 Files Deleted
+@ping -n 1 localhost> nul
+cd /d %userprofile%\Desktop
+if exist "Dataspammer.bat" del "Dataspammer.bat"
+echo 7/7 Files Deleted
+@ping -n 1 localhost> nul
+set "startMenuPrograms=%ProgramData%\Microsoft\Windows\Start Menu\Programs"
+cd %startMenuPrograms%
+if exist "Dataspammer.bat" del "Dataspammer.bat"
+echo 7/7 Files Deleted
 echo Thanks for Using and have a great Day!
 
 :instmain
@@ -478,6 +501,7 @@ if exist !setfile! (
 goto additionalsadd
 
 :additionalsadd
+rem Startmenu Shortcut
 if defined startmenushortcut1 (goto startmenuiconsetup) else (goto desktopiccheck)
 
 :startmenuiconsetup
@@ -494,6 +518,7 @@ echo Added Startmenu Shortcut
 goto desktopiccheck
 
 :desktopiccheck
+rem Desktop Shortcut
 if defined desktopic (goto desktopiconsetup) else (goto autostartcheck)
 
 :desktopiconsetup
@@ -509,6 +534,7 @@ echo Added Desktop Shortcut
 goto autostartdeskic
                                                                                                    
 :autostartdeskic
+rem Desktop Shortcut
 if defined autostart (goto addautostart) else (goto additionalsdone)
 
 :addautostart
