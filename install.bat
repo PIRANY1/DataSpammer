@@ -233,14 +233,7 @@ echo Thanks for Using and have a great Day!
 :stdprogdrc4
     setlocal enableextensions ENABLEDELAYEDEXPANSION 
     net session >nul 2>&1
-    if %errorLevel% == 0 (
-    goto stdprogdrc3
-    ) else (
-       echo Please start the Script as Administrator in order to install.
-       echo To do this right click the install.bat File and click "Run As Administrator"
-       pause
-       exit
-    )
+    if %errorLevel% == 0 (goto stdprogdrc3) else (goto noelev)
 :stdprogdrc3
     set "startmenushortcut=Not Included"
     set "desktopic=Not Included"
