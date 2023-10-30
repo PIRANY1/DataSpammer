@@ -30,7 +30,7 @@ copy %source_dir%\stdfil.txt %target_dir%
 copy %source_dir%\stdrcch.txt %target_dir%
 cd %~dp0
 echo Update was Successful
-start.bat
+dataspammer.bat
 
 :instdone100
 if exist "settings.txt" (
@@ -62,7 +62,7 @@ echo.
 echo [4] Reinstall Script
 set /p insdone123=Choose an Option from above
     
-If %insdone123% == 1 start.bat
+If %insdone123% == 1 dataspammer.bat
 If %insdone123% == 2 goto settingsmainscript
 If %insdone123% == 3 goto delscriptconf
 If %insdone123% == 4 goto instmain
@@ -142,8 +142,7 @@ goto instdoneconf
 
 :settingsmainscript
 set "settingsmainscriptvar=1"
-start start.bat
-
+dataspammer.bat
 
 :delscriptconfy
 setlocal enableextensions ENABLEDELAYEDEXPANSION 
@@ -160,18 +159,15 @@ echo 2/7 Files Deleted
 if exist "%~dp0\dataspammer.bat" del "%~dp0\dataspammer.bat"
 echo 3/7 Files Deleted
 @ping -n 1 localhost> nul
-if exist "%~dp0\start.bat" del "%~dp0\start.bat"
-echo 4/7 Files Deleted
-@ping -n 1 localhost> nul
 if exist "%~dp0\install.bat" del "%~dp0\install.bat"
-echo 5/7 Files Deleted
+echo 4/7 Files Deleted
 cd /d C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
 if exist "autostart.bat" del "autostart.bat"
-echo 6/7 Files Deleted
+echo 5/7 Files Deleted
 @ping -n 1 localhost> nul
 cd /d %userprofile%\Desktop
 if exist "Dataspammer.bat" del "Dataspammer.bat"
-echo 7/7 Files Deleted
+echo 6/7 Files Deleted
 @ping -n 1 localhost> nul
 set "startMenuPrograms=%ProgramData%\Microsoft\Windows\Start Menu\Programs"
 cd %startMenuPrograms%
@@ -373,8 +369,7 @@ If %menu3% == 6 goto insgo
 set "directory9=%directory%\%foldername%\%gitver12%"
 mkdir "%directory9%" 
 xcopy "%~dp0\dataspammer.bat" "%directory9%" 
-xcopy "%~dp0\install.bat" "%directory9%"   
-xcopy "%~dp0\start.bat" "%directory9%"   
+xcopy "%~dp0\install.bat" "%directory9%"     
 set "chdircheck=0"
 for /f %%A in ("!directory9!") do (
     set "chdircheck=1"
@@ -401,7 +396,6 @@ echo Settings.txt was created.
 
 cd %~dp0
 del dataspammer.bat
-del start.bat
 cd %directory9%
 goto insdone
 
@@ -505,14 +499,14 @@ set "varlinkauto=%~dp0\%directory9%"
 (
 echo @echo off
 echo cd /d %varlinkauto%
-echo start.bat
+echo dataspammer.bat
 ) > DataSpammer.bat
 echo Added Startmenu Shortcut
 goto desktopiccheck
 
 :desktopiccheck
 rem Desktop Shortcut
-if defined desktopic (goto desktopiconsetup) else (goto autostartcheck)
+if defined desktopic (goto desktopiconsetup) else (goto autostartdeskic)
 
 :desktopiconsetup
 cd /d %userprofile%\Desktop
@@ -521,7 +515,7 @@ set "varlinkauto1=%~dp0\%directory9%"
 (
 echo @echo off
 echo cd /d %varlinkauto1%
-echo start.bat
+echo dataspammer.bat
 ) > DataSpammer.bat
 echo Added Desktop Shortcut
 goto autostartdeskic
@@ -540,7 +534,7 @@ set "varlinkauto2=%~dp0\%directory9%"
 (
 echo @echo off
 echo cd /d %varlinkauto2%
-echo start.bat
+echo dataspammer.bat
 ) > autostart.bat
 cd /d %~dp0
 echo Added Autostart Shortcut!
@@ -589,8 +583,8 @@ If %ynins1% == 5 goto copyreadlic
 goto direcdone
 
 :copyreadlic
-xcopy "%~dp0\README.md" "%directory%\%foldername%\%gitver12%%"    
-xcopy "%~dp0\LICENSE" "%directory%\%foldername%\%gitver12%%"     
+if exist "%~dp0\LICENSE" xcopy "%~dp0\LICENSE" "%directory%\%foldername%\%gitver12%%"
+if exist "%~dp0\README.md" xcopy "%~dp0\README.md" "%directory%\%foldername%\%gitver12%%"    
 del %~dp0\LICENSE
 del %~dp0\README.md
 goto instdone1
@@ -639,7 +633,6 @@ goto direcdone
 
 :instdone1
 echo Finishing Installation....
-echo If you want to start the Script please only open start.bat not the dataspammer.bat directly.
 cd %~dp0
 del install.bat
 
