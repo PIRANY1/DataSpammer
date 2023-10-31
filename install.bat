@@ -72,8 +72,8 @@ goto instdoneconf
 :adddevtool
 (
 echo :topp
-echo cd %%~dp0
 echo @echo off
+echo cd %%~dp0
 echo @title DevTool
 echo if not exist dataspammer.bat goto errornofile
 echo :dataspammerdevtool
