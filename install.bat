@@ -25,9 +25,7 @@ exit
 cd %~dp0
 set "target_dir=%cd%""
 set "source_dir=%source_dir_start%"
-copy %source_dir%\instdone.txt %target_dir%
-copy %source_dir%\stdfil.txt %target_dir%
-copy %source_dir%\stdrcch.txt %target_dir%
+copy %source_dir%\settings.txt %target_dir%
 cd %~dp0
 echo Update was Successful
 dataspammer.bat
