@@ -6,19 +6,20 @@ No Liability.
 Only Private Use.
 
 # Install
-## Git:
+Some Files in the repo can be unstable, if you want to download a stable Build download the latest Version. 
+### Git:
 ```
 git clone https://github.com/PIRANY1/DataSpammer
 cd DataSpammer
 install.bat
 ```
-## Github CLI:
+### Github CLI:
 ```
 gh repo clone PIRANY1/DataSpammer
 cd DataSpammer
 install.bat
 ```
-## OneFile Install
+### OneFile Install
 [Install with only one File](https://gist.github.com/PIRANY1/8344f981f20a8e430f8a74c5fa80c390/archive/aa97156420dce791eef1be69b6eb541621b4644a.zip)
 
 # Security Policy
@@ -29,8 +30,8 @@ Please use the newest Version and Update the Script. Older Versions have more Bu
 
 |Version | Supported          |Comments                |
 |------- | ------------------ |----------------------- |
-|v1.0  | :x:|None|
-|v1.0.1| :x:|ASCII Art breaks input|
+|v1.0  |:x:|None|
+|v1.0.1|:x:|ASCII Art breaks input|
 |v1.1|:x:|Updater first introduced but not working|
 |v1.2|:x:|Desktop Icon Introduced, Updater not working,|
 |v1.3|:x:|New Installer Options| 
@@ -43,7 +44,8 @@ Please use the newest Version and Update the Script. Older Versions have more Bu
 |v1.7|:x:|Error Codes added 
 |v2|:x:|Settings are all in one File
 |v2.1|:x:|Has a Big Bug
-|v2.2|✅|Install in Program Directory added, may trigger AntiVirus
+|v2.2|:X:|Install in Program Directory added, may trigger AntiVirus
+|v2.3|✅|Migrated start.bat and Dataspammer.bat and fixed a Few Bugs
 
 ## Reporting a Bug
 If you encountered a Glitch/Bug/Vulnerability please create an [Issue](https://github.com/PIRANY1/DataSpammer/issues)
