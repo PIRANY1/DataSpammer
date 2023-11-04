@@ -30,21 +30,21 @@ Please use the newest Version and Update the Script. Older Versions have more Bu
 
 |Version | Supported          |Comments                |
 |------- | ------------------ |----------------------- |
-|v1.0  |:x:|None|
-|v1.0.1|:x:|ASCII Art breaks input|
-|v1.1|:x:|Updater first introduced but not working|
-|v1.2|:x:|Desktop Icon Introduced, Updater not working,|
-|v1.3|:x:|New Installer Options| 
-|v1.4|:x:|Updater done, but has some errors still| 
+|v1.0  |❌|None|
+|v1.0.1|❌|ASCII Art breaks input|
+|v1.1|❌|Updater first introduced but not working|
+|v1.2|❌|Desktop Icon Introduced, Updater not working,|
+|v1.3|❌|New Installer Options| 
+|v1.4|❌|Updater done, but has some errors still| 
 |v1.5|✅| Updater done has one error, Desktop Icons done.|
-|v1.5.1|:x:|Bugfixes and Improvements
-|v1.5.2|:x:|Migrated two files
-|v1.5.3|:x:|Improvements and Bugfixes
-|v1.6|:x:|Added Desktop Spam
-|v1.7|:x:|Error Codes added 
-|v2|:x:|Settings are all in one File
-|v2.1|:x:|Has a Big Bug
-|v2.2|:X:|Install in Program Directory added, may trigger AntiVirus
+|v1.5.1|❌|Bugfixes and Improvements
+|v1.5.2|❌|Migrated two files
+|v1.5.3|❌|Improvements and Bugfixes
+|v1.6|❌|Added Desktop Spam
+|v1.7|❌|Error Codes added 
+|v2|❌|Settings are all in one File
+|v2.1|❌|Has a Big Bug
+|v2.2|❌:|Install in Program Directory added, may trigger AntiVirus
 |v2.3|✅|Migrated start.bat and Dataspammer.bat and fixed a Few Bugs
 
 ## Reporting a Bug
