@@ -3,7 +3,7 @@ if not defined devtools (goto nodev) else (goto dtd)
 :nodev
 @title Script Installer by PIRANY
 set "foldername=DataSpammerbyPIRANY"
-set "gitver12=v2"
+set "gitver12=v2.3"
 cd %~dp0
 color 2
 cls  
@@ -97,7 +97,7 @@ echo @ping -n 1 localhost> nul
 echo pause
 echo exit
 ) > devtool.bat
-echo Die Telemedialen Freunde Beglueckwuenschen Dich!
+echo gg
 pause
 exit
 
@@ -568,7 +568,11 @@ echo [4] Delete README
 @ping -n 1 localhost> nul
 echo.
 @ping -n 1 localhost> nul
-echo [5] Done/Skip
+echo [5] Copy in Script Folder
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [6] Done/Skip
 echo.
 @ping -n 1 localhost> nul
 echo.
@@ -578,11 +582,12 @@ If %ynins1% == 2 goto listreadme
 If %ynins1% == 3 goto dellisence
 If %ynins1% == 4 goto delreadme
 If %ynins1% == 5 goto copyreadlic
+If %ynins1% == 6 goto instdone1
 goto direcdone
 
 :copyreadlic
-if exist "%~dp0\LICENSE" xcopy "%~dp0\LICENSE" "%directory%\%foldername%\%gitver12%%"
-if exist "%~dp0\README.md" xcopy "%~dp0\README.md" "%directory%\%foldername%\%gitver12%%"    
+if exist "%~dp0\LICENSE" xcopy "%~dp0\LICENSE" "%directory%\%foldername%\%gitver12%%" > nul
+if exist "%~dp0\README.md" xcopy "%~dp0\README.md" "%directory%\%foldername%\%gitver12%%" > nul  
 del %~dp0\LICENSE
 del %~dp0\README.md
 goto instdone1

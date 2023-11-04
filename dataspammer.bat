@@ -36,6 +36,7 @@ for /f "tokens=1* delims=:" %%a in ('findstr /n "^" %file%') do (
 )
 
 :gitvercheck
+setlocal enabledelayedexpansion
 if defined %varupdtcheck% (goto set_version) else (goto ulttop)
 :set_version
 set "owner=PIRANY1"
@@ -44,7 +45,7 @@ set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
 echo Fetching Git Url....
 @ping -n 1 localhost> nul
 for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do (set "latest_version=%%i")
-if %latest_version% == v2.3 (goto UpToDate) else (goto gitverout)
+if %latest_version% equ v2.3 (goto UpToDate) else (goto gitverout)
 
 :UpToDate
 scoop update
@@ -84,12 +85,13 @@ If %menu4% == 2 goto ulttop
 goto gitverout
 
 :gitupt
+cd %~dp0
+set "source_dir_start=%cd%"
 cd ..
 mkdir %latest_version%
 cd %latest_version%
 git clone https://github.com/PIRANY1/DataSpammer %cd%
 echo Downloaded
-set "source_dir_start=%~dp0"
 set "setupaftgitcl=1"
 install.bat
 
@@ -162,7 +164,7 @@ SETLOCAL DisableDelayedExpansion
 setlocal enabledelayedexpansion
 set "file=settings.txt"
 set nr=0
-for /l %%i in (1,1,100) do (
+for /l %%i in (1,1,5) do (
     set "line%%i="
 )
 for /f "delims=" %%a in (%file%) do (
@@ -241,13 +243,13 @@ set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
 echo Fetching Git Url....
 @ping -n 1 localhost> nul
 for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do (set "latest_version=%%i")
-if %latest_version% == v2.3 (goto UpToDate) else (start.bat)
+if %latest_version% equ v2.3 (goto UpToDate) else (goto gitverout)
 
 :UpToDate
 @ping -n 1 localhost> nul
 echo The Version you are currently Using is the newest one (%latest_version%)
 pause 
-goto menu
+goto menu 
 
 
 :info
@@ -533,7 +535,7 @@ set "varlinkauto=%~dp0"
 (
 echo @echo off
 echo cd /d %varlinkauto%
-start.bat
+dataspammer.bat
 ) > autostart.bat
 cd /d %~dp0
 
@@ -545,7 +547,7 @@ set "varlinkauto=%~dp0"
 (
 echo @echo off
 echo cd /d %varlinkauto%
-start.bat
+dataspammer.bat
 ) > DataSpammer.bat
 echo Done!
 pause
