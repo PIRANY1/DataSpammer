@@ -27,7 +27,36 @@ set "target_dir=%cd%""
 set "source_dir=%source_dir_start%"
 copy %source_dir%\settings.txt %target_dir%
 cd %~dp0
-echo Update was Successful
+:updateinstalled
+echo Update was Successful!
+@ping -n 1 localhost> nul
+echo Updated from %gitver12% to %latest_version%
+@ping -n 1 localhost> nul
+echo Do you want to delete the Files from the old Version? (no Data will get deleted!)
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [1] Yes delete the old Version Files
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [2] No just open the Script
+@ping -n 1 localhost> nul
+echo.
+echo.
+set /P updateinstalledvar=Choose an Option from above
+if %updateinstalledvar% == 1 goto deleteoldfiles
+if %updateinstalledvar% == 2 goto openscript
+goto updateinstalled
+
+:deleteoldfiles
+cd %~dp0
+cd .. 
+rmdir /s /q %gitverold%
+echo Old Files deleted!
+pause
+dataspammer.bat
+:openscript
 dataspammer.bat
 
 :instdone100

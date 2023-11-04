@@ -85,6 +85,7 @@ If %menu4% == 2 goto ulttop
 goto gitverout
 
 :gitupt
+set gitverold=%gitver12%
 cd %~dp0
 set "source_dir_start=%cd%"
 cd ..
