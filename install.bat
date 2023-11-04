@@ -261,6 +261,30 @@ echo Thanks for Using and have a great Day!
     set "startmenushortcut=Not Included"
     set "desktopic=Not Included"
     set "autostart=Not Included"
+:stdprogdrc1
+    echo These extra Files get detected as a Virus from some antivirus Programs. 
+    echo A Tutorial on how to temporarily turn off your AV is down below
+    echo.
+    @ping -n 1 localhost> nul
+    echo [1] Open Tutorial on how to turn off AV
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [2] Go back
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [3] My AV is turned off!
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [4] Close the Script
+    set /P avturnoff=Choose an Option from above
+    if %avturnoff% == 1 start "" "https://www.security.org/antivirus/turn-off/" | cls | goto stdprogdrc1
+    if %avturnoff% == 2 cls | goto instmain
+    if %avturnoff% == 3 cls | goto stdprogdrc2
+    if %avturnoff% == 4 cls | goto cancel
+    goto stdprogdrc1
 :stdprogdrc2
     echo The Script will install itself in the Following Directory: %ProgramFiles%
     @ping -n 1 localhost> nul
