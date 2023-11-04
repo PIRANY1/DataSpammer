@@ -21,24 +21,22 @@ if not exist "install.bat" (goto Error) else (goto updtsearch)
 
 :updtsearch
 setlocal enabledelayedexpansion
-set "file=settings.txt"
+set "batchfile=settings.txt"
 set "linenumber=4"
-set "varupdtcheck=0"
+set "searchtext=uy"
 
-for /f "tokens=1* delims=:" %%a in ('findstr /n "^" %file%') do (
+for /f "tokens=1* delims=:" %%a in ('findstr /n "^" "%batchfile%"') do (
     if %%a equ %linenumber% (
         set "line=%%b"
-        if "!line!" equ "uy" (
-            set "varupdtcheck=1"
+        set "line=!line:*:=!"
+        if "!line!" equ "%searchtext%" (
+            goto gitvercheck
+        ) else (
+            goto ulttop
         )
-        goto :gitvercheck
     )
 )
-
 :gitvercheck
-setlocal enabledelayedexpansion
-if defined %varupdtcheck% (goto set_version) else (goto ulttop)
-:set_version
 set "owner=PIRANY1"
 set "repo=DataSpammer"
 set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"

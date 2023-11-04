@@ -55,6 +55,7 @@ cd ..
 rmdir /s /q %gitverold%
 echo Old Files deleted!
 pause
+cd %~dp0
 dataspammer.bat
 :openscript
 dataspammer.bat
