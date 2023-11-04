@@ -6,6 +6,7 @@ No Liability.
 Only Private Use.
 
 # Install
+Please download the latest [Version](https://github.com/PIRANY1/DataSpammer/releases/latest) or use one of the methods down below.
 ### Git:
 ```
 git clone https://github.com/PIRANY1/DataSpammer
@@ -20,7 +21,6 @@ install.bat
 ```
 ### OneFile Install
 [Install with only one File](https://gist.github.com/PIRANY1/8344f981f20a8e430f8a74c5fa80c390/archive/aa97156420dce791eef1be69b6eb541621b4644a.zip)
-Otherwhise please just download the latest [Version](https://github.com/PIRANY1/DataSpammer/releases/latest)
 
 # Security Policy
 
