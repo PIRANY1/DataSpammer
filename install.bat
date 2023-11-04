@@ -540,14 +540,14 @@ if exist !setfile! (
 goto additionalsadd
 
 :additionalsadd
+cd %~dp0\%directory9%
+set varlinkauto=%cd%
 rem Startmenu Shortcut
 if defined startmenushortcut1 (goto startmenuiconsetup) else (goto desktopiccheck)
 
 :startmenuiconsetup
 set "startMenuPrograms=%ProgramData%\Microsoft\Windows\Start Menu\Programs"
 cd %startMenuPrograms%
-echo. > DataSpammer.bat
-set "varlinkauto=%~dp0\%directory9%"
 (
 echo @echo off
 echo cd /d %varlinkauto%
@@ -562,11 +562,9 @@ if defined desktopic (goto desktopiconsetup) else (goto autostartdeskic)
 
 :desktopiconsetup
 cd /d %userprofile%\Desktop
-echo. > DataSpammer.bat
-set "varlinkauto1=%~dp0\%directory9%"
 (
 echo @echo off
-echo cd /d %varlinkauto1%
+echo cd /d %varlinkauto%
 echo dataspammer.bat
 ) > DataSpammer.bat
 echo Added Desktop Shortcut
@@ -581,11 +579,9 @@ if defined autostart (goto addautostart) else (goto additionalsdone)
 echo The Setup for Autostart is now starting...
 cd /d C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
 @ping -n 1 localhost> nul
-echo. > DataSpammer.bat
-set "varlinkauto2=%~dp0\%directory9%"
 (
 echo @echo off
-echo cd /d %varlinkauto2%
+echo cd /d %varlinkauto%
 echo dataspammer.bat
 ) > autostart.bat
 cd /d %~dp0
