@@ -5,7 +5,7 @@
 if not defined devtools (goto topppp) else (goto dtd)
 :topppp
 setlocal enabledelayedexpansion
-set "gitver12=v2.4"
+set "gitver12=v2.4.1"
 @title Starting Up...
 echo Checking for Files...
 echo Checking for Data...
@@ -43,13 +43,9 @@ set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
 echo Fetching Git Url....
 @ping -n 1 localhost> nul
 for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do (set "latest_version=%%i")
-if %latest_version% equ v2.4 (goto UpToDate) else (goto gitverout)
+if %latest_version% equ v2.4.1 (goto UpToDate) else (goto gitverout)
 
 :UpToDate
-scoop update
-scoop update jq
-scoop update jid
-winget upgrade --id Git.Git -e --source winget
 @ping -n 1 localhost> nul
 echo The Version you are currently Using is the newest one (%latest_version%)
 goto ulttop
@@ -221,7 +217,12 @@ echo.
 @ping -n 1 localhost> nul
 echo.
 @ping -n 1 localhost> nul
-echo [7] Check for Updates
+echo [7] Check for Script-Updates
+echo.
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [8] Check for Library Updates (may take some time)
 echo.
 echo.
 set /p menu1=Choose an Option from Above:
@@ -233,6 +234,7 @@ If %menu1% == 4 goto credits
 If %menu1% == 5 goto setting
 If %menu1% == 6 goto autostartdeskic
 If %menu1% == 7 goto checkgitupdt
+If %menu1% == 8 goto checklibupdt
 goto menu
 
 :checkgitupdt
@@ -242,7 +244,7 @@ set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
 echo Fetching Git Url....
 @ping -n 1 localhost> nul
 for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do (set "latest_version=%%i")
-if %latest_version% equ v2.4 (goto UpToDate) else (goto gitverout)
+if %latest_version% equ v2.4.1 (goto UpToDate) else (goto gitverout)
 
 :UpToDate
 @ping -n 1 localhost> nul
@@ -250,6 +252,12 @@ echo The Version you are currently Using is the newest one (%latest_version%)
 pause 
 goto menu 
 
+:checklibupdt
+start cmd /k "scoop update"
+start cmd /k "scoop update jq"
+start cmd /k "scoop update jid"
+start cmd /k "winget upgrade --id Git.Git -e --source winget"
+goto menu
 
 :info
 cls
