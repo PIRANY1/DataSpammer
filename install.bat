@@ -540,26 +540,19 @@ if exist !setfile! (
 goto additionalsadd
 
 :additionalsadd
-cd %~dp0\%directory9%
+cd %directory9%
 set varlinkauto=%cd%
-rem Startmenu Shortcut
 if defined startmenushortcut1 (goto startmenuiconsetup) else (goto desktopiccheck)
-
 :startmenuiconsetup
-set "startMenuPrograms=%ProgramData%\Microsoft\Windows\Start Menu\Programs"
-cd %startMenuPrograms%
+cd %ProgramData%\Microsoft\Windows\Start Menu\Programs
 (
 echo @echo off
 echo cd /d %varlinkauto%
 echo dataspammer.bat
 ) > DataSpammer.bat
 echo Added Startmenu Shortcut
-goto desktopiccheck
-
 :desktopiccheck
-rem Desktop Shortcut
 if defined desktopic (goto desktopiconsetup) else (goto autostartdeskic)
-
 :desktopiconsetup
 cd /d %userprofile%\Desktop
 (
@@ -567,18 +560,12 @@ echo @echo off
 echo cd /d %varlinkauto%
 echo dataspammer.bat
 ) > DataSpammer.bat
-echo Added Desktop Shortcut
-goto autostartdeskic
-                                                                                                   
+echo Added Desktop Shortcut                                                                                              
 :autostartdeskic
-rem Desktop Shortcut
 if defined autostart (goto addautostart) else (goto additionalsdone)
-
 :addautostart
-@ping -n 1 localhost> nul
 echo The Setup for Autostart is now starting...
 cd /d C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
-@ping -n 1 localhost> nul
 (
 echo @echo off
 echo cd /d %varlinkauto%
@@ -587,7 +574,6 @@ echo dataspammer.bat
 cd /d %~dp0
 echo Added Autostart Shortcut!
 goto additionalsdone
-
 :additionalsdone
 echo Done!
 echo You might need to restart your Device in order for all changes to apply.
