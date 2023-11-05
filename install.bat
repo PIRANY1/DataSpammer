@@ -438,14 +438,15 @@ if !chdircheck! equ 1 (
 :insgo2
 setlocal enabledelayedexpansion
 set "insdonevar=insdone"
-set "stdfil=n.a"
-set "stdrcch=n.a"
+set "stdfil=notused"
+set "stdrcch=notused"
+set "update=notused"
 set "file=settings.txt"
 echo !insdonevar! >> %file%
 echo !stdfil! >> %file%
 echo !stdrcch! >> %file%
+echo !update! >> %file%
 echo Settings.txt was created.
-
 cd %~dp0
 del dataspammer.bat
 cd %directory9%
