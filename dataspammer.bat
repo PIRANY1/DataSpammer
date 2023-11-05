@@ -1,11 +1,14 @@
 :: Use only under MIT License
 :: If you want to Publish a modified Version please mention the Original Creator PIRANY and link the GitHub Repo
-
+@color 02
 @if not defined debug_assist (@ECHO OFF) else (@echo on)
 if not defined devtools (goto topppp) else (goto dtd)
+setlocal enableextensions ENABLEDELAYEDEXPANSION 
+net session >nul 2>&1
+if %errorLevel% == 0 (cd %~dp0) else (goto topppp)
 :topppp
 setlocal enabledelayedexpansion
-set "gitver12=v2.4.1"
+set "gitver12=v2.5"
 @title Starting Up...
 echo Checking for Files...
 echo Checking for Data...
@@ -43,7 +46,7 @@ set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
 echo Fetching Git Url....
 @ping -n 1 localhost> nul
 for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do (set "latest_version=%%i")
-if %latest_version% equ v2.4.1 (goto UpToDate) else (goto gitverout)
+if %latest_version% equ v2.5 (goto UpToDate) else (goto gitverout)
 
 :UpToDate
 @ping -n 1 localhost> nul
@@ -244,7 +247,7 @@ set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
 echo Fetching Git Url....
 @ping -n 1 localhost> nul
 for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do (set "latest_version=%%i")
-if %latest_version% equ v2.4.1 (goto UpToDate) else (goto gitverout)
+if %latest_version% equ v2.5 (goto UpToDate) else (goto gitverout)
 
 :UpToDate
 @ping -n 1 localhost> nul
@@ -323,24 +326,7 @@ echo.
 set /p menu3=Choose an Option from Above:
 If %menu3% == 1 goto menu
 If %menu3% == 3 goto cancel
-If %menu3% == 2 goto GitRepo
-goto credits
-
-:GitRepo
-cls 
-echo Opening Github-Repo 
-@ping -n 1 localhost> nul
-echo 3
-@ping -n 1 localhost> nul
-@ping -n 1 localhost> nul
-echo 2
-@ping -n 1 localhost> nul
-@ping -n 1 localhost> nul
-echo 1
-@ping -n 1 localhost> nul
-@ping -n 1 localhost> nul
-echo Opening...
-start "" "https://github.com/PIRANY1/DataSpammer"
+If %menu3% == 2 start "" "https://github.com/PIRANY1/DataSpammer" | cls | goto credits
 goto credits
 
 :setting
@@ -405,7 +391,9 @@ cls
 echo.
 echo.
 set /p directory0=Type Your Directory Here:
-setlocal enabledelayedexpansion
+if exist %directory0% (goto stddirectorycrash2) else (goto stddirectorycrash3)
+:stddirectorycrash2
+setlocal ENABLEDELAYEDEXPANSION
 set "setfile=settings.txt"
 set "tmpfile=temp.txt"
 set "lineCounter=0"
@@ -425,6 +413,10 @@ echo The Directory was saved!
 cls
 goto setting
 
+:stddirectorycrash3
+echo The Directory is invalid!
+pause
+goto stddirectorycrash
 
 :autostartdeskic
 echo.
@@ -527,12 +519,45 @@ If %viewdocsmenu% == 3 goto autostartsetupconfyy
 goto viewdocs
 
 :autostartdelete
+setlocal enableextensions ENABLEDELAYEDEXPANSION 
+net session >nul 2>&1
+if %errorLevel% == 0 (goto autostartdelete2) else (goto noelev)
+:autostartdelete2
+echo Autostart is getting detected as a Virus from some antivirus Programs. 
+echo A Tutorial on how to temporarily turn off your AV is down below
+echo.
+@ping -n 1 localhost> nul
+echo [1] Open Tutorial on how to turn off AV
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [2] Go back
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [3] My AV is turned off!
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [4] Close the Script
+set /P avturnoff=Choose an Option from above
+if %avturnoff% == 1 start "" "https://www.security.org/antivirus/turn-off/" | cls | goto autostartdelete2
+if %avturnoff% == 2 cls | goto viewdocs 
+if %avturnoff% == 3 cls | goto autostartdelete3
+if %avturnoff% == 4 cls | goto cancel
+goto autostartdelete2
+
+:autostartdelete3
 @ping -n 1 localhost> nul
 cd /d C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
 del autostart.bat
 cd /d %~dp0
 
 :autostartsetupconfyy
+setlocal enableextensions ENABLEDELAYEDEXPANSION 
+net session >nul 2>&1
+if %errorLevel% == 0 (goto autostartsetupconfyy2) else (goto noelev)
+:autostartsetupconfyy2
 @ping -n 1 localhost> nul
 echo The Setup for Autostart is now starting...
 cd /d C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
@@ -548,6 +573,10 @@ cd /d %~dp0
 
 
 :desktopiconsetup
+setlocal enableextensions ENABLEDELAYEDEXPANSION 
+net session >nul 2>&1
+if %errorLevel% == 0 (goto desktopiconsetup2) else (goto noelev)
+:desktopiconsetup2
 cd %userprofile%\Desktop
 echo. > DataSpammer.bat
 set "varlinkauto=%~dp0"
@@ -818,12 +847,7 @@ set /a "deskspamlimitedvar+=1"
 goto limitedspam1
 
 :txtspamchose
-if defined stdrc1 (
-    cd /d %stdrc1%
-    goto nameset
-) else (
-    goto novarset
-)
+if stdrc1 equ notused (goto novarset) else (cd /d %stdrc1% && goto nameset)
 
 :novarset
 cls
@@ -871,11 +895,7 @@ if %ERRORLEVEL% neq 0 (
 )
 
 :nameset
-if defined stdfile (
-    goto cddone
-) else (
-    goto nameset2
-)
+if %stdfile% equ notused (goto nameset2) else (goto timerask)
 
 :nameset2
 cls
@@ -933,18 +953,13 @@ echo Starting......
 echo If you want to stop this script simply close the Command Windows or press ALT F4
 :top
 set /a x+=1
-type nul > %stdfile%%x%.txt
+echo. > %stdfile%%x%.txt
 echo Created %x% File(s).
-if %x% equ %filecount% (
-    goto done
-    cls
-) else (
-    goto top
-    cls
-)
-cls
+if %x% equ %filecount% (goto done) else (goto top)
+
 
 :done
+cls
 echo.
 %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
 %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
@@ -1017,6 +1032,11 @@ If %menu9% == 1 goto cancel
 If %menu9% == 2 goto menu
 goto done2
 
+:noelev
+echo Please start the Script as Administrator in order to install.
+echo To do this right click the install.bat File and click "Run As Administrator"
+pause
+exit
 
 :cancel 
 exit
