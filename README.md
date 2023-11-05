@@ -30,7 +30,7 @@ Please use the newest Version and Update the Script. Older Versions have more Bu
 
 |Version | Supported          |Comments                |
 |------- | ------------------ |----------------------- |
-|v1.0  |✅|None|
+|v1.0  |❌|Install not working|
 |v1.0.1|❌|ASCII Art breaks input|
 |v1.1|❌|Updater first introduced but not working|
 |v1.2|❌|Desktop Icon Introduced, Updater not working,|
@@ -49,7 +49,7 @@ Please use the newest Version and Update the Script. Older Versions have more Bu
 |v2.3.1|❌|Startup is now Faster
 |v2.4|❌|Fixed OnStart Update Checker
 |v2.4.1|✅|No known Bugs
-
+|v2.5|✅|Fixed and Improved everything. Script is almost perfect.
 ## Reporting a Bug
 If you encountered a Glitch/Bug/Vulnerability please create an [Issue](https://github.com/PIRANY1/DataSpammer/issues)
 
