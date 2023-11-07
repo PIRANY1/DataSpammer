@@ -10,16 +10,9 @@ if %errorLevel% == 0 (cd %~dp0) else (goto topppp)
 setlocal enabledelayedexpansion
 set "gitver12=v2.5"
 @title Starting Up...
-echo Checking for Files...
 echo Checking for Data...
-if not exist "settings.txt" (
-    set "errorlvlstart2=1"
-    goto Error1
-) else (
-    goto topppp2
-)
-
-:topppp2
+if not exist "settings.txt" goto Error1
+echo Checking for Files...
 if not exist "install.bat" (goto Error) else (goto updtsearch)
 
 :updtsearch
