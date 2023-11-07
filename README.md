@@ -23,11 +23,9 @@ install.bat
 [Install with only one File](https://gist.github.com/PIRANY1/8344f981f20a8e430f8a74c5fa80c390/archive/aa97156420dce791eef1be69b6eb541621b4644a.zip)
 
 # Security Policy
-
 ## Supported Versions
 
 Please use the newest Version and Update the Script. Older Versions have more Bugs.
-
 |Version | Supported          |Comments                |
 |------- | ------------------ |----------------------- |
 |v1.0  |❌|Install not working|
@@ -54,9 +52,10 @@ Please use the newest Version and Update the Script. Older Versions have more Bu
 If you encountered a Glitch/Bug/Vulnerability please create an [Issue](https://github.com/PIRANY1/DataSpammer/issues)
 
 # Credits
-[TAAG](https://patorjk.com/software/taag/) , 
-[jq](https://jqlang.github.io/jq/) , 
+[TAAG](https://patorjk.com/software/taag/) Used for Main Menu
+[jq](https://jqlang.github.io/jq/) ,
 [Scoop](https://scoop.sh/#/) , 
+[jid](https://bjansen.github.io/scoop-apps/main/jid/) Used For Auto Update
 
 # License
 MIT License
