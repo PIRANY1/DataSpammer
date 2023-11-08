@@ -1,5 +1,5 @@
 # DataSpammer
-[![PIRANY1/DataSpammer - GitHub](https://gh-card.dev/repos/PIRANY1/DataSpammer.svg)](https://github.com/PIRANY1/DataSpammer)
+[![PIRANY1/Dataspammer - GitHub](https://gh-card.dev/repos/PIRANY1/Dataspammer.svg?fullname=)](https://github.com/PIRANY1/Dataspammer)
 
 # Install
 Please download the latest [Version](https://github.com/PIRANY1/DataSpammer/releases/latest) or use one of the methods down below.
