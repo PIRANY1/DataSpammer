@@ -1,9 +1,5 @@
 # DataSpammer
-With this fully Batch Script you can mass-create full custom files. This runs on for example Servers too.
-To install this Script simply open the Install.bat file.
-Dont Change any Filenames or text inside the files.
-No Liability.
-Only Private Use.
+[![PIRANY1/DataSpammer - GitHub](https://gh-card.dev/repos/PIRANY1/DataSpammer.svg)](https://github.com/PIRANY1/DataSpammer)
 
 # Install
 Please download the latest [Version](https://github.com/PIRANY1/DataSpammer/releases/latest) or use one of the methods down below.
