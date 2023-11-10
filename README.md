@@ -134,6 +134,6 @@ Fixed OnStart Update Checker
 ### v2.4.1
 No known Bugs
 
-### v2.5 {###v2.5}
+### v2.5
 Fixed and Improved everything. Script is almost perfect.
 
