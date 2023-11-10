@@ -24,7 +24,7 @@ install.bat
 Please use the newest Version and Update the Script. Older Versions have more Bugs.
 |Version | Supported          |Link to Changelog                |
 |------- | ------------------ |----------------------- |
-|v1.0  |❌|[Changelog Here](###v1.0)
+|v1.0  |❌|[Changelog Here](##v1.0)
 |v1.0.1|❌|[Changelog Here](###v1.0.1)
 |v1.1|❌|[Changelog Here](###v1.1)
 |v1.2|❌|[Changelog Here](###v1.2)
@@ -79,41 +79,61 @@ SOFTWARE.
 # Changelog
 ### v1.0
 Installer not moving files into folder
+
 ### v1.0.1
 Installer not moving files into folder
+
 ### v1.1
 Installer not moving files into folder + Updater first introduced but not working
+
 ### v1.2
 Desktop Icon Introduced, Update doesnt install
+
 ### v1.3
 New Installer Options, Scoop File doesnt get deleted
+
 ### v1.4
 Updater done, but has some errors still
+
 ### v1.5
 Updater done has one error, Desktop Icons done.
+
 ### v1.5.1
 Bugfixes and Improvements
+
 ### v1.5.2
 Migrated two files
+
 ### v1.5.3
 Improvements and Bugfixes
+
 ### v1.6
 Added Desktop Spam
+
 ### v1.7
 Error Codes added 
+
 ### v2
 Settings are all in one File
+
 ### v2.1
 Has a Big Bug
+
 ### v2.2
 Install in Program Directory added, may trigger AntiVirus
+
 ### v2.3
 Migrated start.bat and Dataspammer.bat and fixed a Few Bugs
+
 ### v2.3.1
 Startup is now Faster
+
 ### v2.4
 Fixed OnStart Update Checker
+
 ### v2.4.1
 No known Bugs
+
 ### v2.5
 Fixed and Improved everything. Script is almost perfect.
+
