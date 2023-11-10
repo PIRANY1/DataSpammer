@@ -29,21 +29,21 @@ Please use the newest Version and Update the Script. Older Versions have more Bu
 |v1.1|❌|[Changelog Here](###v1.1)
 |v1.2|❌|[Changelog Here](###v1.2)
 |v1.3|❌|[Changelog Here](###v1.3)
-|v1.4|❌|Updater done, but has some errors still| 
-|v1.5|❌| Updater done has one error, Desktop Icons done.|
-|v1.5.1|❌|Bugfixes and Improvements
-|v1.5.2|❌|Migrated two files
-|v1.5.3|❌|Improvements and Bugfixes
-|v1.6|❌|Added Desktop Spam
-|v1.7|❌|Error Codes added 
-|v2|❌|Settings are all in one File
-|v2.1|❌|Has a Big Bug
-|v2.2|❌:|Install in Program Directory added, may trigger AntiVirus
-|v2.3|❌|Migrated start.bat and Dataspammer.bat and fixed a Few Bugs
-|v2.3.1|❌|Startup is now Faster
-|v2.4|❌|Fixed OnStart Update Checker
-|v2.4.1|✅|No known Bugs
-|v2.5|✅|Fixed and Improved everything. Script is almost perfect.
+|v1.4|❌|[Changelog Here](###v1.4)
+|v1.5|❌|[Changelog Here](###v1.5)
+|v1.5.1|❌|[Changelog Here](###v1.5.1)
+|v1.5.2|❌|[Changelog Here](###v1.5.2)
+|v1.5.3|❌|[Changelog Here](###v1.5.3)
+|v1.6|❌|[Changelog Here](###v1.6)
+|v1.7|❌|[Changelog Here](###v1.7)
+|v2|❌|[Changelog Here](###v2)
+|v2.1|❌|[Changelog Here](###v2.1)
+|v2.2|❌:|[Changelog Here](###v2.2)
+|v2.3|❌|[Changelog Here](###v2.3)
+|v2.3.1|❌|[Changelog Here](###v2.3.1)
+|v2.4|❌|[Changelog Here](###v2.4)
+|v2.4.1|✅|[Changelog Here](###v2.4.1)
+|v2.5|✅|[Changelog Here](###v2.5)
 ## Reporting a Bug
 If you encountered a Glitch/Bug/Vulnerability please create an [Issue](https://github.com/PIRANY1/DataSpammer/issues)
 
