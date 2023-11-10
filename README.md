@@ -3,13 +3,13 @@
 
 # Install
 Please download the latest [Version](https://github.com/PIRANY1/DataSpammer/releases/latest) or use one of the methods down below.
-### Git:
+### Git
 ```
 git clone https://github.com/PIRANY1/DataSpammer
 cd DataSpammer
 install.bat
 ```
-### Github CLI:
+### Github CLI
 ```
 gh repo clone PIRANY1/DataSpammer
 cd DataSpammer
@@ -76,22 +76,42 @@ SOFTWARE.
 
 # Changelog
 ### v1.0
-Installer not moving files into folder
+Added Main Files (untested)
+Bugs:
+Installer not moving .txt Files into the Folder - Need to be done manually
+Autostart Setup doesnt work
+Installer doesnt recognise that the Script is already installed
 
 ### v1.0.1
-Installer not moving files into folder
+Added ASCII Art and improved readme + license
+Bugs
+Autostart Setup doesnt work
+Installer still not moving .txt Files into the Folder - Need to be done manually
 
 ### v1.1
-Installer not moving files into folder + Updater first introduced but not working
+Bugfixes + Reworked UI + Updater first Introduced
+Bugs
+Installer still not moving files into folder - Need to be done manually
+Updater not working
 
 ### v1.2
-Desktop Icon Introduced, Update doesnt install
+Desktop Icon Introduced, added Autostart 
+Bugs:
+Updater is now working but cant install any Updates
+Update skip doesnt work
+Script cant start
+Autostart doesnt work because script doesnt have Admin rights
 
 ### v1.3
-New Installer Options, Scoop File doesnt get deleted
+New Installer Options
+Bugs:
+Scoop Temp File doesnt get deleted
+Script cant start properly
+Autostart doesnt work
 
 ### v1.4
 Updater done, but has some errors still
+
 
 ### v1.5
 Updater done has one error, Desktop Icons done.
