@@ -28,7 +28,7 @@ Please use the newest Version and Update the Script. Older Versions have more Bu
 |v1.0.1|❌|Installer not moving files into folder|
 |v1.1|❌|Installer not moving files into folder + Updater first introduced but not working|
 |v1.2|❌|Desktop Icon Introduced, Update doesnt install|
-|v1.3|❌|New Installer Options| 
+|v1.3|❌|New Installer Options, Scoop File doesnt get deleted| 
 |v1.4|❌|Updater done, but has some errors still| 
 |v1.5|❌| Updater done has one error, Desktop Icons done.|
 |v1.5.1|❌|Bugfixes and Improvements
