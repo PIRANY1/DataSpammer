@@ -18,9 +18,7 @@ install.bat
 ### OneFile Install
 [Install with only one File](https://gist.github.com/PIRANY1/8344f981f20a8e430f8a74c5fa80c390/archive/aa97156420dce791eef1be69b6eb541621b4644a.zip)
 
-# Security Policy
-## Supported Versions
-
+# Supported Versions
 Please use the newest Version and Update the Script. Older Versions have more Bugs.
 |Version | Supported          |Link to Changelog                |
 |------- | ------------------ |----------------------- |
@@ -38,7 +36,7 @@ Please use the newest Version and Update the Script. Older Versions have more Bu
 |v1.7|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v17)
 |v2|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v2)
 |v2.1|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v21)
-|v2.2|❌:|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v22)
+|v2.2|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v22)
 |v2.3|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v23)
 |v2.3.1|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v231)
 |v2.4|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v24)
