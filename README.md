@@ -25,7 +25,7 @@ Please use the newest Version and Update the Script. Older Versions have more Bu
 |Version | Supported          |Comments                |
 |------- | ------------------ |----------------------- |
 |v1.0  |❌|Install not working|
-|v1.0.1|❌|ASCII Art breaks input|
+|v1.0.1|❌|Install not working|
 |v1.1|❌|Updater first introduced but not working|
 |v1.2|❌|Desktop Icon Introduced, Updater not working,|
 |v1.3|❌|New Installer Options| 
