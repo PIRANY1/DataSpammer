@@ -24,7 +24,7 @@ install.bat
 Please use the newest Version and Update the Script. Older Versions have more Bugs.
 |Version | Supported          |Link to Changelog                |
 |------- | ------------------ |----------------------- |
-|v1.0  |❌|[Changelog Here](#v1.0)
+|v1.0  |❌|[Changelog Here](##v1.0)
 |v1.0.1|❌|[Changelog Here](###v1.0.1)
 |v1.1|❌|[Changelog Here](###v1.1)
 |v1.2|❌|[Changelog Here](###v1.2)
@@ -77,7 +77,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 # Changelog
-### v1.0 {#v1.0}
+## v1.0
 Installer not moving files into folder
 
 ### v1.0.1 {###v1.0.1}
