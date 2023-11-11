@@ -20,6 +20,7 @@ install.bat
 
 # Supported Versions
 Please use the newest Version and Update the Script. Older Versions have more Bugs.
+> Older Versions doesnt support full Update
 |Version | Supported          |Link to Changelog                |
 |------- | ------------------ |----------------------- |
 |v1.0  |❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v10)
@@ -101,26 +102,43 @@ Updater is now working but cant install any Updates
 Update skip doesnt work
 Script cant start
 Autostart doesnt work because script doesnt have Admin rights
+Scoop Temp File doesnt get deleted
 
 ### v1.3
 New Installer Options
 Bugs:
 Scoop Temp File doesnt get deleted
+Skip Update doesnt work
 Script cant start properly
 Autostart doesnt work
+Script cant start accurately
 
 ### v1.4
-Updater done, but has some errors still
-
+Updater done
+Bugs:
+Updater thinks its in v1.3
+Skip Update doesnt work
+Scoop Temp File doesnt get deleted
+Script cant start accurately
+Autostart doesnt work
 
 ### v1.5
 Updater done has one error, Desktop Icons done.
+Bugs:
+Update skip doesnt work
+Autostart doesnt work
+JQ+Scoop Update doesnt work
+Script cant start accurately
 
 ### v1.5.1
-Bugfixes and Improvements
+Improved Installer, Script is now checking if you have the libs installed and if yes it skips the install
+Bugs:
+Update skip doesnt work
+Check for Update doesnt work
+Script cant start accurately
 
 ### v1.5.2
-Migrated two files
+Migrated startupcheck.bat and start.bat
 
 ### v1.5.3
 Improvements and Bugfixes
