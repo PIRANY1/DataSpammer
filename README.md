@@ -21,6 +21,7 @@ install.bat
 # Supported Versions
 Please use the newest Version and Update the Script. Older Versions have more Bugs.
 > Older Versions doesnt support full Update
+
 |Version | Supported          |Link to Changelog                |
 |------- | ------------------ |----------------------- |
 |v1.0  |❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v10)
