@@ -140,30 +140,52 @@ Script cant start accurately
 
 ### v1.5.2
 Migrated startupcheck.bat and start.bat
+Bugs:
+Script cant start accuratly
+Check for Update doesnt work
 
 ### v1.5.3
-Improvements and Bugfixes
+You can now skip the Update
+Script can now start normally
+Bugs:
+Installer is trying to copy startupcheck.bat
+Check for Update doesnt work
 
 ### v1.6
-Added Desktop Spam
+Added Desktop Spam, Check for Update got added
 
 ### v1.7
 Error Codes added 
+You can now use the Script without the Update Libs
+Bugs:
+Update doesnt work
 
 ### v2
 Settings are all in one File
+Bugs:
+Update doesnt work
 
 ### v2.1
-Has a Big Bug
+You can now install the Script on other Drives
+Install in Normal Program Directory Got Added
+Folder Name is now the right one
+Bugs:
+Install in Programmm Directory triggers AV
+Update doesnt work
 
 ### v2.2 
 Install in Program Directory added, may trigger AntiVirus
+Bugs: 
+Installer Crashes Early But can finish the installation
+Update doesnt work
 
 ### v2.3
 Migrated start.bat and Dataspammer.bat and fixed a Few Bugs
+Bugs:
+Update doesnt work
 
 ### v2.3.1
-Startup is now Faster
+Fixed Updater
 
 ### v2.4
 Fixed OnStart Update Checker
