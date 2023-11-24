@@ -3,7 +3,7 @@ if not defined devtools (goto nodev) else (goto dtd)
 :nodev
 @title Script Installer by PIRANY
 set "foldername=DataSpammerbyPIRANY"
-set "gitver12=v2.5"
+set "gitver12=v2.6"
 cd %~dp0
 color 2
 cls  

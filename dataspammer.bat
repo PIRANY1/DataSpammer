@@ -8,7 +8,7 @@ net session >nul 2>&1
 if %errorLevel% == 0 (cd %~dp0) else (goto topppp)
 :topppp
 setlocal enabledelayedexpansion
-set "gitver12=v2.5"
+set "gitver12=v2.6"
 @title Starting Up...
 echo Checking for Data...
 if not exist "settings.txt" goto Error1
@@ -39,7 +39,7 @@ set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
 echo Fetching Git Url....
 @ping -n 1 localhost> nul
 for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do (set "latest_version=%%i")
-if %latest_version% equ v2.5 (goto UpToDate) else (goto gitverout)
+if %latest_version% equ v2.6 (goto UpToDate) else (goto gitverout)
 
 :UpToDate
 @ping -n 1 localhost> nul
@@ -240,7 +240,7 @@ set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
 echo Fetching Git Url....
 @ping -n 1 localhost> nul
 for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do (set "latest_version=%%i")
-if %latest_version% equ v2.5 (goto UpToDate) else (goto gitverout)
+if %latest_version% equ v2.6 (goto UpToDate) else (goto gitverout)
 
 :UpToDate
 @ping -n 1 localhost> nul
