@@ -1,7 +1,6 @@
 # DataSpammer
 ### Features
-Add to Path, Autostart, Desktop Shortcut, Taskbar Shortcut, Remotespam(laggy), Desktop Spam, Portable Installation, Custom Folder Spam, Update Libs, Updater(requires Libs) and some more
-2 Easter Eggs
+Add to Path, Autostart, Desktop Shortcut, Taskbar Shortcut, Remotespam(laggy), Desktop Spam, Portable Installation, Custom Folder Spam, Update Libs, Updater(requires Libs) and some more + 2 Easter Eggs
 
 # Install
 Please download the latest [Version](https://github.com/PIRANY1/DataSpammer/releases/latest) or use one of the methods down below.
