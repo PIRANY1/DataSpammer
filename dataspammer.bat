@@ -179,7 +179,7 @@ cls
 
 
 @ping -n 1 localhost> nul
-echo Made by PIRANY (pirany on discord)
+echo Made by PIRANY 
 @ping -n 1 localhost> nul
 echo.
 @ping -n 1 localhost> nul
