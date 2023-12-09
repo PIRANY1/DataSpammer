@@ -96,7 +96,7 @@ echo [1] Open GitHub for Versions.
 @ping -n 1 localhost> nul
 echo.
 @ping -n 1 localhost> nul
-echo [2] Continue Anyways(Script has a very high Chance of not working)
+echo [2] Continue Anyways(Script has a Chance of not working
 @ping -n 1 localhost> nul
 echo.
 @ping -n 1 localhost> nul
