@@ -16,8 +16,8 @@ gh repo clone PIRANY1/DataSpammer
 cd DataSpammer
 install.bat
 ```
-### OneFile Install
-[Install with only one File](https://gist.github.com/PIRANY1/8344f981f20a8e430f8a74c5fa80c390/archive/aa97156420dce791eef1be69b6eb541621b4644a.zip)
+### Download File
+Install with only one [File](https://gist.github.com/PIRANY1/8344f981f20a8e430f8a74c5fa80c390/archive/97f89d1649c772d1c556310cd53a14e68a7801b4.zip)(Needs Git Installed)
 
 # Supported Versions
 Please use the newest Version and Update the Script. Older Versions have more Bugs.
