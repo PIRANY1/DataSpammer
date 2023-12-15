@@ -54,6 +54,10 @@ If you encountered a Glitch/Bug/Vulnerability please create an [Issue](https://g
 [Scoop](https://scoop.sh/#/) , 
 [jid](https://bjansen.github.io/scoop-apps/main/jid/) Used For Auto Update
 
+ ## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=pirany1/dataspammer&type=Date)](https://star-history.com/#pirany1/dataspammer&Date)
+
 # License
 MIT License
 
