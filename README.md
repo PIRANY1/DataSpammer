@@ -48,6 +48,7 @@ Please use the newest Version and Update the Script. Older Versions have more Bu
 |v2.4|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v24)
 |v2.4.1|✅|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v241)
 |v2.5|✅|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v25)
+|v2.6|✅|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v26)|
 ## Reporting a Bug
 If you encountered a Glitch/Bug/Vulnerability please create an [Issue](https://github.com/PIRANY1/DataSpammer/issues)
 
@@ -204,3 +205,5 @@ No known Bugs
 ### v2.5
 Fixed and Improved everything. Script is almost perfect.
 
+### v2.6
+Added the Option to add the Script to PATH
