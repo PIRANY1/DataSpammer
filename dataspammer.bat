@@ -641,7 +641,6 @@ If %spammethod% == 4 goto menu
 goto start187
 
 :remotespam
-goto start187
 echo In Order to work the Remote Spam Method needs 6 components.
 @ping -n 1 localhost> nul
 echo 1: The IP of the Device you want to spam
@@ -659,7 +658,26 @@ echo 6: How many Files you want to create
 echo The Device has to be turned on too and has to be connected to the Internet.
 @ping -n 1 localhost> nul
 echo.
-echo If you dont know which IP the Device has type help
+echo. 
+echo [1] Continue
+echo.
+echo [2] Back
+echo.
+set /P remotespamchoose=Choose an Option from above:
+if %remotespamchoose% == 1 goto remotespamsetupfirst
+if %remotespamchoose% == 2 goto start187
+
+:remotespamsetupfirst
+echo Please specify the IP of the Device
+@ping -n 1 localhost> nul
+echo Down Below are a Few IPs in your Network. 
+arp -a 
+@ping -n 1 localhost> nul
+echo If you need help finding the IP type "help"
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo.
 set /P remotespamip=Enter the IP:
 if %remotespamip% == help (
     start "" "https://support.ucsd.edu/services?id=kb_article_view&sysparm_article=KB0032480"
@@ -672,12 +690,14 @@ echo !remotespamip! | findstr /R "^([0-9]{1,3}\.){3}[0-9]{1,3}$"
 if %errorlevel% equ 0 (
     goto remotespamsetup2
 ) else (
-    goto remotespam
+    echo The IP you entered doesnt seem Valid. Please try again.
+    pause
+    goto remotespamsetupfirst
 )
 
 :remotespamsetup2
 set /P remotespamaccname=Enter an Account Name:
-set /P remotespampasswrd=Enter the Password of the Account
+set /P remotespampasswrd=Enter the Password of the Account:
 set /P remotespamdrc=Enter the Directory:
 echo The Filename cant include the following Character(s):\ / : * ? " < > |"
 set /P remotespamfilename=Enter a Filename:
@@ -686,8 +706,6 @@ set /P remotespamfilecount=How many files do you want to create:
 cls
 set "verify=%random%"
 echo Please Verify that you want to this Spam Method.
-echo Please have in Mind that this can make your Installation Unusable.
-echo Please enter %verify% in the Field Below
 set /p verifyans=Type %verify%:
 if "%verifyans%"=="%verify%" (
     goto startremotespam
@@ -715,7 +733,7 @@ echo Starting.....
 @ping -n 2 localhost> nul
 set "remotespamcount=1"
 scp file.txt root@serverip:~/file.txt
-
+scp C:\Pfad\zur\Lokalen\Datei.txt Benutzer@Zielserver:/Pfad/Auf/Ziel/Server
 
 
 :deskiconspam
