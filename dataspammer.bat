@@ -698,7 +698,6 @@ if %errorlevel% equ 0 (
 :remotespamsetup2
 set /P remotespamaccname=Enter an Account Name:
 set /P remotespampasswrd=Enter the Password of the Account:
-set /P remotespamdrc=Enter the Directory:
 echo The Filename cant include the following Character(s):\ / : * ? " < > |"
 set /P remotespamfilename=Enter a Filename:
 set /P remotespamfilecount=How many files do you want to create:
@@ -733,7 +732,8 @@ echo Starting.....
 @ping -n 2 localhost> nul
 set "remotespamcount=1"
 scp file.txt root@serverip:~/file.txt
-scp C:\Pfad\zur\Lokalen\Datei.txt Benutzer@Zielserver:/Pfad/Auf/Ziel/Server
+scp C:\Pfad\zur\Lokalen\Datei.txt %remotespamaccname%@%remotespamip%:~/
+%remotespampasswrd%
 
 
 :deskiconspam
