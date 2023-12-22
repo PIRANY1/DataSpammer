@@ -717,8 +717,9 @@ set "assetcount=1"
 :assetcounttop
 color 02
 @ping -n 1 localhost> nul
-echo Loading Assets(%assetcount%/32)
+echo Loading Assets [%assetcount%/32]
 set /a "assetcount+=1"
+cls
 If %assetcount% == 33 (goto remotespamstart) else (goto assetcounttop)
 
 :remotespamstart
@@ -732,7 +733,7 @@ echo Starting.....
 @ping -n 2 localhost> nul
 set "remotespamcount=1"
 scp file.txt root@serverip:~/file.txt
-scp C:\Pfad\zur\Lokalen\Datei.txt %remotespamaccname%@%remotespamip%:~/
+scp C:\Pfad\zur\Lokalen\Datei.txt %remotespamaccname%@%remotespamip%:Desktop\%remotespamfilename%
 %remotespampasswrd%
 
 
