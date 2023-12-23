@@ -655,7 +655,7 @@ echo 5: The Directory you want to Spam.
 @ping -n 1 localhost> nul
 echo 6: How many Files you want to create
 @ping -n 1 localhost> nul
-echo The Device has to be turned on too and has to be connected to the Internet.
+echo The Device has to be turned on too and has to be connected to the Internet. It has to accept the connection too. 
 @ping -n 1 localhost> nul
 echo.
 echo. 
@@ -732,10 +732,51 @@ echo 1
 echo Starting.....
 @ping -n 2 localhost> nul
 set "remotespamcount=1"
+cd %temp%
+echo Troll by https://github.com/PIRANY1/DataSpammer > dataspammertemp.txt
+:startremotespamwasset
 scp file.txt root@serverip:~/file.txt
-scp C:\Pfad\zur\Lokalen\Datei.txt %remotespamaccname%@%remotespamip%:Desktop\%remotespamfilename%
+scp %temp%\dataspammertemp.txt %remotespamaccname%@%remotespamip%:Desktop\%remotespamfilename%_%remotespamcount%.txt
 %remotespampasswrd%
+set /a "remotespamcount+=1"
+if %remotespamfilecount% == %remotespamcount% (goto remotespamdone) else (goto startremotespamwasset)
 
+:remotespamdone
+echo.
+%$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
+%$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
+%$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
+%$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
+%$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
+%$Echo% "                             |_|                                              |___/                                     
+                                                                                              
+
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo The Script Created %remotespamfilecount% Files on the PC of %remotespamaccname%
+echo.
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo Do you want to Close the Script or Go to the Menu?
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [1] Close
+echo.
+@ping -n 1 localhost> nul
+echo.
+@ping -n 1 localhost> nul
+echo [2] Menu
+echo.
+@ping -n 1 localhost> nul
+set /p menu9=Choose an Option from Above:
+If %menu9% == 1 goto cancel
+If %menu9% == 2 goto menu
+goto remotespamdone
 
 :deskiconspam
 @ping -n 1 localhost> nul
@@ -823,7 +864,6 @@ color 02
 echo Loading Assets(%assetcount%/32)
 set /a "assetcount+=1"
 If %assetcount% == 33 (goto deskiconspamsetdonestart) else (goto assetcounttop)
-
 
 :deskiconspamsetdonestart
 cls
