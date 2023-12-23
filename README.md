@@ -21,8 +21,11 @@ Install with only one [File](https://gist.github.com/PIRANY1/8344f981f20a8e430f8
 
 # Supported Versions
 ## Todo
-Fix Remotespam via scp/ftp/ssh
-Improve Language
+|Status|Name|
+|------|----|
+|Working on it|Fix Remotespam via scp/ftp/ssh|
+|Soon|Improve Language|
+
 Please use the newest Version and Update the Script. Older Versions have more Bugs.
 > Older Versions doesnt support full Update
 
