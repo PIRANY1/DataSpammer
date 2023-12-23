@@ -23,6 +23,7 @@ Install with only one [File](https://gist.github.com/PIRANY1/8344f981f20a8e430f8
 ## Todo
 |Status|Name|
 |------|----|
+|Working on it|Create Custom Batch for USB Stick|
 |Working on it|Fix Remotespam via scp/ftp/ssh|
 |Soon|Improve Language|
 
