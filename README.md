@@ -57,12 +57,6 @@ Please use the newest Version and Update the Script. Older Versions have more Bu
 ## Reporting a Bug
 If you encountered a Glitch/Bug/Vulnerability please create an [Issue](https://github.com/PIRANY1/DataSpammer/issues)
 
-# Credits
-[TAAG](https://patorjk.com/software/taag/) Used for Main Menu
-[jq](https://jqlang.github.io/jq/) ,
-[Scoop](https://scoop.sh/#/) , 
-[jid](https://bjansen.github.io/scoop-apps/main/jid/) Used For Auto Update
-
  ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=pirany1/dataspammer&type=Date)](https://star-history.com/#pirany1/dataspammer&Date)
