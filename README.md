@@ -83,6 +83,7 @@ SOFTWARE.
 # Changelog
 ### v1.0
 Added Main Files (untested)
+
 Bugs:
 Installer not moving .txt Files into the Folder - Need to be done manually
 Autostart Setup doesnt work
@@ -90,18 +91,21 @@ Installer doesnt recognise that the Script is already installed
 
 ### v1.0.1
 Added ASCII Art and improved readme + license
+
 Bugs
 Autostart Setup doesnt work
 Installer still not moving .txt Files into the Folder - Need to be done manually
 
 ### v1.1
 Bugfixes + Reworked UI + Updater first Introduced
+
 Bugs
 Installer still not moving files into folder - Need to be done manually
 Updater not working
 
 ### v1.2
 Desktop Icon Introduced, added Autostart 
+
 Bugs:
 Updater is now working but cant install any Updates
 Update skip doesnt work
@@ -111,6 +115,7 @@ Scoop Temp File doesnt get deleted
 
 ### v1.3
 New Installer Options
+
 Bugs:
 Scoop Temp File doesnt get deleted
 Skip Update doesnt work
@@ -120,6 +125,7 @@ Script cant start accurately
 
 ### v1.4
 Updater done
+
 Bugs:
 Updater thinks its in v1.3
 Skip Update doesnt work
@@ -129,6 +135,7 @@ Autostart doesnt work
 
 ### v1.5
 Updater done has one error, Desktop Icons done.
+
 Bugs:
 Update skip doesnt work
 Autostart doesnt work
@@ -137,6 +144,7 @@ Script cant start accurately
 
 ### v1.5.1
 Improved Installer, Script is now checking if you have the libs installed and if yes it skips the install
+
 Bugs:
 Update skip doesnt work
 Check for Update doesnt work
@@ -144,6 +152,7 @@ Script cant start accurately
 
 ### v1.5.2
 Migrated startupcheck.bat and start.bat
+
 Bugs:
 Script cant start accuratly
 Check for Update doesnt work
@@ -151,6 +160,7 @@ Check for Update doesnt work
 ### v1.5.3
 You can now skip the Update
 Script can now start normally
+
 Bugs:
 Installer is trying to copy startupcheck.bat
 Check for Update doesnt work
@@ -162,11 +172,13 @@ Added Desktop Spam, Check for Update got added
 Error Codes added 
 You can now use the Script without the Update Libs
 Bugs:
+
 Update doesnt work
 
 ### v2
 Settings are all in one File
 Bugs:
+
 Update doesnt work
 
 ### v2.1
@@ -174,18 +186,21 @@ You can now install the Script on other Drives
 Install in Normal Program Directory Got Added
 Folder Name is now the right one
 Bugs:
+
 Install in Programmm Directory triggers AV
 Update doesnt work
 
 ### v2.2 
 Install in Program Directory added, may trigger AntiVirus
 Bugs: 
+
 Installer Crashes Early But can finish the installation
 Update doesnt work
 
 ### v2.3
 Migrated start.bat and Dataspammer.bat and fixed a Few Bugs
 Bugs:
+
 Update doesnt work
 
 ### v2.3.1
