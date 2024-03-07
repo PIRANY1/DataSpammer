@@ -440,11 +440,13 @@ cls
 goto setting
 
 :stddirectorycrash3
+    :: Not so hard to understand
     echo The Directory is invalid!
     pause
     goto stddirectorycrash
 
 :autostartdeskic
+    :: Autostart TLI
     echo.
     cls
     echo.
@@ -483,6 +485,7 @@ goto setting
     goto autostartdeskic
 
 :autostartsetup
+    :: Autostart Setup TLI - INOPERATIONAL - NEED TO FIX ASAP
     echo This Setup will lead you trough the Autostart/Desktopicon Setup.
     @ping -n 1 localhost> nul
     echo If you are not sure what that is please take a look at the Information.
