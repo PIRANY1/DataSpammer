@@ -1,115 +1,128 @@
 :: Use only under MIT License
 :: If you want to Publish a modified Version please mention the Original Creator PIRANY and link the GitHub Repo
+:: Some Vars and Settings
 @color 02
+set "gitver12=v2.6"
 @if not defined debug_assist (@ECHO OFF) else (@echo on)
 if not defined devtools (goto topppp) else (goto dtd)
 setlocal enableextensions ENABLEDELAYEDEXPANSION 
 net session >nul 2>&1
+:: Fix Directory if started with Elevated Priviliges
 if %errorLevel% == 0 (cd %~dp0) else (goto topppp)
+
 :topppp
-setlocal enabledelayedexpansion
-set "gitver12=v2.6"
-@title Starting Up...
-echo Checking for Data...
-if not exist "settings.txt" goto Error1
-echo Checking for Files...
-if not exist "install.bat" (goto Error) else (goto updtsearch)
+    :: Checks if all Files needed for the Script exist
+    setlocal enabledelayedexpansion
+    @title Starting Up...
+    echo Checking for Data...
+    if not exist "settings.txt" goto Error1
+    echo Checking for Files...
+    if not exist "install.bat" (goto Error) else (goto updtsearch)
 
 :updtsearch
-setlocal enabledelayedexpansion
-set "batchfile=settings.txt"
-set "linenumber=4"
-set "searchtext=uy"
+    :: Check if Script should check for Updates
+    setlocal enabledelayedexpansion
+    set "file=settings.txt"
+    set "linenr=4"
+    set "searchfor=uy"
 
-for /f "tokens=1* delims=:" %%a in ('findstr /n "^" "%batchfile%"') do (
-    if %%a equ %linenumber% (
-        set "line=%%b"
-        set "line=!line:*:=!"
-        if "!line!" equ "%searchtext%" (
-            goto gitvercheck
-        ) else (
-            goto ulttop
+    for /f "tokens=1* delims=:" %%a in ('findstr /n "^" "%batchfile%"') do (
+        if %%a equ %linenr% (
+            set "line=%%b"
+            set "line=!line:*:=!"
+            if "!line!" equ "%searchtext%" (
+                goto gitvercheck
+            ) else (
+                goto ulttop
+            )
         )
     )
-)
+
 :gitvercheck
-set "owner=PIRANY1"
-set "repo=DataSpammer"
-set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
-echo Fetching Git Url....
-@ping -n 1 localhost> nul
-for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do (set "latest_version=%%i")
-if %latest_version% equ v2.6 (goto UpToDate) else (goto gitverout)
+    :: Check if an Updates Is Avaiable
+    set "owner=PIRANY1"
+    set "repo=DataSpammer"
+    set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
+    echo Fetching Git Url....
+    @ping -n 1 localhost> nul
+    for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do (set "latest_version=%%i")
+    if %latest_version% equ v2.6 (goto UpToDate) else (goto gitverout)
 
 :UpToDate
-@ping -n 1 localhost> nul
-echo The Version you are currently Using is the newest one (%latest_version%)
-goto ulttop
+    :: Message when the Script is up-to-date
+    @ping -n 1 localhost> nul
+    echo The Version you are currently Using is the newest one (%latest_version%)
+    goto ulttop
 
 
 :gitverout
-echo.
-@ping -n 1 localhost> nul
-echo Version Outdated!
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-echo Please consider downloading the new Version. 
-@ping -n 1 localhost> nul
-echo The Version you are currently using is %gitver12%
-@ping -n 1 localhost> nul 
-echo The newest Version avaiable is %latest_version%
-@ping -n 1 localhost> nul
-echo.
-echo [1] Update
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-echo [2] Continue Anyways
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-set /p menu4=Choose an Option from Above:
-If %menu4% == 1 goto gitupt
-If %menu4% == 2 goto ulttop
-goto gitverout
+    :: TLI when the Script is Outdated
+    echo.
+    @ping -n 1 localhost> nul
+    echo Version Outdated!
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo Please consider downloading the new Version. 
+    @ping -n 1 localhost> nul
+    echo The Version you are currently using is %gitver12%
+    @ping -n 1 localhost> nul 
+    echo The newest Version avaiable is %latest_version%
+    @ping -n 1 localhost> nul
+    echo.
+    echo [1] Update
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [2] Continue Anyways
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    set /p menu4=Choose an Option from Above:
+    If %menu4% == 1 goto gitupt
+    If %menu4% == 2 goto ulttop
+    goto gitverout
 
 :gitupt
-set gitverold=%gitver12%
-cd %~dp0
-set "source_dir_start=%cd%"
-cd ..
-mkdir %latest_version%
-cd %latest_version%
-git clone https://github.com/PIRANY1/DataSpammer %cd%
-echo Downloaded
-set "setupaftgitcl=1"
-install.bat
+    :: Unstable Ahhh Update Script
+    set gitverold=%gitver12%
+    cd %~dp0
+    set "source_dir_start=%cd%"
+    cd ..
+    mkdir %latest_version%
+    cd %latest_version%
+    git clone https://github.com/PIRANY1/DataSpammer %cd%
+    echo Downloaded
+    set "setupaftgitcl=1"
+    install.bat
 
 
 :Error 
-echo The "Install.bat" doesnt exist. Please redownload the Script.
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-echo [1] Open GitHub for Versions.
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-echo [2] Continue Anyways(Script has a Chance of not working
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-set /p menu3=Choose an Option from Above:
-If %menu3% == 2 goto ulttop
-If %menu3% == 1 goto gitopen
-goto Error
+    :: TLI When the Installer doesnt exist
+    echo The "Install.bat" doesnt exist. The Script has a Chance of not working
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [1] Open GitHub for Versions.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [2] Continue Anyways
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    set /p menu3=Choose an Option from Above:
+    If %menu3% == 2 goto ulttop
+    If %menu3% == 1 goto gitopen
+    goto Error
 
 :gitopen
-start "" "https://github.com/PIRANY1/DataSpammer"
-goto Error
+    :: Open Repo
+    start "" "https://github.com/PIRANY1/DataSpammer"
+    goto Error
 
 :error1
+    :: TLI when Settings arent found
     cls
     echo The File "settings.txt" doesnt exist. 
     @ping -n 1 localhost> nul
@@ -133,41 +146,48 @@ goto Error
     goto error1
 
 :openins
+    :: Opens the Installer
     cd %~dp0
     install.bat
     if %errorlevel% equ 0 (cls | echo Installer is running....) else (echo There was an Error. Please open the install.bat File manually.)
 
-rem --------------------------------------------------------------------------------------------------------------------------------------------------
-rem --------------------------------------------------------------------------------------------------------------------------------------------------
-rem --------------------------------------------------------------------------------------------------------------------------------------------------
-rem -------------------------------------------------Start.bat  <- Transition -> DataSpammer.bat------------------------------------------------------
-rem --------------------------------------------------------------------------------------------------------------------------------------------------
-rem --------------------------------------------------------------------------------------------------------------------------------------------------
-rem --------------------------------------------------------------------------------------------------------------------------------------------------
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+:: -------------------------------------------------Start.bat  <- Transition -> DataSpammer.bat------------------------------------------------------
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+
 :ulttop
-color 2
-if "%settingsmainscriptvar%" == "1" goto setting
+    :: If the Script got opened from installer?
+    if "%settingsmainscriptvar%" == "1" goto setting
 
-SETLOCAL EnableDelayedExpansion
-SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
-SETLOCAL DisableDelayedExpansion
+:enableascii
+    :: Allow for example ASCII art
+    SETLOCAL EnableDelayedExpansion
+    SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
+    SETLOCAL DisableDelayedExpansion
 
-setlocal enabledelayedexpansion
-set "file=settings.txt"
-set nr=0
-for /l %%i in (1,1,5) do (
-    set "line%%i="
-)
-for /f "delims=" %%a in (%file%) do (
-    set /a "nr+=1"
-    set "line!nr!=%%a"
-)
-set "insdonevar1=!line1!"
-set "stdfile=!line2!"
-set "stdrc1=!line3!"
-if not defined devtools (goto menu) else (goto dtd)
+:extract-settings
+    :: Extract data from Settings file
+    setlocal enabledelayedexpansion
+    set "file=settings.txt"
+    set nr=0
+    for /l %%i in (1,1,5) do (
+        set "line%%i="
+    )
+    for /f "delims=" %%a in (%file%) do (
+        set /a "nr+=1"
+        set "line!nr!=%%a"
+    )
+    set "insdonevar1=!line1!"
+    set "stdfile=!line2!"
+    set "stdrc1=!line3!"
+    if not defined devtools (goto menu) else (goto dtd)
 
 :menu
+    :: Main Menu TLI
     cls
     %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
     %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
@@ -240,29 +260,33 @@ if not defined devtools (goto menu) else (goto dtd)
     goto menu
 
 :checkgitupdt
+    :: Check for Update (Why not restart the Script at all and then check for updates)
     set "owner=PIRANY1"
     set "repo=DataSpammer"
     set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
     echo Fetching Git Url....
     @ping -n 1 localhost> nul
     for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do (set "latest_version=%%i")
-    if %latest_version% equ v2.6 (goto UpToDate) else (goto gitverout)
+    if %latest_version% equ v2.6 (goto UpToDate1) else (goto gitverout)
 
-:UpToDate
+:UpToDate1
+    :: Display Version
     @ping -n 1 localhost> nul
     echo The Version you are currently Using is the newest one (%latest_version%)
     pause 
     goto menu 
 
 :checklibupdt
+    :: REWORK NEEDED - Check for Lib Updates
     echo Checking for Updates...
-    start cmd /k "scoop update"
-    start cmd /k "scoop update jq"
-    start cmd /k "scoop update jid"
-    start cmd /k "winget upgrade --id Git.Git -e --source winget"
+    start cmd /k "scoop update && exit /b 0"
+    start cmd /k "scoop update jq && exit /b 0"
+    start cmd /k "scoop update jid && exit /b 0"
+    start cmd /k "winget upgrade --id Git.Git -e --source winget && exit /b 0"
     goto menu
 
 :info
+    :: TLI for Infos
     cls
     echo.
     @ping -n 1 localhost> nul
@@ -292,6 +316,7 @@ if not defined devtools (goto menu) else (goto dtd)
     goto info
 
 :credits
+    :: TLI Code for Credits
     cls 
     echo.
     @ping -n 1 localhost> nul
@@ -301,9 +326,7 @@ if not defined devtools (goto menu) else (goto dtd)
     @ping -n 1 localhost> nul
     echo The whole Code is made by PIRANY  
     @ping -n 1 localhost> nul
-    echo If you found any Bugs/Glitches or have a Problem With this software please 
-    @ping -n 1 localhost> nul
-    echo Create a Issue on the Github-Repo
+    echo If you found any Bugs/Glitches or have a Problem With this software please Create a Issue on the Github-Repo
     @ping -n 1 localhost> nul
     echo. 
     @ping -n 1 localhost> nul
@@ -328,6 +351,7 @@ if not defined devtools (goto menu) else (goto dtd)
     goto credits
 
 :setting
+    :: TLI for Settings - Add Skip Security Question + Always use Custom Directory Yes/No
     cls 
     echo ========
     echo Settings
@@ -363,6 +387,7 @@ if not defined devtools (goto menu) else (goto dtd)
     goto setting
 
 :filenamechange
+    :: Write Standart Filename to File
     cls 
     echo The Filename cant have the following Character(s):\ / : * ? " < > |"
     set /p mainfilename=Type in the Filename you want to use.
@@ -385,12 +410,15 @@ if not defined devtools (goto menu) else (goto dtd)
 
 
 :stddirectorycrash
+    :: Standart Spam Directory Check
     cls 
     echo.
     echo.
     set /p directory0=Type Your Directory Here:
     if exist %directory0% (goto stddirectorycrash2) else (goto stddirectorycrash3)
+
 :stddirectorycrash2
+    :: Write Standart Spam Directory to Settings
     setlocal ENABLEDELAYEDEXPANSION
     set "setfile=settings.txt"
     set "tmpfile=temp.txt"
