@@ -34,33 +34,31 @@ Install with only one [File](https://gist.github.com/PIRANY1/8344f981f20a8e430f8
 > Older Versions doesnt support Updates due to various Bugs.
 
 ## Changelog
-<details>
-    <summary>Click to Open.</summary>
-    |Version | Supported          |Link to Changelog                |
-    |------- | ------------------ |----------------------- |
-    |v1.0  |❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v10)
-    |v1.0.1|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v101)
-    |v1.1|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v11)
-    |v1.2|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v12)
-    |v1.3|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v13)
-    |v1.4|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v14)
-    |v1.5|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v15)
-    |v1.5.1|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v151)
-    |v1.5.2|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v152)
-    |v1.5.3|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v153)
-    |v1.6|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v16)
-    |v1.7|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v17)
-    |v2|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v2)
-    |v2.1|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v21)
-    |v2.2|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v22)
-    |v2.3|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v23)
-    |v2.3.1|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v231)
-    |v2.4|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v24)
-    |v2.4.1|✅|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v241)
-    |v2.5|✅|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v25)
-    |v2.6|✅|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v26)|
-    
-</details>
+
+|Version | Supported          |Link to Changelog                |
+|------- | ------------------ |----------------------- |
+|v1.0  |❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v10)
+|v1.0.1|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v101)
+|v1.1|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v11)
+|v1.2|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v12)
+|v1.3|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v13)
+|v1.4|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v14)
+|v1.5|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v15)
+|v1.5.1|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v151)
+|v1.5.2|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v152)
+|v1.5.3|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v153)
+|v1.6|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v16)
+|v1.7|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v17)
+|v2|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v2)
+|v2.1|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v21)
+|v2.2|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v22)
+|v2.3|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v23)
+|v2.3.1|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v231)
+|v2.4|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v24)
+|v2.4.1|✅|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v241)
+|v2.5|✅|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v25)
+|v2.6|✅|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v26)|
+
 
 ## Reporting a Bug
 If you encountered a Glitch/Bug/Vulnerability please create an [Issue](https://github.com/PIRANY1/DataSpammer/issues)
