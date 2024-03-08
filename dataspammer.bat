@@ -2,7 +2,7 @@
 :: If you want to Publish a modified Version please mention the Original Creator PIRANY and link the GitHub Repo
 :: Some Vars and Settings
 @color 02
-set "gitver12=v2.6"
+set "gitver12=v2.7"
 @if not defined debug_assist (@ECHO OFF) else (@echo on)
 if not defined devtools (goto topppp) else (goto dtd)
 setlocal enableextensions ENABLEDELAYEDEXPANSION 
@@ -424,20 +424,20 @@ if %errorLevel% == 0 (cd %~dp0) else (goto topppp)
     set "tmpfile=temp.txt"
     set "lineCounter=0"
 
-(
-  for /f "tokens=*" %%a in (!setfile!) do (
-    set /a "lineCounter+=1"
-    if !lineCounter! equ 3 (
-      echo !directory0!
-    ) else (
-      echo %%a
-    )
-  )
-) > !tmpfile!
-move /y !tmpfile! !setfile!
-echo The Directory was saved!
-cls
-goto setting
+    (
+      for /f "tokens=*" %%a in (!setfile!) do (
+        set /a "lineCounter+=1"
+        if !lineCounter! equ 3 (
+          echo !directory0!
+        ) else (
+          echo %%a
+        )
+      )
+    ) > !tmpfile!
+    move /y !tmpfile! !setfile!
+    echo The Directory was saved!
+    cls
+    goto setting
 
 :stddirectorycrash3
     :: Not so hard to understand
@@ -672,464 +672,497 @@ goto setting
     goto start187
 
 :remotespam
-echo In Order to work the Remote Spam Method needs 6 components.
-@ping -n 1 localhost> nul
-echo 1: The IP of the Device you want to spam
-@ping -n 1 localhost> nul
-echo 2: The Account you want to Use
-@ping -n 1 localhost> nul
-echo 3: The Passwort of the Account you want to spam
-@ping -n 1 localhost> nul
-echo 4: A Filename
-@ping -n 1 localhost> nul
-echo 5: The Directory you want to Spam.
-@ping -n 1 localhost> nul
-echo 6: How many Files you want to create
-@ping -n 1 localhost> nul
-echo The Device has to be turned on too and has to be connected to the Internet. It has to accept the connection too. 
-@ping -n 1 localhost> nul
-echo.
-echo. 
-echo [1] Continue
-echo.
-echo [2] Back
-echo.
-set /P remotespamchoose=Choose an Option from above:
-if %remotespamchoose% == 1 goto remotespamsetupfirst
-if %remotespamchoose% == 2 goto start187
+    :: Not working - TLI For remotespam
+    echo In Order to work the Remote Spam Method needs 6 components.
+    @ping -n 1 localhost> nul
+    echo 1: The IP of the Device you want to spam
+    @ping -n 1 localhost> nul
+    echo 2: The Account you want to Use
+    @ping -n 1 localhost> nul
+    echo 3: The Passwort of the Account you want to spam
+    @ping -n 1 localhost> nul
+    echo 4: A Filename
+    @ping -n 1 localhost> nul
+    echo 5: The Directory you want to Spam.
+    @ping -n 1 localhost> nul
+    echo 6: How many Files you want to create
+    @ping -n 1 localhost> nul
+    echo The Device has to be turned on too and has to be connected to the Internet. It has to accept the connection too. 
+    @ping -n 1 localhost> nul
+    echo.
+    echo. 
+    echo [1] Continue
+    echo.
+    echo [2] Back
+    echo.
+    set /P remotespamchoose=Choose an Option from above:
+    if %remotespamchoose% == 1 goto remotespamsetupfirst
+    if %remotespamchoose% == 2 goto start187
 
 :remotespamsetupfirst
-echo Please specify the IP of the Device
-@ping -n 1 localhost> nul
-echo Down Below are a Few IPs in your Network. 
-arp -a 
-@ping -n 1 localhost> nul
-echo If you need help finding the IP type "help"
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-echo.
-set /P remotespamip=Enter the IP:
-if %remotespamip% == help (
-    start "" "https://support.ucsd.edu/services?id=kb_article_view&sysparm_article=KB0032480"
-) else (
-    goto remotespamsetup
-)
+    :: Ask the User to enter the IP - supported with arp
+    echo Please specify the IP of the Device
+    @ping -n 1 localhost> nul
+    echo Down Below are a Few IPs in your Network. 
+    arp -a 
+    @ping -n 1 localhost> nul
+    echo If you need help finding the IP type "help"
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    set /P remotespamip=Enter the IP:
+    if %remotespamip% == help (
+        start "" "https://support.ucsd.edu/services?id=kb_article_view&sysparm_article=KB0032480"
+    ) else (
+        goto remotespamsetup
+    )
 :remotespamsetup
-setlocal enabledelayedexpansion
-echo !remotespamip! | findstr /R "^([0-9]{1,3}\.){3}[0-9]{1,3}$"
-if %errorlevel% equ 0 (
-    goto remotespamsetup2
-) else (
-    echo The IP you entered doesnt seem Valid. Please try again.
-    pause
-    goto remotespamsetupfirst
-)
+    :: Check if IP is valid
+    setlocal enabledelayedexpansion
+    echo !remotespamip! | findstr /R "^([0-9]{1,3}\.){3}[0-9]{1,3}$"
+    if %errorlevel% equ 0 (
+        goto remotespamsetup2
+    ) else (
+        echo The IP you entered doesnt seem Valid. Please try again.
+        pause
+        goto remotespamsetupfirst
+    )
 
 :remotespamsetup2
-set /P remotespamaccname=Enter an Account Name:
-set /P remotespampasswrd=Enter the Password of the Account:
-echo The Filename cant include the following Character(s):\ / : * ? " < > |"
-set /P remotespamfilename=Enter a Filename:
-set /P remotespamfilecount=How many files do you want to create:
+    :: Enter other things needed for Remotespam
+    set /P remotespamaccname=Enter an Account Name:
+    set /P remotespampasswrd=Enter the Password of the Account:
+    echo The Filename cant include the following Character(s):\ / : * ? " < > |"
+    set /P remotespamfilename=Enter a Filename:
+    set /P remotespamfilecount=How many files do you want to create:
 :remotespamverify
-cls
-set "verify=%random%"
-echo Please Verify that you want to this Spam Method.
-set /p verifyans=Type %verify%:
-if "%verifyans%"=="%verify%" (
-    goto startremotespam
-) else (
-    goto remotespamverify
-)
+    :: Verify execution
+    cls
+    set "verify=%random%"
+    echo Please Verify that you want to this Spam Method.
+    set /p verifyans=Type %verify%:
+    if "%verifyans%"=="%verify%" (
+        goto startremotespam
+    ) else (
+        goto remotespamverify
+    )
 
 :startremotespam
-set "assetcount=1"
-:assetcounttop
-color 02
-@ping -n 1 localhost> nul
-echo Loading Assets [%assetcount%/32]
-set /a "assetcount+=1"
-cls
-If %assetcount% == 33 (goto remotespamstart) else (goto assetcounttop)
+    :: 100% UD ASSET COUNTER (Does nothing)
+    set "assetcount=1"
+    :assetcounttop
+    color 02
+    @ping -n 1 localhost> nul
+    echo Loading Assets [%assetcount%/32]
+    set /a "assetcount+=1"
+    cls
+    If %assetcount% == 33 (goto remotespamstart) else (goto assetcounttop)
 
 :remotespamstart
-echo 3
-@ping -n 2 localhost> nul
-echo 2
-@ping -n 2 localhost> nul
-echo 1
-@ping -n 2 localhost> nul
-echo Starting.....
-@ping -n 2 localhost> nul
-set "remotespamcount=1"
-cd %temp%
-echo Troll by https://github.com/PIRANY1/DataSpammer > dataspammertemp.txt
+    :: remotespam countdown
+    echo 3
+    @ping -n 2 localhost> nul
+    echo 2
+    @ping -n 2 localhost> nul
+    echo 1
+    @ping -n 2 localhost> nul
+    echo Starting.....
+    @ping -n 2 localhost> nul
+    set "remotespamcount=1"
+    cd %temp%
+    echo Troll by https://github.com/PIRANY1/DataSpammer > dataspammertemp.txt
 :startremotespamwasset
-scp file.txt root@serverip:~/file.txt
-scp %temp%\dataspammertemp.txt %remotespamaccname%@%remotespamip%:Desktop\%remotespamfilename%_%remotespamcount%.txt
-%remotespampasswrd%
-set /a "remotespamcount+=1"
-if %remotespamfilecount% == %remotespamcount% (goto remotespamdone) else (goto startremotespamwasset)
+    :: remotespam executor
+    scp file.txt root@serverip:~/file.txt
+    scp %temp%\dataspammertemp.txt %remotespamaccname%@%remotespamip%:Desktop\%remotespamfilename%_%remotespamcount%.txt
+    %remotespampasswrd%
+    set /a "remotespamcount+=1"
+    if %remotespamfilecount% == %remotespamcount% (goto remotespamdone) else (goto startremotespamwasset)
 
 :remotespamdone
-echo.
-%$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
-%$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
-%$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
-%$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
-%$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
-%$Echo% "                             |_|                                              |___/                                     
-                                                                                              
-
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-echo The Script Created %remotespamfilecount% Files on the PC of %remotespamaccname%
-echo.
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-echo Do you want to Close the Script or Go to the Menu?
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-echo [1] Close
-echo.
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-echo [2] Menu
-echo.
-@ping -n 1 localhost> nul
-set /p menu9=Choose an Option from Above:
-If %menu9% == 1 goto cancel
-If %menu9% == 2 goto menu
-goto remotespamdone
+    :: Remote Spam Done TLI
+    echo.
+    %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
+    %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
+    %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
+    %$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
+    %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
+    %$Echo% "                             |_|                                              |___/                                                                                                                                  
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo The Script Created %remotespamfilecount% Files on the PC of %remotespamaccname%
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo Do you want to Close the Script or Go to the Menu?
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [1] Close
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [2] Menu
+    echo.
+    @ping -n 1 localhost> nul
+    set /p menu9=Choose an Option from Above:
+    If %menu9% == 1 goto cancel
+    If %menu9% == 2 goto menu
+    goto remotespamdone
 
 :deskiconspam
-@ping -n 1 localhost> nul
-echo This Method will Spam your Desktop with Files
-@ping -n 1 localhost> nul
-echo You can customise four things here. 
-@ping -n 1 localhost> nul
-echo 1:Filename
-@ping -n 1 localhost> nul
-echo 2:Format of the File (for example .txt or .bat)
-@ping -n 1 localhost> nul
-echo 3:The Text in the File
-@ping -n 1 localhost> nul
-echo 4:Count of Files
-@ping -n 1 localhost> nul
-echo.
-echo [1] Start 
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-echo [2] Go Back
-@ping -n 1 localhost> nul
-echo.
-echo.
-set /p menu1877=Choose an Option from Above:
-If %menu1877% == 2 goto start
-If %menu1877% == 1 goto deskiconspam1
-goto deskiconspam
+    :: Desktop Spam Start TLI
+    @ping -n 1 localhost> nul
+    echo This Method will Spam your Desktop with Files
+    @ping -n 1 localhost> nul
+    echo You can customise four things here. 
+    @ping -n 1 localhost> nul
+    echo 1:Filename
+    @ping -n 1 localhost> nul
+    echo 2:Format of the File (for example .txt or .bat)
+    @ping -n 1 localhost> nul
+    echo 3:The Text in the File
+    @ping -n 1 localhost> nul
+    echo 4:Count of Files
+    @ping -n 1 localhost> nul
+    echo.
+    echo [1] Start 
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [2] Go Back
+    @ping -n 1 localhost> nul
+    echo.
+    echo.
+    set /p menu1877=Choose an Option from Above:
+    If %menu1877% == 2 goto start
+    If %menu1877% == 1 goto deskiconspam1
+    goto deskiconspam
 
 :deskiconspam1
-echo How Should the Files be named?
-@ping -n 1 localhost> nul
-echo The Filename cant include one of the following Character(s):\ / : * ? " < > |"
-@ping -n 1 localhost> nul
-set /p "deskiconspamname=Choose a Filename:"
-goto deskiconspam2
+    :: Name TLI
+    echo How Should the Files be named?
+    @ping -n 1 localhost> nul
+    echo The Filename cant include one of the following Character(s):\ / : * ? " < > |"
+    @ping -n 1 localhost> nul
+    set /p "deskiconspamname=Choose a Filename:"
+    goto deskiconspam2
 
-:deskiconspam2
-echo Now Choose the Format of the File
-@ping -n 1 localhost> nul
-echo If you are not sure type txt
-@ping -n 1 localhost> nul
-echo Please not include the dot
-@ping -n 1 localhost> nul
-set /p "deskiconspamformat=Choose the Format:"
-goto deskiconspam3
+:deskiconspam2  
+    :: Format TLI
+    echo Now Choose the Format of the File
+    @ping -n 1 localhost> nul
+    echo If you are not sure type txt
+    @ping -n 1 localhost> nul
+    echo Please not include the dot
+    @ping -n 1 localhost> nul
+    set /p "deskiconspamformat=Choose the Format:"
+    goto deskiconspam3
 
 :deskiconspam3
-echo Now Choose the Content the File should include
-@ping -n 1 localhost> nul
-set /p "deskiconspamcontent=Type something in:"
-goto deskiconspam4
+    :: Content TLI
+    echo Now Choose the Content the File should include
+    @ping -n 1 localhost> nul
+    set /p "deskiconspamcontent=Type something in:"
+    goto deskiconspam4
 
 :deskiconspam4
-echo Now Choose how many files should be created 
-@ping -n 1 localhost> nul
-echo Leave empty if you want infinite.
-@ping -n 1 localhost> nul
-set /p "deskiconspamamount=Type a Number:"
-goto deskiconspamwdata
+    :: Filecount TLI
+    echo Now Choose how many files should be created 
+    @ping -n 1 localhost> nul
+    echo Leave empty if you want infinite.
+    @ping -n 1 localhost> nul
+    set /p "deskiconspamamount=Type a Number:"
+    goto deskiconspamwdata
 
 :deskiconspamwdata
-echo All set. 
-@ping -n 1 localhost> nul
-echo Please confirm that you want to Spam your Desktop.
-@ping -n 1 localhost> nul
-echo. 
-@ping -n 1 localhost> nul
-echo [y] Yes
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-echo [n] No, Cancel
-@ping -n 1 localhost> nul
-set /p deskicspamconf11=Choose an Option from Above:
-If %deskicspamconf11% == y goto deskiconspamconfdata
-If %deskicspamconf11% == n goto menu
-goto deskiconspamwdata
+    :: verify tli
+    echo All set. 
+    @ping -n 1 localhost> nul
+    echo Please confirm that you want to Spam your Desktop.
+    @ping -n 1 localhost> nul
+    echo. 
+    @ping -n 1 localhost> nul
+    echo [y] Yes
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [n] No, Cancel
+    @ping -n 1 localhost> nul
+    set /p deskicspamconf11=Choose an Option from Above:
+    If %deskicspamconf11% == y goto deskiconspamconfdata
+    If %deskicspamconf11% == n goto menu
+    goto deskiconspamwdata
 
 :deskiconspamconfdata
-set "assetcount=1"
-:assetcounttop
-color 02
-@ping -n 1 localhost> nul
-echo Loading Assets(%assetcount%/32)
-set /a "assetcount+=1"
-If %assetcount% == 33 (goto deskiconspamsetdonestart) else (goto assetcounttop)
+    :: 100% UD ASSET COUNTER (does nothing but look cool)
+    set "assetcount=1"
+    :assetcounttop
+    color 02
+    @ping -n 1 localhost> nul
+    echo Loading Assets(%assetcount%/32)
+    set /a "assetcount+=1"
+    If %assetcount% == 33 (goto deskiconspamsetdonestart) else (goto assetcounttop)
 
 :deskiconspamsetdonestart
-cls
-color 02
-echo The Desktopiconspammer is about to start....
-@ping -n 2 localhost> nul
-echo 3 Seconds Left
-echo If you want to stop this, Simply close the CMD-Window
-@ping -n 2 localhost> nul
-echo 2 Seconds Left
-@ping -n 2 localhost> nul
-echo 1 Seconds Left
-@ping -n 1 localhost> nul
-echo Starting.....
-cd /d %userprofile%\Desktop
-if not defined deskiconspamamount (
-    goto infinitespam
-) else (
-    goto limitedspam
-)
+    :: Desktop Spam Countdown
+    cls
+    color 02
+    echo The Desktopiconspammer is about to start....
+    @ping -n 2 localhost> nul
+    echo 3 Seconds Left
+    echo If you want to stop this, Simply close the CMD-Window
+    @ping -n 2 localhost> nul
+    echo 2 Seconds Left
+    @ping -n 2 localhost> nul
+    echo 1 Seconds Left
+    @ping -n 1 localhost> nul
+    echo Starting.....
+    cd /d %userprofile%\Desktop
+    if not defined deskiconspamamount (
+        goto infinitespam
+    ) else (
+        goto limitedspam
+    )
+    exit
 
-exit
+
 :infinitespam
-:deskspamtop
-echo %deskiconspamcontent% > %deskiconspamname%.%deskiconspamformat%
-goto deskspamtop
-exit
+    :: Infinite Spam Function
+    :deskspamtop
+    echo %deskiconspamcontent% > %deskiconspamname%.%deskiconspamformat%
+    goto deskspamtop
+    exit
 
 :limitedspam
-color 02
-set "deskspamlimitedvar=1"
-:limitedspam1
-If %deskspamlimitedvar% == %deskiconspamamount% (goto done2) else (goto limitedspam2)
-:limitedspam2
-echo Created %deskspamlimitedvar% File(s)
-echo %deskiconspamcontent% > %deskiconspamname%%deskspamlimitedvar%.%deskiconspamformat%
-set /a "deskspamlimitedvar+=1"
-goto limitedspam1
+    :: Limited Spam Function
+    color 02
+    set "deskspamlimitedvar=1"
+    :limitedspam1
+    If %deskspamlimitedvar% == %deskiconspamamount% (goto done2) else (goto limitedspam2)
+    :limitedspam2
+    echo Created %deskspamlimitedvar% File(s)
+    echo %deskiconspamcontent% > %deskiconspamname%%deskspamlimitedvar%.%deskiconspamformat%
+    set /a "deskspamlimitedvar+=1"
+    goto limitedspam1
 
 :txtspamchose
-if stdrc1 equ notused (goto novarset) else (cd /d %stdrc1% && goto nameset)
+    :: dont know if that function is even used but it works
+    if stdrc1 equ notused (goto novarset) else (cd /d %stdrc1% && goto nameset)
 
 :novarset
-cls
-echo Please enter the Directory of the Folder/Server you want to Spam.
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-echo You can find the Directory by Clicking on the Path in you Explorer (on top) and copy it in here. 
-@ping -n 1 localhost> nul
-echo. 
-@ping -n 1 localhost> nul
-echo It should look something like this: C:\User\Dokuments\SpamFolder
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-echo You can use your User Directory if you are using a Server. This works in most Cases but it sometimes doesnt work. Why dont you try?
-@ping -n 1 localhost> nul
-echo. 
-@ping -n 1 localhost> nul
-echo [1] Use User Directory
-@ping -n 1 localhost> nul
-echo. 
-@ping -n 1 localhost> nul
-echo [2] Enter a Directory
-@ping -n 1 localhost> nul
-set /p menu5=Choose an Option from Above:
-If %menu5% == 1 goto userdrc
-If %menu5% == 2 goto manualcd
+    :: normal spam tli
+    cls
+    echo Please enter the Directory of the Folder/Server you want to Spam.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo You can find the Directory by Clicking on the Path in you Explorer (on top) and copy it in here. 
+    @ping -n 1 localhost> nul
+    echo. 
+    @ping -n 1 localhost> nul
+    echo It should look something like this: C:\User\Dokuments\SpamFolder
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo You can use your User Directory if you are using a Server. This works in most Cases but it sometimes doesnt work. Why dont you try?
+    @ping -n 1 localhost> nul
+    echo. 
+    @ping -n 1 localhost> nul
+    echo [1] Use User Directory
+    @ping -n 1 localhost> nul
+    echo. 
+    @ping -n 1 localhost> nul
+    echo [2] Enter a Directory
+    @ping -n 1 localhost> nul
+    set /p menu5=Choose an Option from Above:
+    If %menu5% == 1 goto userdrc
+    If %menu5% == 2 goto manualcd
 
 :userdrc 
-cd /d %userprofile%
+    :: what is this doin here?
+    cd /d %userprofile%
 
 :manualcd
-echo.
-echo.
-set /p directory1=Type Your Directory Here:
+    :: enter directory tli
+    echo.
+    echo.
+    set /p directory1=Type Your Directory Here:
 
-cd /d %directory1%
+    cd /d %directory1%
 
-if %ERRORLEVEL% neq 0 (
-    echo There was an Error. Please check if the Directory is correct or retry later. 
-) else (
-    echo The Directory was Correct!
-    goto nameset
-)
+    if %ERRORLEVEL% neq 0 (
+        echo There was an Error. Please check if the Directory is correct or retry later. 
+    ) else (
+        echo The Directory was Correct!
+        goto nameset
+    )
 
 :nameset
-if %stdfile% equ notused (goto nameset2) else (goto timerask)
+    :: check if filename setting is used
+    if %stdfile% equ notused (goto nameset2) else (goto timerask)
 
 :nameset2
-cls
-echo Now You have to choose a filename. It can be anything as long as the 
-echo Filename doesnt have the following Character(s):\ / : * ? " < > |"
-set /p stdfile=Type in the Filename you want to use.
-setlocal enabledelayedexpansion
-goto timerask
+    :: filename tli
+    cls
+    echo Now You have to choose a filename. It can be anything as long as the 
+    echo Filename doesnt have the following Character(s):\ / : * ? " < > |"
+    set /p stdfile=Type in the Filename you want to use.
+    setlocal enabledelayedexpansion
+    goto timerask
 
 :timerask
-cls
-echo.
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-echo Do you want to set how many files should be created?
-@ping -n 1 localhost> nul
-echo If you choose No the script will run for eternity.
-@ping -n 1 localhost> nul
-set /p menu6=Yes[y]  No [n]:
-If %menu6% == y goto timerset
-If %menu6% == n goto cddone
-goto timerask
+    :: check if the script should run for eternity
+    cls
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo Do you want to set how many files should be created?
+    @ping -n 1 localhost> nul
+    echo If you choose No the script will run for eternity.
+    @ping -n 1 localhost> nul
+    set /p menu6=Yes[y]  No [n]:
+    If %menu6% == y goto timerset
+    If %menu6% == n goto cddone
+    goto timerask
 
 :timerset 
-cls
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-echo How many Files should be created?
-set /p filecount=Type a Number:
-goto cddone
+    :: filecount tli
+    cls
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo How many Files should be created?
+    set /p filecount=Type a Number:
+    goto cddone
 
 :cddone
-cls
-echo. 
-echo.
-echo Please confirm.
-pause
-echo Loading...
-@ping -n 2 localhost> nul
-echo 5 Seconds left
-@ping -n 2 localhost> nul
-echo 4 Seconds left
-@ping -n 2 localhost> nul
-echo 3 Seconds left
-@ping -n 2 localhost> nul
-echo 2 Seconds left
-@ping -n 2 localhost> nul
-echo 1 Second left
-@ping -n 2 localhost> nul
-echo Starting......
-echo If you want to stop this script simply close the Command Windows or press ALT F4
+    :: confirmation dialoge
+    cls
+    echo. 
+    echo.
+    echo Please confirm.
+    pause
+    echo Loading...
+    @ping -n 2 localhost> nul
+    echo 5 Seconds left
+    @ping -n 2 localhost> nul
+    echo 4 Seconds left
+    @ping -n 2 localhost> nul
+    echo 3 Seconds left
+    @ping -n 2 localhost> nul
+    echo 2 Seconds left
+    @ping -n 2 localhost> nul
+    echo 1 Second left
+    @ping -n 2 localhost> nul
+    echo Starting......
+    echo If you want to stop this script simply close the Command Windows or press ALT+F4 / CTRL+C
 :top
-set /a x+=1
-echo. > %stdfile%%x%.txt
-echo Created %x% File(s).
-if %x% equ %filecount% (goto done) else (goto top)
+    :: create files
+    set /a x+=1
+    echo. > %stdfile%%x%.txt
+    echo Created %x% File(s).
+    if %x% equ %filecount% (goto done) else (goto top)
 
 
 :done
-cls
-echo.
-%$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
-%$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
-%$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
-%$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
-%$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
-%$Echo% "                             |_|                                              |___/                                                                                                                                     
+    :: done tli
+    cls
+    echo.
+    %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
+    %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
+    %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
+    %$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
+    %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
+    %$Echo% "                             |_|                                              |___/                                                                                                                                     
 
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-echo The Script Created %filecount% Files.
-echo.
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-echo Do you want to Close the Script or Go to the Menu?
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-echo [1] Close
-echo.
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-echo [2] Menu
-echo.
-@ping -n 1 localhost> nul
-set /p menu9=Choose an Option from Above:
-If %menu9% == 1 goto cancel
-If %menu9% == 2 goto menu
-goto done
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo The Script Created %filecount% Files.
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo Do you want to Close the Script or Go to the Menu?
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [1] Close
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [2] Menu
+    echo.
+    @ping -n 1 localhost> nul
+    set /p menu9=Choose an Option from Above:
+    If %menu9% == 1 goto cancel
+    If %menu9% == 2 goto menu
+    goto done
 
 :done2
-echo.
-%$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
-%$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
-%$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
-%$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
-%$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
-%$Echo% "                             |_|                                              |___/                                     
+    :: done tli
+    echo.
+    %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
+    %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
+    %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
+    %$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
+    %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
+    %$Echo% "                             |_|                                              |___/                                     
                                                                                               
 
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-echo The Script Created %deskspamlimitedvar% Files.
-echo.
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-echo Do you want to Close the Script or Go to the Menu?
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-echo [1] Close
-echo.
-@ping -n 1 localhost> nul
-echo.
-@ping -n 1 localhost> nul
-echo [2] Menu
-echo.
-@ping -n 1 localhost> nul
-set /p menu9=Choose an Option from Above:
-If %menu9% == 1 goto cancel
-If %menu9% == 2 goto menu
-goto done2
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo The Script Created %deskspamlimitedvar% Files.
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo Do you want to Close the Script or Go to the Menu?
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [1] Close
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [2] Menu
+    echo.
+    @ping -n 1 localhost> nul
+    set /p menu9=Choose an Option from Above:
+    If %menu9% == 1 goto cancel
+    If %menu9% == 2 goto menu
+    goto done2
 
 :noelev
-echo Please start the Script as Administrator in order to install.
-echo To do this right click the install.bat File and click "Run As Administrator"
-pause
-exit
+    :: script not elevated
+    echo Please start the Script as Administrator in order to install.
+    echo To do this right click the install.bat File and click "Run As Administrator"
+    pause
+    exit
 
 :cancel 
-exit
-exit
+    :: yes
+    exit
+    exit
 
 :dtd
-set /p dtd1=.:.
-%dtd1%
+    :: ud dev stuff
+    set /p dtd1=.:.
+    %dtd1%
