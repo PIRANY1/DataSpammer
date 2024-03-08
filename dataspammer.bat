@@ -46,7 +46,7 @@ if %errorLevel% == 0 (cd %~dp0) else (goto topppp)
     echo Fetching Git Url....
     @ping -n 1 localhost> nul
     for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do (set "latest_version=%%i")
-    if %latest_version% equ v2.6 (goto UpToDate) else (goto gitverout)
+    if %latest_version% equ v2.7 (goto UpToDate) else (goto gitverout)
 
 :UpToDate
     :: Message when the Script is up-to-date
@@ -267,7 +267,7 @@ if %errorLevel% == 0 (cd %~dp0) else (goto topppp)
     echo Fetching Git Url....
     @ping -n 1 localhost> nul
     for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do (set "latest_version=%%i")
-    if %latest_version% equ v2.6 (goto UpToDate1) else (goto gitverout)
+    if %latest_version% equ v2.7 (goto UpToDate1) else (goto gitverout)
 
 :UpToDate1
     :: Display Version
