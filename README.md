@@ -2,8 +2,9 @@
 ### Features
 Add to Path, Autostart, Desktop Shortcut, Taskbar Shortcut, Remotespam(laggy), Desktop Spam, Portable Installation, Custom Folder Spam, Update Libs, Updater(requires scoop and jq) and some more + 2 Easter Eggs
 
+### Todo
 <details>
-    <summary>Todo</summary>
+    <summary>Click To Open.</summary>
     Create Custom Batch for USB Stick,
     Fix Remotespam via scp/ftp/ssh,
     Improve Language,
@@ -34,7 +35,7 @@ Install with only one [File](https://gist.github.com/PIRANY1/8344f981f20a8e430f8
 
 ## Changelog
 <details>
-    <summary>Changelog</summary>
+    <summary>Click to Open.</summary>
     |Version | Supported          |Link to Changelog                |
     |------- | ------------------ |----------------------- |
     |v1.0  |❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v10)
@@ -59,6 +60,7 @@ Install with only one [File](https://gist.github.com/PIRANY1/8344f981f20a8e430f8
     |v2.5|✅|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v25)
     |v2.6|✅|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v26)|
 </details>
+
 ## Reporting a Bug
 If you encountered a Glitch/Bug/Vulnerability please create an [Issue](https://github.com/PIRANY1/DataSpammer/issues)
 
