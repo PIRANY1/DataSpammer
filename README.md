@@ -2,6 +2,15 @@
 ### Features
 Add to Path, Autostart, Desktop Shortcut, Taskbar Shortcut, Remotespam(laggy), Desktop Spam, Portable Installation, Custom Folder Spam, Update Libs, Updater(requires scoop and jq) and some more + 2 Easter Eggs
 
+<details>
+    <summary>Todo</summary>
+    Create Custom Batch for USB Stick,
+    Fix Remotespam via scp/ftp/ssh,
+    Improve Language,
+    Add Comments,
+    Remove Weird Call Signs,
+</details>
+
 # Install
 Please download the latest [Version](https://github.com/PIRANY1/DataSpammer/releases/latest) or use one of the methods down below.
 ### Git
@@ -20,20 +29,8 @@ install.bat
 Install with only one [File](https://gist.github.com/PIRANY1/8344f981f20a8e430f8a74c5fa80c390/archive/97f89d1649c772d1c556310cd53a14e68a7801b4.zip)(Needs Git Installed)
 
 # Supported Versions
-## Todo
-Create Custom Batch for USB Stick,
-
-Fix Remotespam via scp/ftp/ssh,
-
-Improve Language,
-
-Add Comments,
-
-Remove Weird Call Signs,
-
-
-Please use the newest Version and Update the Script. Older Versions have more Bugs.
-> Older Versions doesnt support full Update
+> [!IMPORTANT]
+> Older Versions doesnt support Updates due to various Bugs.
 
 ## Changelog
 |Version | Supported          |Link to Changelog                |
