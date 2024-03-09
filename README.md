@@ -1,15 +1,21 @@
 # DataSpammer
 ### Features
-Add to Path, Autostart, Desktop Shortcut, Taskbar Shortcut, Remotespam(laggy), Desktop Spam, Portable Installation, Custom Folder Spam, Update Libs, Updater(requires scoop and jq) and some more + 2 Easter Eggs
+Add to Path, Autostart, Desktop Shortcut, Taskbar Shortcut, Desktop Spam, Custom Folder Spam, Update Libs, Updater,
 
 ### Todo
 <details>
     <summary>Click To Open.</summary>
+    
     Create Custom Batch for USB Stick,
+    
     Fix Remotespam via scp/ftp/ssh,
+    
     Improve Language,
-    Add Comments,
+    
     Remove Weird Call Signs,
+
+    Add Portable Installation, 
+    
 </details>
 
 # Install
