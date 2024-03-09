@@ -4,13 +4,34 @@
 @color 02
 set "gitver12=v2.7"
 @if not defined debug_assist (@ECHO OFF) else (@echo on)
-if not defined devtools (goto topppp) else (goto dtd)
+if not defined devtools (goto top-startup) else (goto dtd)
 setlocal enableextensions ENABLEDELAYEDEXPANSION 
 net session >nul 2>&1
 :: Fix Directory if started with Elevated Priviliges
-if %errorLevel% == 0 (cd %~dp0) else (goto topppp)
+if %errorLevel% == 0 (cd %~dp0) else (goto top-startup)
 
-:topppp
+:top-startup
+    :: Check if Jq and Git are installed
+    for /f "delims=" %%a in ('where jq') do (
+        set "where_output=%%a"
+    )
+    if defined where_output (
+        set "jq-installed=1" && goto check-git
+    ) else (
+        set "jq-installed=0" && goto check-git
+    )
+    
+    :check-git
+    for /f "delims=" %%a in ('where git') do (
+        set "where_output=%%a"
+    )
+    if defined where_output (
+        set "git-installed=1" && goto check-files
+    ) else (
+        set "git-installed=0" && goto check-files
+    )
+
+    :check-files
     :: Checks if all Files needed for the Script exist
     setlocal enabledelayedexpansion
     @title Starting Up...
@@ -18,6 +39,40 @@ if %errorLevel% == 0 (cd %~dp0) else (goto topppp)
     if not exist "settings.txt" goto Error1
     echo Checking for Files...
     if not exist "install.bat" (goto Error) else (goto updtsearch)
+
+:error1
+    :: TLI when Settings arent found
+    cls
+    echo The File "settings.txt" doesnt exist. 
+    @ping -n 1 localhost> nul
+    echo Theres a high Chance that the Installer didnt run yet.
+    @ping -n 1 localhost> nul
+    echo Please consider rerunning the installer to make sure the script can run accurately.
+    @ping -n 1 localhost> nul
+    echo Do you want to reinstall the Script or do you want to open the Script anyways?
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [1] Open the Installer
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [2] Open the Script anyways 
+    @ping -n 1 localhost> nul
+    set /p menu=Choose an Option from Above:
+    If %menu% == 1 goto openins
+    If %menu% == 2 goto no-settings
+    goto error1
+
+    :no-settings
+    :: Check if the Updater can run
+    if jq-installed == 1 (
+        if git-installed == 1 goto updtsearch
+    ) else (
+        goto ulttop
+    )
+
+
 
 :updtsearch
     :: Check if Script should check for Updates
@@ -120,30 +175,6 @@ if %errorLevel% == 0 (cd %~dp0) else (goto topppp)
     :: Open Repo
     start "" "https://github.com/PIRANY1/DataSpammer"
     goto Error
-
-:error1
-    :: TLI when Settings arent found
-    cls
-    echo The File "settings.txt" doesnt exist. 
-    @ping -n 1 localhost> nul
-    echo Theres a high Chance that the Installer didnt run yet.
-    @ping -n 1 localhost> nul
-    echo Please consider rerunning the installer to make sure the script can run accurately.
-    @ping -n 1 localhost> nul
-    echo Do you want to reinstall the Script or do you want to open the Script anyways?
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [1] Open the Installer
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [2] Open the Script anyways
-    @ping -n 1 localhost> nul
-    set /p menu=Choose an Option from Above:
-    If %menu% == 1 goto openins
-    If %menu% == 2 goto ulttop
-    goto error1
 
 :openins
     :: Opens the Installer
