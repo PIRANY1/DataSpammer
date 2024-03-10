@@ -312,7 +312,6 @@ if %errorLevel% == 0 (cd %~dp0) else (goto top-startup)
     echo Checking for Updates...
     start cmd /k "scoop update && exit /b 0"
     start cmd /k "scoop update jq && exit /b 0"
-    start cmd /k "scoop update jid && exit /b 0"
     start cmd /k "winget upgrade --id Git.Git -e --source winget && exit /b 0"
     goto menu
 

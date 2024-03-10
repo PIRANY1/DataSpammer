@@ -396,7 +396,7 @@ color 2
     :: Updater Install TLI
     echo.
     @ping -n 1 localhost> nul
-    echo When you want the script to auto upgrade itself when you start it you can install Git, JQ , Jid and Scoop automaticly too.
+    echo When you want the script to auto upgrade itself when you start it you can install Git, JQ and Scoop automaticly too.
     echo This will be fully automaticly.
     echo When you choose to Install Git too it needs Administrator privileges too.
     echo.
@@ -409,29 +409,24 @@ color 2
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [3] View Information about Jid
+    echo [3] View Information about JQ
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [4] View Information about JQ
+    echo [4] View Information about Scoop
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [5] View Information about Scoop
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [6] Dont install those Components.
+    echo [5] Dont install those Components.
     echo.
     @ping -n 1 localhost> nul
     echo.
     set /p menu3=Choose an Option from Above:
     If %menu3% == 1 set "gitinsyn=1"
     If %menu3% == 2 start "" "https://git-scm.com" | goto gitins
-    If %menu3% == 3 start "" "https://github.com/simeji/jid" | goto gitins
-    If %menu3% == 4 start "" "https://jqlang.github.io/jq/" | goto gitins
-    If %menu3% == 5 start "" "https://scoop.sh/#/" | goto gitins
-    If %menu3% == 6 goto insgo
+    If %menu3% == 3 start "" "https://jqlang.github.io/jq/" | goto gitins
+    If %menu3% == 4 start "" "https://scoop.sh/#/" | goto gitins
+    If %menu3% == 5 goto insgo
 
 :insgo
     :: Main install part
@@ -522,14 +517,6 @@ color 2
         scoop install jq
     )
     
-    for /f "delims=" %%a in ('where jid') do (
-        set "where_output=%%a"
-    )
-    if defined where_output (
-        echo jid is already installed!
-    ) else (
-        scoop install jid
-    )
 
 :addupdcheck
     :: What is this ahh code doin?!?!
