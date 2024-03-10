@@ -716,7 +716,7 @@ color 2
     if %pathansw% == 2 goto installerdone
 
 :addpath
-    :: Untested Unstable Ahh Code with a 0% chance of working accurately
+    :: Untested Unstable Ahh Code with a 50% chance of working accurately
     @echo off
     cd %~dp0
     (
@@ -743,6 +743,7 @@ color 2
     del install.bat
     del temp.bat
     cd %directory9%
+    set "path-done=1"
     dataspammer.bat
     ) > temp.bat
     cd %~dp0

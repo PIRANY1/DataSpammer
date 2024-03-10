@@ -3,13 +3,14 @@
 :: Some Vars and Settings
 @color 02
 set "gitver12=v2.7"
+set "large=0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+if defined path-done (echo Script was Added to Path Successfully && pause) 
 @if not defined debug_assist (@ECHO OFF) else (@echo on)
 if not defined devtools (goto top-startup) else (goto dtd)
 setlocal enableextensions ENABLEDELAYEDEXPANSION 
 net session >nul 2>&1
 :: Fix Directory if started with Elevated Priviliges
 if %errorLevel% == 0 (cd %~dp0) else (goto top-startup)
-
 :top-startup
     :: Check if Jq and Git are installed
     for /f "delims=" %%a in ('where jq') do (
@@ -1060,7 +1061,7 @@ if %errorLevel% == 0 (cd %~dp0) else (goto top-startup)
     @ping -n 1 localhost> nul
     set /p menu6=Yes[y]  No [n]:
     If %menu6% == y goto timerset
-    If %menu6% == n goto cddone
+    If %menu6% == n set "filecount=1%large%%large%%large%%large%%large%%large%%large%%large%%large%%large%%large%" && goto cddone
     goto timerask
 
 :timerset 
