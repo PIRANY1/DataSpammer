@@ -15,7 +15,8 @@ Add to Path, Autostart, Desktop Shortcut, Taskbar Shortcut, Desktop Spam, Custom
     Remove Weird Call Signs,
 
     Add Portable Installation, 
-    
+
+    Add Startup Arg (e.g. dataspammer.bat -r)
 </details>
 
 # Install
