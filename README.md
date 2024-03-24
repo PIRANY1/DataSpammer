@@ -17,6 +17,10 @@ Add to Path, Autostart, Desktop Shortcut, Taskbar Shortcut, Desktop Spam, Custom
     Add Portable Installation, 
 
     Add Startup Arg (e.g. dataspammer.bat -r)
+
+    Remove *Whole* Script with PATH etc. 
+
+    Add the Script to *Path* and not as a enviromental Variable
 </details>
 
 # Install

@@ -1,6 +1,20 @@
 :: Use only under MIT License
 :: If you want to Publish a modified Version please mention the Original Creator PIRANY and link the GitHub Repo
 :: Some Vars and Settings
+@echo off
+set "gitver12=v2.7"
+if "%1"=="h" goto help
+if "%1"=="-h" goto help
+if "%1"=="help" goto help
+if "%1"=="-help" goto help
+if "%1"=="--help" goto help
+if "%1"=="faststart" goto menu
+if "%1"=="update" goto fastgitupdate
+if "%1"=="remove" goto remove-script
+if "%1"=="start" goto quickstart
+if "%1"=="" goto normal-start
+
+:normal-start
 @color 02
 set "gitver12=v2.7"
 set "large=0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
@@ -11,6 +25,7 @@ setlocal enableextensions ENABLEDELAYEDEXPANSION
 net session >nul 2>&1
 :: Fix Directory if started with Elevated Priviliges
 if %errorLevel% == 0 (cd %~dp0) else (goto top-startup)
+
 :top-startup
     :: Check if Jq and Git are installed
     for /f "delims=" %%a in ('where jq') do (
@@ -190,7 +205,6 @@ if %errorLevel% == 0 (cd %~dp0) else (goto top-startup)
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
-
 :ulttop
     :: If the Script got opened from installer?
     if "%settingsmainscriptvar%" == "1" goto setting
@@ -657,6 +671,10 @@ if %errorLevel% == 0 (cd %~dp0) else (goto top-startup)
     @ping -n 1 localhost> nul
     pause
     goto autostartdeskic
+
+:quickstart
+
+
 
 
 :start
@@ -1181,12 +1199,119 @@ if %errorLevel% == 0 (cd %~dp0) else (goto top-startup)
     If %menu9% == 2 goto menu
     goto done2
 
+:: Display Help Dialog
+:help
+    echo.
+    echo.
+    echo Dataspammer: 
+    echo    With this script, you can create files on your PC or your friends' PC in large quantities.
+    echo.
+    echo Usage dataspammer [Argument]
+    echo       dataspammer.bat [Argument]
+    echo.
+    echo Parameters: 
+    echo    help Show this Help Dialog
+    echo.
+    echo    update Check for Updates and exit afterwards
+    echo.
+    echo    faststart Start the Script without checking for Anything 
+    echo.
+    echo    remove Remove the Script and its components from your System
+    echo.
+    echo    start Directly start a Spam Method
+    echo.
+    echo.
+    exit /b 0
+
+:: Whitout the UD stuff
+:fastgitupdate
+    :: Check for Update (Why not restart the Script at all and then check for updates)
+    set "owner=PIRANY1"
+    set "repo=DataSpammer"
+    set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
+    echo Fetching Data...
+    for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do (set "latest_version=%%i")
+    if %latest_version% equ %gitver12% (
+        echo The Script is up-to-date [Version:%latest_version%]
+    ) else (
+        echo Your Script is outdated [Newest Version: %latest_version% Script Version:%gitver12%]
+    )
+    exit /b 0
+
+:remove-script
+    :: Delete Script TLI
+    echo. 
+    @ping -n 1 localhost> nul
+    echo You are about to delete the whole script.
+    @ping -n 1 localhost> nul 
+    echo Are you sure about this decision?
+    @ping -n 1 localhost> nul
+    echo If the script is bugged or you want to download the new Version please Visit the GitHub Repo
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [1] Yes, Delete the Whole Script
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [2] Open the Github-Repo
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [3] No Go Back
+    @ping -n 1 localhost> nul
+    echo.
+    echo.
+    set /p delscrconf=Choose an Option from Above
+
+    If %delscrconf% == 1 goto remove-script-confirmed
+    If %delscrconf% == 2 explorer "https://github.com/PIRANY1/DataSpammer" && goto remove-script
+    If %delscrconf% == 3 exit /b 100
+    goto remove-script
+
+:remove-script-check-elev
+    :: Check if Script is elevated
+    setlocal enableextensions ENABLEDELAYEDEXPANSION 
+    net session >nul 2>&1
+    if %errorLevel% == 0 (goto remove-script-confirmed) else (goto noelev)
+   
+:remove-script-confirmed
+    :: Delete Script 
+    if exist "%~dp0\LICENSE" del "%~dp0\LICENSE"
+    echo 1/7 Files Deleted
+    @ping -n 1 localhost> nul
+    if exist "%~dp0\README.md" del "%~dp0\README.md"
+    echo 2/7 Files Deleted
+    @ping -n 1 localhost> nul
+    if exist "%~dp0\dataspammer.bat" del "%~dp0\dataspammer.bat"
+    echo 3/7 Files Deleted
+    @ping -n 1 localhost> nul
+    if exist "%~dp0\install.bat" del "%~dp0\install.bat"
+    echo 4/7 Files Deleted
+    cd /d C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
+    if exist "autostart.bat" del "autostart.bat"
+    echo 5/7 Files Deleted
+    @ping -n 1 localhost> nul
+    cd /d %userprofile%\Desktop
+    if exist "Dataspammer.bat" del "Dataspammer.bat"
+    echo 6/7 Files Deleted
+    @ping -n 1 localhost> nul
+    set "startMenuPrograms=%ProgramData%\Microsoft\Windows\Start Menu\Programs"
+    cd %startMenuPrograms%
+    if exist "Dataspammer.bat" del "Dataspammer.bat"
+    echo 7/7 Files Deleted
+    echo Uninstall Successfull
+
+    :: PATH remove
 :noelev
-    :: script not elevated
+    :: Script isnt elevated TLI
     echo Please start the Script as Administrator in order to install.
-    echo To do this right click the install.bat File and click "Run As Administrator"
-    pause
-    exit
+    echo To do this right click the Dataspammer File and click "Run As Administrator"
+    echo The Explorer Windows with the Script will open in 5 Seconds
+    timeout 5
+    explorer %~dp0
+    exit 0
+
 
 :cancel 
     :: yes
