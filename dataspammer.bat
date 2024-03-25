@@ -1,8 +1,23 @@
 :: Use only under MIT License
 :: If you want to Publish a modified Version please mention the Original Creator PIRANY and link the GitHub Repo
 :: Some Vars and Settings
+::    Todo:
+::    Create Custom Batch for USB Stick,   
+::    Fix Remotespam via scp/ftp/ssh,    
+::    Improve Language,    
+::    Remove Weird Call Signs,
+::    Add Portable Installation, 
+::    Add Startup Arg (e.g. dataspammer.bat -r)
+::    Remove *Whole* Script with PATH etc. 
+::    Add the Script to *Path* and not as a enviromental Variable
+::    Rework Developer Options
+::
+::
+::
+::
+
 @echo off
-set "gitver12=v2.7"
+set "current-script-version=v2.7"
 if "%1"=="h" goto help
 if "%1"=="-h" goto help
 if "%1"=="help" goto help
@@ -16,7 +31,6 @@ if "%1"=="" goto normal-start
 
 :normal-start
 @color 02
-set "gitver12=v2.7"
 set "large=0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 if defined path-done (echo Script was Added to Path Successfully && pause) 
 @if not defined debug_assist (@ECHO OFF) else (@echo on)
@@ -136,7 +150,7 @@ if %errorLevel% == 0 (cd %~dp0) else (goto top-startup)
     @ping -n 1 localhost> nul
     echo Please consider downloading the new Version. 
     @ping -n 1 localhost> nul
-    echo The Version you are currently using is %gitver12%
+    echo The Version you are currently using is %current-script-version%
     @ping -n 1 localhost> nul 
     echo The newest Version avaiable is %latest_version%
     @ping -n 1 localhost> nul
@@ -156,7 +170,7 @@ if %errorLevel% == 0 (cd %~dp0) else (goto top-startup)
 
 :gitupt
     :: Unstable Ahhh Update Script
-    set gitverold=%gitver12%
+    set gitverold=%current-script-version%
     cd %~dp0
     set "source_dir_start=%cd%"
     cd ..
@@ -164,7 +178,7 @@ if %errorLevel% == 0 (cd %~dp0) else (goto top-startup)
     cd %latest_version%
     git clone https://github.com/PIRANY1/DataSpammer %cd%
     echo Downloaded
-    set "setupaftgitcl=1"
+    set "update-install=1"
     install.bat
 
 
@@ -1231,10 +1245,10 @@ if %errorLevel% == 0 (cd %~dp0) else (goto top-startup)
     set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
     echo Fetching Data...
     for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do (set "latest_version=%%i")
-    if %latest_version% equ %gitver12% (
+    if %latest_version% equ %current-script-version% (
         echo The Script is up-to-date [Version:%latest_version%]
     ) else (
-        echo Your Script is outdated [Newest Version: %latest_version% Script Version:%gitver12%]
+        echo Your Script is outdated [Newest Version: %latest_version% Script Version:%current-script-version%]
     )
     exit /b 0
 

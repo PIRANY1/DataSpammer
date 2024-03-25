@@ -1,19 +1,19 @@
 @if not defined debug_assist (@ECHO OFF) else (@echo on)
-if not defined devtools (goto nodev) else (goto dtd)
-:nodev
+if not defined devtools (goto normal-start) else (goto dev-options)
+:normal-start
 @title Script Installer by PIRANY
 set "foldername=DataSpammer"
-set "gitver12=v2.7"
+set "current-script-version=v2.7"
 cd %~dp0
 color 2
 cls  
 color 2
-:gitupdtcheck
+:script-install-check
     :: Check if Script started after an update
-    if "%setupaftgitcl%"=="1" (
+    if "%update-install%"=="1" (
         goto updateinstall
     ) else (
-        goto instdone100
+        goto open-install-done
     )
 
 :noelev
@@ -34,7 +34,7 @@ color 2
     :: Update Installed TLI
     echo Update was Successful!
     @ping -n 1 localhost> nul
-    echo Updated from %gitver12% to %latest_version%
+    echo Updated from %current-script-version% to %latest_version%
     @ping -n 1 localhost> nul
     echo Do you want to delete the Files from the old Version? (no Data will get deleted!)
     @ping -n 1 localhost> nul
@@ -63,7 +63,7 @@ color 2
     cd %~dp0
     dataspammer.bat
 
-:instdone100
+:open-install-done
     :: Check if Settings Exist
     if exist "settings.txt" (
         goto instdoneconf
@@ -167,7 +167,7 @@ color 2
 
     If %delscrconf% == 1 goto delscriptconfy
     If %delscrconf% == 2 start "" "https://github.com/PIRANY1/DataSpammer" && goto delscriptconf 
-    If %delscrconf% == 3 goto instdone100
+    If %delscrconf% == 3 goto open-install-done
     goto delscriptconf
 
 
@@ -230,19 +230,19 @@ color 2
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [1] Install in Custom Directory (For Experienced Users)
+    echo [1] Normal Install  (Recommended, Needs Administrator Priviliges)
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [2] Install In the Default Programm Directory (Needs to run as Administrator)
+    echo [2] Small Install (WITHOUT Updater, Settings and some less-important Features)
     echo. 
     @ping -n 1 localhost> nul
     echo.
     echo.
     @ping -n 1 localhost> nul
     set /P programdrccustom=Choose an Option from Above:
-    if %programdrccustom% == 1 goto customdirectory
-    if %programdrccustom% == 2 goto stdprogdrc
+    if %programdrccustom% == 2 goto customdirectory
+    if %programdrccustom% == 1 goto stdprogdrc
     goto instmain
 
 :stdprogdrc
@@ -357,6 +357,7 @@ color 2
 
 
 :customdirectory
+    set "small-install=1"
     :: Script Install Location
     @ping -n 1 localhost> nul
     echo Please specify the Directory where the Script should be installed.
@@ -388,9 +389,27 @@ color 2
     echo Are you sure you want to run the installer and move the Files into the specified Directory?
     @ping -n 1 localhost> nul
     set /p ynins=[y]Yes [n]No:
-    If %ynins% == n goto cancel
-    If %ynins% == y goto gitins
-    goto instmain
+    If %ynins% == n goto instmain
+    If %ynins% == y goto small-installer
+    goto drcsetch
+
+:small-installer
+    echo Installing Script...
+    cd %directory%
+    mkdir DataSpammer
+    set "install-directory=%cd%"
+    xcopy "%~dp0\dataspammer.bat" "%directory9%" 
+    echo small-install > settings.txt
+    cd %~dp0
+    echo Do you want to copy the README into the Script Folder too or should it be deleted?
+    choice /C DC /M "Press D If you want to Delete README and C to Copy it into the Script folder"
+    set _erl=%errorlevel%
+    if %_erl%==D del README.md
+    if %_erl%==C xcopy "%~dp0\README.md" "%directory%\DataSpammer"
+    echo Installation Done. 
+    del install.bat
+    cd %directory%\DataSpammer
+    dataspammer.bat
 
 :gitins
     :: Updater Install TLI
@@ -430,7 +449,7 @@ color 2
 
 :insgo
     :: Main install part
-    set "directory9=%directory%\%foldername%\%gitver12%"
+    set "directory9=%directory%\%foldername%\%current-script-version%"
     mkdir "%directory9%" 
     xcopy "%~dp0\dataspammer.bat" "%directory9%" 
     xcopy "%~dp0\install.bat" "%directory9%"     
@@ -642,8 +661,8 @@ color 2
 
 :copyreadlic
     :: Copy readme and license to install directory
-    if exist "%~dp0\LICENSE" xcopy "%~dp0\LICENSE" "%directory%\%foldername%\%gitver12%%" > nul
-    if exist "%~dp0\README.md" xcopy "%~dp0\README.md" "%directory%\%foldername%\%gitver12%%" > nul  
+    if exist "%~dp0\LICENSE" xcopy "%~dp0\LICENSE" "%directory%\%foldername%\%current-script-version%" > nul
+    if exist "%~dp0\README.md" xcopy "%~dp0\README.md" "%directory%\%foldername%\%current-script-version%" > nul  
     del %~dp0\LICENSE
     del %~dp0\README.md
     goto instdone1
@@ -764,63 +783,9 @@ color 2
     :: When the Install got canceled
     echo The installer is now closing....
     exit
-
-
-:exe-install 
-:: When The Script got installled with setup.exe it executes this code (with elevated Rights)
-
-@if not defined debug_assist (@ECHO OFF) else (@echo on)
-if not defined devtools (goto nodev) else (goto dtd)
-:nodev
-@title Script Installer by PIRANY
-set "foldername=DataSpammer"
-set "gitver12=v2.7"
-cd %~dp0
-color 2
-cls  
-color 2
-:gitupdtcheck
-if "%setupaftgitcl%"=="1" (
-    goto updateinstall
-) else (
-    goto instdone100
-)
-
-    SETLOCAL EnableDelayedExpansion
-    SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
-    SETLOCAL DisableDelayedExpansion
-
-    %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
-    %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
-    %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
-    %$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
-    %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
-    %$Echo% "                             |_|                                              |___/                                     
-
-
-:instdone1
-    cls
-    echo Do you want to add the Script to PATH?
-    @ping -n 1 localhost> nul
-    echo Then you can open the Script by typing "dataspammer" in the Command Shell.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [1] Yes (Needs to run as Administrator)
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [2] No.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    set /P pathansw=Choose an Option from Above:
-    if %pathansw% == 1 goto addpath
-    if %pathansw% == 2 goto installerdone
-
-:dtd
+:dev-options
     :: Ass Developer Option (why is this here)
-    set /p dtd1=.:.
-    %dtd1%
+    set /p dev-options1=.:.
+    %dev-options1%
 
 exit
