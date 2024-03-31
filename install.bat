@@ -784,8 +784,24 @@ color 2
     echo The installer is now closing....
     exit
 :dev-options
-    :: Ass Developer Option (why is this here)
-    set /p dev-options1=.:.
-    %dev-options1%
+    :: Rework In Process.
+    echo Dev Tools
+    echo.
+    echo [1] Goto Specific Call Sign
+    echo.
+    echo [2] Execute Code At A Specific Place.
+    echo.
+    echo [3] Execute Dev Mode
+    echo.
+    set /P devoption=Choose an Option From Above.
+    if %devoption% == 1 goto callsignjump
+    if %devoption% == 2
+    if %devoption% == 3
+    if %devoption% == 4
+    goto dev-options
+    
+    :callsignjump
+    set /P jump-to-call-sign=Enter a Call Sign:
+    goto %jump-to-call-sign%
 
 exit
