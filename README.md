@@ -1,5 +1,6 @@
 # DataSpammer
 > [!IMPORTANT]
+>  
 <details>
     <summary>Click To Open.</summary>
     I Know that the Code is Ass and Basically Unreadable. 
