@@ -243,3 +243,7 @@ Fixed and Improved everything. Script is almost perfect.
 
 ### v2.6
 Added the Option to add the Script to PATH
+
+### v2.7
+Add to Path Option adds the Script as An OS-Wide Enviromental Variable?.
+Working on Fix
