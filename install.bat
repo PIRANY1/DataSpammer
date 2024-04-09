@@ -26,9 +26,9 @@ color 2
 :updateinstall
     :: Install the Update
     cd %~dp0
-    set "target_dir=%cd%""
-    set "source_dir=%source_dir_start%"
-    copy %source_dir%\settings.txt %target_dir%
+    set "settings-target=%cd%""
+    set "old-settings-location=%old-script-location%"
+    xcopy %old-settings-location%\settings.txt %settings-target%
     cd %~dp0
 :updateinstalled
     :: Update Installed TLI
@@ -36,7 +36,7 @@ color 2
     @ping -n 1 localhost> nul
     echo Updated from %current-script-version% to %latest_version%
     @ping -n 1 localhost> nul
-    echo Do you want to delete the Files from the old Version? (no Data will get deleted!)
+    echo Do you want to delete the Files from the old Version?
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
@@ -57,7 +57,7 @@ color 2
     :: Delete Old Versions
     cd %~dp0
     cd .. 
-    rmdir /s /q %gitverold%
+    rmdir /s /q %current-script-version%
     echo Old Files deleted!
     pause
     cd %~dp0

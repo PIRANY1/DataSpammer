@@ -172,14 +172,16 @@ if %errorLevel% == 0 (cd %~dp0) else (goto top-startup)
     :: Unstable Ahhh Update Script
     set gitverold=%current-script-version%
     cd %~dp0
-    set "source_dir_start=%cd%"
+    set "old-script-location=%cd%"
     cd ..
     mkdir %latest_version%
     cd %latest_version%
-    git clone https://github.com/PIRANY1/DataSpammer %cd%
-    echo Downloaded
+    echo Cloning current Version...
+    git clone https://github.com/PIRANY1/DataSpammer 
+    echo Downloaded Version %latest_version%
     set "update-install=1"
-    install.bat
+    :: Restart CMD so the Folder gets Indexed Another Time. (Potential Fix better let it as it is)
+    cmd .\install.bat
 
 
 :Error 
