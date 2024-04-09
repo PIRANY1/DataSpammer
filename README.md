@@ -30,6 +30,8 @@ Add to Path, Autostart, Desktop Shortcut, Taskbar Shortcut, Desktop Spam, Custom
     Remove *Whole* Script with PATH etc. 
 
     Add the Script to *Path* and not as a enviromental Variable
+
+    Fix the Updater and Startup in Older Vers
 </details>
 
 # Install
