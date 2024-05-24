@@ -1,5 +1,6 @@
 @if not defined debug_assist (@ECHO OFF) else (@echo on)
 if not defined devtools (goto normal-start) else (goto dev-options)
+if %restart-main% == 1 dataspammer.bat
 :normal-start
 @title Script Installer by PIRANY
 set "foldername=DataSpammer"
@@ -367,23 +368,6 @@ color 2
     echo It can be any Directory as long as you have write/read access to it.
     @ping -n 1 localhost> nul
     set /p directory=Type Your Directory Here: 
-    set "chdircheck=0"
-    for /f %%A in ("!directory!") do (
-        set "chdircheck=1"
-        goto chdircheck1
-    )
-:chdircheck1
-    :: Check if the Directory contains a space - why?
-    if !chdircheck! equ 1 (
-        chdir %directory%
-        goto drcsetch
-    ) else (
-        cd /d %directory%
-        goto drcsetch
-    )
-
-
-:drcsetch
     :: Installer Confirmation Dialog
     @ping -n 1 localhost> nul
     echo Are you sure you want to run the installer and move the Files into the specified Directory?
@@ -395,20 +379,22 @@ color 2
 
 :small-installer
     echo Installing Script...
-    cd %directory%
+    cd %~dp0
     mkdir DataSpammer
     set "install-directory=%cd%"
-    xcopy "%~dp0\dataspammer.bat" "%directory9%" 
+    xcopy dataspammer.bat "%install-directory%\DataSpammer"
+    del dataspammer.bat
+    cd DataSpammer
     echo small-install > settings.txt
     cd %~dp0
     echo Do you want to copy the README into the Script Folder too or should it be deleted?
     choice /C DC /M "Press D If you want to Delete README and C to Copy it into the Script folder"
     set _erl=%errorlevel%
     if %_erl%==D del README.md
-    if %_erl%==C xcopy "%~dp0\README.md" "%directory%\DataSpammer"
-    echo Installation Done. 
-    del install.bat
-    cd %directory%\DataSpammer
+    if %_erl%==C xcopy "README.md" "%install-directory%\DataSpammer"
+    echo Installation Done.
+    cd DataSpammer 
+    del %install-directory%\install.bat
     dataspammer.bat
 
 :gitins

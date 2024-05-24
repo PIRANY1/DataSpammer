@@ -9,7 +9,8 @@
 ::    Add Portable Installation, 
 ::    Add Startup Arg (e.g. dataspammer.bat -r)
 ::    Rework Developer Options
-::
+::    Remove CD test for spaces in directory names
+::    Fix Small Install Install Check 
 ::
 ::
 
@@ -38,7 +39,19 @@ net session >nul 2>&1
 :: Fix Directory if started with Elevated Priviliges
 if %errorLevel% == 0 (cd %~dp0) else (goto top-startup)
 
+
 :top-startup
+::Check if the Script is on a small install
+set inputFile=settings.txt
+set "firstLine="
+set /p firstLine=<%inputFile%
+if "%firstLine%"=="small-install" (
+    set "small-install=1" && goto enableascii
+) else (
+    goto regular-install
+)
+
+    :regular-install
     :: Check if Jq and Git are installed
     for /f "delims=" %%a in ('where jq') do (
         set "where_output=%%a"
@@ -223,11 +236,17 @@ if %errorLevel% == 0 (cd %~dp0) else (goto top-startup)
     :: If the Script got opened from installer?
     if "%settingsmainscriptvar%" == "1" goto setting
 
-:enableascii
-    :: Allow for example ASCII art
-    SETLOCAL EnableDelayedExpansion
-    SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
-    SETLOCAL DisableDelayedExpansion
+set inputFile=settings.txt
+set "lastLine="
+for /f "delims=" %%i in (%inputFile%) do (
+    set "lastLine=%%i"
+)
+if "%lastLine%"=="dev" (
+    set "dev-mode=1"
+) else (
+    set "dev-mode=0"
+)
+
 
 :extract-settings
     :: Extract data from Settings file
@@ -244,7 +263,13 @@ if %errorLevel% == 0 (cd %~dp0) else (goto top-startup)
     set "insdonevar1=!line1!"
     set "stdfile=!line2!"
     set "stdrc1=!line3!"
-    if not defined devtools (goto menu) else (goto dtd)
+    if not defined devtools (goto enableascii) else (goto dtd)
+
+:enableascii
+    :: Allow for example ASCII art
+    SETLOCAL EnableDelayedExpansion
+    SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
+    SETLOCAL DisableDelayedExpansion
 
 :menu
     :: Main Menu TLI
@@ -410,6 +435,10 @@ if %errorLevel% == 0 (cd %~dp0) else (goto top-startup)
     goto credits
 
 :setting
+if %small-install% == 1 echo "Due to the Small Install this section is locked." && @ping -n 2 localhost> nul && goto setting
+
+if %dev-mode% == 1 set "settings-dev-display=Activated"
+if %dev-mode% == 0 set "settings-dev-display=Not Activated"
     :: TLI for Settings - Add Skip Security Question + Always use Custom Directory Yes/No
     cls 
     echo ========
@@ -431,7 +460,13 @@ if %errorLevel% == 0 (cd %~dp0) else (goto top-startup)
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [3] Go back
+    echo [3] Activate Developer Options (%settings-dev-display%)
+    @ping -n 1 localhost> nul
+    echo. 
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [4] Go back
     @ping -n 1 localhost> nul
     echo. 
     @ping -n 1 localhost> nul
@@ -442,8 +477,32 @@ if %errorLevel% == 0 (cd %~dp0) else (goto top-startup)
     set /p menu4=Choose an Option from Above:
     If %menu4% == 1 goto filenamechange
     If %menu4% == 2 goto stddirectorycrash
-    If %menu4% == 3 goto menu
+    If %menu4% == 3 goto activate-dev-options
+    If %menu4% == 4 goto menu
     goto setting
+
+:activate-dev-options
+if %dev-mode% == 1 echo Developer Mode is already activated!
+
+echo Do you want to activate the Developer Options?
+echo Developer Options include Debugging, Logging and some extra Menus
+    choice /C YN /M "Yes/No (Y/N)"
+    set _erl=%errorlevel%
+    if %_erl%==Y goto write-dev-options
+    if %_erl%==N goto setting
+
+:write-dev-options
+setlocal enabledelayedexpansion
+set inputFile=settings.txt
+set tempFile=tempfile.tmp
+(for /f "delims=" %%i in (%inputFile%) do (
+    echo %%i
+)) > %tempFile%
+echo dev >> %tempFile%
+move /y %tempFile% %inputFile%
+echo Developer Options have been activated!
+@ping -n 1 localhost> nul
+goto restart-script
 
 :filenamechange
     :: Write Standart Filename to File
@@ -1324,6 +1383,9 @@ if %errorLevel% == 0 (cd %~dp0) else (goto top-startup)
     explorer %~dp0
     exit 0
 
+:restart-script
+set "restart-main=1"
+install.bat
 
 :cancel 
     :: yes
