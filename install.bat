@@ -656,7 +656,7 @@ color 2
     If %ynins1% == 3 goto dellisence
     If %ynins1% == 4 goto delreadme
     If %ynins1% == 5 goto copyreadlic
-    If %ynins1% == 6 goto instdone1
+    If %ynins1% == 6 goto installerdone
     goto direcdone
 
 :copyreadlic
@@ -665,7 +665,7 @@ color 2
     if exist "%~dp0\README.md" xcopy "%~dp0\README.md" "%directory%\%foldername%\%current-script-version%" > nul  
     del %~dp0\LICENSE
     del %~dp0\README.md
-    goto instdone1
+    goto installerdone
 
 :listlicense
     :: List the Content of LICENSE
@@ -712,64 +712,6 @@ color 2
         goto direcdone
     )
     goto direcdone
-
-:instdone1
-    :: TLI for PATH
-    cls
-    echo Do you want to add the Script to PATH?
-    @ping -n 1 localhost> nul
-    echo Then you can open the Script by typing "dataspammer" in the Command Shell.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [1] Yes (Needs to run as Administrator)
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [2] No.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    set /P pathansw=Choose an Option from Above:
-    if %pathansw% == 1 goto addpath
-    if %pathansw% == 2 goto installerdone
-
-:addpath
-    :: Untested Unstable Ahh Code with a 50% chance of working accurately
-    @echo off
-    cd %~dp0
-    (
-    setlocal ENABLEDELAYEDEXPANSION
-    color 02
-    NET FILE 1>NUL 2>NUL
-    if /I '%errorlevel%' == '0' ( goto gotPrivileges ) else ( goto getPrivileges )  
-:getPrivileges 
-    if /I '%1'=='ELEV' (shif /It & goto gotPrivileges)  
-    ECHO. 
-    ECHO ****************
-    ECHO Please Click Yes
-    ECHO ****************
-    timeout 10 
-    setlocal DisableDelayedExpansion
-    set "batchPath=%~0"
-    setlocal EnableDelayedExpansion
-    ECHO Set UAC = CreateObject^("Shell.Application"^) > "%temp%\OEgetPrivileges.vbs" 
-    ECHO UAC.ShellExecute "!batchPath!", "ELEV", "", "runas", 1 >> "%temp%\OEgetPrivileges.vbs" 
-    "%temp%\OEgetPrivileges.vbs" 
-    exit /B 
-:gotPrivileges 
-    setx DataSpammer "%directory9%\dataspammer.bat"
-    del install.bat
-    del temp.bat
-    cd %directory9%
-    set "path-done=1"
-    dataspammer.bat
-    ) > temp.bat
-    cd %~dp0
-    pause
-    del install.bat
-    temp.bat
-
 
 :installerdone
     :: Cleanup install directory and finish the installation

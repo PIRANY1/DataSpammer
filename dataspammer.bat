@@ -8,13 +8,12 @@
 ::    Remove Weird Call Signs,
 ::    Add Portable Installation, 
 ::    Add Startup Arg (e.g. dataspammer.bat -r)
-::    Remove *Whole* Script with PATH etc. 
-::    Add the Script to *Path* and not as a enviromental Variable
 ::    Rework Developer Options
 ::
 ::
 ::
-::
+
+
 
 @echo off
 set "current-script-version=v2.7"
@@ -32,7 +31,6 @@ if "%1"=="" goto normal-start
 :normal-start
 @color 02
 set "large=0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-if defined path-done (echo Script was Added to Path Successfully && pause) 
 @if not defined debug_assist (@ECHO OFF) else (@echo on)
 if not defined devtools (goto top-startup) else (goto dtd)
 setlocal enableextensions ENABLEDELAYEDEXPANSION 
@@ -1317,8 +1315,6 @@ if %errorLevel% == 0 (cd %~dp0) else (goto top-startup)
     if exist "Dataspammer.bat" del "Dataspammer.bat"
     echo 7/7 Files Deleted
     echo Uninstall Successfull
-
-    :: PATH remove
 :noelev
     :: Script isnt elevated TLI
     echo Please start the Script as Administrator in order to install.
