@@ -1,7 +1,7 @@
 @if not defined debug_assist (@ECHO OFF) else (@echo on)
 if not defined devtools (goto normal-start) else (goto dev-options)
-if %restart-main% == 1 dataspammer.bat
 :normal-start
+if %restart-main% == 1 dataspammer.bat
 @title Script Installer by PIRANY
 set "foldername=DataSpammer"
 set "current-script-version=v2.7"
@@ -717,19 +717,33 @@ color 2
     echo.
     echo [1] Goto Specific Call Sign
     echo.
-    echo [2] Execute Code At A Specific Place.
+    echo [2] -
     echo.
-    echo [3] Execute Dev Mode
+    echo [3] @ECHO ON
     echo.
+    echo [4] Set a Variable 
+    echo.
+    echo [5] Restart the Script (Variables will be kept)
+    echo.
+    echo [6] Restart the Script (Variables wont be kept)
     set /P devoption=Choose an Option From Above.
     if %devoption% == 1 goto callsignjump
-    if %devoption% == 2
-    if %devoption% == 3
-    if %devoption% == 4
+    if %devoption% == 2 goto dev-options
+    if %devoption% == 3 @ECHO ON && goto normal-start
+    if %devoption% == 4 setdevvar 
+    if %devoption% == 5 restart-script-dev
+    if %devoption% == 6 restart-script
     goto dev-options
     
     :callsignjump
     set /P jump-to-call-sign=Enter a Call Sign:
     goto %jump-to-call-sign%
 
-exit
+:restart-script-dev
+    cd %~dp0
+    goto normal-start
+:restart-script
+    cd %~dp0
+    install.bat
+
+exit 0
