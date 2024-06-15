@@ -1,7 +1,7 @@
 @if not defined debug_assist (@ECHO OFF) else (@echo on)
 if not defined devtools (goto normal-start) else (goto dev-options)
 :normal-start
-if %restart-main% == 1 dataspammer.bat
+if %restart-main% == 1 goto open-script
 @title Script Installer by PIRANY
 set "foldername=DataSpammer"
 set "current-script-version=v2.7"
@@ -32,7 +32,7 @@ color 2
     cd %~dp0
     xcopy %old-settings-location%\settings.txt %cd%
     cd %~dp0
-    
+
 :updateinstalled
     :: Update Installed TLI
     echo Update was Successful!
@@ -53,7 +53,7 @@ color 2
     echo.
     set /P updateinstalledvar=Choose an Option from above
     if %updateinstalledvar% == 1 goto deleteoldfiles
-    if %updateinstalledvar% == 2 dataspammer.bat
+    if %updateinstalledvar% == 2 goto open-script
     goto updateinstalled
 
 :deleteoldfiles
@@ -64,7 +64,7 @@ color 2
     echo Old Files deleted!
     pause
     cd %~dp0
-    dataspammer.bat
+    goto open-script
 
 :open-install-done
     :: Check if Settings Exist
@@ -98,7 +98,7 @@ color 2
     echo [4] Reinstall Script
     set /p insdone123=Choose an Option from above
     
-    If %insdone123% == 1 dataspammer.bat
+    If %insdone123% == 1 goto open-script
     If %insdone123% == 2 goto settingsmainscript
     If %insdone123% == 3 goto delscriptconf
     If %insdone123% == 4 goto instmain
@@ -177,7 +177,7 @@ color 2
 :settingsmainscript
     :: Open Settings in Main Script
     set "settingsmainscriptvar=1"
-    dataspammer.bat
+    goto open-script
 
 :delscriptconfy
     :: Check if Script is elevated
@@ -397,7 +397,7 @@ color 2
     echo Installation Done.
     cd DataSpammer 
     del %install-directory%\install.bat
-    dataspammer.bat
+    goto open-script
 
 :gitins
     :: Updater Install TLI
@@ -707,7 +707,7 @@ color 2
     cd %~dp0
     del install.bat
     cd %directory9%
-    dataspammer.bat
+    goto open-script
 
 :cancel
     :: When the Install got canceled
@@ -740,6 +740,9 @@ color 2
     :callsignjump
     set /P jump-to-call-sign=Enter a Call Sign:
     goto %jump-to-call-sign%
+
+    :open-script
+    dataspammer.bat
 
 :restart-script-dev
     cd %~dp0
