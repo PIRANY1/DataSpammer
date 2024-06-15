@@ -29,8 +29,10 @@ color 2
     cd %~dp0
     set "settings-target=%cd%""
     set "old-settings-location=%old-script-location%"
-    xcopy %old-settings-location%\settings.txt %settings-target%
     cd %~dp0
+    xcopy %old-settings-location%\settings.txt %cd%
+    cd %~dp0
+    
 :updateinstalled
     :: Update Installed TLI
     echo Update was Successful!

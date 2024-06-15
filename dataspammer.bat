@@ -187,11 +187,13 @@ if "%firstLine%"=="small-install" (
     cd ..
     mkdir %latest_version%
     cd %latest_version%
-    echo Cloning current Version...
-    git clone https://github.com/PIRANY1/DataSpammer 
+    echo Downloading Version %latest_version% ...
+    git clone https://github.com/PIRANY1/DataSpammer.git
+    cls 
     echo Downloaded Version %latest_version%
+    @ping -n 1 localhost> nul
     set "update-install=1"
-    :: Restart CMD so the Folder gets Indexed Another Time. (Potential Fix better let it as it is)
+    cd %latest_version%
     cmd .\install.bat
 
 
