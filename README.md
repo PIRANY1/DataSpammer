@@ -1,12 +1,4 @@
 # DataSpammer
-> [!IMPORTANT]
->  
-<details>
-    <summary>Click To Open.</summary>
-    I Know that the Code is Ass and Basically Unreadable. 
-    If you Want to Contribute to this Projekt, Please Consider Contacting me so i can help you with reading the Code.
-</details>
-
 
 ### Features
 Add to Path, Autostart, Desktop Shortcut, Taskbar Shortcut, Desktop Spam, Custom Folder Spam, Update Libs, Updater,
