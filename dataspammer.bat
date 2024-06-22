@@ -11,8 +11,8 @@
 ::    Rework Developer Options
 ::    Remove CD test for spaces in directory names
 ::    Fix Small Install Install Check 
-::
-::
+::    Try to Add a Interaktive CLI Interface, which can be dynamicly called and used by other Scripts. 
+::    Add API
 
 
 
@@ -28,6 +28,8 @@ if "%1"=="update" goto fastgitupdate
 if "%1"=="remove" goto remove-script
 if "%1"=="start" goto quickstart
 if "%1"=="" goto normal-start
+if "%1"=="api" goto api-call
+if "%1"=="api" goto cli
 
 :normal-start
 @color 02
@@ -1295,8 +1297,13 @@ goto restart-script
     echo.
     echo    start Directly start a Spam Method
     echo.
+    echo    api Call the Scripts API and get a Plain-Text response (currently in Alpha)
     echo.
-    exit /b 0
+    echo    cli Use the Scripts CLI Interface (currently in Alpha)
+    echo.
+    echo.
+
+    exit /b 1464
 
 :: Whitout the UD stuff
 :fastgitupdate
@@ -1388,6 +1395,20 @@ goto restart-script
 :restart-script
 set "restart-main=1"
 install.bat
+
+:cli
+@echo off
+chcp 65001 >nul
+for /f %%A in ('"prompt $H &echo on &for %%B in (1) do rem"') do set BS=%%A
+echo Type 'help' to get an overview of commands
+:input
+echo.
+echo  [97m???[0m([92m%username%[0m@[95m%computername%[0m)-[[91m%cd%[0m] - [[94m%time% %date%[0m]
+set /p cmd=".%BS% [97m???>[0m "
+echo.
+%cmd%
+goto input
+
 
 :cancel 
     :: yes
