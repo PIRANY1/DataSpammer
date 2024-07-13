@@ -1,13 +1,15 @@
 # DataSpammer
 
-### Features
+## Features
+
 Add to Path, Autostart, Desktop Shortcut, Taskbar Shortcut, Desktop Spam, Custom Folder Spam, Update Libs, Updater,
 
-### Todo
+## Todo
+
 <details>
     <summary>Click To Open.</summary>
     
-    Create Custom Batch for USB Stick,
+    Create Custom Batch for USB Stick (Hard bc autorun.inf no longer works / AV Detections),
     
     Fix Remotespam via scp/ftp/ssh,
     
@@ -24,23 +26,34 @@ Add to Path, Autostart, Desktop Shortcut, Taskbar Shortcut, Desktop Spam, Custom
     Add the Script to *Path* and not as a enviromental Variable
 
     Fix the Updater and Startup in Older Vers
+
+    Add Calls to improve Efficiency both for devs and Resources
+
+    Rework Spam TLI
 </details>
 
 # Install
+
 Please download the latest [Version](https://github.com/PIRANY1/DataSpammer/releases/latest) or use one of the methods down below.
+
 ### Git
+
 ```
 git clone https://github.com/PIRANY1/DataSpammer
 cd DataSpammer
 install.bat
 ```
+
 ### Github CLI
+
 ```
 gh repo clone PIRANY1/DataSpammer
 cd DataSpammer
 install.bat
 ```
+
 ### Download File
+
 Install with only one [File](https://gist.github.com/PIRANY1/8344f981f20a8e430f8a74c5fa80c390/archive/97f89d1649c772d1c556310cd53a14e68a7801b4.zip)(Needs Git Installed)
 
 
@@ -50,40 +63,185 @@ Feel free to create a Pull Request and remove some Bugs etc.
 You can define the Variable "devtools" to open a Debug Menu or define "debug_assist" to bypass @ECHO OFF
 
 # Supported Versions
+
 > [!IMPORTANT]
 > Older Versions doesnt support Updates due to various Bugs.
 
-## Changelog
-
-|Version | Supported          |Link to Changelog                |
-|------- | ------------------ |----------------------- |
-|v1.0  |❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v10)
-|v1.0.1|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v101)
-|v1.1|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v11)
-|v1.2|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v12)
-|v1.3|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v13)
-|v1.4|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v14)
-|v1.5|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v15)
-|v1.5.1|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v151)
-|v1.5.2|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v152)
-|v1.5.3|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v153)
-|v1.6|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v16)
-|v1.7|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v17)
-|v2|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v2)
-|v2.1|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v21)
-|v2.2|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v22)
-|v2.3|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v23)
-|v2.3.1|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v231)
-|v2.4|❌|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v24)
-|v2.4.1|✅|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v241)
-|v2.5|✅|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v25)
-|v2.6|✅|[Changelog Here](https://github.com/PIRANY1/DataSpammer#v26)|
-
-
 ## Reporting a Bug
+
 If you encountered a Glitch/Bug/Vulnerability please create an [Issue](https://github.com/PIRANY1/DataSpammer/issues)
 
+# Changelog
+
+## Version 1
+
+### v1.0
+
+Added Main Files (untested)
+
+Bugs:
+Installer not moving .txt Files into the Folder - Need to be done manually
+Autostart Setup doesnt work
+Installer doesnt recognise that the Script is already installed
+
+### v1.0.1
+
+Added ASCII Art and improved readme + license
+
+Bugs
+Autostart Setup doesnt work
+Installer still not moving .txt Files into the Folder - Need to be done manually
+
+### v1.1
+
+Bugfixes + Reworked UI + Updater first Introduced
+
+Bugs
+Installer still not moving files into folder - Need to be done manually
+Updater not working
+
+### v1.2
+
+Desktop Icon Introduced, added Autostart
+
+Bugs:
+Updater is now working but cant install any Updates
+Update skip doesnt work
+Script cant start
+Autostart doesnt work because script doesnt have Admin rights
+Scoop Temp File doesnt get deleted
+
+### v1.3
+
+New Installer Options
+
+Bugs:
+Scoop Temp File doesnt get deleted
+Skip Update doesnt work
+Script cant start properly
+Autostart doesnt work
+Script cant start accurately
+
+### v1.4
+
+Updater done
+
+Bugs:
+Updater thinks its in v1.3
+Skip Update doesnt work
+Scoop Temp File doesnt get deleted
+Script cant start accurately
+Autostart doesnt work
+
+### v1.5
+
+Updater done has one error, Desktop Icons done.
+
+Bugs:
+Update skip doesnt work
+Autostart doesnt work
+JQ+Scoop Update doesnt work
+Script cant start accurately
+
+### v1.5.1
+
+Improved Installer, Script is now checking if you have the libs installed and if yes it skips the install
+
+Bugs:
+Update skip doesnt work
+Check for Update doesnt work
+Script cant start accurately
+
+### v1.5.2
+
+Migrated startupcheck.bat and start.bat
+
+Bugs:
+Script cant start accuratly
+Check for Update doesnt work
+
+### v1.5.3
+
+You can now skip the Update
+Script can now start normally
+
+Bugs:
+Installer is trying to copy startupcheck.bat
+Check for Update doesnt work
+
+### v1.6
+
+Added Desktop Spam, Check for Update got added
+
+### v1.7
+
+Error Codes added
+You can now use the Script without the Update Libs
+Bugs:
+
+Update doesnt work
+
+## Version 2
+
+### v2
+
+Settings are all in one File
+Bugs:
+
+Update doesnt work
+
+### v2.1
+
+You can now install the Script on other Drives
+Install in Normal Program Directory Got Added
+Folder Name is now the right one
+Bugs:
+
+Install in Programmm Directory triggers AV
+Update doesnt work
+
+### v2.2
+
+Install in Program Directory added, may trigger AntiVirus
+Bugs:
+
+Installer Crashes Early But can finish the installation
+Update doesnt work
+
+### v2.3
+
+Migrated start.bat and Dataspammer.bat and fixed a Few Bugs
+Bugs:
+
+Update doesnt work
+
+### v2.3.1
+
+Fixed Updater
+
+### v2.4
+
+Fixed OnStart Update Checker
+
+### v2.4.1
+
+No known Bugs
+
+### v2.5
+
+Fixed and Improved everything. Script is almost perfect.
+
+### v2.6
+
+Added the Option to add the Script to PATH
+
+### v2.7
+
+Add to Path Option adds the Script as An OS-Wide Enviromental Variable?.
+Working on Fix
+
 # License
+
 MIT License
 
 Copyright (c) - 2023 - PIRANY
@@ -105,145 +263,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-# Changelog
-### v1.0
-Added Main Files (untested)
-
-Bugs:
-Installer not moving .txt Files into the Folder - Need to be done manually
-Autostart Setup doesnt work
-Installer doesnt recognise that the Script is already installed
-
-### v1.0.1
-Added ASCII Art and improved readme + license
-
-Bugs
-Autostart Setup doesnt work
-Installer still not moving .txt Files into the Folder - Need to be done manually
-
-### v1.1
-Bugfixes + Reworked UI + Updater first Introduced
-
-Bugs
-Installer still not moving files into folder - Need to be done manually
-Updater not working
-
-### v1.2
-Desktop Icon Introduced, added Autostart 
-
-Bugs:
-Updater is now working but cant install any Updates
-Update skip doesnt work
-Script cant start
-Autostart doesnt work because script doesnt have Admin rights
-Scoop Temp File doesnt get deleted
-
-### v1.3
-New Installer Options
-
-Bugs:
-Scoop Temp File doesnt get deleted
-Skip Update doesnt work
-Script cant start properly
-Autostart doesnt work
-Script cant start accurately
-
-### v1.4
-Updater done
-
-Bugs:
-Updater thinks its in v1.3
-Skip Update doesnt work
-Scoop Temp File doesnt get deleted
-Script cant start accurately
-Autostart doesnt work
-
-### v1.5
-Updater done has one error, Desktop Icons done.
-
-Bugs:
-Update skip doesnt work
-Autostart doesnt work
-JQ+Scoop Update doesnt work
-Script cant start accurately
-
-### v1.5.1
-Improved Installer, Script is now checking if you have the libs installed and if yes it skips the install
-
-Bugs:
-Update skip doesnt work
-Check for Update doesnt work
-Script cant start accurately
-
-### v1.5.2
-Migrated startupcheck.bat and start.bat
-
-Bugs:
-Script cant start accuratly
-Check for Update doesnt work
-
-### v1.5.3
-You can now skip the Update
-Script can now start normally
-
-Bugs:
-Installer is trying to copy startupcheck.bat
-Check for Update doesnt work
-
-### v1.6
-Added Desktop Spam, Check for Update got added
-
-### v1.7
-Error Codes added 
-You can now use the Script without the Update Libs
-Bugs:
-
-Update doesnt work
-
-### v2
-Settings are all in one File
-Bugs:
-
-Update doesnt work
-
-### v2.1
-You can now install the Script on other Drives
-Install in Normal Program Directory Got Added
-Folder Name is now the right one
-Bugs:
-
-Install in Programmm Directory triggers AV
-Update doesnt work
-
-### v2.2 
-Install in Program Directory added, may trigger AntiVirus
-Bugs: 
-
-Installer Crashes Early But can finish the installation
-Update doesnt work
-
-### v2.3
-Migrated start.bat and Dataspammer.bat and fixed a Few Bugs
-Bugs:
-
-Update doesnt work
-
-### v2.3.1
-Fixed Updater
-
-### v2.4
-Fixed OnStart Update Checker
-
-### v2.4.1
-No known Bugs
-
-### v2.5
-Fixed and Improved everything. Script is almost perfect.
-
-### v2.6
-Added the Option to add the Script to PATH
-
-### v2.7
-Add to Path Option adds the Script as An OS-Wide Enviromental Variable?.
-Working on Fix

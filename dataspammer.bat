@@ -17,6 +17,7 @@
 
 
 @echo off
+chcp 65001
 set "current-script-version=v2.7"
 if "%1"=="h" goto help
 if "%1"=="-h" goto help
@@ -141,9 +142,17 @@ if "%firstLine%"=="small-install" (
     set "owner=PIRANY1"
     set "repo=DataSpammer"
     set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
-    echo Fetching Git Url....
+    echo Getting Latest Release Info from API...
+    cls
+    echo Got Release Info ?
+    echo Awaiting Response...
     @ping -n 1 localhost> nul
+    cls
+    echo Got Release Info ?
+    echo Recieved API Response ?
+    echo Extracting Data...
     for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do (set "latest_version=%%i")
+    echo Extracted Data ?
     if %latest_version% equ v2.7 (goto UpToDate) else (goto gitverout)
 
 :UpToDate
