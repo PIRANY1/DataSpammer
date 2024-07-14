@@ -57,7 +57,11 @@ install.bat
 Install with only one [File](https://gist.github.com/PIRANY1/8344f981f20a8e430f8a74c5fa80c390/archive/97f89d1649c772d1c556310cd53a14e68a7801b4.zip)(Needs Git Installed)
 
 # About
-I created this Script to learn more about Batch and how cmd.exe operates.
+I created this Script to learn more about Batch and how cmd.exe operates. 
+
+Some good Resources are:
+
+[A detailed overview of CMD Commands](https://ss64.com/nt/)
 
 # Contributing
 
