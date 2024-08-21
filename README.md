@@ -8,6 +8,8 @@ Add to Path, Autostart, Desktop Shortcut, Taskbar Shortcut, Desktop Spam, Custom
 
 <details>
     <summary>Click To Open.</summary>
+
+    Add Experimental GUI
     
     Create Custom Batch for USB Stick (Hard bc autorun.inf no longer works / AV Detections),
     
@@ -39,7 +41,7 @@ Please download the latest [Version](https://github.com/PIRANY1/DataSpammer/rele
 ### Git
 
 ```
-git clone https://github.com/PIRANY1/DataSpammer
+git clone https://github.com/PIRANY1/DataSpammer.git
 cd DataSpammer
 install.bat
 ```
