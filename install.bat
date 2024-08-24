@@ -4,7 +4,7 @@ if not defined devtools (goto normal-start) else (goto dev-options)
 if %restart-main% == 1 goto open-script
 @title Script Installer by PIRANY
 set "foldername=DataSpammer"
-set "current-script-version=v2.7"
+set "current-script-version=v2.8"
 cd %~dp0
 color 2
 cls  

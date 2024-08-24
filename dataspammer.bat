@@ -18,7 +18,7 @@
 
 @echo off
 chcp 65001
-set "current-script-version=v2.7"
+set "current-script-version=v2.8"
 if "%1"=="h" goto help
 if "%1"=="-h" goto help
 if "%1"=="help" goto help
@@ -152,7 +152,7 @@ if "%firstLine%"=="small-install" (
     echo Extracting Data...
     for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do (set "latest_version=%%i")
     echo Extracted Data 
-    if %latest_version% equ v2.7 (goto UpToDate) else (goto gitverout)
+    if %latest_version% equ v2.8 (goto UpToDate) else (goto gitverout)
 
 :UpToDate
     :: Message when the Script is up-to-date
