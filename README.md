@@ -35,8 +35,7 @@ Add to Path, Autostart, Desktop Shortcut, Taskbar Shortcut, Desktop Spam, Custom
 </details>
 
 # Install
-
-Please download the latest [Version](https://github.com/PIRANY1/DataSpammer/releases/latest) or use one of the methods down below.
+Download the Source code manually, use the setup.exe in the Versions tab or use one of the Methods down below
 
 ### Git
 
