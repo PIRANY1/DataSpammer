@@ -371,13 +371,8 @@ color 2
     @ping -n 1 localhost> nul
     set /p directory=Type Your Directory Here: 
     :: Installer Confirmation Dialog
-    @ping -n 1 localhost> nul
-    echo Are you sure you want to run the installer and move the Files into the specified Directory?
-    @ping -n 1 localhost> nul
-    set /p ynins=[y]Yes [n]No:
-    If %ynins% == n goto instmain
-    If %ynins% == y goto small-installer
-    goto drcsetch
+    call :verify
+
 
 :small-installer
     echo Installing Script...
@@ -742,7 +737,24 @@ color 2
     goto %jump-to-call-sign%
 
     :open-script
+    powershell -Command "& {Add-Type -AssemblyName System.Windows.Forms; Add-Type -AssemblyName System.Drawing; $notify = New-Object System.Windows.Forms.NotifyIcon; $notify.Icon = [System.Drawing.SystemIcons]::Information; $notify.Visible = $true; $notify.ShowBalloonTip(0, 'DataSpammer', 'Starting Dataspammer...', [System.Windows.Forms.ToolTipIcon]::None)}"
     dataspammer.bat
+
+:verify
+set "verify=%random%"
+powershell -Command "& {Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.Interaction]::InputBox('Please enter Code %verify% to confirm that you want to execute this Option', 'DataSpammer Verify')}" > %TEMP%\out.tmp
+set /p OUT=<%TEMP%\out.tmp
+if %verify%==%OUT% (goto success) else (goto failed)
+
+:success
+set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('Sucess', 'DataSpammer Verify');}"
+powershell -Command %msgBoxArgs%
+goto :EOF
+
+:failed
+set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('You have entered the wrong Code. Please try again', 'DataSpammer Verify');}"
+powershell -Command %msgBoxArgs%
+goto verify
 
 :restart-script-dev
     cd %~dp0

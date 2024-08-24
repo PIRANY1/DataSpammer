@@ -34,7 +34,6 @@ if "%1"=="api" goto cli
 
 :normal-start
 @color 02
-set "large=0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 @if not defined debug_assist (@ECHO OFF) else (@echo on)
 if not defined devtools (goto top-startup) else (goto dtd)
 setlocal enableextensions ENABLEDELAYEDEXPANSION 
@@ -144,15 +143,15 @@ if "%firstLine%"=="small-install" (
     set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
     echo Getting Latest Release Info from API...
     cls
-    echo Got Release Info ?
+    echo Got Release Info
     echo Awaiting Response...
     @ping -n 1 localhost> nul
     cls
-    echo Got Release Info ?
-    echo Recieved API Response ?
+    echo Got Release Info
+    echo Recieved API Response 
     echo Extracting Data...
     for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do (set "latest_version=%%i")
-    echo Extracted Data ?
+    echo Extracted Data 
     if %latest_version% equ v2.7 (goto UpToDate) else (goto gitverout)
 
 :UpToDate
@@ -352,27 +351,10 @@ if "%lastLine%"=="dev" (
     If %menu1% == 4 goto credits
     If %menu1% == 5 goto setting
     If %menu1% == 6 goto autostartdeskic
-    If %menu1% == 7 goto checkgitupdt
+    If %menu1% == 7 goto gitvercheck
     If %menu1% == 8 goto checklibupdt
     If %menu1% == 9 start "" "https://github.com/PIRANY1/DataSpammer" | cls | goto menu
     goto menu
-
-:checkgitupdt
-    :: Check for Update (Why not restart the Script at all and then check for updates)
-    set "owner=PIRANY1"
-    set "repo=DataSpammer"
-    set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
-    echo Fetching Git Url....
-    @ping -n 1 localhost> nul
-    for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do (set "latest_version=%%i")
-    if %latest_version% equ v2.7 (goto UpToDate1) else (goto gitverout)
-
-:UpToDate1
-    :: Display Version
-    @ping -n 1 localhost> nul
-    echo The Version you are currently Using is the newest one (%latest_version%)
-    pause 
-    goto menu 
 
 :checklibupdt
     :: REWORK NEEDED - Check for Lib Updates
@@ -764,19 +746,8 @@ goto restart-script
 
 
 :start
+    call :verify
     cls
-    set "verify=%random%"
-    echo Please Verify that you want to use a Spam Method.
-    echo Please have in Mind that this can make your Installation Unusable.
-    echo Please enter %verify% in the Field Below
-    set /p verifyans=Type %verify%:
-    if "%verifyans%"=="%verify%" (
-        goto start187
-    ) else (
-       goto start
-    )
-
-:start187
     echo Choose the Method you want to use:
     @ping -n 1 localhost> nul
     echo.
@@ -871,17 +842,8 @@ goto restart-script
     echo The Filename cant include the following Character(s):\ / : * ? " < > |"
     set /P remotespamfilename=Enter a Filename:
     set /P remotespamfilecount=How many files do you want to create:
-:remotespamverify
-    :: Verify execution
+    call :verify
     cls
-    set "verify=%random%"
-    echo Please Verify that you want to this Spam Method.
-    set /p verifyans=Type %verify%:
-    if "%verifyans%"=="%verify%" (
-        goto startremotespam
-    ) else (
-        goto remotespamverify
-    )
 
 :startremotespam
     :: 100% UD ASSET COUNTER (Does nothing)
@@ -1014,26 +976,8 @@ goto restart-script
     echo Leave empty if you want infinite.
     @ping -n 1 localhost> nul
     set /p "deskiconspamamount=Type a Number:"
-    goto deskiconspamwdata
-
-:deskiconspamwdata
-    :: verify tli
-    echo All set. 
-    @ping -n 1 localhost> nul
-    echo Please confirm that you want to Spam your Desktop.
-    @ping -n 1 localhost> nul
-    echo. 
-    @ping -n 1 localhost> nul
-    echo [y] Yes
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [n] No, Cancel
-    @ping -n 1 localhost> nul
-    set /p deskicspamconf11=Choose an Option from Above:
-    If %deskicspamconf11% == y goto deskiconspamconfdata
-    If %deskicspamconf11% == n goto menu
-    goto deskiconspamwdata
+    call :verify
+    cls
 
 :deskiconspamconfdata
     :: 100% UD ASSET COUNTER (does nothing but look cool)
@@ -1418,6 +1362,21 @@ echo.
 %cmd%
 goto input
 
+:verify
+set "verify=%random%"
+powershell -Command "& {Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.Interaction]::InputBox('Please enter Code %verify% to confirm that you want to execute this Option', 'DataSpammer Verify')}" > %TEMP%\out.tmp
+set /p OUT=<%TEMP%\out.tmp
+if %verify%==%OUT% (goto success) else (goto failed)
+
+:success
+set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('Sucess', 'DataSpammer Verify');}"
+powershell -Command %msgBoxArgs%
+goto :EOF
+
+:failed
+set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('You have entered the wrong Code. Please try again', 'DataSpammer Verify');}"
+powershell -Command %msgBoxArgs%
+goto verify
 
 :cancel 
     :: yes
