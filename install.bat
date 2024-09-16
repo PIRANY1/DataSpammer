@@ -1,7 +1,7 @@
 @if not defined debug_assist (@ECHO OFF) else (@echo on)
 if not defined devtools (goto normal-start) else (goto dev-options)
 :normal-start
-if %restart-main% == 1 goto open-script
+if "%restart-main%" == "1" goto open-script
 @title Script Installer by PIRANY
 set "foldername=DataSpammer"
 set "current-script-version=v2.8"
@@ -12,11 +12,10 @@ color 2
 :script-install-check
     :: Check if Script started after an update
     if "%update-install%"=="1" (
-        goto updateinstall
+        goto updateinstalled
     ) else (
         goto open-install-done
     )
-
 :noelev
     :: Script isnt elevated TLI
     echo Please start the Script as Administrator in order to install.
@@ -24,16 +23,10 @@ color 2
     pause
     exit
 
-:updateinstall
-    :: Install the Update
-    cd %~dp0
-    set "settings-target=%cd%""
-    set "old-settings-location=%old-script-location%"
-    cd %~dp0
-    xcopy %old-settings-location%\settings.txt %cd%
-    cd %~dp0
 
 :updateinstalled
+cd %~dp0
+rm updater.bat
     :: Update Installed TLI
     echo Update was Successful!
     @ping -n 1 localhost> nul
@@ -68,7 +61,7 @@ color 2
 
 :open-install-done
     :: Check if Settings Exist
-    if exist "settings.txt" (
+    if exist "settings.conf" (
         goto instdoneconf
     ) else (
         goto instmain
@@ -314,15 +307,15 @@ color 2
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [1] %startmenushortcut% Startmenu Shortcut/All Apps List 
+    echo [1] (%startmenushortcut%) Startmenu Shortcut/All Apps List 
     @ping -n 1 localhost> nul
     echo. 
     @ping -n 1 localhost> nul
-    echo [2] %desktopic% Desktop Shortcut
+    echo [2] (%desktopic%) Desktop Shortcut
     @ping -n 1 localhost> nul
     echo. 
     @ping -n 1 localhost> nul
-    echo [3] %autostart% Start with Windows/Autostart
+    echo [3] (%autostart%) Start with Windows/Autostart
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
@@ -382,7 +375,7 @@ color 2
     xcopy dataspammer.bat "%install-directory%\DataSpammer"
     del dataspammer.bat
     cd DataSpammer
-    echo small-install > settings.txt
+    echo small-install > settings.conf
     cd %~dp0
     echo Do you want to copy the README into the Script Folder too or should it be deleted?
     choice /C DC /M "Press D If you want to Delete README and C to Copy it into the Script folder"
@@ -398,41 +391,34 @@ color 2
     :: Updater Install TLI
     echo.
     @ping -n 1 localhost> nul
-    echo When you want the script to auto upgrade itself when you start it you can install Git, JQ and Scoop automaticly too.
+    echo When you want the script to auto upgrade itself when you start it you can install JQ and Scoop automaticly too.
     echo This will be fully automaticly.
-    echo When you choose to Install Git too it needs Administrator privileges too.
-    echo.
     @ping -n 1 localhost> nul
     echo [1] Install those Too
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [2] View Information about Git
+    echo [2] View Information about JQ
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [3] View Information about JQ
+    echo [3] View Information about Scoop
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [4] View Information about Scoop
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [5] Dont install those Components.
+    echo [4] Dont install those Components.
     echo.
     @ping -n 1 localhost> nul
     echo.
     set /p menu3=Choose an Option from Above:
     If %menu3% == 1 set "gitinsyn=1"
-    If %menu3% == 2 start "" "https://git-scm.com" | goto gitins
-    If %menu3% == 3 start "" "https://jqlang.github.io/jq/" | goto gitins
-    If %menu3% == 4 start "" "https://scoop.sh/#/" | goto gitins
-    If %menu3% == 5 goto insgo
+    If %menu3% == 2 start "" "https://jqlang.github.io/jq/" | goto gitins
+    If %menu3% == 3 start "" "https://scoop.sh/#/" | goto gitins
+    If %menu3% == 4 goto insgo
 
 :insgo
     :: Main install part
-    set "directory9=%directory%\%foldername%\%current-script-version%"
+    set "directory9=%directory%\%foldername%"
     mkdir "%directory9%" 
     xcopy "%~dp0\dataspammer.bat" "%directory9%" 
     xcopy "%~dp0\install.bat" "%directory9%"     
@@ -452,18 +438,18 @@ color 2
     )
 
 :insgo2
-    :: Create Settings.txt
+    :: Create settings.conf
     setlocal enabledelayedexpansion
     set "insdonevar=insdone"
     set "stdfil=notused"
     set "stdrcch=notused"
     set "update=notused"
-    set "file=settings.txt"
+    set "file=settings.conf"
     echo !insdonevar! >> %file%
     echo !stdfil! >> %file%
     echo !stdrcch! >> %file%
     echo !update! >> %file%
-    echo Settings.txt was created.
+    echo Settings.conf was created.
     cd %~dp0
     del dataspammer.bat
     cd %directory9%
@@ -491,15 +477,6 @@ color 2
 
 :jqgitins1
     :: Install Libs - Rework Needed - Not Working
-    for /f "delims=" %%a in ('where git') do (
-        set "where_output=%%a"
-    )
-    if defined where_output (
-        echo Git is already installed!
-    ) else (
-        winget install --id Git.Git -e --source winget
-    )
-
     for /f "delims=" %%a in ('where scoop') do (
         set "where_output=%%a"
     )
@@ -543,7 +520,7 @@ color 2
     set "line2=notused"
     set "line3=notused"
     set "line4=uy"
-    set "setfile=settings.txt"
+    set "setfile=settings.conf"
     if exist !setfile! (
         del !setfile!
     )
@@ -708,7 +685,7 @@ color 2
     :: When the Install got canceled
     echo The installer is now closing....
     exit
-:dev-options
+:dev-options 
     :: Rework In Process.
     echo Dev Tools
     echo.
@@ -737,8 +714,7 @@ color 2
     goto %jump-to-call-sign%
 
     :open-script
-    powershell -Command "& {Add-Type -AssemblyName System.Windows.Forms; Add-Type -AssemblyName System.Drawing; $notify = New-Object System.Windows.Forms.NotifyIcon; $notify.Icon = [System.Drawing.SystemIcons]::Information; $notify.Visible = $true; $notify.ShowBalloonTip(0, 'DataSpammer', 'Starting Dataspammer...', [System.Windows.Forms.ToolTipIcon]::None)}"
-    dataspammer.bat
+        dataspammer.bat
 
 :verify
 set "verify=%random%"
