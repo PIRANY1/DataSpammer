@@ -13,9 +13,7 @@
 ::    Fix Small Install Install Check 
 ::    Try to Add a Interaktive CLI Interface, which can be dynamicly called and used by other Scripts. 
 ::    Add API
-::    Fix New Call Implementation
-::    Remove Git Install and Use CURL 
-::    Fix Install Part
+
 
 
 @echo off
