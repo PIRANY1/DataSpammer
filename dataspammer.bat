@@ -43,7 +43,7 @@ set inputFile=settings.conf
 set "firstLine="
 set /p firstLine=<%inputFile%
 if "%firstLine%"=="small-install" (
-    set "small-install=1" && goto enableascii
+    set "small-install=1" && goto sys.enable.ascii.tweak
 ) else (
     goto regular-install
 )
@@ -64,11 +64,11 @@ if "%firstLine%"=="small-install" (
     setlocal enabledelayedexpansion
     @title Starting Up...
     echo Checking for Data...
-    if not exist "settings.conf" goto Error1
+    if not exist "settings.conf" goto sys.no.settings
     echo Checking for Files...
-    if not exist "install.bat" (goto Error) else (goto settings.extract.update)
+    if not exist "install.bat" (goto sys.error.no.install) else (goto settings.extract.update)
 
-:error1
+:sys.no.settings
     :: TLI when Settings arent found
     cls
     echo The File "settings.conf" doesnt exist. 
@@ -88,11 +88,11 @@ if "%firstLine%"=="small-install" (
     echo [2] Open the Script anyways 
     @ping -n 1 localhost> nul
     set /p menu=Choose an Option from Above:
-    If %menu% == 1 goto openins
-    If %menu% == 2 goto no-settings
-    goto error1
+    If %menu% == 1 goto sys.open.installer
+    If %menu% == 2 goto run.no.settings
+    goto sys.no.settings
 
-    :no-settings
+    :run.no.settings
     :: Check if the Updater can run
     if jq-installed == 1 (
         if git-installed == 1 goto no.settings.update
@@ -101,9 +101,9 @@ if "%firstLine%"=="small-install" (
     )
 
 :no.settings.update
-call :gitcall-sys
+call :gitcall.sys
 set "small-install=1"
-goto enableascii
+goto sys.enable.ascii.tweak
 
 :settings.extract.update
     setlocal enabledelayedexpansion
@@ -116,7 +116,7 @@ goto enableascii
             set "line=%%b"
             set "line=!line:*:=!"
             if "!line!" equ "%searchtext%" (
-                call :gitcall-sys
+                call :gitcall.sys
                 goto dts.startup.done
             ) else (
                 goto dts.startup.done
@@ -125,7 +125,7 @@ goto enableascii
     )
     goto dts.startup.done
 
-:gitcall-sys
+:gitcall.sys
 call :git.version.check
 call :git.update.check %uptodate%
 exit /b
@@ -197,20 +197,19 @@ exit /b
 :git.update.version
     :: Reworked in 2.9 / should work
     cd %~dp0
+    echo @echo off > updater.bat
+    echo echo Updating script... >> updater.bat
+    echo curl -o dataspammer.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat >> updater.bat
+    echo curl -o install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat >> updater.bat
+    echo set "update-install=1" >> updater.bat
+    echo start cmd /k .\install.bat >> updater.bat
+    echo exit /b >> updater.bat
 
-echo @echo off > updater.bat
-echo echo Updating script... >> updater.bat
-echo curl -o dataspammer.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat >> updater.bat
-echo curl -o install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat >> updater.bat
-echo set "update-install=1" >> updater.bat
-echo start cmd /k .\install.bat >> updater.bat
-echo exit /b >> updater.bat
-
-start updater.bat
-exit /b
+    start updater.bat
+    exit /b
 
 
-:Error 
+:sys.error.no.install
     :: TLI When the Installer doesnt exist
     echo The "Install.bat" doesnt exist. The Script has a Chance of not working
     @ping -n 1 localhost> nul
@@ -226,15 +225,15 @@ exit /b
     @ping -n 1 localhost> nul
     set /p menu3=Choose an Option from Above:
     If %menu3% == 2 goto dts.startup.done
-    If %menu3% == 1 goto gitopen
-    goto Error
+    If %menu3% == 1 goto git.open.repo
+    goto sys.error.no.install
 
-:gitopen
+:git.open.repo
     :: Open Repo
     start "" "https://github.com/PIRANY1/DataSpammer"
-    goto Error
+    goto sys.error.no.install
 
-:openins
+:sys.open.installer
     :: Opens the Installer
     cd %~dp0
     install.bat
@@ -249,7 +248,7 @@ exit /b
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :dts.startup.done
     :: If the Script got opened from installer?
-    if "%settingsmainscriptvar%" == "1" goto setting
+    if "%settingsmainscriptvar%" == "1" goto settings
 
 set inputFile=settings.conf
 set "lastLine="
@@ -263,7 +262,7 @@ if "%lastLine%"=="dev" (
 )
 
 
-:extract-settings
+:sys.extract.settings.to.var
     :: Extract data from Settings file
     setlocal enabledelayedexpansion
     set "file=settings.conf"
@@ -278,9 +277,9 @@ if "%lastLine%"=="dev" (
     set "insdonevar1=!line1!"
     set "stdfile=!line2!"
     set "stdrc1=!line3!"
-    if not defined devtools (goto enableascii) else (goto dtd)
+    if not defined devtools (goto sys.enable.ascii.tweak) else (goto dtd)
 
-:enableascii
+:sys.enable.ascii.tweak
     :: Allows ASCII stuff without Codepage Settings (i use both to be sure)
     SETLOCAL EnableDelayedExpansion
     SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
@@ -292,7 +291,7 @@ if "%lastLine%"=="dev" (
     ) else (
         set "settings-lock=Settings"
     )
-:: Main Menu TLI
+    :: Main Menu TLI
 
     cls
     %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
@@ -354,18 +353,18 @@ if "%lastLine%"=="dev" (
     If %menu1% == 2 goto start
     If %menu1% == 3 goto cancel
     If %menu1% == 4 goto credits
-    If %menu1% == 5 goto setting
+    If %menu1% == 5 goto settings
     If %menu1% == 6 goto autostartdeskic
-    If %menu1% == 7 goto checklibupdt
+    If %menu1% == 7 goto check.lib.git.update
     If %menu1% == 8 start "" "https://github.com/PIRANY1/DataSpammer" | cls | goto menu
     goto menu
 
-:checklibupdt
+:check.lib.git.update
     :: REWORK NEEDED - Check for Lib Updates
     echo Checking for Updates...
     start cmd /k "scoop update && exit /b 0"
     start cmd /k "scoop update jq && exit /b 0"
-    call :gitcall-sys
+    call :gitcall.sys
     goto main
 
 :help
@@ -435,7 +434,7 @@ if "%lastLine%"=="dev" (
     If %menu3% == 2 start "" "https://github.com/PIRANY1/DataSpammer" | cls | goto credits
     goto credits
 
-:setting
+:settings
 color
 if %dev-mode% == 1 set "settings-dev-display=Activated"
 if %dev-mode% == 0 set "settings-dev-display=Not Activated"
@@ -475,13 +474,13 @@ if %dev-mode% == 0 set "settings-dev-display=Not Activated"
 
 
     set /p menu4=Choose an Option from Above:
-    If %menu4% == 1 goto filenamechange
-    If %menu4% == 2 goto stddirectorycrash
-    If %menu4% == 3 goto activate-dev-options
+    If %menu4% == 1 goto settings.change.df.filename
+    If %menu4% == 2 goto settings.default.directory.crash
+    If %menu4% == 3 goto activate.dev.options
     If %menu4% == 4 goto menu
-    goto setting
+    goto settings
 
-:activate-dev-options
+:activate.dev.options
 if %dev-mode% == 1 echo Developer Mode is already activated!
 
 echo Do you want to activate the Developer Options?
@@ -490,7 +489,7 @@ echo This can lead to some instabilty!
     choice /C YN /M "Yes/No"
     set _erl=%errorlevel%
     if %_erl%==Y goto write-dev-options
-    if %_erl%==N goto setting
+    if %_erl%==N goto settings
 
 :write-dev-options
 setlocal enabledelayedexpansion
@@ -505,7 +504,7 @@ echo Developer Options have been activated!
 @ping -n 1 localhost> nul
 goto restart-script
 
-:filenamechange
+:settings.change.df.filename
     :: Write Standart Filename to File
     cls 
     echo The Filename cant have the following Character(s):\ / : * ? " < > |"
@@ -525,18 +524,18 @@ goto restart-script
     move /y !tmpfile! !file!
     echo The Standart Filename was saved!
     cls
-    goto setting
+    goto settings
 
 
-:stddirectorycrash
+:settings.default.directory.crash
     :: Standart Spam Directory Check
     cls 
     echo.
     echo.
     set /p directory0=Type Your Directory Here:
-    if exist %directory0% (goto stddirectorycrash2) else (goto stddirectorycrash3)
+    if exist %directory0% (goto settings.default.directory.crash.2) else (goto settings.default.directory.crash.3)
 
-:stddirectorycrash2
+:settings.default.directory.crash.2
     :: Write Standart Spam Directory to Settings
     setlocal ENABLEDELAYEDEXPANSION
     set "setfile=settings.conf"
@@ -556,13 +555,13 @@ goto restart-script
     move /y !tmpfile! !setfile!
     echo The Directory was saved!
     cls
-    goto setting
+    goto settings
 
-:stddirectorycrash3
+:settings.default.directory.crash.3
     :: Not so hard to understand
     echo The Directory is invalid!
     pause
-    goto stddirectorycrash
+    goto settings.default.directory.crash
 
 :autostartdeskic
     :: Autostart TLI
