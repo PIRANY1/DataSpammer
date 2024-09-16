@@ -1,23 +1,18 @@
 :: Use only under MIT License
 :: If you want to Publish a modified Version please mention the Original Creator PIRANY and link the GitHub Repo
 :: Some Vars and Settings
-::    Todo:
-::    Create Custom Batch for USB Stick,   
-::    Fix Remotespam via scp/ftp/ssh,    
-::    Improve Language,    
-::    Remove Weird Call Signs,
-::    Add Portable Installation, 
-::    Add Startup Arg (e.g. dataspammer.bat -r)
-::    Rework Developer Options
+::    Todo: 
+::    Change Signs to the Pattern git.example.copy
+::    Fix Coulours and Dev Options
 ::    Remove CD test for spaces in directory names
-::    Fix Small Install Install Check 
 ::    Try to Add a Interaktive CLI Interface, which can be dynamicly called and used by other Scripts. 
-::    Add API
+::    Generally Rework some Script Parts to make them more dynamic and efficient
 
 
 
 @echo off
 chcp 65001
+powershell -Command "& {Add-Type -AssemblyName System.Windows.Forms; Add-Type -AssemblyName System.Drawing; $notify = New-Object System.Windows.Forms.NotifyIcon; $notify.Icon = [System.Drawing.SystemIcons]::Information; $notify.Visible = $true; $notify.ShowBalloonTip(0, 'DataSpammer', 'Starting Dataspammer...', [System.Windows.Forms.ToolTipIcon]::None)}"
 set "current-script-version=v2.8"
 if "%1"=="h" goto help
 if "%1"=="-h" goto help
@@ -44,7 +39,7 @@ if %errorLevel% == 0 (cd %~dp0) else (goto top-startup)
 
 :top-startup
 ::Check if the Script is on a small install
-set inputFile=settings.txt
+set inputFile=settings.conf
 set "firstLine="
 set /p firstLine=<%inputFile%
 if "%firstLine%"=="small-install" (
@@ -59,34 +54,24 @@ if "%firstLine%"=="small-install" (
         set "where_output=%%a"
     )
     if defined where_output (
-        set "jq-installed=1" && goto check-git
+        set "jq-installed=1" && goto check-files
     ) else (
-        set "jq-installed=0" && goto check-git
+        set "jq-installed=0" && goto check-files
     )
     
-    :check-git
-    for /f "delims=" %%a in ('where git') do (
-        set "where_output=%%a"
-    )
-    if defined where_output (
-        set "git-installed=1" && goto check-files
-    ) else (
-        set "git-installed=0" && goto check-files
-    )
-
     :check-files
     :: Checks if all Files needed for the Script exist
     setlocal enabledelayedexpansion
     @title Starting Up...
     echo Checking for Data...
-    if not exist "settings.txt" goto Error1
+    if not exist "settings.conf" goto Error1
     echo Checking for Files...
-    if not exist "install.bat" (goto Error) else (goto updtsearch)
+    if not exist "install.bat" (goto Error) else (goto settings.extract.update)
 
 :error1
     :: TLI when Settings arent found
     cls
-    echo The File "settings.txt" doesnt exist. 
+    echo The File "settings.conf" doesnt exist. 
     @ping -n 1 localhost> nul
     echo Theres a high Chance that the Installer didnt run yet.
     @ping -n 1 localhost> nul
@@ -110,17 +95,19 @@ if "%firstLine%"=="small-install" (
     :no-settings
     :: Check if the Updater can run
     if jq-installed == 1 (
-        if git-installed == 1 goto updtsearch
+        if git-installed == 1 goto no.settings.update
     ) else (
-        goto ulttop
+        goto dts.startup.done
     )
 
+:no.settings.update
+call :gitcall-sys
+set "small-install=1"
+goto enableascii
 
-
-:updtsearch
-    :: Check if Script should check for Updates
+:settings.extract.update
     setlocal enabledelayedexpansion
-    set "file=settings.txt"
+    set "file=settings.conf"
     set "linenr=4"
     set "searchfor=uy"
 
@@ -129,42 +116,50 @@ if "%firstLine%"=="small-install" (
             set "line=%%b"
             set "line=!line:*:=!"
             if "!line!" equ "%searchtext%" (
-                goto gitvercheck
+                call :gitcall-sys
+                goto dts.startup.done
             ) else (
-                goto ulttop
+                goto dts.startup.done
             )
         )
     )
+    goto dts.startup.done
 
-:gitvercheck
-    :: Check if an Updates Is Avaiable
+:gitcall-sys
+call :git.version.check
+call :git.update.check %uptodate%
+exit /b
+
+:git.version.check
+    echo Checking for Updates...
     set "owner=PIRANY1"
     set "repo=DataSpammer"
     set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
     echo Getting Latest Release Info from API...
-    cls
-    echo Got Release Info
+    @ping -n 1 localhost> nul
+    echo Got Release Info.
+    @ping -n 1 localhost> nul
     echo Awaiting Response...
     @ping -n 1 localhost> nul
-    cls
-    echo Got Release Info
-    echo Recieved API Response 
+    echo Recieved API Response.
     echo Extracting Data...
     for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do (set "latest_version=%%i")
-    echo Extracted Data 
-    if %latest_version% equ v2.8 (goto UpToDate) else (goto gitverout)
+    if "%latest_version%" equ "v2.8" (
+        set "uptodate=up"
+    ) else (
+        set "uptodate="
+    )
+    exit /b
 
-:UpToDate
-    :: Message when the Script is up-to-date
-    @ping -n 1 localhost> nul
-    echo The Version you are currently Using is the newest one (%latest_version%)
-    goto ulttop
+:git.update.check
+if "%1"=="up" (
+    call :git.version.clean
+) else (
+    call :git.version.outdated
+)
+exit /b
 
-
-:gitverout
-    :: TLI when the Script is Outdated
-    echo.
-    @ping -n 1 localhost> nul
+:git.version.outdated
     echo Version Outdated!
     @ping -n 1 localhost> nul
     echo.
@@ -185,26 +180,34 @@ if "%firstLine%"=="small-install" (
     echo.
     @ping -n 1 localhost> nul
     set /p menu4=Choose an Option from Above:
-    If %menu4% == 1 goto gitupt
-    If %menu4% == 2 goto ulttop
-    goto gitverout
+    if "%menu4%" == "1" (
+        goto git.update.version
+    ) else if "%menu4%" == "2" (
+        exit /b
+    ) else (
+        goto git.version.outdated
+    )
 
-:gitupt
-    :: Unstable Ahhh Update Script
-    set gitverold=%current-script-version%
+:git.version.clean
+    echo The Version you are currently using is the newest one (%latest_version%)
+    @ping -n 2 localhost> nul
+    exit /b
+
+
+:git.update.version
+    :: Reworked in 2.9 / should work
     cd %~dp0
-    set "old-script-location=%cd%"
-    cd ..
-    mkdir %latest_version%
-    cd %latest_version%
-    echo Downloading Version %latest_version% ...
-    git clone https://github.com/PIRANY1/DataSpammer.git
-    cls 
-    echo Downloaded Version %latest_version%
-    @ping -n 1 localhost> nul
-    set "update-install=1"
-    cd %latest_version%
-    cmd .\install.bat
+
+echo @echo off > updater.bat
+echo echo Updating script... >> updater.bat
+echo curl -o dataspammer.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat >> updater.bat
+echo curl -o install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat >> updater.bat
+echo set "update-install=1" >> updater.bat
+echo start cmd /k .\install.bat >> updater.bat
+echo exit /b >> updater.bat
+
+start updater.bat
+exit /b
 
 
 :Error 
@@ -222,7 +225,7 @@ if "%firstLine%"=="small-install" (
     echo.
     @ping -n 1 localhost> nul
     set /p menu3=Choose an Option from Above:
-    If %menu3% == 2 goto ulttop
+    If %menu3% == 2 goto dts.startup.done
     If %menu3% == 1 goto gitopen
     goto Error
 
@@ -244,11 +247,11 @@ if "%firstLine%"=="small-install" (
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
-:ulttop
+:dts.startup.done
     :: If the Script got opened from installer?
     if "%settingsmainscriptvar%" == "1" goto setting
 
-set inputFile=settings.txt
+set inputFile=settings.conf
 set "lastLine="
 for /f "delims=" %%i in (%inputFile%) do (
     set "lastLine=%%i"
@@ -263,7 +266,7 @@ if "%lastLine%"=="dev" (
 :extract-settings
     :: Extract data from Settings file
     setlocal enabledelayedexpansion
-    set "file=settings.txt"
+    set "file=settings.conf"
     set nr=0
     for /l %%i in (1,1,5) do (
         set "line%%i="
@@ -278,13 +281,19 @@ if "%lastLine%"=="dev" (
     if not defined devtools (goto enableascii) else (goto dtd)
 
 :enableascii
-    :: Allow for example ASCII art
+    :: Allows ASCII stuff without Codepage Settings (i use both to be sure)
     SETLOCAL EnableDelayedExpansion
     SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
     SETLOCAL DisableDelayedExpansion
 
 :menu
-    :: Main Menu TLI
+    if "%small-install%" == "1" (
+        set "settings-lock=Locked. Find Information under [44mHelp[0m"
+    ) else (
+        set "settings-lock=Settings"
+    )
+:: Main Menu TLI
+
     cls
     %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
     %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
@@ -296,11 +305,11 @@ if "%lastLine%"=="dev" (
 
 
     @ping -n 1 localhost> nul
-    echo Made by PIRANY 
+    echo Made by PIRANY                 v2.8
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [1] Info
+    echo [1] Help
     echo.
     @ping -n 1 localhost> nul
     echo.
@@ -320,7 +329,8 @@ if "%lastLine%"=="dev" (
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [5] Settings
+    echo [5] %settings-lock%
+    color 02
     echo.
     @ping -n 1 localhost> nul
     echo.
@@ -330,30 +340,24 @@ if "%lastLine%"=="dev" (
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [7] Check for Script-Updates
+    echo [7] Check for Script and Library Updates
     echo.
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [8] Check for Library Updates (may take some time)
-    echo.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [9] Open GitHub-Repo
+    echo [8] Open GitHub-Repo
     echo.
     echo.
     set /p menu1=Choose an Option from Above:
 
-    If %menu1% == 1 goto info
+    If %menu1% == 1 goto help
     If %menu1% == 2 goto start
     If %menu1% == 3 goto cancel
     If %menu1% == 4 goto credits
     If %menu1% == 5 goto setting
     If %menu1% == 6 goto autostartdeskic
-    If %menu1% == 7 goto gitvercheck
-    If %menu1% == 8 goto checklibupdt
-    If %menu1% == 9 start "" "https://github.com/PIRANY1/DataSpammer" | cls | goto menu
+    If %menu1% == 7 goto checklibupdt
+    If %menu1% == 8 start "" "https://github.com/PIRANY1/DataSpammer" | cls | goto menu
     goto menu
 
 :checklibupdt
@@ -361,10 +365,10 @@ if "%lastLine%"=="dev" (
     echo Checking for Updates...
     start cmd /k "scoop update && exit /b 0"
     start cmd /k "scoop update jq && exit /b 0"
-    start cmd /k "winget upgrade --id Git.Git -e --source winget && exit /b 0"
-    goto menu
+    call :gitcall-sys
+    goto main
 
-:info
+:help
     :: TLI for Infos
     cls
     echo.
@@ -373,11 +377,13 @@ if "%lastLine%"=="dev" (
     @ping -n 1 localhost> nul
     echo No liability for any Damages on your Software.
     @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
     echo If you want to use this Script on a Server you have to be able to write something in the Folder you want to use.
     @ping -n 1 localhost> nul
-    echo. 
+    echo.
+    @ping -n 1 localhost> nul
+    echo When youre on a Small Install you cant access the "Locked." Tab because it needs different Variables in the settings.conf file. 
+    @ping -n 1 localhost> nul
+    echo To use the Settings you need to reinstall the Script. Simply open the Github Repo via the Main Page and choose one of the download Options.
     @ping -n 1 localhost> nul
     echo. 
     @ping -n 1 localhost> nul
@@ -430,8 +436,7 @@ if "%lastLine%"=="dev" (
     goto credits
 
 :setting
-if %small-install% == 1 echo "Due to the Small Install this section is locked." && @ping -n 2 localhost> nul && goto setting
-
+color
 if %dev-mode% == 1 set "settings-dev-display=Activated"
 if %dev-mode% == 0 set "settings-dev-display=Not Activated"
     :: TLI for Settings - Add Skip Security Question + Always use Custom Directory Yes/No
@@ -455,7 +460,7 @@ if %dev-mode% == 0 set "settings-dev-display=Not Activated"
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [3] Activate Developer Options (%settings-dev-display%)
+    echo [3] [31mActivate Developer Options (Currently %settings-dev-display%) [0m
     @ping -n 1 localhost> nul
     echo. 
     @ping -n 1 localhost> nul
@@ -481,14 +486,15 @@ if %dev-mode% == 1 echo Developer Mode is already activated!
 
 echo Do you want to activate the Developer Options?
 echo Developer Options include Debugging, Logging and some extra Menus
-    choice /C YN /M "Yes/No (Y/N)"
+echo This can lead to some instabilty!
+    choice /C YN /M "Yes/No"
     set _erl=%errorlevel%
     if %_erl%==Y goto write-dev-options
     if %_erl%==N goto setting
 
 :write-dev-options
 setlocal enabledelayedexpansion
-set inputFile=settings.txt
+set inputFile=settings.conf
 set tempFile=tempfile.tmp
 (for /f "delims=" %%i in (%inputFile%) do (
     echo %%i
@@ -505,7 +511,7 @@ goto restart-script
     echo The Filename cant have the following Character(s):\ / : * ? " < > |"
     set /p mainfilename=Type in the Filename you want to use.
     setlocal enabledelayedexpansion
-    set "file=settings.txt"
+    set "file=settings.conf"
     set "tmpfile=temp.txt"
     set linenumber=0
     (for /f "tokens=*" %%a in (!file!) do (
@@ -533,7 +539,7 @@ goto restart-script
 :stddirectorycrash2
     :: Write Standart Spam Directory to Settings
     setlocal ENABLEDELAYEDEXPANSION
-    set "setfile=settings.txt"
+    set "setfile=settings.conf"
     set "tmpfile=temp.txt"
     set "lineCounter=0"
 
@@ -1366,7 +1372,7 @@ if %verify%==%OUT% (goto success) else (goto failed)
 :success
 set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('Sucess', 'DataSpammer Verify');}"
 powershell -Command %msgBoxArgs%
-goto :EOF
+exit /b
 
 :failed
 set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('You have entered the wrong Code. Please try again', 'DataSpammer Verify');}"
