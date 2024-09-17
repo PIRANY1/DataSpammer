@@ -1,6 +1,6 @@
 @if not defined debug_assist (@ECHO OFF) else (@echo on)
-if not defined devtools (goto normal-start) else (goto dev-options)
-:normal-start
+if not defined devtools (goto normal.start) else (goto dev-options)
+:normal.start
 if "%restart-main%" == "1" goto open-script
 @title Script Installer by PIRANY
 set "foldername=DataSpammer"
@@ -9,14 +9,14 @@ cd /d %~dp0
 color 2
 cls  
 color 2
-:script-install-check
+:script.install.check
     :: Check if Script started after an update
     if "%update-install%"=="1" (
-        goto updateinstalled
+        goto sys.new.update.installed
     ) else (
-        goto open-install-done
+        goto open.install.done
     )
-:noelev
+:sys.verify.execution
     :: Script isnt elevated TLI
     echo Please start the Script as Administrator in order to install.
     echo To do this right click the install.bat File and click "Run As Administrator"
@@ -24,7 +24,7 @@ color 2
     exit
 
 
-:updateinstalled
+:sys.new.update.installed
 cd /d %~dp0
 rm updater.bat
     :: Update Installed TLI
@@ -45,11 +45,11 @@ rm updater.bat
     echo.
     echo.
     set /P updateinstalledvar=Choose an Option from above
-    if %updateinstalledvar% == 1 goto deleteoldfiles
+    if %updateinstalledvar% == 1 goto delete.old.files
     if %updateinstalledvar% == 2 goto open-script
-    goto updateinstalled
+    goto sys.new.update.installed
 
-:deleteoldfiles
+:delete.old.files
     :: Delete Old Versions
     cd /d %~dp0
     cd .. 
@@ -59,7 +59,7 @@ rm updater.bat
     cd /d %~dp0
     goto open-script
 
-:open-install-done
+:open.install.done
     :: Check if Settings Exist
     if exist "settings.conf" (
         goto instdoneconf
@@ -163,7 +163,7 @@ rm updater.bat
 
     If %delscrconf% == 1 goto delscriptconfy
     If %delscrconf% == 2 start "" "https://github.com/PIRANY1/DataSpammer" && goto delscriptconf 
-    If %delscrconf% == 3 goto open-install-done
+    If %delscrconf% == 3 goto open.install.done
     goto delscriptconf
 
 
@@ -176,7 +176,7 @@ rm updater.bat
     :: Check if Script is elevated
     setlocal enableextensions ENABLEDELAYEDEXPANSION 
     net session >nul 2>&1
-    if %errorLevel% == 0 (goto delscriptconfy2) else (goto noelev)
+    if %errorLevel% == 0 (goto delscriptconfy2) else (goto sys.verify.execution)
 
 :delscriptconfy2
     :: Delete Script 
@@ -249,7 +249,7 @@ rm updater.bat
     :: Check if script is elevated
     setlocal enableextensions ENABLEDELAYEDEXPANSION 
     net session >nul 2>&1
-    if %errorLevel% == 0 (goto stdprogdrc3) else (goto noelev)
+    if %errorLevel% == 0 (goto stdprogdrc3) else (goto sys.verify.execution)
 :stdprogdrc3
     :: Preset some Variables
     set "startmenushortcut=Not Included"
@@ -631,7 +631,7 @@ rm updater.bat
     set /P devoption=Choose an Option From Above.
     if %devoption% == 1 goto callsignjump
     if %devoption% == 2 goto dev-options
-    if %devoption% == 3 @ECHO ON && goto normal-start
+    if %devoption% == 3 @ECHO ON && goto normal.start
     if %devoption% == 4 setdevvar 
     if %devoption% == 5 restart-script-dev
     if %devoption% == 6 restart-script
@@ -662,7 +662,7 @@ goto verify
 
 :restart-script-dev
     cd /d %~dp0
-    goto normal-start
+    goto normal.start
 :restart-script
     cd /d %~dp0
     install.bat
