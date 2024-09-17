@@ -10,13 +10,7 @@ Because of the Dynamic Versions in this Beta Version, the Updater is disabled in
 
 Rework to make Script more dynamic
 Add new Call Pattern
-Finishing API / Start-Argument stuff
-Remove Scoop / JQ
-    - Add JQ Binary as embed in the Script?
-    - Download JQ Binary in tmp Folder?
-    - Embed binary Code in dataspammer.bat?
-    - Manually get the Version
-
-Remove CD Scans
+Check Argument Functionallity
+Check API
 Add Colors
 Optimize Structure
