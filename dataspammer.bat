@@ -45,21 +45,10 @@ set /p firstLine=<%inputFile%
 if "%firstLine%"=="small-install" (
     set "small-install=1" && goto sys.enable.ascii.tweak
 ) else (
-    goto regular-install
+    goto check-files
 )
 
-    :regular-install
-    :: Check if Jq and Git are installed
-    for /f "delims=" %%a in ('where jq') do (
-        set "where_output=%%a"
-    )
-    if defined where_output (
-        set "jq-installed=1" && goto check-files
-    ) else (
-        set "jq-installed=0" && goto check-files
-    )
-    
-    :check-files
+:check-files
     :: Checks if all Files needed for the Script exist
     setlocal enabledelayedexpansion
     @title Starting Up...
@@ -89,21 +78,14 @@ if "%firstLine%"=="small-install" (
     @ping -n 1 localhost> nul
     set /p menu=Choose an Option from Above:
     If %menu% == 1 goto sys.open.installer
-    If %menu% == 2 goto run.no.settings
+    If %menu% == 2 goto no.settings.update
     goto sys.no.settings
 
-    :run.no.settings
-    :: Check if the Updater can run
-    if jq-installed == 1 (
-        if git-installed == 1 goto no.settings.update
-    ) else (
-        goto dts.startup.done
-    )
 
 :no.settings.update
-call :gitcall.sys
-set "small-install=1"
-goto sys.enable.ascii.tweak
+    call :gitcall.sys
+    set "small-install=1"
+    goto sys.enable.ascii.tweak
 
 :settings.extract.update
     setlocal enabledelayedexpansion
@@ -126,9 +108,9 @@ goto sys.enable.ascii.tweak
     goto dts.startup.done
 
 :gitcall.sys
-call :git.version.check
-call :git.update.check %uptodate%
-exit /b
+    call :git.version.check
+    call :git.update.check %uptodate%
+    exit /b
 
 :git.version.check
     echo Checking for Updates...
@@ -143,13 +125,22 @@ exit /b
     @ping -n 1 localhost> nul
     echo Recieved API Response.
     echo Extracting Data...
-    for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do (set "latest_version=%%i")
+    for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| findstr /R /C:"\"tag_name\""` ) do (
+        set "json_line=%%i"
+    )
+    
+    for /f tokens^=2^ delims^=^" %%a in ("%json_line%") do (
+        set "latest_version=%%a"
+    )
+    
     if "%latest_version%" equ "v.Beta" (
         set "uptodate=up"
     ) else (
         set "uptodate="
     )
+    
     exit /b
+    
 
 :git.update.check
 if "%1"=="up" (
@@ -339,7 +330,7 @@ if "%lastLine%"=="dev" (
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [7] Check for Script and Library Updates
+    echo [7] Check for Script Updates
     echo.
     @ping -n 1 localhost> nul
     echo.
@@ -360,10 +351,6 @@ if "%lastLine%"=="dev" (
     goto menu
 
 :check.lib.git.update
-    :: REWORK NEEDED - Check for Lib Updates
-    echo Checking for Updates...
-    start cmd /k "scoop update && exit /b 0"
-    start cmd /k "scoop update jq && exit /b 0"
     call :gitcall.sys
     goto main
 
@@ -1260,18 +1247,31 @@ goto ssh-done
 
 :: Whitout the UD stuff
 :fastgitupdate
-    :: Check for Update (Why not restart the Script at all and then check for updates)
+
     set "owner=PIRANY1"
     set "repo=DataSpammer"
     set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
     echo Fetching Data...
-    for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do (set "latest_version=%%i")
-    if %latest_version% equ %current-script-version% (
+    
+    :: Abrufen der API-Antwort und Suchen der Zeile mit "tag_name"
+    for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| findstr /R /C:"\"tag_name\""` ) do (
+        set "json_line=%%i"
+    )
+    
+    :: Extrahiere den Wert der tag_name aus der gefundenen Zeile
+    for /f tokens^=2^ delims^=^" %%a in ("%json_line%") do (
+        set "latest_version=%%a"
+    )
+    
+    :: Überprüfen, ob die Script-Version aktuell ist
+    if "%latest_version%" equ "%current-script-version%" (
         echo The Script is up-to-date [Version:%latest_version%]
     ) else (
         echo Your Script is outdated [Newest Version: %latest_version% Script Version:%current-script-version%]
     )
+    
     exit /b 0
+
 
 :remove-script
     :: Delete Script TLI

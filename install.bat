@@ -391,53 +391,30 @@ rm updater.bat
     :: Updater Install TLI
     echo.
     @ping -n 1 localhost> nul
-    echo When you want the script to auto upgrade itself when you start it you can install JQ and Scoop automaticly too.
+    echo Do you want the Script to automaticcaly scan for Updates on every start?
     echo This will be fully automaticly.
     @ping -n 1 localhost> nul
-    echo [1] Install those Too
+    echo [1] Yes
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [2] View Information about JQ
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [3] View Information about Scoop
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [4] Dont install those Components.
+    echo [2] No
     echo.
     @ping -n 1 localhost> nul
     echo.
     set /p menu3=Choose an Option from Above:
     If %menu3% == 1 set "gitinsyn=1"
-    If %menu3% == 2 start "" "https://jqlang.github.io/jq/" | goto gitins
-    If %menu3% == 3 start "" "https://scoop.sh/#/" | goto gitins
-    If %menu3% == 4 goto insgo
+    If %menu3% == 2 goto installer.start.copy
 
-:insgo
+:installer.start.copy
     :: Main install part
     set "directory9=%directory%\%foldername%"
     mkdir "%directory9%" 
     xcopy "%~dp0\dataspammer.bat" "%directory9%" 
     xcopy "%~dp0\install.bat" "%directory9%"     
-    set "chdircheck=0"
-    for /f %%A in ("!directory9!") do (
-        set "chdircheck=1"
-        goto chdircheck2
-    )
-:chdircheck2
-    :: check if directory contains a space?!
-    if !chdircheck! equ 1 (
-        chdir %directory9%
-        goto insgo2
-    ) else (
-        cd /d %directory9%
-        goto insgo2
-    )
 
-:insgo2
+:installer.start.settings
+    cd "%directory9%"
     :: Create settings.conf
     setlocal enabledelayedexpansion
     set "insdonevar=insdone"
@@ -468,34 +445,12 @@ rm updater.bat
     )
 
 :jqgitins
-    :: Check if Libs need to be installed
     if defined gitinsyn (
         goto jqgitins1
     ) else (
         goto direcdone
     )
 
-:jqgitins1
-    :: Install Libs - Rework Needed - Not Working
-    for /f "delims=" %%a in ('where scoop') do (
-        set "where_output=%%a"
-    )
-    if defined where_output (
-        echo Scoop is already installed!
-    ) else (
-        PowerShell -Command "Set-ExecutionPolicy RemoteSigned -Scope CurrentUser"
-        PowerShell -Command "iex (irm https://get.scoop.sh)"
-    )
-
-    for /f "delims=" %%a in ('where jq') do (
-        set "where_output=%%a"
-    )
-    if defined where_output (
-        echo jq is already installed!
-    ) else (
-        scoop install jq
-    )
-    
 
 :addupdcheck
     :: What is this ahh code doin?!?!
@@ -508,13 +463,13 @@ rm updater.bat
     :: What is this for????????
     if !chdircheck! equ 1 (
         chdir %directory9%
-        goto insgo3
+        goto installer.start.template
     ) else (
         cd /d %directory9%
-        goto insgo3
+        goto installer.start.template
     )
 
-:insgo3
+:installer.start.template
     :: Write Settings Template
     set "line1=insdone"
     set "line2=notused"

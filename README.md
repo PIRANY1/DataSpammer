@@ -17,6 +17,7 @@ Remove Scoop
     - Embed binary Code in dataspammer.bat?
     - Manually get the Version
 
+Replace cd with cd /d
 Remove CD Scans
 Add Colors
 Optimize Structure
