@@ -5,7 +5,7 @@ if "%restart-main%" == "1" goto open-script
 @title Script Installer by PIRANY
 set "foldername=DataSpammer"
 set "current-script-version=v.Beta"
-cd %~dp0
+cd /d %~dp0
 color 2
 cls  
 color 2
@@ -25,7 +25,7 @@ color 2
 
 
 :updateinstalled
-cd %~dp0
+cd /d %~dp0
 rm updater.bat
     :: Update Installed TLI
     echo Update was Successful!
@@ -51,12 +51,12 @@ rm updater.bat
 
 :deleteoldfiles
     :: Delete Old Versions
-    cd %~dp0
+    cd /d %~dp0
     cd .. 
     rmdir /s /q %current-script-version%
     echo Old Files deleted!
     pause
-    cd %~dp0
+    cd /d %~dp0
     goto open-script
 
 :open-install-done
@@ -103,7 +103,7 @@ rm updater.bat
     (
     echo :topp
     echo @echo off
-    echo cd %%~dp0
+    echo cd /d %%~dp0
     echo @title DevTool
     echo if not exist dataspammer.bat goto errornofile
     echo :dataspammerdevtool
@@ -200,7 +200,7 @@ rm updater.bat
     echo 6/7 Files Deleted
     @ping -n 1 localhost> nul
     set "startMenuPrograms=%ProgramData%\Microsoft\Windows\Start Menu\Programs"
-    cd %startMenuPrograms%
+    cd /d %startMenuPrograms%
     if exist "Dataspammer.bat" del "Dataspammer.bat"
     echo 7/7 Files Deleted
     echo Uninstall Successfull
@@ -369,21 +369,21 @@ rm updater.bat
 
 :small-installer
     echo Installing Script...
-    cd %~dp0
+    cd /d %~dp0
     mkdir DataSpammer
     set "install-directory=%cd%"
     xcopy dataspammer.bat "%install-directory%\DataSpammer"
     del dataspammer.bat
-    cd DataSpammer
+    cd /d DataSpammer
     echo small-install > settings.conf
-    cd %~dp0
+    cd /d %~dp0
     echo Do you want to copy the README into the Script Folder too or should it be deleted?
     choice /C DC /M "Press D If you want to Delete README and C to Copy it into the Script folder"
     set _erl=%errorlevel%
     if %_erl%==D del README.md
     if %_erl%==C xcopy "README.md" "%install-directory%\DataSpammer"
     echo Installation Done.
-    cd DataSpammer 
+    cd /d DataSpammer 
     del %install-directory%\install.bat
     goto open-script
 
@@ -414,7 +414,7 @@ rm updater.bat
     xcopy "%~dp0\install.bat" "%directory9%"     
 
 :installer.start.settings
-    cd "%directory9%"
+    cd /d "%directory9%"
     :: Create settings.conf
     setlocal enabledelayedexpansion
     set "insdonevar=insdone"
@@ -427,9 +427,9 @@ rm updater.bat
     echo !stdrcch! >> %file%
     echo !update! >> %file%
     echo Settings.conf was created.
-    cd %~dp0
+    cd /d %~dp0
     del dataspammer.bat
-    cd %directory9%
+    cd /d "%directory9%"
 
 :insdone
     :: Check if there where errors installing the base script
@@ -488,12 +488,12 @@ rm updater.bat
     goto additionalsadd
 
 :additionalsadd
-    cd %directory9%
+    cd /d "%directory9%"
     set varlinkauto=%cd%
     if defined startmenushortcut1 (goto startmenuiconsetup) else (goto desktopiccheck)
 :startmenuiconsetup
     :: Install Startmenu
-    cd %ProgramData%\Microsoft\Windows\Start Menu\Programs
+    cd /d "%ProgramData%\Microsoft\Windows\Start Menu\Programs"
     (
     echo @echo off
     echo cd /d %varlinkauto%
@@ -631,9 +631,9 @@ rm updater.bat
 :installerdone
     :: Cleanup install directory and finish the installation
     echo Finishing Installation....
-    cd %~dp0
+    cd /d %~dp0
     del install.bat
-    cd %directory9%
+    cd /d "%directory9%"
     goto open-script
 
 :cancel
@@ -688,10 +688,10 @@ powershell -Command %msgBoxArgs%
 goto verify
 
 :restart-script-dev
-    cd %~dp0
+    cd /d %~dp0
     goto normal-start
 :restart-script
-    cd %~dp0
+    cd /d %~dp0
     install.bat
 
 exit 0

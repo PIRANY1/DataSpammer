@@ -34,7 +34,7 @@ if not defined devtools (goto top-startup) else (goto dtd)
 setlocal enableextensions ENABLEDELAYEDEXPANSION 
 net session >nul 2>&1
 :: Fix Directory if started with Elevated Priviliges
-if %errorLevel% == 0 (cd %~dp0) else (goto top-startup)
+if %errorLevel% == 0 (cd /d %~dp0) else (goto top-startup)
 
 
 :top-startup
@@ -187,7 +187,7 @@ exit /b
 
 :git.update.version
     :: Reworked in 2.9 / should work
-    cd %~dp0
+    cd /d %~dp0
     echo @echo off > updater.bat
     echo echo Updating script... >> updater.bat
     echo curl -o dataspammer.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat >> updater.bat
@@ -226,7 +226,7 @@ exit /b
 
 :sys.open.installer
     :: Opens the Installer
-    cd %~dp0
+    cd /d %~dp0
     install.bat
     if %errorlevel% equ 0 (cls | echo Installer is running....) else (echo There was an Error. Please open the install.bat File manually.)
 
@@ -711,7 +711,7 @@ goto restart-script
     net session >nul 2>&1
     if %errorLevel% == 0 (goto desktopiconsetup2) else (goto noelev)
 :desktopiconsetup2
-    cd %userprofile%\Desktop
+    cd /d %userprofile%\Desktop
     echo. > DataSpammer.bat
     set "varlinkauto=%~dp0"
     (
@@ -1252,18 +1252,15 @@ goto ssh-done
     set "repo=DataSpammer"
     set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
     echo Fetching Data...
-    
-    :: Abrufen der API-Antwort und Suchen der Zeile mit "tag_name"
+
     for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| findstr /R /C:"\"tag_name\""` ) do (
         set "json_line=%%i"
     )
-    
-    :: Extrahiere den Wert der tag_name aus der gefundenen Zeile
+
     for /f tokens^=2^ delims^=^" %%a in ("%json_line%") do (
         set "latest_version=%%a"
     )
-    
-    :: Überprüfen, ob die Script-Version aktuell ist
+
     if "%latest_version%" equ "%current-script-version%" (
         echo The Script is up-to-date [Version:%latest_version%]
     ) else (
@@ -1332,7 +1329,7 @@ goto ssh-done
     echo 6/7 Files Deleted
     @ping -n 1 localhost> nul
     set "startMenuPrograms=%ProgramData%\Microsoft\Windows\Start Menu\Programs"
-    cd %startMenuPrograms%
+    cd /d %startMenuPrograms%
     if exist "Dataspammer.bat" del "Dataspammer.bat"
     echo 7/7 Files Deleted
     echo Uninstall Successfull
