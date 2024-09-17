@@ -244,20 +244,7 @@ rm updater.bat
 :stdprogdrc
     :: Some Pre-Install STuff
     set "directory=%ProgramFiles%"
-    set "chdircheck=0"
-    for /f %%A in ("!directory!") do (
-    set "chdircheck=1"
-    goto chdircheck4
-    )
-:chdircheck4
-    :: check if directory contains a space - WHYYYY
-    if !chdircheck! equ 1 (
-        chdir %directory%
-        goto stdprogdrc4
-    ) else (
-        cd /d %directory%
-        goto stdprogdrc4
-    )
+    cd /d "%directory%"
 :stdprogdrc4
     :: Check if script is elevated
     setlocal enableextensions ENABLEDELAYEDEXPANSION 
@@ -453,22 +440,8 @@ rm updater.bat
 
 
 :addupdcheck
-    :: What is this ahh code doin?!?!
-    set "chdircheck=0"
-    for /f %%A in ("!directory9!") do (
-        set "chdircheck=1"
-        goto chdircheck3
-    )
-:chdircheck3
-    :: What is this for????????
-    if !chdircheck! equ 1 (
-        chdir %directory9%
-        goto installer.start.template
-    ) else (
-        cd /d %directory9%
-        goto installer.start.template
-    )
-
+    cd /d "%directory9%"
+    
 :installer.start.template
     :: Write Settings Template
     set "line1=insdone"
