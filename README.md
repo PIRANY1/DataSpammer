@@ -1,7 +1,22 @@
 # DataSpammer
 
 This is the Beta Branch Of DataSpammer.
-Logically this is the unstable Version.
-Currently i am working on a tiny tiny rework to make the script more dynamic.
-I am adding new call signs, finishing the api/arguments stuff, removing scoop and hopefully adding a jq native so i can have a very little footprint.
-Also i am making everything a bit faster by removing cd scan stuff etc. and i am adding colors to make the script more visually appealing
+
+## Please Note
+
+Because of the Dynamic Versions in this Beta Version, the Updater is disabled in the beta Branch.
+
+## Features Planned
+
+Rework to make Script more dynamic
+Add new Call Pattern
+Finishing API / Start-Argument stuff
+Remove Scoop
+    - Add JQ Binary as embed in the Script?
+    - Download JQ Binary in tmp Folder?
+    - Embed binary Code in dataspammer.bat?
+    - Manually get the Version
+
+Remove CD Scans
+Add Colors
+Optimize Structure
