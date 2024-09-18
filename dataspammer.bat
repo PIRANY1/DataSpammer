@@ -2,11 +2,11 @@
 :: If you want to Publish a modified Version please mention the Original Creator PIRANY and link the GitHub Repo
 :: Some Vars and Settings
 ::    Todo: 
-::    Change Signs to the Pattern git.example.copy
 ::    Fix Coulours and Dev Options
-::    Remove CD test for spaces in directory names
 ::    Try to Add a Interaktive CLI Interface, which can be dynamicly called and used by other Scripts. 
 ::    Generally Rework some Script Parts to make them more dynamic and efficient
+::    Migrate Install/DTS.bat
+::    Add BETA / STABLE Branch Switch
 
 
 
