@@ -451,7 +451,19 @@ if %dev-mode% == 0 set "settings-dev-display=Not Activated"
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [4] Go back
+    echo [4] Switch to Beta Branch
+    @ping -n 1 localhost> nul
+    echo. 
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [5] Revert to Stable Branch
+    @ping -n 1 localhost> nul
+    echo. 
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [6] Go back
     @ping -n 1 localhost> nul
     echo. 
     @ping -n 1 localhost> nul
