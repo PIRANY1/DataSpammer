@@ -436,9 +436,9 @@ rm updater.bat
 
 :check.if.updater.install
     if defined gitinsyn (
-        goto jqgitins1
+        goto installer.common.drc.switch
     ) else (
-        goto direcdone
+        goto additionals.ask.window
     )
 
 
