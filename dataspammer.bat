@@ -129,6 +129,7 @@ exit /b
     @ping -n 1 localhost> nul
     echo Recieved API Response.
     echo Extracting Data...
+
     for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| findstr /R /C:"\"tag_name\""` ) do (
         set "json_line=%%i"
     )
@@ -138,6 +139,7 @@ exit /b
     )
     
     if "%latest_version%" equ "v.Beta" (
+
         set "uptodate=up"
     ) else (
         set "uptodate="
