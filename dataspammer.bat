@@ -13,7 +13,7 @@
 @echo off
 chcp 65001
 powershell -Command "& {Add-Type -AssemblyName System.Windows.Forms; Add-Type -AssemblyName System.Drawing; $notify = New-Object System.Windows.Forms.NotifyIcon; $notify.Icon = [System.Drawing.SystemIcons]::Information; $notify.Visible = $true; $notify.ShowBalloonTip(0, 'DataSpammer', 'Starting Dataspammer...', [System.Windows.Forms.ToolTipIcon]::None)}"
-set "current-script-version=v2.8"
+set "current-script-version=v2.9"
 if "%1"=="h" goto help
 if "%1"=="-h" goto help
 if "%1"=="help" goto help
@@ -144,7 +144,7 @@ exit /b
     echo Recieved API Response.
     echo Extracting Data...
     for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do (set "latest_version=%%i")
-    if "%latest_version%" equ "v2.8" (
+    if "%latest_version%" equ "v2.9" (
         set "uptodate=up"
     ) else (
         set "uptodate="
@@ -304,7 +304,7 @@ if "%lastLine%"=="dev" (
 
 
     @ping -n 1 localhost> nul
-    echo Made by PIRANY                 v2.8
+    echo Made by PIRANY                 v2.9
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
