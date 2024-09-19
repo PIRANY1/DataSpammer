@@ -13,7 +13,7 @@
 @echo off
 chcp 65001
 powershell -Command "& {Add-Type -AssemblyName System.Windows.Forms; Add-Type -AssemblyName System.Drawing; $notify = New-Object System.Windows.Forms.NotifyIcon; $notify.Icon = [System.Drawing.SystemIcons]::Information; $notify.Visible = $true; $notify.ShowBalloonTip(0, 'DataSpammer', 'Starting Dataspammer...', [System.Windows.Forms.ToolTipIcon]::None)}"
-set "current-script-version=v.Beta"
+set "current-script-version=v.3"
 if "%1"=="h" goto help
 if "%1"=="-h" goto help
 if "%1"=="help" goto help
@@ -82,8 +82,6 @@ if "%firstLine%"=="small-install" (
 
 
 :no.settings.update
-REM REDIRECT / BETA BRANCH
-goto dts.startup.done
     call :gitcall.sys
     set "small-install=1"
     goto sys.enable.ascii.tweak
@@ -110,8 +108,6 @@ goto dts.startup.done
     goto dts.startup.done
 
 :gitcall.sys
-REM REDIRECT / BETA BRANCH
-exit /b
     call :git.version.check
     call :git.update.check %uptodate%
     exit /b
@@ -138,7 +134,7 @@ exit /b
         set "latest_version=%%a"
     )
     
-    if "%latest_version%" equ "v.Beta" (
+    if "%latest_version%" equ "v.3" (
 
         set "uptodate=up"
     ) else (
@@ -301,7 +297,7 @@ if "%lastLine%"=="dev" (
 
 
     @ping -n 1 localhost> nul
-    echo Made by PIRANY                 v.Beta
+    echo Made by PIRANY                 v.3
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
