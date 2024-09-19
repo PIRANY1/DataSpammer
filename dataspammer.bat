@@ -13,7 +13,7 @@
 @echo off
 chcp 65001
 powershell -Command "& {Add-Type -AssemblyName System.Windows.Forms; Add-Type -AssemblyName System.Drawing; $notify = New-Object System.Windows.Forms.NotifyIcon; $notify.Icon = [System.Drawing.SystemIcons]::Information; $notify.Visible = $true; $notify.ShowBalloonTip(0, 'DataSpammer', 'Starting Dataspammer...', [System.Windows.Forms.ToolTipIcon]::None)}"
-set "current-script-version=v.3"
+set "current-script-version=v3"
 if "%1"=="h" goto help
 if "%1"=="-h" goto help
 if "%1"=="help" goto help
@@ -134,7 +134,7 @@ if "%firstLine%"=="small-install" (
         set "latest_version=%%a"
     )
     
-    if "%latest_version%" equ "v.3" (
+    if "%latest_version%" equ "v3" (
 
         set "uptodate=up"
     ) else (
@@ -297,7 +297,7 @@ if "%lastLine%"=="dev" (
 
 
     @ping -n 1 localhost> nul
-    echo Made by PIRANY                 v.3
+    echo Made by PIRANY                 v3
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul

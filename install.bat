@@ -5,7 +5,7 @@ chcp 65001
 if "%restart-main%" == "1" goto sys.open.main.script
 @title Script Installer by PIRANY
 set "foldername=DataSpammer"
-set "current-script-version=v.3"
+set "current-script-version=v3"
 cd /d %~dp0
 color 2
 cls  
