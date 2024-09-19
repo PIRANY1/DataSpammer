@@ -82,9 +82,12 @@ if "%firstLine%"=="small-install" (
 
 
 :no.settings.update
+REM REDIRECT / BETA BRANCH
+goto dts.startup.done
     call :gitcall.sys
     set "small-install=1"
     goto sys.enable.ascii.tweak
+
 
 :settings.extract.update
     setlocal enabledelayedexpansion
@@ -107,6 +110,8 @@ if "%firstLine%"=="small-install" (
     goto dts.startup.done
 
 :gitcall.sys
+REM REDIRECT / BETA BRANCH
+exit /b
     call :git.version.check
     call :git.update.check %uptodate%
     exit /b
@@ -475,8 +480,37 @@ if %dev-mode% == 0 set "settings-dev-display=Not Activated"
     If %menu4% == 1 goto settings.change.df.filename
     If %menu4% == 2 goto settings.default.directory.crash
     If %menu4% == 3 goto activate.dev.options
-    If %menu4% == 4 goto menu
+    If %menu4% == 4 goto dev.switch.branch  
+    If %menu4% == 5 goto stable.switch.branch
+    If %menu4% == 6 goto menu
     goto settings
+
+:dev.switch.branch
+    cd /d %~dp0
+    echo @echo off > updater.bat
+    echo echo Updating script... >> updater.bat
+    echo curl -o dataspammer.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/dataspammer.bat >> updater.bat
+    echo curl -o install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/install.bat >> updater.bat
+    echo set "update-install=1" >> updater.bat
+    echo start cmd /k .\install.bat >> updater.bat
+    echo exit /b >> updater.bat
+
+    start updater.bat
+    exit /b
+
+:stable.switch.branch
+    cd /d %~dp0
+    echo @echo off > updater.bat
+    echo echo Updating script... >> updater.bat
+    echo curl -o dataspammer.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat >> updater.bat
+    echo curl -o install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat >> updater.bat
+    echo set "update-install=1" >> updater.bat
+    echo start cmd /k .\install.bat >> updater.bat
+    echo exit /b >> updater.bat
+
+    start updater.bat
+    exit /b
+
 
 :activate.dev.options
 if %dev-mode% == 1 echo Developer Mode is already activated!
