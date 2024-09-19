@@ -1,5 +1,9 @@
 # DataSpammer
 
+> [!IMPORTANT]
+> Currently the Script cant write settings, because it doesnt have Admin Privileges as Default. To fix start Script as Admin
+> Fix is Currently in Progress
+
 ## Features
 
 Add to Path, Autostart, Desktop Shortcut, Taskbar Shortcut, Desktop Spam, Custom Folder Spam, Update Libs, Updater,
@@ -14,6 +18,8 @@ Add to Path, Autostart, Desktop Shortcut, Taskbar Shortcut, Desktop Spam, Custom
     Check API and Startup Functionality
 
     Finish Dev Options and CLI-Like-Operation
+
+    Fix Settings Write
 </details>
 
 # Install
