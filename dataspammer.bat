@@ -362,8 +362,7 @@ if "%lastLine%"=="dev" (
     goto menu
 
 :check.lib.git.update
-    call :gitcall.sys
-    goto main
+    goto :normal-start
 
 :help
     :: TLI for Infos
