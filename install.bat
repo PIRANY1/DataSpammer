@@ -314,19 +314,19 @@ erase updater.bat
     goto standart.install.run
 
 
-    :n1varinst
+:n1varinst
     cls
     set "startmenushortcut=Included"
     set "startmenushortcut1=1"
     goto standart.install.run.4
 
-    :n2varinst
+:n2varinst
     cls
     set "desktopic=Included"
     set "desktopic1=1"
     goto standart.install.run.4
 
-    :n3varinst
+:n3varinst
     cls
     set "autostart=Included"
     set "autostart1=1"
@@ -641,20 +641,20 @@ erase updater.bat
         dataspammer.bat
 
 :verify
-set "verify=%random%"
-powershell -Command "& {Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.Interaction]::InputBox('Please enter Code %verify% to confirm that you want to execute this Option', 'DataSpammer Verify')}" > %TEMP%\out.tmp
-set /p OUT=<%TEMP%\out.tmp
-if %verify%==%OUT% (goto success) else (goto failed)
+    set "verify=%random%"
+    powershell -Command "& {Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.Interaction]::InputBox('Please enter Code %verify% to confirm that you want to execute this Option', 'DataSpammer Verify')}" > %TEMP%\out.tmp
+    set /p OUT=<%TEMP%\out.tmp
+    if %verify%==%OUT% (goto success) else (goto failed)
 
 :success
-set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('Sucess', 'DataSpammer Verify');}"
-powershell -Command %msgBoxArgs%
-exit /b
+    set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('Sucess', 'DataSpammer Verify');}"
+    powershell -Command %msgBoxArgs%
+    exit /b
 
 :failed
-set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('You have entered the wrong Code. Please try again', 'DataSpammer Verify');}"
-powershell -Command %msgBoxArgs%
-goto verify
+    set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('You have entered the wrong Code. Please try again', 'DataSpammer Verify');}"
+    powershell -Command %msgBoxArgs%
+    goto verify
 
 :restart.script.dev
     cd /d %~dp0

