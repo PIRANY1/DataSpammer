@@ -37,28 +37,19 @@ erase updater.bat
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [1] Yes delete the old Version Files
+    echo [1] Open Script
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [2] No just open the Script
+    echo [2] Exit
     @ping -n 1 localhost> nul
     echo.
     echo.
     set /P updateinstalledvar=Choose an Option from above
-    if %updateinstalledvar% == 1 goto delete.old.files
-    if %updateinstalledvar% == 2 goto sys.open.main.script
+    if %updateinstalledvar% == 1 goto sys.open.main.script
+    if %updateinstalledvar% == 2 goto cancel
     goto sys.new.update.installed
 
-:delete.old.files
-    :: Delete Old Versions
-    cd /d %~dp0
-    cd .. 
-    rmdir /s /q %current-script-version%
-    echo Old Files deleted!
-    pause
-    cd /d %~dp0
-    goto sys.open.main.script
 
 :open.install.done
     :: Check if Settings Exist
