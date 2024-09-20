@@ -1,5 +1,7 @@
 # DataSpammer
 
+# Currently Updater Seems very Virus-Like / Working on A Fix
+
 ## Features
 
 Add to Path, Autostart, Desktop Shortcut, Taskbar Shortcut, Desktop Spam, Custom Folder Spam, SSH-Spam
