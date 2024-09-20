@@ -27,7 +27,7 @@ color 2
 
 :sys.new.update.installed
 cd /d %~dp0
-rm updater.bat
+erase updater.bat
     :: Update Installed TLI
     echo Update was Successful!
     @ping -n 1 localhost> nul
