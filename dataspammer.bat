@@ -13,7 +13,7 @@
 @echo off
 chcp 65001
 powershell -Command "& {Add-Type -AssemblyName System.Windows.Forms; Add-Type -AssemblyName System.Drawing; $notify = New-Object System.Windows.Forms.NotifyIcon; $notify.Icon = [System.Drawing.SystemIcons]::Information; $notify.Visible = $true; $notify.ShowBalloonTip(0, 'DataSpammer', 'Starting Dataspammer...', [System.Windows.Forms.ToolTipIcon]::None)}"
-set "current-script-version=v3"
+set "current-script-version=v3.1"
 if "%1"=="h" goto help
 if "%1"=="-h" goto help
 if "%1"=="help" goto help
@@ -37,15 +37,24 @@ if %errorLevel% == 0 (cd /d %~dp0) else (goto top-startup)
 
 
 :top-startup
-::Check if the Script is on a small install
-set inputFile=settings.conf
 set "firstLine="
-set /p firstLine=<%inputFile%
-if "%firstLine%"=="small-install" (
-    set "small-install=1" && goto sys.enable.ascii.tweak
-) else (
-    goto check-files
+for /f "usebackq tokens=*" %%A in ("settings.conf") do (
+    set "firstLine=%%A"
+    goto :sys.check.install
 )
+
+:sys.check.install
+if "%firstLine%"=="small-install" (
+    net session >nul 2>&1
+    if %errorLevel% neq 0 (
+        powershell -Command "Start-Process '%~f0' -Verb runAs"
+        exit /b
+    )
+    goto check-files
+) else (
+    set "small-install=1" && goto sys.enable.ascii.tweak
+)
+
 
 :check-files
     :: Checks if all Files needed for the Script exist
@@ -134,7 +143,7 @@ if "%firstLine%"=="small-install" (
         set "latest_version=%%a"
     )
     
-    if "%latest_version%" equ "v3" (
+    if "%latest_version%" equ "v3.1" (
 
         set "uptodate=up"
     ) else (
@@ -188,7 +197,7 @@ exit /b
 
 
 :git.update.version
-    :: Reworked in 2.9 / should work
+    :: Reworked in v3.1 / should work
     cd /d %~dp0
     echo @echo off > updater.bat
     echo echo Updating script... >> updater.bat
@@ -198,7 +207,7 @@ exit /b
     echo start cmd /k .\install.bat >> updater.bat
     echo exit /b >> updater.bat
 
-    start updater.bat
+    runas /user:Administrator "%cd%\updater.bat"
     exit /b
 
 
@@ -297,7 +306,7 @@ if "%lastLine%"=="dev" (
 
 
     @ping -n 1 localhost> nul
-    echo Made by PIRANY                 v3
+    echo Made by PIRANY                 v3.1
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
@@ -466,7 +475,13 @@ if %dev-mode% == 0 set "settings-dev-display=Not Activated"
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [6] Go back
+    echo [6] Force Updates
+    @ping -n 1 localhost> nul
+    echo. 
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [7] Go back
     @ping -n 1 localhost> nul
     echo. 
     @ping -n 1 localhost> nul
@@ -480,8 +495,16 @@ if %dev-mode% == 0 set "settings-dev-display=Not Activated"
     If %menu4% == 3 goto activate.dev.options
     If %menu4% == 4 goto dev.switch.branch  
     If %menu4% == 5 goto stable.switch.branch
-    If %menu4% == 6 goto menu
+    If %menu4% == 6 goto dev.force.update
+    If %menu4% == 7 goto menu
     goto settings
+
+:dev.force.update
+    echo Running Update Script...
+    @ping -n 1 localhost> nul
+    goto git.update.version
+
+
 
 :dev.switch.branch
     cd /d %~dp0
@@ -493,7 +516,7 @@ if %dev-mode% == 0 set "settings-dev-display=Not Activated"
     echo start cmd /k .\install.bat >> updater.bat
     echo exit /b >> updater.bat
 
-    start updater.bat
+    runas /user:Administrator "%cd%\updater.bat"
     exit /b
 
 :stable.switch.branch
@@ -506,7 +529,7 @@ if %dev-mode% == 0 set "settings-dev-display=Not Activated"
     echo start cmd /k .\install.bat >> updater.bat
     echo exit /b >> updater.bat
 
-    start updater.bat
+    runas /user:Administrator "%cd%\updater.bat"
     exit /b
 
 
