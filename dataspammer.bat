@@ -37,11 +37,27 @@ if %errorLevel% == 0 (cd /d %~dp0) else (goto top-startup)
 
 
 :top-startup
+
+set inputFile=settings.conf
+set "firstLine="
+set /p firstLine=<%inputFile%
+if "%firstLine%"=="small-install" (
+    set "small-install=1" && goto sys.enable.ascii.tweak
+) else (
+    goto check-files
+)
+
+
+cd /d %~dp0
 set "firstLine="
 for /f "usebackq tokens=*" %%A in ("settings.conf") do (
     set "firstLine=%%A"
     goto :sys.check.install
 )
+
+set inputFile=settings.conf
+set "firstLine="
+set /p firstLine=<%inputFile%
 
 :sys.check.install
 if "%firstLine%"=="small-install" (
