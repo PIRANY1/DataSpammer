@@ -22,11 +22,10 @@ if "%1"=="--help" goto help
 if "%1"=="faststart" goto menu
 if "%1"=="update" goto fast.git.update
 if "%1"=="remove" goto sys.delete.script
-if "%1"=="" goto normal-start
-if "%1"=="api" goto api-call
+if "%1"=="" goto normal.start
 if "%1"=="api" goto sys.cli
 
-:normal-start
+:normal.start
 @color 02
 @if not defined debug_assist (@ECHO OFF) else (@echo on)
 if not defined devtools (goto top-startup) else (goto dtd)
@@ -220,7 +219,7 @@ exit /b
     echo curl -o dataspammer.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat >> updater.bat
     echo curl -o install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat >> updater.bat
     echo set "update-install=1" >> updater.bat
-    echo start cmd /k .\install.bat >> updater.bat
+    echo runas /user:Administrator "%cd%\install.bat" >> updater.bat
     echo exit /b >> updater.bat
 
     runas /user:Administrator "%cd%\updater.bat"
@@ -378,7 +377,7 @@ if "%lastLine%"=="dev" (
     goto menu
 
 :check.lib.git.update
-    goto :normal-start
+    goto :normal.start
 
 :help
     :: TLI for Infos
@@ -528,7 +527,7 @@ if %dev-mode% == 0 set "settings-dev-display=Not Activated"
     echo curl -o dataspammer.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/dataspammer.bat >> updater.bat
     echo curl -o install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/install.bat >> updater.bat
     echo set "update-install=1" >> updater.bat
-    echo start cmd /k .\install.bat >> updater.bat
+    echo runas /user:Administrator "%cd%\install.bat" >> updater.bat
     echo exit /b >> updater.bat
 
     runas /user:Administrator "%cd%\updater.bat"
@@ -541,7 +540,7 @@ if %dev-mode% == 0 set "settings-dev-display=Not Activated"
     echo curl -o dataspammer.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat >> updater.bat
     echo curl -o install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat >> updater.bat
     echo set "update-install=1" >> updater.bat
-    echo start cmd /k .\install.bat >> updater.bat
+    echo runas /user:Administrator "%cd%\install.bat" >> updater.bat
     echo exit /b >> updater.bat
 
     runas /user:Administrator "%cd%\updater.bat"
