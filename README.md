@@ -1,7 +1,5 @@
 # DataSpammer
 
-# On a Normal install manual execution as administrator is needed
-
 ## Features
 
 Add to Path, Autostart, Desktop Shortcut, Taskbar Shortcut, Desktop Spam, Custom Folder Spam, SSH-Spam
