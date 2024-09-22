@@ -27,13 +27,9 @@
 
 :normal.start
     @color 02
+    cd /d %~dp0
     @if not defined debug_assist (@ECHO OFF) else (@echo on)
     if not defined devtools (goto top-startup) else (goto dtd)
-    setlocal enableextensions ENABLEDELAYEDEXPANSION 
-    net session >nul 2>&1
-    :: Fix Directory if started with Elevated Priviliges
-    if %errorLevel% == 0 (cd /d %~dp0) else (goto top-startup)
-
 
 :top-startup
     set inputFile=settings.conf
@@ -214,14 +210,15 @@
     :: Reworked in v3.1 / should work
     cd /d %~dp0
     echo @echo off > updater.bat
+    echo cd /d %~dp0 >> updater.bat
     echo echo Updating script... >> updater.bat
     echo curl -o dataspammer.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat >> updater.bat
     echo curl -o install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat >> updater.bat
     echo set "update-install=1" >> updater.bat
-    echo runas /user:Administrator "%cd%\install.bat" >> updater.bat
+    echo start install.bat >> updater.bat
     echo exit /b >> updater.bat
 
-    runas /user:Administrator "%cd%\updater.bat"
+    start updater.bat
     exit /b
 
 
@@ -522,27 +519,29 @@
 :dev.switch.branch
     cd /d %~dp0
     echo @echo off > updater.bat
+    echo cd /d %~dp0 >> updater.bat
     echo echo Updating script... >> updater.bat
     echo curl -o dataspammer.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/dataspammer.bat >> updater.bat
     echo curl -o install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/install.bat >> updater.bat
     echo set "update-install=1" >> updater.bat
-    echo runas /user:Administrator "%cd%\install.bat" >> updater.bat
+    echo start install.bat >> updater.bat
     echo exit /b >> updater.bat
 
-    runas /user:Administrator "%cd%\updater.bat"
+    start updater.bat
     exit /b
 
 :stable.switch.branch
     cd /d %~dp0
     echo @echo off > updater.bat
+    echo cd /d %~dp0 >> updater.bat
     echo echo Updating script... >> updater.bat
     echo curl -o dataspammer.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat >> updater.bat
     echo curl -o install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat >> updater.bat
     echo set "update-install=1" >> updater.bat
-    echo runas /user:Administrator "%cd%\install.bat" >> updater.bat
+    echo start install.bat >> updater.bat
     echo exit /b >> updater.bat
 
-    runas /user:Administrator "%cd%\updater.bat"
+    start updater.bat
     exit /b
 
 

@@ -1,6 +1,6 @@
 # DataSpammer
 
-# Currently Updater Seems very Virus-Like / Working on A Fix
+# On a Normal install manual execution as administrator is needed
 
 ## Features
 
