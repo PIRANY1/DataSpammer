@@ -200,10 +200,10 @@
     echo curl -o license https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/license >> updater.bat
     echo set "update-install=1" >> updater.bat
     echo start install.bat >> updater.bat
-    echo exit /b >> updater.bat
+    echo exit >> updater.bat
 
     start updater.bat
-    exit /b
+    exit
 
 
 :sys.error.no.install
@@ -513,7 +513,7 @@
     echo curl -o license https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/license >> updater.bat
     echo set "update-install=1" >> updater.bat
     echo start install.bat >> updater.bat
-    echo exit /b >> updater.bat
+    echo exit >> updater.bat
 
     start updater.bat
     exit /b
@@ -529,10 +529,10 @@
     echo curl -o license https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/license >> updater.bat
     echo set "update-install=1" >> updater.bat
     echo start install.bat >> updater.bat
-    echo exit /b >> updater.bat
+    echo exit >> updater.bat
 
     start updater.bat
-    exit /b
+    exit
 
 
 :activate.dev.options
