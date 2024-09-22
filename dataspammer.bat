@@ -11,9 +11,8 @@
 
 :!top
     @echo off
-    chcp 65001
-    powershell -Command "& {Add-Type -AssemblyName System.Windows.Forms; Add-Type -AssemblyName System.Drawing; $notify = New-Object System.Windows.Forms.NotifyIcon; $notify.Icon = [System.Drawing.SystemIcons]::Information; $notify.Visible = $true; $notify.ShowBalloonTip(0, 'DataSpammer', 'Started DataSpammer', [System.Windows.Forms.ToolTipIcon]::None)}"
-    set "current-script-version=v3.1"
+    mode con: cols=120 lines=30
+    set "current-script-version=v3.2"
     if "%1"=="h" goto help
     if "%1"=="-h" goto help
     if "%1"=="help" goto help
@@ -37,24 +36,18 @@
     set /p firstLine=<%inputFile%
     if "%firstLine%"=="small-install" (
         set "small-install=1" 
-        echo IS SMALL INSTALL
-        pause
         set "small-install=1" && goto sys.enable.ascii.tweak
     ) else (
-        echo no small install
-        pause
         goto sys.req.elevation
     )
 
 :sys.req.elevation
-net session >nul 2>&1
-if %errorLevel% neq 0 (
-    echo elev req
-    pause
-    powershell -Command "Start-Process '%~f0' -Verb runAs"
-    exit /b
-)
-goto check-files
+    net session >nul 2>&1
+    if %errorLevel% neq 0 (
+        powershell -Command "Start-Process '%~f0' -Verb runAs"
+        exit /b
+    )
+    goto check-files
 
 
 
@@ -104,19 +97,18 @@ goto check-files
     set "linenr=4"
     set "searchfor=uy"
 
-    for /f "tokens=1* delims=:" %%a in ('findstr /n "^" "%batchfile%"') do (
+    for /f "tokens=1* delims=:" %%a in ('findstr /n "^" "%file%"') do (
         if %%a equ %linenr% (
             set "line=%%b"
             set "line=!line:*:=!"
-            if "!line!" equ "%searchtext%" (
+            if "!line!" equ "!searchfor!" (
                 call :gitcall.sys
-                goto dts.startup.done
-            ) else (
                 goto dts.startup.done
             )
         )
     )
     goto dts.startup.done
+
 
 :gitcall.sys
     call :git.version.check
@@ -129,6 +121,7 @@ goto check-files
     set "repo=DataSpammer"
     set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
     echo Getting Latest Release Info from API...
+    curl -s %api_url% > apianswer.txt
     @ping -n 1 localhost> nul
     echo Got Release Info.
     @ping -n 1 localhost> nul
@@ -137,24 +130,21 @@ goto check-files
     echo Recieved API Response.
     echo Extracting Data...
 
-    for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| findstr /R /C:"\"tag_name\""` ) do (
-        set "json_line=%%i"
-    )
-    
-    for /f tokens^=2^ delims^=^" %%a in ("%json_line%") do (
+    for /f "tokens=2 delims=:, " %%a in ('findstr /R /C:"\"tag_name\"" apianswer.txt') do (
         set "latest_version=%%a"
     )
-    
-    if "%latest_version%" equ "v3.1" (
+    set "latest_version=%latest_version:"=%"
 
+
+    
+    if "%latest_version%" equ "v3.2" (
         set "uptodate=up"
     ) else (
         set "uptodate="
     )
-    
+    del apianswer.txt
     exit /b
     
-
 :git.update.check
     if "%1"=="up" (
         call :git.version.clean
@@ -199,7 +189,7 @@ goto check-files
 
 
 :git.update.version
-    :: Reworked in v3.1 / should work
+    :: Reworked in v3.2 / should work
     cd /d %~dp0
     echo @echo off > updater.bat
     echo cd /d %~dp0 >> updater.bat
@@ -287,12 +277,14 @@ goto check-files
     if not defined devtools (goto sys.enable.ascii.tweak) else (goto dtd)
 
 :sys.enable.ascii.tweak
+    powershell -Command "& {Add-Type -AssemblyName System.Windows.Forms; Add-Type -AssemblyName System.Drawing; $notify = New-Object System.Windows.Forms.NotifyIcon; $notify.Icon = [System.Drawing.SystemIcons]::Information; $notify.Visible = $true; $notify.ShowBalloonTip(0, 'DataSpammer', 'Started DataSpammer', [System.Windows.Forms.ToolTipIcon]::None)}"
     :: Allows ASCII stuff without Codepage Settings (i use both to be sure)
     SETLOCAL EnableDelayedExpansion
     SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
     SETLOCAL DisableDelayedExpansion
 
 :menu
+    title DataSpammer v3.2
     if "%small-install%" == "1" (
         set "settings-lock=Locked. Find Information under [44mHelp[0m"
     ) else (
@@ -311,7 +303,7 @@ goto check-files
 
 
     @ping -n 1 localhost> nul
-    echo Made by PIRANY                 v3.1
+    echo Made by PIRANY                 v3.2
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
