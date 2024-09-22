@@ -36,34 +36,26 @@
     set "firstLine="
     set /p firstLine=<%inputFile%
     if "%firstLine%"=="small-install" (
+        set "small-install=1" 
+        echo IS SMALL INSTALL
+        pause
         set "small-install=1" && goto sys.enable.ascii.tweak
     ) else (
-        goto check-files
+        echo no small install
+        pause
+        goto sys.req.elevation
     )
-    
-    
-    cd /d %~dp0
-    set "firstLine="
-    for /f "usebackq tokens=*" %%A in ("settings.conf") do (
-        set "firstLine=%%A"
-        goto :sys.check.install
-    )
-    
-    set inputFile=settings.conf
-    set "firstLine="
-    set /p firstLine=<%inputFile%
 
-:sys.check.install
-    if "%firstLine%"=="small-install" (
-        net session >nul 2>&1
-        if %errorLevel% neq 0 (
-            powershell -Command "Start-Process '%~f0' -Verb runAs"
-            exit /b
-        )
-        goto check-files
-    ) else (
-        set "small-install=1" && goto sys.enable.ascii.tweak
-    )
+:sys.req.elevation
+net session >nul 2>&1
+if %errorLevel% neq 0 (
+    echo elev req
+    pause
+    powershell -Command "Start-Process '%~f0' -Verb runAs"
+    exit /b
+)
+goto check-files
+
 
 
 :check-files
@@ -214,6 +206,8 @@
     echo echo Updating script... >> updater.bat
     echo curl -o dataspammer.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat >> updater.bat
     echo curl -o install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat >> updater.bat
+    echo curl -o readme.md https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/readme.md >> updater.bat
+    echo curl -o license https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/license >> updater.bat
     echo set "update-install=1" >> updater.bat
     echo start install.bat >> updater.bat
     echo exit /b >> updater.bat
@@ -523,6 +517,8 @@
     echo echo Updating script... >> updater.bat
     echo curl -o dataspammer.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/dataspammer.bat >> updater.bat
     echo curl -o install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/install.bat >> updater.bat
+    echo curl -o readme.md https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/readme.md >> updater.bat
+    echo curl -o license https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/license >> updater.bat
     echo set "update-install=1" >> updater.bat
     echo start install.bat >> updater.bat
     echo exit /b >> updater.bat
@@ -537,6 +533,8 @@
     echo echo Updating script... >> updater.bat
     echo curl -o dataspammer.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat >> updater.bat
     echo curl -o install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat >> updater.bat
+    echo curl -o readme.md https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/readme.md >> updater.bat
+    echo curl -o license https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/license >> updater.bat
     echo set "update-install=1" >> updater.bat
     echo start install.bat >> updater.bat
     echo exit /b >> updater.bat

@@ -33,8 +33,6 @@ erase updater.bat
     @ping -n 1 localhost> nul
     echo Updated from %current-script-version% to %latest_version%
     @ping -n 1 localhost> nul
-    echo Do you want to delete the Files from the old Version?
-    @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
     echo [1] Open Script
