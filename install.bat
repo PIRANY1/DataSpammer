@@ -1,7 +1,7 @@
 @if not defined debug_assist (@ECHO OFF) else (@echo on)
 if not defined devtools (goto normal.start) else (goto dev.options)
 :normal.start
-chcp 65001
+mode con: cols=120 lines=30
 if "%restart-main%" == "1" goto sys.open.main.script
 @title Script Installer by PIRANY
 set "foldername=DataSpammer"
