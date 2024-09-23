@@ -653,7 +653,7 @@
     If %menu000% == 1 goto autostart.setup
     If %menu000% == 2 goto autostart.delete
     If %menu000% == 4 goto menu
-    If %menu000% == 3 goto desktopicdel
+    If %menu000% == 3 goto desktop.icon.delete  
     If %menu000% == 5 goto autostart.settings.page
     goto autostart.desktop.settings
 
@@ -787,10 +787,21 @@
     echo cd /d %varlinkauto%
     dataspammer.bat
     ) > DataSpammer.bat
-    echo Done!
-    pause
+    echo Added Icon
+    @ping -n 3 localhost> nul
     goto autostart.desktop.settings
-                                                                                                    
+
+:desktop.icon.delete                                                                                                    
+    setlocal enableextensions ENABLEDELAYEDEXPANSION 
+    net session >nul 2>&1
+    if %errorLevel% == 0 (goto desktop.icon.delete.2) else (goto sys.script.administrator)
+
+:desktop.icon.delete.2
+    cd %userprofile%\Desktop
+    del DataSpammer.bat
+    echo Successfully Deleted Desktop Icon.
+    @ping -n 2 localhost> nul
+
 
 :autostart.settings.page
     echo.
@@ -1414,7 +1425,6 @@
 
 :sys.cli
     @echo off
-    chcp 65001 >nul
     for /f %%A in ('"prompt $H &echo on &for %%B in (1) do rem"') do set BS=%%A
     echo Type 'help' to get an overview of commands
     :sys.cli.input
