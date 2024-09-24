@@ -10,6 +10,8 @@ cd /d %~dp0
 color 2
 cls  
 color 2
+    if "%1"=="-dev.secret" goto dev.options
+
 :script.install.check
     :: Check if Script started after an update
     if "%update-install%"=="1" (
@@ -608,6 +610,7 @@ erase updater.bat
     exit
 
 :dev.options 
+    title Developer Options DataSpammer
     :: Rework In Process.
     echo Dev Tools
     echo.

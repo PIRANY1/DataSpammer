@@ -2,27 +2,28 @@
 :: If you want to Publish a modified Version please mention the Original Creator PIRANY and link the GitHub Repo
 :: Some Vars and Settings
 ::    Todo: 
-::    Fix Coulours and Dev Options
 ::    Try to Add a Interaktive CLI Interface, which can be dynamicly called and used by other Scripts. 
-::    Generally Rework some Script Parts to make them more dynamic and efficient
-::    Migrate Install/DTS.bat
-::    Add BETA / STABLE Branch Switch
+::    Add Startmenu Spam
+::    Add AppData Spam
+::    Add Spam for App List (Settings > Apps > Full Applist)
+::
 
 
 :!top
     @echo off
     mode con: cols=120 lines=30
     set "current-script-version=v3.2"
-    if "%1"=="h" goto help
-    if "%1"=="-h" goto help
-    if "%1"=="help" goto help
-    if "%1"=="-help" goto help
-    if "%1"=="--help" goto help
-    if "%1"=="faststart" goto menu
+    if "%1"=="h" goto help.startup
+    if "%1"=="-h" goto help.startup
+    if "%1"=="help" goto help.startup
+    if "%1"=="-help" goto help.startup
+    if "%1"=="--help" goto help.startup
+    if "%1"=="faststart" goto sys.enable.ascii.tweak
     if "%1"=="update" goto fast.git.update
     if "%1"=="remove" goto sys.delete.script
     if "%1"=="" goto normal.start
-    if "%1"=="api" goto sys.cli
+    if "%1"=="cli" goto sys.cli
+    if "%1"=="api" goto sys.api
 
 :normal.start
     @color 02
@@ -247,16 +248,9 @@
     :: If the Script got opened from installer?
     if "%settingsmainscriptvar%" == "1" goto settings
 
-    set inputFile=settings.conf
-    set "lastLine="
-    for /f "delims=" %%i in (%inputFile%) do (
-        set "lastLine=%%i"
-    )
-    if "%lastLine%"=="dev" (
-        set "dev-mode=1"
-    ) else (
-        set "dev-mode=0"
-    )
+:check-dev-options
+   cd /d %~dp0
+   if exist dev.conf (set "dev-mode=1") else (set "dev-mode=0")
 
 
 :sys.extract.settings.to.var
@@ -536,8 +530,7 @@
 
 
 :activate.dev.options
-    if %dev-mode% == 1 echo Developer Mode is already activated!
-    
+    if %dev-mode% == 1 goto open.dev.settings
     echo Do you want to activate the Developer Options?
     echo Developer Options include Debugging, Logging and some extra Menus
     echo This can lead to some instabilty!
@@ -546,17 +539,16 @@
         if %_erl%==Y goto write-dev-options
         if %_erl%==N goto settings
     
+:open.dev.settings
+cd /d %~dp0 
+.\install.bat -dev.secret
+
 :write-dev-options
-    setlocal enabledelayedexpansion
-    set inputFile=settings.conf
-    set tempFile=tempfile.tmp
-    (for /f "delims=" %%i in (%inputFile%) do (
-        echo %%i
-    )) > %tempFile%
-    echo dev >> %tempFile%
-    move /y %tempFile% %inputFile%
+    cd /d %~dp0
+    echo Only delete this File if you want to deactivate Developer Options. > dev.conf
     echo Developer Options have been activated!
-    @ping -n 1 localhost> nul
+    echo Script will now restart
+    @ping -n 2 localhost> nul
     goto restart.script
 
 :settings.change.df.filename
@@ -1293,11 +1285,12 @@
     goto done2
 
     :: Display Help Dialog
-:help
+:help.startup
     echo.
     echo.
     echo Dataspammer: 
-    echo    With this script, you can create files on your PC or your friends' PC in large quantities.
+    echo    Script with that you can spam various Windows Directorys and more.
+    echo    Made for educational Purposes only.
     echo.
     echo Usage dataspammer [Argument]
     echo       dataspammer.bat [Argument]
@@ -1323,26 +1316,25 @@
 
     :: Whitout the UD stuff
 :fast.git.update
-
+    set "current-script-version=v3.2"
     set "owner=PIRANY1"
     set "repo=DataSpammer"
     set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
     echo Fetching Data...
-
-    for /f "usebackq tokens=*" %%i in (`curl -s %api_url% ^| findstr /R /C:"\"tag_name\""` ) do (
-        set "json_line=%%i"
-    )
-
-    for /f tokens^=2^ delims^=^" %%a in ("%json_line%") do (
+    cd %temp%
+    curl -s %api_url% > apianswer.txt
+    for /f "tokens=2 delims=:, " %%a in ('findstr /R /C:"\"tag_name\"" apianswer.txt') do (
         set "latest_version=%%a"
     )
+    set "latest_version=%latest_version:"=%"
 
     if "%latest_version%" equ "%current-script-version%" (
         echo The Script is up-to-date [Version:%latest_version%]
     ) else (
         echo Your Script is outdated [Newest Version: %latest_version% Script Version:%current-script-version%]
     )
-    
+    del apianswer.txt
+    cd /d %~dp0
     exit /b 0
 
 
@@ -1420,8 +1412,9 @@
     exit 0
 
 :restart.script
-    set "restart-main=1"
-    install.bat
+    cd %~dp0
+    dataspammer.bat
+    exit restarted.script
 
 :sys.cli
     @echo off
@@ -1434,6 +1427,10 @@
     echo.
     %cmd%
     goto sys.cli.input
+
+:sys.api
+    echo This Feature is in Active Developement!
+    exit /b api.dev.active
 
 :sys.verify.execution
     set "verify=%random%"
@@ -1454,7 +1451,7 @@
 :cancel 
     :: yes
     exit
-    exit
+
 
 :dtd
     :: ud dev stuff
