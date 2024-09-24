@@ -24,6 +24,7 @@
     if "%1"=="" goto normal.start
     if "%1"=="cli" goto sys.cli
     if "%1"=="api" goto sys.api
+    if "%1"=="go" goto custom.go
 
 :normal.start
     @color 02
@@ -1354,6 +1355,11 @@ cd /d %~dp0
     del apianswer.txt
     cd /d %~dp0
     exit /b 0
+
+:custom.go
+   if "%1"=="go" goto custom.go
+   set "custom.goto.location=%2"
+   goto %custom.goto.location%
 
 
 :sys.delete.script

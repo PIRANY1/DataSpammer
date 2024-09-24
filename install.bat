@@ -635,8 +635,25 @@ erase updater.bat
     goto dev.options
     
     :dev.jump.callsign
+    echo In which Script you want go to
+    echo [1] DataSpammer.bat
+    echo [2] Install.bat
+    echo. 
+    set /P callsign.custom=Choose an Option from Above:
+    if %callsign.custom% == 1 goto dev.jump.callsign.dts
+    if %callsign.custom% == 2 goto dev.jump.callsign.install
+    goto dev.jump.callsign
+
+
+    :dev.jump.callsign.install
     set /P jump-to-call-sign=Enter a Call Sign:
     goto %jump-to-call-sign%
+
+
+    :dev.jump.callsign.dts
+    cd /d %~dp0
+    set /P jump-to-call-sign=Enter a Call Sign:
+    dataspammer.bat go %jump-to-call-sign%
 
     :sys.open.main.script
         dataspammer.bat
