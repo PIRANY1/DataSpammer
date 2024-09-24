@@ -463,15 +463,19 @@
     @ping -n 1 localhost> nul
     echo. 
     @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
     echo [6] Force Updates
     @ping -n 1 localhost> nul
     echo. 
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [7] Go back
+    echo [7] Experimental Features
+    @ping -n 1 localhost> nul
+    echo. 
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [8] Go back
     @ping -n 1 localhost> nul
     echo. 
     @ping -n 1 localhost> nul
@@ -486,8 +490,22 @@
     If %menu4% == 4 goto dev.switch.branch  
     If %menu4% == 5 goto stable.switch.branch
     If %menu4% == 6 goto dev.force.update
-    If %menu4% == 7 goto menu
+    If %menu4% == 7 goto experimental.features
+    If %menu4% == 8 goto menu
     goto settings
+
+:experimental.features
+    echo [1] Fancy CLI (currently just cmd.exe in Linux Style)
+    echo [2] API (In Developement)
+    echo [3] New Spams (Coming Soon)
+    echo.
+    echo [4] Back
+    set /P experimental.menu=Choose an Option From Above:
+    if %experimental.menu% == 1 goto sys.cli 
+    if %experimental.menu% == 2 goto experimental.features REM goto sys.api
+    if %experimental.menu% == 3 goto experimental.features REM goto dev.spams
+    if %experimental.menu% == 4 goto settings
+
 
 :dev.force.update
     echo Running Update Script...
