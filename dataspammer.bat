@@ -12,7 +12,7 @@
 :!top
     @echo off
     mode con: cols=120 lines=30
-    set "current-script-version=v3.2"
+    set "current-script-version=v3.3"
     if "%1"=="h" goto help.startup
     if "%1"=="-h" goto help.startup
     if "%1"=="help" goto help.startup
@@ -138,7 +138,7 @@
 
 
     
-    if "%latest_version%" equ "v3.2" (
+    if "%latest_version%" equ "v3.3" (
         set "uptodate=up"
     ) else (
         set "uptodate="
@@ -190,7 +190,7 @@
 
 
 :git.update.version
-    :: Reworked in v3.2 / should work
+    :: Reworked in v3.3 / should work
     cd /d %~dp0
     echo @echo off > updater.bat
     echo cd /d %~dp0 >> updater.bat
@@ -278,7 +278,7 @@
     SETLOCAL DisableDelayedExpansion
 
 :menu
-    title DataSpammer v3.2
+    title DataSpammer v3.3
     if "%small-install%" == "1" (
         set "settings-lock=Locked. Find Information under [44mHelp[0m"
     ) else (
@@ -297,7 +297,7 @@
 
 
     @ping -n 1 localhost> nul
-    echo Made by PIRANY                 v3.2
+    echo Made by PIRANY                 v3.3
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
@@ -1316,7 +1316,7 @@ cd /d %~dp0
 
     :: Whitout the UD stuff
 :fast.git.update
-    set "current-script-version=v3.2"
+    set "current-script-version=v3.3"
     set "owner=PIRANY1"
     set "repo=DataSpammer"
     set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
