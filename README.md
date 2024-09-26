@@ -1,8 +1,7 @@
 # DataSpammer
 
 ## Features
-
-Add to Path, Autostart, Desktop Shortcut, Taskbar Shortcut, Desktop Spam, Custom Folder Spam, SSH-Spam
+SSH Spam, Desktop Shortcut, Autostart, Desktop Spam, Folder Spam, Auto Update
 
 ## Todo
 
@@ -14,6 +13,8 @@ Add to Path, Autostart, Desktop Shortcut, Taskbar Shortcut, Desktop Spam, Custom
     Check API and Startup Functionality
 
     Finish Dev Options and CLI-Like-Operation
+
+    Add FTP support
 
 </details>
 
