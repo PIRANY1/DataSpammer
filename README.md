@@ -1,7 +1,7 @@
 # DataSpammer
 
 ## Features
-SSH Spam, Desktop Shortcut, Autostart, Desktop Spam, Folder Spam, Auto Update
+SSH Spam, Desktop Shortcut, Autostart, Desktop Spam, Folder Spam, Auto Update, 
 
 ## Todo
 
@@ -16,6 +16,10 @@ SSH Spam, Desktop Shortcut, Autostart, Desktop Spam, Folder Spam, Auto Update
 
     Add FTP support
 
+    Add Log Feature (now $message? )
+
+    Add Translation
+    
 </details>
 
 ## Install
