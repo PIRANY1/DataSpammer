@@ -1,7 +1,8 @@
 # DataSpammer
 
 ## Features
-SSH Spam, Desktop Shortcut, Autostart, Desktop Spam, Folder Spam, Auto Update, 
+
+SSH Spam, Desktop Shortcut, Autostart, Desktop Spam, Folder Spam, Auto Update,
 
 ## Todo
 
@@ -29,17 +30,21 @@ Download the Source code manually, use the setup.exe in the Versions tab or use 
 ### Git
 
 ``` batch
+
 git clone https://github.com/PIRANY1/DataSpammer.git
 cd DataSpammer
 install.bat
+
 ```
 
 ### Github CLI
 
 ``` batch
+
 gh repo clone PIRANY1/DataSpammer
 cd DataSpammer
 install.bat
+
 ```
 
 ### Download File (Experimental)

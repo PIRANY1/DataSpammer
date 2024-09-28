@@ -6,12 +6,15 @@
 ::    Add Startmenu Spam
 ::    Add AppData Spam
 ::    Add Spam for App List (Settings > Apps > Full Applist)
-::
-
+::    Add Translation
+::    Add no Elevation Start as Setting
+::    Add List Readme and Liscenese
+::    Add Log Feature (now $message? )
+::    Add FTP support
 
 :!top
     @echo off
-    mode con: cols=120 lines=30
+    mode con: cols=140 lines=40
     set "current-script-version=v3.3"
     if "%1"=="h" goto help.startup
     if "%1"=="-h" goto help.startup
@@ -25,6 +28,10 @@
     if "%1"=="cli" goto sys.cli
     if "%1"=="api" goto sys.api
     if "%1"=="go" goto custom.go
+    if "%1"=="noelev" goto noelev
+
+:noelev
+set "elevation.off=1"
 
 :normal.start
     @color 02
@@ -44,16 +51,41 @@
     )
 
 :sys.req.elevation
+    if "%elevation.off%" == 1 goto check-files
     net session >nul 2>&1
     if %errorLevel% neq 0 (
         powershell -Command "Start-Process '%~f0' -Verb runAs"
         exit
     )
+    cd /d %~dp0
     goto check-files
 
 
 
 :check-files
+    setlocal EnableDelayedExpansion
+    cd /d %~dp0
+    set "file=settings.conf"
+    set "linenr=5"
+    set "logging=0"  
+    set /a nr=0
+    set "foundline=false"
+    for /f "tokens=*" %%a in ('type "%file%"') do (
+        set /a nr+=1
+        if !nr! equ %linenr% (
+            set "foundline=true"
+            if "%%a"=="logging" (
+                set "logging=1"
+            ) else (
+                set "logging=0"
+            )
+        )
+    )
+    if "%foundline%"=="false" (
+        set "logging=0"
+    )
+
+    if %logging% == 1 ( call :log %time% %date% Starting-DataSpammer )
     :: Checks if all Files needed for the Script exist
     setlocal enabledelayedexpansion
     @title Starting Up...
@@ -186,7 +218,7 @@
 
 :git.version.clean
     echo The Version you are currently using is the newest one (%latest_version%)
-    @ping -n 2 localhost> nul
+    @ping -n 1 localhost> nul
     exit /b
 
 
@@ -454,23 +486,25 @@
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [4] Switch to Beta Branch
+    echo [4] Version Control
     @ping -n 1 localhost> nul
     echo. 
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [5] Revert to Stable Branch
-    @ping -n 1 localhost> nul
-    echo. 
-    @ping -n 1 localhost> nul
-    echo [6] Force Updates
+    echo [5] Logging
     @ping -n 1 localhost> nul
     echo. 
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [7] Experimental Features
+    echo [6] Experimental Features
+    @ping -n 1 localhost> nul
+    echo. 
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [7] Restart Script
     @ping -n 1 localhost> nul
     echo. 
     @ping -n 1 localhost> nul
@@ -488,10 +522,10 @@
     If %menu4% == 1 goto settings.change.df.filename
     If %menu4% == 2 goto settings.default.directory.crash
     If %menu4% == 3 goto activate.dev.options
-    If %menu4% == 4 goto dev.switch.branch  
-    If %menu4% == 5 goto stable.switch.branch
-    If %menu4% == 6 goto dev.force.update
-    If %menu4% == 7 goto experimental.features
+    If %menu4% == 4 goto settings.version.control
+    If %menu4% == 5 goto settings.logging
+    If %menu4% == 6 goto experimental.features
+    If %menu4% == 7 goto restart.script
     If %menu4% == 8 goto menu
     goto settings
 
@@ -507,6 +541,33 @@
     if %experimental.menu% == 3 goto experimental.features REM goto dev.spams
     if %experimental.menu% == 4 goto settings
 
+
+:settings.version.control
+    echo.
+    echo.
+    @ping -n 1 localhost> nul
+    echo [1] Force Update
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [2] Switch to Main Branch
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [3] Switch to Developer Branch
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [4] Go Back
+    @ping -n 1 localhost> nul
+    echo.
+    echo.
+    set /P vs.control=Choose an Option From Above:
+    if %vs.control% == 1 goto dev.force.update
+    if %vs.control% == 2 goto stable.switch.branch
+    if %vs.control% == 3 goto dev.switch.branch  
+    if %vs.control% == 4 goto settings
+    goto settings.version.control
 
 :dev.force.update
     echo Running Update Script...
@@ -628,6 +689,95 @@ cd /d %~dp0
     echo The Directory is invalid!
     pause
     goto settings.default.directory.crash
+
+:settings.logging
+    color 02
+    cls
+    if %logging% == 1 (
+        set "settings.logging=Activated"
+    ) else (
+        set "settings.logging=Disabled"
+    )
+    echo Logging is currently: %settings.logging%
+    echo.
+    @ping -n 1 localhost> nul
+    echo [1] Activate Logging
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [2] Disable Logging
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [3] Open Latest Log
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [4] Go Back
+    @ping -n 1 localhost> nul
+    echo.
+    echo.
+    set /P vs.control=Choose an Option From Above:
+    if %vs.control% == 1 goto enable.logging
+    if %vs.control% == 2 goto disable.logging
+    if %vs.control% == 3 goto dev.open.log
+    if %vs.control% == 4 goto settings
+    goto settings.logging
+
+:enable.logging
+    cd /d %~dp0
+    set "file=settings.conf"
+    set "linenr=5"
+    set "tempfile=tempfile.conf"
+    set /a nr=0
+    set "foundLine=false"
+    set "logging.content=logging"
+    
+    (
+        for /f "tokens=*" %%a in ('type "%file%" 2^>nul') do (
+            set /a nr+=1
+            if !nr! equ %linenr% (
+                echo %logging.content%
+                set "foundLine=true"
+            ) else (
+                echo %%a
+            )
+        )
+    ) > "%tempfile%"
+    
+    if "%foundLine%"=="false" (
+        echo logging.content >> "%tempfile%"
+    )
+    
+    pause
+    move /y "%tempfile%" "%file%"
+    echo Enabled Logging. Restarting Script...
+    pause
+    @ping -n 2 localhost > nul
+    goto restart.script
+
+
+:disable.logging
+    cd /d %~dp0
+    set "file=settings.conf"
+    set "linenr=5"
+    set "tempfile=tempfile.conf"
+    set /a nr=0
+    
+    (
+        for /f "tokens=*" %%a in ('type "%file%"') do (
+            set /a nr+=1
+            if !nr! equ %linenr% (
+                echo.
+            ) else (
+                echo %%a
+            )
+        )
+    ) > "%tempfile%"
+    move /y "%tempfile%" "%file%"
+    echo Disabled Logging. Restarting Script...
+    @ping -n 2 localhost> nul
+    goto restart.script
 
 :autostart.desktop.settings
     :: Autostart TLI
@@ -1329,6 +1479,8 @@ cd /d %~dp0
     echo.
     echo    cli Use the Scripts CLI Interface (currently in Alpha)
     echo.
+    echo    noelev Start the Script without Administrator
+    echo.
     echo.
 
     exit /b 1464
@@ -1455,6 +1607,44 @@ cd /d %~dp0
 :sys.api
     echo This Feature is in Active Developement!
     exit /b api.dev.active
+
+:log
+:: call scheme
+:: call :log %time% %date% Content
+set "log.content=%3"
+set "currentDate=%2"
+set "currentTime=%1"
+set "logfile=DataSpammer.log"
+
+:: Check Folder Structure
+set "folder=%userprofile%\Documents\DataSpammerLog"
+if not exist "%folder%" (
+    mkdir "%folder%"
+)
+
+:: convert time and date to readable format
+setlocal enabledelayedexpansion
+for /f "tokens=1-3 delims=." %%a in ("%currentDate%") do (
+    set "day=%%a"
+    set "month=%%b"
+    set "year=%%c"
+)
+set "formattedDate=!year!-!month!-!day!"
+for /f "tokens=1-3 delims=:," %%a in ("%currentTime%") do (
+    set "hours=%%a"
+    set "minutes=%%b"
+    set "seconds=%%c"
+)
+set "seconds=!seconds:~0,2!" 
+set "formattedTime=!hours!:!minutes!:!seconds!"
+
+:: Write Log
+echo !formattedDate! !formattedTime! %log.content% >> "%folder%\%logfile%"
+
+:: exit
+exit /b 0
+
+
 
 :sys.verify.execution
     set "verify=%random%"

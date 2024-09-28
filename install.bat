@@ -475,7 +475,7 @@ erase updater.bat
     (
     echo @echo off
     echo cd /d %varlinkauto%
-    echo dataspammer.bat
+    echo dataspammer.bat %1 %2 %3 %4 %5
     ) > DataSpammer.bat
     echo Added Desktop Shortcut                                                                                              
 :script.win.start.check
