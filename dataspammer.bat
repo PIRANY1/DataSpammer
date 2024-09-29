@@ -85,7 +85,7 @@ set "elevation.off=1"
         set "logging=0"
     )
 
-    if %logging% == 1 ( call :log %time% %date% Starting-DataSpammer )
+    if %logging% == 1 ( call :log DataSpammer_Started )
     :: Checks if all Files needed for the Script exist
     setlocal enabledelayedexpansion
     @title Starting Up...
@@ -95,6 +95,7 @@ set "elevation.off=1"
     if not exist "install.bat" (goto sys.error.no.install) else (goto settings.extract.update)
 
 :sys.no.settings
+    if %logging% == 1 ( call :log Settings-Not-Found )
     :: TLI when Settings arent found
     cls
     echo The File "settings.conf" doesnt exist. 
@@ -120,12 +121,14 @@ set "elevation.off=1"
 
 
 :no.settings.update
+    if %logging% == 1 ( call :log Checking-Update-No-Settings )
     call :gitcall.sys
     set "small-install=1"
     goto sys.enable.ascii.tweak
 
 
 :settings.extract.update
+    if %logging% == 1 ( call :log Checking_Settings_for_Update_Command )
     setlocal enabledelayedexpansion
     set "file=settings.conf"
     set "linenr=4"
@@ -145,11 +148,13 @@ set "elevation.off=1"
 
 
 :gitcall.sys
+    if %logging% == 1 ( call :log Calling_Update_Check )
     call :git.version.check
     call :git.update.check %uptodate%
     exit /b
 
 :git.version.check
+    if %logging% == 1 ( call :log Curling_Github_API )
     echo Checking for Updates...
     set "owner=PIRANY1"
     set "repo=DataSpammer"
@@ -180,6 +185,7 @@ set "elevation.off=1"
     exit /b
     
 :git.update.check
+    if %logging% == 1 ( call :log Extracting_Data_From_API )
     if "%1"=="up" (
         call :git.version.clean
     ) else (
@@ -188,6 +194,7 @@ set "elevation.off=1"
     exit /b
 
 :git.version.outdated
+    if %logging% == 1 ( call :log Version_Outdated )
     echo Version Outdated!
     @ping -n 1 localhost> nul
     echo.
@@ -217,12 +224,14 @@ set "elevation.off=1"
     )
 
 :git.version.clean
+    if %logging% == 1 ( call :log Version_Is_Up_To_Date )
     echo The Version you are currently using is the newest one (%latest_version%)
     @ping -n 1 localhost> nul
     exit /b
 
 
 :git.update.version
+    if %logging% == 1 ( call :log Creating_Update_Script )
     :: Reworked in v3.3 / should work
     cd /d %~dp0
     echo @echo off > updater.bat
@@ -241,8 +250,9 @@ set "elevation.off=1"
 
 
 :sys.error.no.install
+    if %logging% == 1 ( call :log Install_Bat_Doesnt_Exist )
     :: TLI When the Installer doesnt exist
-    echo The "Install.bat" doesnt exist. The Script has a Chance of not working
+    echo The "Install.bat" doesnt exist. Some Features may not work.
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
@@ -260,11 +270,13 @@ set "elevation.off=1"
     goto sys.error.no.install
 
 :git.open.repo
+    if %logging% == 1 ( call :log Opening_Repo )
     :: Open Repo
     start "" "https://github.com/PIRANY1/DataSpammer"
     goto sys.error.no.install
 
 :sys.open.installer
+    if %logging% == 1 ( call :log Opening_Installer )
     :: Opens the Installer
     cd /d %~dp0
     install.bat
@@ -278,15 +290,18 @@ set "elevation.off=1"
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :dts.startup.done
+    if %logging% == 1 ( call :log Script_Was_Opened_From_Installer )
     :: If the Script got opened from installer?
     if "%settingsmainscriptvar%" == "1" goto settings
 
 :check-dev-options
+   if %logging% == 1 ( call :log Checking_If_Developer_Mode_Is_Turned_On )
    cd /d %~dp0
    if exist dev.conf (set "dev-mode=1") else (set "dev-mode=0")
 
 
 :sys.extract.settings.to.var
+    if %logging% == 1 ( call :log Extracting_Settings_From_File )
     :: Extract data from Settings file
     setlocal enabledelayedexpansion
     set "file=settings.conf"
@@ -304,6 +319,8 @@ set "elevation.off=1"
     if not defined devtools (goto sys.enable.ascii.tweak) else (goto dtd)
 
 :sys.enable.ascii.tweak
+    if %logging% == 1 ( call :log Sending_Notification )
+    if %logging% == 1 ( call :log Enabling_ASCII_without_CHCP )
     powershell -Command "& {Add-Type -AssemblyName System.Windows.Forms; Add-Type -AssemblyName System.Drawing; $notify = New-Object System.Windows.Forms.NotifyIcon; $notify.Icon = [System.Drawing.SystemIcons]::Information; $notify.Visible = $true; $notify.ShowBalloonTip(0, 'DataSpammer', 'Started DataSpammer', [System.Windows.Forms.ToolTipIcon]::None)}"
     :: Allows ASCII stuff without Codepage Settings (i use both to be sure)
     SETLOCAL EnableDelayedExpansion
@@ -311,6 +328,7 @@ set "elevation.off=1"
     SETLOCAL DisableDelayedExpansion
 
 :menu
+    if %logging% == 1 ( call :log Startup_Complete )
     title DataSpammer v3.3
     if "%small-install%" == "1" (
         set "settings-lock=Locked. Find Information under [44mHelp[0m"
@@ -320,6 +338,7 @@ set "elevation.off=1"
     :: Main Menu TLI
 
     cls
+    if %logging% == 1 ( call :log Displaying_Menu )
     %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
     %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
     %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
@@ -1609,41 +1628,35 @@ cd /d %~dp0
     exit /b api.dev.active
 
 :log
-:: call scheme
-:: call :log %time% %date% Content
-set "log.content=%3"
-set "currentDate=%2"
-set "currentTime=%1"
-set "logfile=DataSpammer.log"
+    :: call scheme is:
+    :: if %logging% == 1 ( set "log.msg=Starting DataSpammer" && call :log %log.msg% )
 
-:: Check Folder Structure
-set "folder=%userprofile%\Documents\DataSpammerLog"
-if not exist "%folder%" (
-    mkdir "%folder%"
-)
-
-:: convert time and date to readable format
-setlocal enabledelayedexpansion
-for /f "tokens=1-3 delims=." %%a in ("%currentDate%") do (
-    set "day=%%a"
-    set "month=%%b"
-    set "year=%%c"
-)
-set "formattedDate=!year!-!month!-!day!"
-for /f "tokens=1-3 delims=:," %%a in ("%currentTime%") do (
-    set "hours=%%a"
-    set "minutes=%%b"
-    set "seconds=%%c"
-)
-set "seconds=!seconds:~0,2!" 
-set "formattedTime=!hours!:!minutes!:!seconds!"
-
-:: Write Log
-echo !formattedDate! !formattedTime! %log.content% >> "%folder%\%logfile%"
-
-:: exit
-exit /b 0
-
+    set "log.content=%1"
+    set "logfile=DataSpammer.log"
+    
+    :: Check Folder Structure
+    set "folder=%userprofile%\Documents\DataSpammerLog"
+    if not exist "%folder%" (
+        mkdir "%folder%"
+    )
+    
+    echo %date% %time% %log.content% >> "%folder%\%logfile%"
+    :: exit
+    exit /b 0
+    
+    :: NEED TO FIX THIS PART / Content not gets written
+        :: convert time and date to readable format
+        ::setlocal enabledelayedexpansion
+        ::for /f "tokens=1-3 delims=:," %%a in ("%currentTime%") do (
+        ::    set "hours=%%a"
+        ::    set "minutes=%%b"
+        ::    set "seconds=%%c"
+        ::)
+        ::set "seconds=!seconds:~0,2!" 
+        ::set "formattedTime=!hours!:!minutes!:!seconds!"
+        
+        :: Write Log
+        ::echo !currentDate! !formattedTime! %log.content% >> "%folder%\%logfile%"
 
 
 :sys.verify.execution
