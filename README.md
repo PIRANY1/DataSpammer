@@ -2,7 +2,7 @@
 
 ## Features
 
-SSH Spam, Desktop Shortcut, Autostart, Desktop Spam, Folder Spam, Auto Update,
+SSH Spam, Desktop Shortcut, Autostart, Desktop Spam, Folder Spam, Auto Update, Logging
 
 ## Todo
 
@@ -17,7 +17,7 @@ SSH Spam, Desktop Shortcut, Autostart, Desktop Spam, Folder Spam, Auto Update,
 
     Add FTP support
 
-    Add Log Feature (now $message? )
+    Finish Logging Implementation
 
     Add Translation
     

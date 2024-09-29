@@ -7,9 +7,9 @@
 ::    Add AppData Spam
 ::    Add Spam for App List (Settings > Apps > Full Applist)
 ::    Add Translation
-::    Add no Elevation Start as Setting
+::    Fix no Elevation option
 ::    Add List Readme and Liscenese
-::    Add Log Feature (now $message? )
+::    Finish Logging
 ::    Add FTP support
 
 :!top
