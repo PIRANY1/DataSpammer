@@ -3,13 +3,8 @@
 :: Some Vars and Settings
 ::    Todo: 
 ::    Try to Add a Interaktive CLI Interface, which can be dynamicly called and used by other Scripts. 
-::    Add Startmenu Spam
-::    Add AppData Spam
 ::    Add Spam for App List (Settings > Apps > Full Applist)
 ::    Add Translation
-::    Fix no Elevation option
-::    Add List Readme and Liscenese
-::    Finish Logging
 ::    Add FTP support
 
 :!top
@@ -427,10 +422,43 @@
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
+    echo [3] Exit
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
     set /p menu2=Choose an Option from Above:
     If %menu2% == 1 goto menu
-    If %menu2% == 2 goto cancel
+    If %menu2% == 2 goto list.readme.license
+    If %menu2% == 3 goto cancel
     goto info
+
+:list.readme.license
+    echo License:
+    :: List the Content of LICENSE
+    set "liscensefad=%~dp0\LICENSE"
+    
+    if exist "%liscensefad%" (
+        for /f "tokens=*" %%a in (%liscensefad%) do (
+            echo %%a
+        )
+    ) else (
+        goto list.content.RD
+    )
+    goto list.content.RD
+
+:list.content.RD
+    :: List the Content of readme
+    set "liscensefad1=%~dp0\README.md"
+    
+    if exist "%liscensefad1%" (
+        for /f "tokens=*" %%a in (%liscensefad1%) do (
+            echo %%a
+        )
+    )
+    pause
+    goto help
+    
+
 
 :credits
     :: TLI Code for Credits
@@ -1034,7 +1062,11 @@
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [4] Go Back
+    echo [4] Startmenu Spam
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [5] Go Back
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
@@ -1044,8 +1076,43 @@
     If %spammethod% == 1 goto normal.text.spam
     If %spammethod% == 2 goto desktop.icon.spam
     If %spammethod% == 3 goto ssh.spam
-    If %spammethod% == 4 goto menu
+    If %spammethod% == 4 goto startmenu.spam
+    If %spammethod% == 5 goto menu
     goto start.verified
+
+:startmenu.spam
+    echo How many Files should be created?
+    set /P filecount=Type a Number here:
+    echo Only for Local User or For All Users?
+    echo All Users requires Admin Privileges.
+    choice /C AL /M "(A)ll / (L)ocal"
+    set _erl=%errorlevel%
+    if %_erl%==A goto spam.all.user.startmenu
+    if %_erl%==L goto spam.local.user.startmenu
+    
+:spam.local.user.startmenu
+    set "directory1=%AppData%\Microsoft\Windows\Start Menu\Programs"
+    if %stdfile% equ notused (goto startmenu.custom.name) else (goto startmenu.start)
+
+:spam.all.user.startmenu
+    net session >nul 2>&1
+    if %errorLevel% neq 0 (
+        echo Restarting Program as Elevated. Go here again manually.
+        @ping -n 2 localhost> nul
+        powershell -Command "Start-Process '%~f0' -Verb runAs"
+        exit
+    )
+    set "directory1=%ProgramData%\Microsoft\Windows\Start Menu\Programs"
+    if %stdfile% equ notused (goto startmenu.custom.name) else (goto startmenu.start)
+    
+:startmenu.custom.name
+    cls
+    echo Illegal Characters:\ / : * ? " < > |"
+    set /p stdfile=Type in the Filename you want to use:
+
+:startmenu.start
+    cd %directory1%
+    goto spam.ready.to.start
 
 :ssh.spam
     if %logging% == 1 ( call :log Opened_SSH_Spam )
@@ -1216,36 +1283,16 @@
 :desktop.icon.spam.1
     :: Name TLI
     echo How Should the Files be named?
-    @ping -n 1 localhost> nul
     echo The Filename cant include one of the following Character(s):\ / : * ? " < > |"
-    @ping -n 1 localhost> nul
     set /p "deskiconspamname=Choose a Filename:"
-    goto desktop.icon.spam.2
-
-:desktop.icon.spam.2 
-    :: Format TLI
     echo Now Choose the Format of the File
-    @ping -n 1 localhost> nul
     echo If you are not sure type txt
-    @ping -n 1 localhost> nul
-    echo Please not include the dot
-    @ping -n 1 localhost> nul
+    echo Dont Include the Dot
     set /p "deskiconspamformat=Choose the Format:"
-    goto desktop.icon.spam.3
-
-:desktop.icon.spam.3
-    :: Content TLI
     echo Now Choose the Content the File should include
-    @ping -n 1 localhost> nul
     set /p "deskiconspamcontent=Type something in:"
-    goto desktop.icon.spam.4
-
-:desktop.icon.spam.4
-    :: Filecount TLI
     echo Now Choose how many files should be created 
-    @ping -n 1 localhost> nul
     echo Leave empty if you want infinite.
-    @ping -n 1 localhost> nul
     set /p "deskiconspamamount=Type a Number:"
     call :sys.verify.execution
     cls
@@ -1264,10 +1311,7 @@
     :: Desktop Spam Countdown
     cls
     color 02
-    echo The Desktopiconspammer is about to start....
-    @ping -n 2 localhost> nul
     echo 3 Seconds Left
-    echo If you want to stop this, Simply close the CMD-Window
     @ping -n 2 localhost> nul
     echo 2 Seconds Left
     @ping -n 2 localhost> nul

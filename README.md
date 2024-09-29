@@ -2,22 +2,19 @@
 
 ## Features
 
-SSH Spam, Desktop Shortcut, Autostart, Desktop Spam, Folder Spam, Auto Update, Logging
+SSH Spam, Desktop Shortcut, Autostart, Desktop Spam, Folder Spam, Auto Update, Logging, Startmenu Spam
 
 ## Todo
 
 <details>
     <summary>Click To Open.</summary>
-
-    Make Script more Dynamic
-
-    Check API and Startup Functionality
+    Add AppList Spam
 
     Finish Dev Options and CLI-Like-Operation
 
     Add FTP support
 
-    Finish Logging Implementation
+    Add Translation
 
     Add Translation
     
