@@ -11,6 +11,7 @@ color 2
 cls  
 color 2
     if "%1"=="-dev.secret" goto dev.options
+    if "%1"=="-reverse.arg" dataspammer.bat %2
 
 :script.install.check
     :: Check if Script started after an update

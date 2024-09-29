@@ -28,10 +28,9 @@
     if "%1"=="cli" goto sys.cli
     if "%1"=="api" goto sys.api
     if "%1"=="go" goto custom.go
-    if "%1"=="noelev" goto noelev
+    if "%1"=="noelev" @ECHO OFF && cd /d %~dp0 && @color 02 && set "small-install=1" && goto check-files
 
-:noelev
-set "elevation.off=1"
+
 
 :normal.start
     @color 02
@@ -51,7 +50,6 @@ set "elevation.off=1"
     )
 
 :sys.req.elevation
-    if "%elevation.off%" == 1 goto check-files
     net session >nul 2>&1
     if %errorLevel% neq 0 (
         powershell -Command "Start-Process '%~f0' -Verb runAs"
@@ -328,17 +326,17 @@ set "elevation.off=1"
     SETLOCAL DisableDelayedExpansion
 
 :menu
+    if %logging% == 1 ( call :log Displaying_Menu )
     if %logging% == 1 ( call :log Startup_Complete )
     title DataSpammer v3.3
     if "%small-install%" == "1" (
-        set "settings-lock=Locked. Find Information under [44mHelp[0m"
+        set "settings-lock=Locked. Find Information under [44mHelp[32m"
     ) else (
         set "settings-lock=Settings"
     )
     :: Main Menu TLI
 
     cls
-    if %logging% == 1 ( call :log Displaying_Menu )
     %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
     %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
     %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
@@ -384,12 +382,7 @@ set "elevation.off=1"
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [7] Check for Script Updates
-    echo.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [8] Open GitHub-Repo
+    echo [7] Open GitHub-Repo
     echo.
     echo.
     set /p menu1=Choose an Option from Above:
@@ -400,8 +393,7 @@ set "elevation.off=1"
     If %menu1% == 4 goto credits
     If %menu1% == 5 goto settings
     If %menu1% == 6 goto autostart.desktop.settings
-    If %menu1% == 7 goto check.lib.git.update
-    If %menu1% == 8 start "" "https://github.com/PIRANY1/DataSpammer" | cls | goto menu
+    If %menu1% == 7 start "" "https://github.com/PIRANY1/DataSpammer" | cls | goto menu
     goto menu
 
 :check.lib.git.update
@@ -499,7 +491,7 @@ set "elevation.off=1"
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [3] [31mActivate Developer Options (Currently %settings-dev-display%) [0m
+    echo [3] [31mActivate Developer Options (Currently %settings-dev-display%) [32m
     @ping -n 1 localhost> nul
     echo. 
     @ping -n 1 localhost> nul
@@ -529,7 +521,13 @@ set "elevation.off=1"
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [8] Go back
+    echo [8] Start with Arguments (non permanent)
+    @ping -n 1 localhost> nul
+    echo. 
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [9] Go back
     @ping -n 1 localhost> nul
     echo. 
     @ping -n 1 localhost> nul
@@ -545,8 +543,15 @@ set "elevation.off=1"
     If %menu4% == 5 goto settings.logging
     If %menu4% == 6 goto experimental.features
     If %menu4% == 7 goto restart.script
-    If %menu4% == 8 goto menu
+    If %menu4% == 8 goto start.with.arguments
+    If %menu4% == 9 goto menu
     goto settings
+
+:start.with.arguments
+    call :help.startup
+    set /P "argument=Enter an Argument:"
+    cd /d %~dp0
+    install.bat -reverse.arg %argument%
 
 :experimental.features
     echo [1] Fancy CLI (currently just cmd.exe in Linux Style)
