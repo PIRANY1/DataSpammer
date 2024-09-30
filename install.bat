@@ -237,6 +237,7 @@ erase updater.bat
     goto installer.main.window
 
 :standart.install.run
+    call :verify
     :: Some Pre-Install STuff
     set "directory=%ProgramFiles%"
     cd /d "%directory%"
@@ -335,6 +336,7 @@ erase updater.bat
 
 
 :installer.custom.install.directory
+    call :verify
     set "small-install=1"
     :: Script Install Location
     @ping -n 1 localhost> nul
