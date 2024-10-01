@@ -5,7 +5,7 @@ mode con: cols=120 lines=30
 if "%restart-main%" == "1" goto sys.open.main.script
 @title Script Installer by PIRANY
 set "foldername=DataSpammer"
-set "current-script-version=v3.3"
+set "current-script-version=v3.4"
 cd /d %~dp0
 color 2
 cls  

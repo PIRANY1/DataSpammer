@@ -3,14 +3,13 @@
 :: Some Vars and Settings
 ::    Todo: 
 ::    Try to Add a Interaktive CLI Interface, which can be dynamicly called and used by other Scripts. 
-::    Add Spam for App List (Settings > Apps > Full Applist)
 ::    Add Translation
 ::    Add FTP support
 
 :!top
     @echo off
     mode con: cols=140 lines=40
-    set "current-script-version=v3.3"
+    set "current-script-version=v3.4"
     if "%1"=="h" goto help.startup
     if "%1"=="-h" goto help.startup
     if "%1"=="help" goto help.startup
@@ -169,7 +168,7 @@
 
 
     
-    if "%latest_version%" equ "v3.3" (
+    if "%latest_version%" equ "v3.4" (
         set "uptodate=up"
     ) else (
         set "uptodate="
@@ -225,7 +224,7 @@
 
 :git.update.version
     if %logging% == 1 ( call :log Creating_Update_Script )
-    :: Reworked in v3.3 / should work
+    :: Reworked in v3.4 / should work
     cd /d %~dp0
     echo @echo off > updater.bat
     echo cd /d %~dp0 >> updater.bat
@@ -323,7 +322,7 @@
 :menu
     if %logging% == 1 ( call :log Displaying_Menu )
     if %logging% == 1 ( call :log Startup_Complete )
-    title DataSpammer v3.3
+    title DataSpammer v3.4
     if "%small-install%" == "1" (
         set "settings-lock=Locked. Find Information under [44mHelp[32m"
     ) else (
@@ -342,7 +341,7 @@
 
 
     @ping -n 1 localhost> nul
-    echo Made by PIRANY                 v3.3
+    echo Made by PIRANY                 v3.4
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
@@ -587,7 +586,6 @@
     if %logging% == 1 ( call :log Opened_Experimental_Features )
     echo [1] Fancy CLI (currently just cmd.exe in Linux Style)
     echo [2] API (In Developement)
-    echo [3] New Spams (Coming Soon)
     echo.
     echo [4] Back
     set /P experimental.menu=Choose an Option From Above:
@@ -1066,7 +1064,11 @@
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [5] Go Back
+    echo [5] App-List Spam
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [6] Go Back
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
@@ -1077,8 +1079,114 @@
     If %spammethod% == 2 goto desktop.icon.spam
     If %spammethod% == 3 goto ssh.spam
     If %spammethod% == 4 goto startmenu.spam
-    If %spammethod% == 5 goto menu
+    If %spammethod% == 5 goto app.list.spam
+    If %spammethod% == 6 goto menu
     goto start.verified
+
+:app.list.spam
+    cls
+    echo This Function will spam the Applist under "Settings > Apps > Installed Apps" with Items of your choice
+    echo You can customise the Following Things:
+    echo App Name
+    echo App Version
+    echo App Path
+    echo Publisher
+    echo.
+    echo [1] Continue
+    echo.
+    echo [2] Go Back
+    echo.
+    echo.
+    set /P app.spam=Choose an Option from Above:
+    If %app.spam% == 1 goto app.list.spam.confirmed
+    If %app.spam% == 2 goto start.verified
+
+:app.list.spam.confirmed
+    net session >nul 2>&1
+    if %errorLevel% neq 0 (
+        echo Restarting Program as Elevated. Go here again manually.
+        @ping -n 3 localhost> nul
+        powershell -Command "Start-Process '%~f0' -Verb runAs"
+        exit
+    )
+
+    echo Enter random to use random Numerals
+    echo Enter default to skip an Option
+    set /P app.spam.name=Enter the App Name:
+    echo.
+    set /P app.spam.app.version=Enter the App Version:
+    echo.
+    set /P app.spam.path=Enter the Path of the App (any File):
+    echo.
+    set /P app.spam.publisher=Enter the Publisher:
+    echo.
+    set /P app.spam.filecount=How many Entrys should be created:
+    
+    if %app.spam.name% == random set "app.spam.name=%random%"
+    if %app.spam.app.version% == random set "app.spam.app.version=%random%"
+    if %app.spam.path% == random set "app.spam.path=%~f0"
+    if %app.spam.publisher% == random set "app.spam.publisher=%random%"
+    if %app.spam.name% == default set "app.spam.name=DataSpammer"
+    if %app.spam.app.version% == default set "app.spam.app.version=%current-script-version%"
+    if %app.spam.path% == default set "app.spam.path=%~f0"
+    if %app.spam.publisher% == default set "app.spam.publisher=DataSpammer"
+    set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\%app.spam.name%"
+    if defined ProgramFiles(x86) (
+        set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\%app.spam.name%"
+    )
+    
+
+:app.spam.start.top
+    set /a x+=1
+
+    reg add "%RegPath%" /v "DisplayName" /d "%app.spam.name%%x%" /f
+    reg add "%RegPath%" /v "DisplayVersion" /d "%app.spam.app.version%" /f
+    reg add "%RegPath%" /v "InstallLocation" /d "%app.spam.path%" /f
+    reg add "%RegPath%" /v "Publisher" /d "%app.spam.publisher%" /f
+    reg add "%RegPath%" /v "UninstallString" /d "%~f0" /f
+
+    echo Created %x% Entry(s).
+    if %x% equ %app.spam.filecount% (goto app.spam.done) else (goto app.spam.start.top)
+
+:app.spam.done
+    if %logging% == 1 ( call :log Finished_Spamming_Files:_%filecount% )
+    :: done tli
+    cls
+    echo.
+    %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
+    %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
+    %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
+    %$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
+    %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
+    %$Echo% "                             |_|                                              |___/                                                                                                                                     
+
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo The Script Created %x% Entrys.
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo Do you want to Close the Script or Go to the Menu?
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [1] Close
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [2] Menu
+    echo.
+    @ping -n 1 localhost> nul
+    set /p app.spam.menu=Choose an Option from Above:
+    If %app.spam.menu% == 1 goto cancel
+    If %app.spam.menu% == 2 goto menu
+    goto app.spam.done
+
 
 :startmenu.spam
     echo How many Files should be created?
@@ -1582,7 +1690,7 @@
 
     :: Whitout the UD stuff
 :fast.git.update
-    set "current-script-version=v3.3"
+    set "current-script-version=v3.4"
     set "owner=PIRANY1"
     set "repo=DataSpammer"
     set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"

@@ -2,13 +2,12 @@
 
 ## Features
 
-SSH Spam, Desktop Shortcut, Autostart, Desktop Spam, Folder Spam, Auto Update, Logging, Startmenu Spam
+SSH Spam, Desktop Shortcut, Autostart, Desktop Spam, Folder Spam, Auto Update, Logging, Startmenu Spam, Applist Spam
 
 ## Todo
 
 <details>
     <summary>Click To Open.</summary>
-    Add AppList Spam
 
     Finish Dev Options and CLI-Like-Operation
 
@@ -16,7 +15,6 @@ SSH Spam, Desktop Shortcut, Autostart, Desktop Spam, Folder Spam, Auto Update, L
 
     Add Translation
 
-    Add Translation
     
 </details>
 
