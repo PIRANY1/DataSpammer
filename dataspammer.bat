@@ -76,7 +76,6 @@
     if "%foundline%"=="false" (
         set "logging=0"
     )
-
     if %logging% == 1 ( call :log DataSpammer_Started )
     :: Checks if all Files needed for the Script exist
     setlocal enabledelayedexpansion
@@ -160,7 +159,8 @@
     @ping -n 1 localhost> nul
     echo Recieved API Response.
     echo Extracting Data...
-
+    setlocal EnableDelayedExpansion
+   
     for /f "tokens=2 delims=:, " %%a in ('findstr /R /C:"\"tag_name\"" apianswer.txt') do (
         set "latest_version=%%a"
     )
