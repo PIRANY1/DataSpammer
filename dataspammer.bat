@@ -3,7 +3,7 @@
 :: Some Vars and Settings
 ::    Todo: 
 ::    Try to Add a Interaktive CLI Interface, which can be dynamicly called and used by other Scripts. 
-::    Add Translation
+::    Add Translation / make multiple Versions in one Script / Setup.exe Include mutliple Files
 ::    Add FTP support
 
 :!top
@@ -30,7 +30,7 @@
     @color 02
     cd /d %~dp0
     @if not defined debug_assist (@ECHO OFF) else (@echo on)
-    if not defined devtools (goto top-startup) else (goto dtd)
+    if not defined devtools (goto top-startup) else (gotod open.dev.settings)
 
 :top-startup
     set inputFile=settings.conf
@@ -159,7 +159,6 @@
     @ping -n 1 localhost> nul
     echo Recieved API Response.
     echo Extracting Data...
-    setlocal EnableDelayedExpansion
    
     for /f "tokens=2 delims=:, " %%a in ('findstr /R /C:"\"tag_name\"" apianswer.txt') do (
         set "latest_version=%%a"
@@ -1873,8 +1872,3 @@
     :: yes
     exit
 
-
-:dtd
-    :: ud dev stuff
-    set /p dtd1=.:.
-    %dtd1%

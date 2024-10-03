@@ -47,6 +47,7 @@ install.bat
 Install with only one [File](https://gist.github.com/PIRANY1/8344f981f20a8e430f8a74c5fa80c390/archive/97f89d1649c772d1c556310cd53a14e68a7801b4.zip)(Needs Git Installed)
 
 ## Known Bugs
+
 Script instantly spams when theres no Internet connection
 
 ## About
