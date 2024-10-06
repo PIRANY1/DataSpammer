@@ -29,8 +29,8 @@ color 2
 
 
 :sys.new.update.installed
-cd /d %~dp0
-erase updater.bat
+    cd /d %~dp0
+    erase updater.bat
     :: Update Installed TLI
     echo Update was Successful!
     @ping -n 1 localhost> nul
@@ -47,6 +47,7 @@ erase updater.bat
     echo.
     echo.
     set /P updateinstalledvar=Choose an Option from above
+    if "%updateinstalledvar%"=="" goto sys.new.update.installed
     if %updateinstalledvar% == 1 goto sys.open.main.script
     if %updateinstalledvar% == 2 goto cancel
     goto sys.new.update.installed
@@ -84,6 +85,7 @@ erase updater.bat
     echo [4] Reinstall Script
     set /p insdone123=Choose an Option from above
     
+    if "%insdone123%"=="" goto sys.installer.execution.finished
     If %insdone123% == 1 goto sys.open.main.script
     If %insdone123% == 2 goto open.settings.dts
     If %insdone123% == 3 goto delete.script.confirmation.window
@@ -154,6 +156,7 @@ erase updater.bat
     echo.
     set /p delscrconf=Choose an Option from Above
 
+    if "%delscrconf%"=="" goto delete.script.confirmation.window
     If %delscrconf% == 1 goto delete.script.verify
     If %delscrconf% == 2 start "" "https://github.com/PIRANY1/DataSpammer" && goto delete.script.confirmation.window
     If %delscrconf% == 3 goto open.install.done
@@ -232,6 +235,7 @@ erase updater.bat
     echo.
     @ping -n 1 localhost> nul
     set /P programdrccustom=Choose an Option from Above:
+    if "%programdrccustom%"=="" goto installer.main.window
     if %programdrccustom% == 2 goto installer.custom.install.directory
     if %programdrccustom% == 1 goto standart.install.run
     goto installer.main.window
@@ -271,6 +275,8 @@ erase updater.bat
     @ping -n 1 localhost> nul
     echo [4] Close the Script
     set /P avturnoff=Choose an Option from above
+
+    if "%avturnoff%"=="" goto standart.install.run.3
     if %avturnoff% == 1 start "" "https://www.security.org/antivirus/turn-off/" & cls & goto standart.install.run.3
     if %avturnoff% == 2 cls & goto installer.main.window
     if %avturnoff% == 3 cls & goto standart.install.run.4
@@ -308,6 +314,7 @@ erase updater.bat
     @ping -n 1 localhost> nul
     echo [5] De-select / Cancel Options
     set /P stdprogdrcvar=Choose the Options from Above:
+    if "%stdprogdrcvar%"=="" goto standart.install.run.4
     if %stdprogdrcvar% == 1 goto n1varinst
     if %stdprogdrcvar% == 2 goto n2varinst
     if %stdprogdrcvar% == 3 goto n3varinst
@@ -387,6 +394,7 @@ erase updater.bat
     @ping -n 1 localhost> nul
     echo.
     set /p menu3=Choose an Option from Above:
+    if "%menu3%"=="" goto installer.updater.installation.confirm
     If %menu3% == 1 set "gitinsyn=1"
     If %menu3% == 2 goto installer.start.copy
 
@@ -536,6 +544,7 @@ erase updater.bat
     @ping -n 1 localhost> nul
     echo.
     set /p ynins1=Select an Answer from above
+    if "%ynins1%"=="" goto additionals.ask.window
     If %ynins1% == 1 goto list.content.LC
     If %ynins1% == 2 goto list.content.RD
     If %ynins1% == 3 goto delete.license

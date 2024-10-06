@@ -107,6 +107,7 @@
     echo [2] Open the Script anyways 
     @ping -n 1 localhost> nul
     set /p menu=Choose an Option from Above:
+    if "%menu%"=="" goto sys.no.settings
     If %menu% == 1 goto sys.open.installer
     If %menu% == 2 goto no.settings.update
     goto sys.no.settings
@@ -207,6 +208,7 @@
     echo.
     @ping -n 1 localhost> nul
     set /p menu4=Choose an Option from Above:
+    if "%menu4%"=="" goto git.version.outdated
     if "%menu4%" == "1" (
         goto git.update.version
     ) else if "%menu4%" == "2" (
@@ -257,6 +259,7 @@
     echo.
     @ping -n 1 localhost> nul
     set /p menu3=Choose an Option from Above:
+    if "%menu3%"=="" goto sys.error.no.install
     If %menu3% == 2 goto dts.startup.done
     If %menu3% == 1 goto git.open.repo
     goto sys.error.no.install
@@ -380,7 +383,8 @@
     echo.
     echo.
     set /p menu1=Choose an Option from Above:
-
+    
+    if "%menu1%"=="" goto menu
     If %menu1% == 1 goto help
     If %menu1% == 2 goto start
     If %menu1% == 3 goto cancel
@@ -426,6 +430,7 @@
     echo.
     @ping -n 1 localhost> nul
     set /p menu2=Choose an Option from Above:
+    if "%menu2%"=="" goto help
     If %menu2% == 1 goto menu
     If %menu2% == 2 goto list.readme.license
     If %menu2% == 3 goto cancel
@@ -489,6 +494,7 @@
     echo.
     @ping -n 1 localhost> nul
     set /p menu3=Choose an Option from Above:
+    if "%menu3%"=="" goto credits
     If %menu3% == 1 goto menu
     If %menu3% == 3 goto cancel
     If %menu3% == 2 start "" "https://github.com/PIRANY1/DataSpammer" | cls | goto credits
@@ -565,6 +571,7 @@
 
 
     set /p menu4=Choose an Option from Above:
+    if "%menu4%"=="" goto settings
     If %menu4% == 1 goto settings.change.df.filename
     If %menu4% == 2 goto settings.default.directory.crash
     If %menu4% == 3 goto activate.dev.options
@@ -589,6 +596,7 @@
     echo.
     echo [4] Back
     set /P experimental.menu=Choose an Option From Above:
+    if "%experimental.menu%"=="" goto experimental.features
     if %experimental.menu% == 1 goto sys.cli 
     if %experimental.menu% == 2 goto experimental.features REM goto sys.api
     if %experimental.menu% == 3 goto experimental.features REM goto dev.spams
@@ -616,6 +624,7 @@
     echo.
     echo.
     set /P vs.control=Choose an Option From Above:
+    if "%vs.control%"=="" goto settings.version.control
     if %vs.control% == 1 goto dev.force.update
     if %vs.control% == 2 goto stable.switch.branch
     if %vs.control% == 3 goto dev.switch.branch  
@@ -778,11 +787,12 @@
     @ping -n 1 localhost> nul
     echo.
     echo.
-    set /P vs.control=Choose an Option From Above:
-    if %vs.control% == 1 goto enable.logging
-    if %vs.control% == 2 goto disable.logging
-    if %vs.control% == 3 goto dev.open.log
-    if %vs.control% == 4 goto settings
+    set /P logging.control=Choose an Option From Above:
+    if "%logging.control%"=="" goto settings.logging
+    if %logging.control% == 1 goto enable.logging
+    if %logging.control% == 2 goto disable.logging
+    if %logging.control% == 3 goto dev.open.log
+    if %logging.control% == 4 goto settings
     goto settings.logging
 
 :enable.logging
@@ -874,7 +884,8 @@
     echo.
     echo.
     set /p menu000=Choose an Option from Above:
-
+    
+    if "%menu000%"=="" goto autostart.desktop.settings
     If %menu000% == 1 goto autostart.setup
     If %menu000% == 2 goto autostart.delete
     If %menu000% == 4 goto menu
@@ -907,6 +918,7 @@
     echo.
     set /p menu123134=Choose an Option from Above:
 
+    if "%menu123134%"=="" goto autostart.setup
     If %menu123134% == 3 goto viewdocs 
     If %menu123134% == 1 goto autostart.setup.confirmed
     If %menu123134% == 4 goto autostart
@@ -940,6 +952,7 @@
     @ping -n 1 localhost> nul
     set /p viewdocsmenu=Choose an Option from above:
 
+    if "%viewdocsmenu%"=="" goto viewdocs
     If %viewdocsmenu% == 1 goto autostart.setup
     If %viewdocsmenu% == 2 goto desktop.icon.setup
     If %viewdocsmenu% == 3 goto autostart.setup.confirmed
@@ -968,6 +981,7 @@
     @ping -n 1 localhost> nul
     echo [4] Close the Script
     set /P avturnoff=Choose an Option from above
+    if "%avturnoff%"=="" goto autostart.delete.2
     if %avturnoff% == 1 start "" "https://www.security.org/antivirus/turn-off/" | cls | goto autostart.delete.2
     if %avturnoff% == 2 cls | goto viewdocs 
     if %avturnoff% == 3 cls | goto autostart.delete.3
@@ -1075,6 +1089,7 @@
     echo.
     set /p spammethod=Choose an Option from Above:
 
+    if "%spammethod%"=="" goto start.verified
     If %spammethod% == 1 goto normal.text.spam
     If %spammethod% == 2 goto desktop.icon.spam
     If %spammethod% == 3 goto ssh.spam
@@ -1098,6 +1113,7 @@
     echo.
     echo.
     set /P app.spam=Choose an Option from Above:
+    if "%app.spam%"=="" goto app.list.spam
     If %app.spam% == 1 goto app.list.spam.confirmed
     If %app.spam% == 2 goto start.verified
 
@@ -1183,6 +1199,7 @@
     echo.
     @ping -n 1 localhost> nul
     set /p app.spam.menu=Choose an Option from Above:
+    if "%app.spam.menu%"=="" goto app.spam.done
     If %app.spam.menu% == 1 goto cancel
     If %app.spam.menu% == 2 goto menu
     goto app.spam.done
@@ -1242,6 +1259,7 @@
     echo [2] Back
     echo.
     set /P remotespamchoose=Choose an Option from above:
+    if "%remotespamchoose%"=="" goto ssh.spam
     if %remotespamchoose% == 1 goto ssh.spam.info
     if %remotespamchoose% == 2 goto start.verified
 
@@ -1282,6 +1300,7 @@
     echo.
     echo.
     set /P linux-win-ssh=Choose an Option from Above:
+    if "%linux-win-ssh%"=="" goto ssh.start.spam
     if %linux-win-ssh% == 1 goto spam.ssh.target.win
     if %linux-win-ssh% == 2 goto spam.ssh.target.lx
     goto ssh.start.spam
@@ -1335,6 +1354,7 @@
     echo.
     @ping -n 1 localhost> nul
     set /p menu9=Choose an Option from Above:
+    if "%menu9%"=="" goto ssh.done
     If %menu9% == 1 goto cancel
     If %menu9% == 2 goto menu
     goto ssh.done
@@ -1365,6 +1385,7 @@
     echo.
     echo.
     set /p menu1877=Choose an Option from Above:
+    if "%menu1877%"=="" goto desktop.icon.spam
     If %menu1877% == 2 goto start
     If %menu1877% == 1 goto desktop.icon.spam.1
     goto desktop.icon.spam
@@ -1467,6 +1488,7 @@
     echo [2] Enter a Directory
     @ping -n 1 localhost> nul
     set /p menu5=Choose an Option from Above:
+    if "%menu5%"=="" goto sys.no.var.set
     If %menu5% == 1 goto spam.use.user
     If %menu5% == 2 goto spam.custom.directory
 
@@ -1594,6 +1616,7 @@
     echo.
     @ping -n 1 localhost> nul
     set /p menu9=Choose an Option from Above:
+    if "%menu9%"=="" goto done
     If %menu9% == 1 goto cancel
     If %menu9% == 2 goto menu
     goto done
@@ -1633,6 +1656,7 @@
     echo.
     @ping -n 1 localhost> nul
     set /p menu9=Choose an Option from Above:
+    if "%menu9%"=="" goto done2
     If %menu9% == 1 goto cancel
     If %menu9% == 2 goto menu
     goto done2
@@ -1726,6 +1750,7 @@
     echo.
     set /p delscrconf=Choose an Option from Above
 
+    if "%delscrconf%"=="" goto sys.delete.script
     If %delscrconf% == 1 goto sys.delete.script.check.elevation
     If %delscrconf% == 2 explorer "https://github.com/PIRANY1/DataSpammer" && goto sys.delete.script
     If %delscrconf% == 3 exit /b 100
