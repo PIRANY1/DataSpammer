@@ -2,16 +2,16 @@
 :: If you want to Publish a modified Version please mention the Original Creator PIRANY and link the GitHub Repo
 :: Some Vars and Settings
 ::    Todo: 
-::    Try to Add a Interaktive CLI Interface, which can be dynamicly called and used by other Scripts. 
-::    Add Translation / make multiple Versions in one Script / Setup.exe Include mutliple Files
-::    Add FTP support
+::    Implement default Filename in FTP etc.
 ::    Fix SSH Spam
-::    Add Win24H2 sudo Support / no manual Elevation
+::    Add HTTP/HTPPS Spam
+::    Implement Custom Protocol Spam with Calls
+::    Fully Implement Sudo (Beta is at :sudo.implementation)
 
 :!top
     @echo off
     mode con: cols=140 lines=40
-    set "current-script-version=v3.4"
+    set "current-script-version=v3.5"
     if "%1"=="h" goto help.startup
     if "%1"=="-h" goto help.startup
     if "%1"=="help" goto help.startup
@@ -257,7 +257,7 @@
 
 
     
-    if "%latest_version%" equ "v3.4" (
+    if "%latest_version%" equ "v3.5" (
         set "uptodate=up"
     ) else (
         set "uptodate="
@@ -417,7 +417,7 @@
 :menu
     if %logging% == 1 ( call :log Displaying_Menu )
     if %logging% == 1 ( call :log Startup_Complete )
-    title DataSpammer v3.4
+    title DataSpammer v3.5
     if "%small-install%" == "1" (
         set "settings-lock=Locked. Find Information under [44mHelp[32m"
     ) else (
@@ -436,7 +436,7 @@
 
 
     @ping -n 1 localhost> nul
-    echo Made by PIRANY                 v3.4
+    echo Made by PIRANY                 v3.5
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
@@ -1800,7 +1800,7 @@
 
     :: Whitout the UD stuff
 :fast.git.update
-    set "current-script-version=v3.4"
+    set "current-script-version=v3.5"
     set "owner=PIRANY1"
     set "repo=DataSpammer"
     set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
