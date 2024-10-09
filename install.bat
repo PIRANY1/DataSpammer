@@ -5,7 +5,7 @@ mode con: cols=120 lines=30
 if "%restart-main%" == "1" goto sys.open.main.script
 @title Script Installer by PIRANY
 set "foldername=DataSpammer"
-set "current-script-version=v3.4"
+set "current-script-version=v3.5"
 cd /d %~dp0
 color 2
 cls  
@@ -218,9 +218,7 @@ color 2
 
     echo.
     @ping -n 1 localhost> nul
-    echo Please turn the CMD Windows to FullScreen. The Graphics will only be then displayed correctly.
-    @ping -n 1 localhost> nul
-    echo This Installer will lead you throuh the Process of Installing the DataSpammer.
+    echo This Installer will lead you throuh the Process of Installing the DataSpammer Utility.
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
@@ -409,19 +407,34 @@ color 2
     cd /d "%directory9%"
     :: Create settings.conf
     setlocal enabledelayedexpansion
+    
+    cd /d "%directory9%"
     set "insdonevar=insdone"
-    set "stdfil=notused"
+    set "stdfile=notused"
     set "stdrcch=notused"
-    set "update=notused"
-    set "file=settings.conf"
-    echo !insdonevar! >> %file%
-    echo !stdfil! >> %file%
-    echo !stdrcch! >> %file%
-    echo !update! >> %file%
-    echo Settings.conf was created.
+    set "update=0"
+    set "logging=0"
+    set "dev.mode=0"
+    (
+        echo :: DataSpammer configuration
+        echo insdonevar=%insdonevar%
+        echo :: Standart Filename
+        echo stdfile=%stdfile%
+        echo :: Standart Directory
+        echo stdrcch=%stdrcch%
+        echo :: Check for Updates
+        echo update=%update%
+        echo :: Logging is on by default
+        echo logging=%logging%
+        echo :: Developer Mode
+        echo developermode=%dev.mode%
+    ) > settings.conf
+    
+    
     cd /d %~dp0
     del dataspammer.bat
     cd /d "%directory9%"
+
 
 :installer.copy.settings.done
     :: Check if there where errors installing the base script
@@ -445,25 +458,34 @@ color 2
 
 
 :installer.common.drc.switch
+    :: Write Settings.conf with Update
+    setlocal enabledelayedexpansion
     cd /d "%directory9%"
+    set "insdonevar=insdone"
+    set "stdfile=notused"
+    set "stdrcch=notused"
+    set "update=1"
+    set "logging=1"
+    set "dev.mode=0"
     
-:installer.start.template
-    :: Write Settings Template
-    set "line1=insdone"
-    set "line2=notused"
-    set "line3=notused"
-    set "line4=uy"
-    set "setfile=settings.conf"
-    if exist !setfile! (
-        del !setfile!
-    )
     (
-        echo !line1!
-        echo !line2!
-        echo !line3!
-        echo !line4!
-    ) > !setfile!
+        echo :: DataSpammer configuration
+        echo insdonevar=%insdonevar%
+        echo :: Standart Filename
+        echo stdfile=%stdfile%
+        echo :: Standart Directory
+        echo stdrcch=%stdrcch%
+        echo :: Check for Updates
+        echo update=%update%
+        echo :: Logging is on by default
+        echo logging=%logging%
+        echo :: Developer Mode
+        echo developermode=%dev.mode%
+    ) > settings.conf
+    
+    cd /d %~dp0
     goto install.additional.links
+    
 
 :install.additional.links
     cd /d "%directory9%"

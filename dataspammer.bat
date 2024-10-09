@@ -1,7 +1,7 @@
 :: Use only under MIT License
-:: If you want to Publish a modified Version please mention the Original Creator PIRANY and link the GitHub Repo
-:: Some Vars and Settings
+:: Use only under License
 ::    Todo: 
+::    Implement default Filename in FTP etc.
 ::    Implement default Filename in FTP etc.
 ::    Fix SSH Spam
 ::    Add HTTP/HTPPS Spam
@@ -69,41 +69,33 @@
         set "sudo=0"
     )
 
-    :sudo.parse
-    :: sudo requires a Wrapper to work in Powershell (sudo.ps1) maybe sudo will work without it natively in Batch
-    :: else i will need to convert sudo.ps1 to Batch
+:sudo.parse
+    :: sudo features a Powershell Wrapper (sudo.ps1) to make it more User-Friendly.
+    :: I Hope its not neccessarily needed for sudo to work, because converting it to Batch is hard. (base64 conding)
 
-    :: First attempt of converting, but many modules are missing in Batch so this is almost impossible.
-    :: The ps1 Script is only a converter so maybe i can invoke it directly to sudo.exe
+
     setlocal
-
     ver | findstr /i "Windows" >nul
     if errorlevel 1 (
         echo This Script only works with Windows
         exit /b 1
     )
-    
     where sudo.exe >nul
     if errorlevel 1 (
         echo "sudo.exe" wasnt found
         exit /b 1
     )
-    
     set "psProcess=%ComSpec%"
-    
     if "%psProcess%"=="" (
         echo Cannot get Process
         exit /b 1
     )
-    
     :: Simulate Base64 Code
     set "convertToBase64EncodedString=certutil -encode"
-
     if "%~1"=="" (
         echo Got no Arguments.
         exit /b 1
     )
-    
     :: Execute Translatet Argument
     set "cmdLine=%*"
     if "%~1"=="/scriptblock" (
@@ -112,7 +104,6 @@
     ) else (
         sudo.exe %cmdLine%
     )
-    
     exit /b 0
     
 
@@ -140,37 +131,26 @@
 
 
 :check-files
-    setlocal EnableDelayedExpansion
-    cd /d %~dp0
-    set "file=settings.conf"
-    set "linenr=5"
-    set "logging=0"  
-    set /a nr=0
-    set "foundline=false"
-    for /f "tokens=*" %%a in ('type "%file%"') do (
-        set /a nr+=1
-        if !nr! equ %linenr% (
-            set "foundline=true"
-            if "%%a"=="logging" (
-                set "logging=1"
-            ) else (
-                set "logging=0"
-            )
-        )
-    )
-    if "%foundline%"=="false" (
-        set "logging=0"
-    )
-    if %logging% == 1 ( call :log . )
-    if %logging% == 1 ( call :log . )
-    if %logging% == 1 ( call :log . )
-    if %logging% == 1 ( call :log . )
-    if %logging% == 1 ( call :log DataSpammer_Started )
     :: Checks if all Files needed for the Script exist
     setlocal enabledelayedexpansion
     @title Starting Up...
     echo Checking for Data...
     if not exist "settings.conf" goto sys.no.settings
+    
+    :: Parses Settings
+    echo Extracting Settings...
+    set "config_file=settings.conf"
+    for /f "usebackq tokens=1,2 delims==" %%a in (`findstr /v "^::" "%config_file%"`) do (
+        set "%%a=%%b"
+    )
+    
+    :: Makes Log More Readable after Script restart
+    if %logging% == 1 ( call :log . )
+    if %logging% == 1 ( call :log . )
+    if %logging% == 1 ( call :log . )
+    if %logging% == 1 ( call :log . )
+    if %logging% == 1 ( call :log DataSpammer_Started )
+
     echo Checking for Files...
     if not exist "install.bat" (goto sys.error.no.install) else (goto settings.extract.update)
 
@@ -210,23 +190,8 @@
 
 :settings.extract.update
     if %logging% == 1 ( call :log Checking_Settings_for_Update_Command )
-    setlocal enabledelayedexpansion
-    set "file=settings.conf"
-    set "linenr=4"
-    set "searchfor=uy"
-
-    for /f "tokens=1* delims=:" %%a in ('findstr /n "^" "%file%"') do (
-        if %%a equ %linenr% (
-            set "line=%%b"
-            set "line=!line:*:=!"
-            if "!line!" equ "!searchfor!" (
-                call :gitcall.sys
-                goto dts.startup.done
-            )
-        )
-    )
+    if "%logging%"=="1" call :gitcall.sys
     goto dts.startup.done
-
 
 :gitcall.sys
     if %logging% == 1 ( call :log Calling_Update_Check )
@@ -384,26 +349,8 @@
 :check-dev-options
    if %logging% == 1 ( call :log Checking_If_Developer_Mode_Is_Turned_On )
    cd /d %~dp0
-   if exist dev.conf (set "dev-mode=1") else (set "dev-mode=0")
-
-
-:sys.extract.settings.to.var
-    if %logging% == 1 ( call :log Extracting_Settings_From_File )
-    :: Extract data from Settings file
-    setlocal enabledelayedexpansion
-    set "file=settings.conf"
-    set nr=0
-    for /l %%i in (1,1,5) do (
-        set "line%%i="
-    )
-    for /f "delims=" %%a in (%file%) do (
-        set /a "nr+=1"
-        set "line!nr!=%%a"
-    )
-    set "insdonevar1=!line1!"
-    set "stdfile=!line2!"
-    set "stdrc1=!line3!"
-    if not defined devtools (goto sys.enable.ascii.tweak) else (goto dtd)
+   if "%developermode%"=="1" (set "dev-mode=1") else (set "dev-mode=0")
+   if not defined devtools (goto sys.enable.ascii.tweak) else (goto dtd)
 
 :sys.enable.ascii.tweak
     if %logging% == 1 ( call :log Sending_Notification )
@@ -792,7 +739,7 @@
 :write-dev-options
     if %logging% == 1 ( call :log Activating_Dev_Options )
     cd /d %~dp0
-    echo Only delete this File if you want to deactivate Developer Options. > dev.conf
+    call :update_config "developermode" "" "1"
     echo Developer Options have been activated!
     echo Script will now restart
     @ping -n 2 localhost> nul
@@ -801,57 +748,25 @@
 :settings.change.df.filename
     :: Write Standart Filename to File
     cls 
-    echo The Filename cant have the following Character(s):\ / : * ? " < > |"
-    set /p mainfilename=Type in the Filename you want to use.
-    setlocal enabledelayedexpansion
-    set "file=settings.conf"
-    set "tmpfile=temp.txt"
-    set linenumber=0
-    (for /f "tokens=*" %%a in (!file!) do (
-        set /a "linenumber+=1"
-        if !linenumber! equ 2 (
-            echo !mainfilename!
-        ) else (
-            echo %%a
-        )
-    )) > !tmpfile!
-    move /y !tmpfile! !file!
+    call :update_config "stdfile" "Type in the Filename you want to use:" ""
+    echo Restarting Script...
     if %logging% == 1 ( call :log Changing_Standart_FileName )
-    echo The Standart Filename was saved!
-    cls
-    goto settings
+    @ping -n 2 localhost > nul
+    goto restart.script
+
 
 
 :settings.default.directory.crash
     if %logging% == 1 ( call :log Chaning_Standart_Directory )
     :: Standart Spam Directory Check
     cls 
-    echo.
-    echo.
     set /p directory0=Type Your Directory Here:
     if exist %directory0% (goto settings.default.directory.crash.2) else (goto settings.default.directory.crash.3)
-
-:settings.default.directory.crash.2
-    :: Write Standart Spam Directory to Settings
-    setlocal ENABLEDELAYEDEXPANSION
-    set "setfile=settings.conf"
-    set "tmpfile=temp.txt"
-    set "lineCounter=0"
-
-    (
-      for /f "tokens=*" %%a in (!setfile!) do (
-        set /a "lineCounter+=1"
-        if !lineCounter! equ 3 (
-          echo !directory0!
-        ) else (
-          echo %%a
-        )
-      )
-    ) > !tmpfile!
-    move /y !tmpfile! !setfile!
-    echo The Directory was saved!
-    cls
-    goto settings
+    call :update_config "stdrcch" "" "%directory0%"
+    echo Restarting Script...
+    if %logging% == 1 ( call :log Changing_Default_Directory )
+    @ping -n 2 localhost > nul
+    goto restart.script
 
 :settings.default.directory.crash.3
     :: Not so hard to understand
@@ -897,34 +812,8 @@
 
 :enable.logging
     if %logging% == 1 ( goto settings.logging )
-    cd /d %~dp0
-    set "file=settings.conf"
-    set "linenr=5"
-    set "tempfile=tempfile.conf"
-    set /a nr=0
-    set "foundLine=false"
-    set "logging.content=logging"
-    
-    (
-        for /f "tokens=*" %%a in ('type "%file%" 2^>nul') do (
-            set /a nr+=1
-            if !nr! equ %linenr% (
-                echo %logging.content%
-                set "foundLine=true"
-            ) else (
-                echo %%a
-            )
-        )
-    ) > "%tempfile%"
-    
-    if "%foundLine%"=="false" (
-        echo logging.content >> "%tempfile%"
-    )
-    
-    pause
-    move /y "%tempfile%" "%file%"
+    call :update_config "logging" "" "1"
     echo Enabled Logging. Restarting Script...
-    pause
     @ping -n 2 localhost > nul
     goto restart.script
 
@@ -937,23 +826,7 @@
 :disable.logging
     if %logging% == 0 ( goto settings.logging )
     if %logging% == 1 ( call :log Disabling_Logging )
-    cd /d %~dp0
-    set "file=settings.conf"
-    set "linenr=5"
-    set "tempfile=tempfile.conf"
-    set /a nr=0
-    
-    (
-        for /f "tokens=*" %%a in ('type "%file%"') do (
-            set /a nr+=1
-            if !nr! equ %linenr% (
-                echo.
-            ) else (
-                echo %%a
-            )
-        )
-    ) > "%tempfile%"
-    move /y "%tempfile%" "%file%"
+    call :update_config "logging" "" "0"
     echo Disabled Logging. Restarting Script...
     @ping -n 2 localhost> nul
     goto restart.script
@@ -1156,6 +1029,15 @@
     goto autostart.desktop.settings
 
 
+::
+::                ^            ^ 
+::                |  SETTINGS  |  
+::                |  SPAM PART |
+::               \/            \/
+::
+
+
+
 
 :start
     if %logging% == 1 ( call :log Opened_Start )
@@ -1175,33 +1057,270 @@
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [3] Spam Linux/Windows via SSH CURRENTLY ONLY WITH NO PASSWORD
+    echo [3] SSH Spam (no Password)
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [4] Startmenu Spam
+    echo [4] DNS Spam
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [5] App-List Spam
+    echo [5] FTP Spam
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [6] Go Back
+    echo [6] HTTP(S) Spam
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [7] Startmenu Spam
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [8] App-List Spam
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [9] Go Back
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
     echo.
-    set /p spammethod=Choose an Option from Above:
+    set /p spam.method=Choose an Option from Above:
 
-    if "%spammethod%"=="" goto start.verified
-    If %spammethod% == 1 goto normal.text.spam
-    If %spammethod% == 2 goto desktop.icon.spam
-    If %spammethod% == 3 goto ssh.spam
-    If %spammethod% == 4 goto startmenu.spam
-    If %spammethod% == 5 goto app.list.spam
-    If %spammethod% == 6 goto menu
+    if "%spam.method%"=="" goto start.verified
+    If %spam.method% == 1 goto normal.text.spam
+    If %spam.method% == 2 goto desktop.icon.spam
+    If %spam.method% == 3 goto ssh.spam
+    If %spam.method% == 4 goto dns.spam
+    If %spam.method% == 5 goto ftp.spam
+    If %spam.method% == 6 goto https.spam
+    If %spam.method% == 7 goto startmenu.spam
+    If %spam.method% == 8 goto app.list.spam
+    If %spam.method% == 9 goto menu
     goto start.verified
+
+:https.spam
+    echo Spam a HTTP/HTTPS Server with Requests
+    set /P url=Enter a Domain or an IP:
+    set /P requests=How many requests should be made
+    
+    setlocal enabledelayedexpansion
+    for /L %%i in (1,1,%requests%) do (
+        echo Sending Request %%i of %requests% to %URL%
+        curl -s -o NUL -w "Status: %{http_code}\n" %URL%
+    )
+
+:https.done
+    if %logging% == 1 ( call :log Finished_HTTPS_Spam:%requests%_Requests_on_%url% )
+    :: HTTP(S) Done
+    echo.
+    %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
+    %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
+    %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
+    %$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
+    %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
+    %$Echo% "                             |_|                                              |___/                                                                                                                                  
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo The Script Created %requests% to %url%
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo Do you want to Close the Script or Go to the Menu?
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [1] Close
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [2] Menu
+    echo.
+    @ping -n 1 localhost> nul
+    set /p menu9=Choose an Option from Above:
+    if "%menu9%"=="" goto https.done
+    If %menu9% == 1 goto cancel
+    If %menu9% == 2 goto menu
+    goto https.done
+
+
+:dns.spam
+    setlocal enabledelayedexpansion
+    
+    echo DNS-Spam is useful if you have a local DNS Server running (PiHole, Adguard etc.)
+    set /P request_count=Enter the Request Count:
+    set /P domain=Enter the Domain:
+    set /P domain_server=Enter the DNS-Server IP (leave empty for default):
+    
+    if not defined domain_server set "domain_server= "
+    
+    cls
+    echo Now enter the Record type. A for IPv4 and AAAA for IPv6. Use A if unsure.
+    set /P record_type=Enter the DNS Record Type (A or AAAA):
+    
+    set /a x=1
+    
+    if /I "%record_type%"=="A" goto dns.a
+    if /I "%record_type%"=="AAAA" goto dns.aaaa
+    
+    
+:dns.a
+    for /L %%i in (1, 1, %request_count%) do (
+        echo Created !x! DNS Request for !record_type! record.
+        set /a x+=1
+        nslookup -type=A %domain% %domain_server% > nul
+        cls
+    )
+    goto dns.done
+    
+:dns.aaaa
+    for /L %%i in (1, 1, %request_count%) do (
+        echo Created !x! DNS Request for !record_type! record.
+        set /a x+=1
+        nslookup -type=AAAA %domain% %domain_server% > nul
+        cls
+    )
+    
+
+:dns.done
+    if %logging% == 1 ( call :log Finished_DNS_Spam:%request_count%_Requests_on_%domain_server% )
+    :: DNS Done
+    echo.
+    %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
+    %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
+    %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
+    %$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
+    %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
+    %$Echo% "                             |_|                                              |___/                                                                                                                                  
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo The Script Created %request_count% for %domain% on %domain_server%
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo Do you want to Close the Script or Go to the Menu?
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [1] Close
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [2] Menu
+    echo.
+    @ping -n 1 localhost> nul
+    set /p menu9=Choose an Option from Above:
+    if "%menu9%"=="" goto dns.done
+    If %menu9% == 1 goto cancel
+    If %menu9% == 2 goto menu
+    goto dns.done
+
+    
+
+
+:ftp.spam
+    cls
+    echo This Function spams any FTP-Server with Files.
+    echo.
+    set /P ftpserver=Enter a Domain or IP:
+    set /P username=Enter the Username
+    set /P password=Enter the Password
+    set /P remoteDir=Enter the Directory (leave empty if unsure):
+    if not "%stdfile%"=="notused" set /P filename=Enter the Filename:
+    set /P content=Enter the File-Content:
+    echo %content% > %filename%.txt
+    
+    :: Creates Files on local Machine
+    echo Creating Files...
+    set /a w=1
+    cd %tmp%
+    for /l %%i in (1,1,%filecount%) do (
+        echo %content% >> %filename%%x%.txt
+        set /a w+=1
+    )
+    
+    :: Creates FTP Commands and writes them
+    set ftpCommands=ftpcmd.txt
+    echo open %ftpserver% > %ftpCommands%
+    echo %username% >> %ftpCommands%
+    echo %password% >> %ftpCommands%
+    echo binary >> %ftpCommands%
+    echo cd %remoteDir% >> %ftpCommands%
+    
+    echo Creating Commands...
+    
+    :: Writes multiple Files in Command List
+    set /a x=1
+    for /l %%i in (1,1,%filecount%) do (
+        setlocal enabledelayedexpansion
+        set localFile=%filename%!x!.txt
+        echo put !localFile! >> %ftpCommands%
+        set /a x+=1
+        endlocal
+    )
+    
+    echo bye >> %ftpCommands%
+    ftp -n -s:%ftpCommands%
+    del %ftpCommands%
+    
+    set /a y=1
+    cd %tmp%
+    for /l %%i in (1,1,%filecount%) do (
+        erase %filename%%x%.txt
+        set /a y+=1
+    )
+    
+:ftp.done    
+    if %logging% == 1 ( call :log Finished_FTP_Spam:_%filecount% )
+    cls
+    echo.
+    %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
+    %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
+    %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
+    %$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
+    %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
+    %$Echo% "                             |_|                                              |___/                                                                                                                                     
+
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo The Script Created %filecount% Files on the FTP Server: %ftpserver%
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo Do you want to Close the Script or Go to the Menu?
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [1] Close
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [2] Menu
+    echo.
+    @ping -n 1 localhost> nul
+    set /p app.spam.menu=Choose an Option from Above:
+    if "%app.spam.menu%"=="" goto ftp.done
+    If %app.spam.menu% == 1 goto cancel
+    If %app.spam.menu% == 2 goto menu
+    goto ftp.done
+
+
 
 :app.list.spam
     cls
@@ -1498,8 +1617,7 @@
 :desktop.icon.spam.1
     :: Name TLI
     echo How Should the Files be named?
-    echo The Filename cant include one of the following Character(s):\ / : * ? " < > |"
-    set /p "deskiconspamname=Choose a Filename:"
+    if not "%stdfile%"=="notused" set /p "deskiconspamname=Choose a Filename:"
     echo Now Choose the Format of the File
     echo If you are not sure type txt
     echo Dont Include the Dot
@@ -1565,7 +1683,7 @@
 :normal.text.spam
     if %logging% == 1 ( call :log Opened_Normal_Spam )
     :: dont know if that function is even used but it works
-    if stdrc1 equ notused (goto sys.no.var.set) else (cd /d %stdrc1% && goto sys.check.custom.name)
+    if stdrcch equ notused (goto sys.no.var.set) else (cd /d %stdrcch% && goto sys.check.custom.name)
 
 :sys.no.var.set
     :: normal spam tli
@@ -1771,7 +1889,7 @@
     echo.
     echo.
     echo Dataspammer: 
-    echo    Script with that you can spam various Windows Directorys and more.
+    echo    Script to stress-test various Protocols or Systems
     echo    Made for educational Purposes only.
     echo.
     echo Usage dataspammer [Argument]
@@ -1962,6 +2080,49 @@
         
         :: Write Log
         ::echo !currentDate! !formattedTime! %log.content% >> "%folder%\%logfile%"
+
+
+:update_config
+    :: Example for Interactive Change
+    :: call :update_config "stdfile" "Type in the Filename you want to use." ""
+    
+    :: Example for Automated Change
+    :: call :update_config "logging" "" "1"
+    
+    :: Parameter 1: Value (logging etc.)
+    :: Parameter 2: User Choice (interactive prompt, empty for automated)
+    :: Parameter 3: New Value (leave empty for user input)
+    
+    setlocal enabledelayedexpansion
+    cd /d %~dp0
+    
+    set "key=%~1"
+    set "prompt=%~2"
+    set "new_value=%~3"
+
+    if "%new_value%"=="" (
+        set /p new_value=%prompt%
+    )
+    
+    set "file=settings.conf"
+    set "tmpfile=temp.txt"
+    set linenumber=0
+    
+    (for /f "tokens=1,* delims==" %%a in (!file!) do (
+        if "%%a"=="%key%" (
+            echo %%a=!new_value!
+        ) else (
+            echo %%a=%%b
+        )
+    )) > !tmpfile!
+    
+    move /y !tmpfile! !file!
+    
+    if !logging!==1 ( call :log Changing_%key% )
+    cls
+    endlocal
+    goto :eof
+    
 
 
 :sys.verify.execution
