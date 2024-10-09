@@ -1,8 +1,6 @@
 :: Use only under MIT License
 :: Use only under License
 ::    Todo: 
-::    Fix SSH Spam
-::    Implement Custom Protocol Spam with Calls
 ::    Fully Implement Sudo (Beta is at :sudo.implementation)
 ::    Fix Variable Name
 

@@ -15,7 +15,7 @@ Desktop Shortcut, Autostart, Auto Update, Logging, Elevation via sudo/pwsh
 <details>
     <summary>Click To Open.</summary>
 
-    Fix SSH Spam
+    Update Variable Names
 
     Fully Implement Sudo (Beta is at :sudo.implementation)
 
