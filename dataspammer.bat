@@ -1190,7 +1190,7 @@
     set /P username=Enter the Username
     set /P password=Enter the Password
     set /P remoteDir=Enter the Directory (leave empty if unsure):
-    set /P filename=Enter the Filename:
+    if not "%stdfile%"=="notused" set /P filename=Enter the Filename:
     set /P content=Enter the File-Content:
     echo %content% > %filename%.txt
     
@@ -1570,8 +1570,7 @@
 :desktop.icon.spam.1
     :: Name TLI
     echo How Should the Files be named?
-    echo The Filename cant include one of the following Character(s):\ / : * ? " < > |"
-    set /p "deskiconspamname=Choose a Filename:"
+    if not "%stdfile%"=="notused" set /p "deskiconspamname=Choose a Filename:"
     echo Now Choose the Format of the File
     echo If you are not sure type txt
     echo Dont Include the Dot
@@ -1637,7 +1636,7 @@
 :normal.text.spam
     if %logging% == 1 ( call :log Opened_Normal_Spam )
     :: dont know if that function is even used but it works
-    if stdrc1 equ notused (goto sys.no.var.set) else (cd /d %stdrc1% && goto sys.check.custom.name)
+    if stdrcch equ notused (goto sys.no.var.set) else (cd /d %stdrcch% && goto sys.check.custom.name)
 
 :sys.no.var.set
     :: normal spam tli
