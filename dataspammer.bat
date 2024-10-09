@@ -34,6 +34,45 @@
     @if not defined debug_assist (@ECHO OFF) else (@echo on)
     if not defined devtools (goto top-startup) else (gotod open.dev.settings)
 
+:sudo.implementation
+    :: Windows will support sudo, starting in 24H2
+    :: Check for Windows Version 24H2 or higher > where SUDO > start via sudo
+    :: Currently the only way is to run via a ps1 script, maybe manual covertion is needed
+    :: https://github.com/microsoft/sudo
+    :: https://github.com/microsoft/sudo/blob/main/scripts/sudo.ps1
+
+    :: Read Version from Registry
+    for /f "tokens=3" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v "ReleaseId"') do set "releaseid=%%a"
+    for /f "tokens=3" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v "CurrentBuild"') do set "build=%%a"
+    
+    :: Version: %releaseid%
+    :: Build-Number: %build%
+    set /a min_build=25900
+    if %build% geq %min_build% (
+        :: Is 24H2 or higher
+        set "sudo=1"
+        goto where.sudo
+    ) else (
+        :: is lower than 24H2
+        set "sudo=0"
+        goto top-startup
+    )
+    
+:where.sudo
+    :: Check if sudo is defined in Path
+    for /f "delims=" %%a in ('where sudo') do (
+        set "where_output=%%a"
+    )
+    if defined where_output (
+        goto sudo.parse
+    ) else (
+        set "sudo=0"
+    )
+
+    :sudo.parse
+    :: sudo requires a Wrapper to work in Powershell (sudo.ps1) maybe sudo will work without it natively in Batch
+    :: else i will need to convert sudo.ps1 to Batch
+
 :top-startup
     set inputFile=settings.conf
     set "firstLine="
@@ -78,6 +117,10 @@
     if "%foundline%"=="false" (
         set "logging=0"
     )
+    if %logging% == 1 ( call :log . )
+    if %logging% == 1 ( call :log . )
+    if %logging% == 1 ( call :log . )
+    if %logging% == 1 ( call :log . )
     if %logging% == 1 ( call :log DataSpammer_Started )
     :: Checks if all Files needed for the Script exist
     setlocal enabledelayedexpansion
