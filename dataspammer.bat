@@ -6,6 +6,7 @@
 ::    Add Translation / make multiple Versions in one Script / Setup.exe Include mutliple Files
 ::    Add FTP support
 ::    Fix SSH Spam
+::    Add Win24H2 sudo Support / no manual Elevation
 
 :!top
     @echo off
@@ -840,6 +841,11 @@
     @ping -n 2 localhost > nul
     goto restart.script
 
+:dev.open.log
+    echo Opening Log...
+    notepad %userprofile%\Documents\DataSpammerLog\DataSpammer.log
+    pause
+    goto settings.logging
 
 :disable.logging
     if %logging% == 0 ( goto settings.logging )
@@ -1837,6 +1843,7 @@
 :log
     :: call scheme is:
     :: if %logging% == 1 ( call :log Opened_verify_tab )
+    :: _ and - are getting Replaced by Space    
 
     set "log.content=%1"
     set "logfile=DataSpammer.log"
