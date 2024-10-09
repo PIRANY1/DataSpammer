@@ -349,7 +349,7 @@
 :check-dev-options
    if %logging% == 1 ( call :log Checking_If_Developer_Mode_Is_Turned_On )
    cd /d %~dp0
-   if exist dev.conf (set "dev-mode=1") else (set "dev-mode=0")
+   if "%developermode%"=="1" (set "dev-mode=1") else (set "dev-mode=0")
    if not defined devtools (goto sys.enable.ascii.tweak) else (goto dtd)
 
 :sys.enable.ascii.tweak
@@ -739,7 +739,7 @@
 :write-dev-options
     if %logging% == 1 ( call :log Activating_Dev_Options )
     cd /d %~dp0
-    echo Only delete this File if you want to deactivate Developer Options. > dev.conf
+    call :update_config "developermode" "" "1"
     echo Developer Options have been activated!
     echo Script will now restart
     @ping -n 2 localhost> nul

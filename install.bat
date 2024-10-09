@@ -5,7 +5,7 @@ mode con: cols=120 lines=30
 if "%restart-main%" == "1" goto sys.open.main.script
 @title Script Installer by PIRANY
 set "foldername=DataSpammer"
-set "current-script-version=v3.4"
+set "current-script-version=v3.5"
 cd /d %~dp0
 color 2
 cls  
@@ -414,13 +414,20 @@ color 2
     set "stdrcch=notused"
     set "update=0"
     set "logging=0"
+    set "dev.mode=0"
     (
         echo :: DataSpammer configuration
         echo insdonevar=%insdonevar%
+        echo :: Standart Filename
         echo stdfile=%stdfile%
+        echo :: Standart Directory
         echo stdrcch=%stdrcch%
+        echo :: Check for Updates
         echo update=%update%
+        echo :: Logging is on by default
         echo logging=%logging%
+        echo :: Developer Mode
+        echo developermode=%dev.mode%
     ) > settings.conf
     
     
@@ -459,19 +466,21 @@ color 2
     set "stdrcch=notused"
     set "update=1"
     set "logging=1"
-    
+    set "dev.mode=0"
     
     (
         echo :: DataSpammer configuration
         echo insdonevar=%insdonevar%
-        :: Standart Filename
+        echo :: Standart Filename
         echo stdfile=%stdfile%
-        :: Standart Directory
+        echo :: Standart Directory
         echo stdrcch=%stdrcch%
-        :: Check for Updates
+        echo :: Check for Updates
         echo update=%update%
-        :: Logging is on by default
+        echo :: Logging is on by default
         echo logging=%logging%
+        echo :: Developer Mode
+        echo developermode=%dev.mode%
     ) > settings.conf
     
     cd /d %~dp0
