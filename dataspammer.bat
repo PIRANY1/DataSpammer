@@ -1223,36 +1223,43 @@
     goto start.verified
 
 :dns.spam
+    setlocal enabledelayedexpansion
+    
     echo DNS-Spam is useful if you have a local DNS Server running (PiHole, Adguard etc.)
-    set /P request.count=Enter the Request Count:
+    set /P request_count=Enter the Request Count:
     set /P domain=Enter the Domain:
-    set /P domain.server=Enter the DNS-Server IP (leave empty for default):
+    set /P domain_server=Enter the DNS-Server IP (leave empty for default):
+    
+    if not defined domain_server set "domain_server= "
+    
     cls
     echo Now enter the Record type. A for IPv4 and AAAA for IPv6. Use A if unsure.
     set /P record_type=Enter the DNS Record Type (A or AAAA):
+    
     set /a x=1
     
-    if "%domain_server%"=="" (
-        for /F "tokens=2 delims=[]" %%a in ('nslookup ^<%domain%^> ^| findstr /i "Server"') do set domain_server=%%a
-    )
+    if /I "%record_type%"=="A" goto dns.a
+    if /I "%record_type%"=="AAAA" goto dns.aaaa
     
+    
+:dns.a
     for /L %%i in (1, 1, %request_count%) do (
-        echo Created %x% IPv4 DNS Request. 
+        echo Created !x! DNS Request for !record_type! record.
         set /a x+=1
-        cls
         nslookup -type=A %domain% %domain_server% > nul
+        cls
+    )
+    goto dns.done
+    
+:dns.aaaa
+    for /L %%i in (1, 1, %request_count%) do (
+        echo Created !x! DNS Request for !record_type! record.
+        set /a x+=1
+        nslookup -type=AAAA %domain% %domain_server% > nul
+        cls
     )
     
-    for /L %%i in (1, 1, %request_count%) do (
-        echo Created %x% DNS Request for %record_type% record.
-        set /a x+=1
-        cls
-        if "%record_type%"=="A" (
-            nslookup -type=A %domain% %domain_server% > nul
-        ) else if "%record_type%"=="AAAA" (
-            nslookup -type=AAAA %domain% %domain_server% > nul
-        )
-    )
+
 :dns.done
     if %logging% == 1 ( call :log Finished_DNS_Spam:%request_count%_Requests_on_%domain_server% )
     :: DNS Done
