@@ -218,9 +218,7 @@ color 2
 
     echo.
     @ping -n 1 localhost> nul
-    echo Please turn the CMD Windows to FullScreen. The Graphics will only be then displayed correctly.
-    @ping -n 1 localhost> nul
-    echo This Installer will lead you throuh the Process of Installing the DataSpammer.
+    echo This Installer will lead you throuh the Process of Installing the DataSpammer Utility.
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul

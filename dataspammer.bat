@@ -1,12 +1,13 @@
 :: Use only under MIT License
-:: If you want to Publish a modified Version please mention the Original Creator PIRANY and link the GitHub Repo
-:: Some Vars and Settings
+:: Use only under License
 ::    Todo: 
-::    Try to Add a Interaktive CLI Interface, which can be dynamicly called and used by other Scripts. 
+::    Migrate Install/DTS.bat
 ::    Add Translation / make multiple Versions in one Script / Setup.exe Include mutliple Files
-::    Add FTP support
 ::    Fix SSH Spam
-::    Add Win24H2 sudo Support / no manual Elevation
+::    Add HTTP/HTPPS Spam
+::    Fully Implement Sudo (Beta is at :sudo.implementation)
+::    Add Readable Settings
+::    Implement Custom Protocol Spam with Calls
 
 :!top
     @echo off
@@ -70,11 +71,10 @@
     )
 
     :sudo.parse
-    :: sudo requires a Wrapper to work in Powershell (sudo.ps1) maybe sudo will work without it natively in Batch
-    :: else i will need to convert sudo.ps1 to Batch
+    :: sudo features a Powershell Wrapper (sudo.ps1) to make it more User-Friendly.
+    :: I Hope its not neccessarily needed for sudo to work, because converting it to Batch is hard. (base64 conding)
 
-    :: First attempt of converting, but many modules are missing in Batch so this is almost impossible.
-    :: The ps1 Script is only a converter so maybe i can invoke it directly to sudo.exe
+
     setlocal
 
     ver | findstr /i "Windows" >nul
@@ -1156,6 +1156,15 @@
     goto autostart.desktop.settings
 
 
+::
+::                ^            ^ 
+::                |  SETTINGS  |  
+::                |  SPAM PART |
+::               \/            \/
+::
+
+
+
 
 :start
     if %logging% == 1 ( call :log Opened_Start )
@@ -1175,33 +1184,208 @@
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [3] Spam Linux/Windows via SSH CURRENTLY ONLY WITH NO PASSWORD
+    echo [3] SSH Spam (no Password)
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [4] Startmenu Spam
+    echo [4] DNS Spam
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [5] App-List Spam
+    echo [5] FTP Spam
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [6] Go Back
+    echo [6] Startmenu Spam
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [7] App-List Spam
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [8] Go Back
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
     echo.
-    set /p spammethod=Choose an Option from Above:
+    set /p spam.method=Choose an Option from Above:
 
-    if "%spammethod%"=="" goto start.verified
-    If %spammethod% == 1 goto normal.text.spam
-    If %spammethod% == 2 goto desktop.icon.spam
-    If %spammethod% == 3 goto ssh.spam
-    If %spammethod% == 4 goto startmenu.spam
-    If %spammethod% == 5 goto app.list.spam
-    If %spammethod% == 6 goto menu
+    if "%spam.method%"=="" goto start.verified
+    If %spam.method% == 1 goto normal.text.spam
+    If %spam.method% == 2 goto desktop.icon.spam
+    If %spam.method% == 3 goto ssh.spam
+    If %spam.method% == 4 goto dns.spam
+    If %spam.method% == 5 goto ftp.spam
+    If %spam.method% == 6 goto startmenu.spam
+    If %spam.method% == 7 goto app.list.spam
+    If %spam.method% == 8 goto menu
     goto start.verified
+
+:dns.spam
+    echo DNS-Spam is useful if you have a local DNS Server running (PiHole, Adguard etc.)
+    set /P request.count=Enter the Request Count:
+    set /P domain=Enter the Domain:
+    set /P domain.server=Enter the DNS-Server IP (leave empty for default):
+    cls
+    echo Now enter the Record type. A for IPv4 and AAAA for IPv6. Use A if unsure.
+    set /P record_type=Enter the DNS Record Type (A or AAAA):
+    set /a x=1
+    
+    if "%domain_server%"=="" (
+        for /F "tokens=2 delims=[]" %%a in ('nslookup ^<%domain%^> ^| findstr /i "Server"') do set domain_server=%%a
+    )
+    
+    for /L %%i in (1, 1, %request_count%) do (
+        echo Created %x% IPv4 DNS Request. 
+        set /a x+=1
+        cls
+        nslookup -type=A %domain% %domain_server% > nul
+    )
+    
+    for /L %%i in (1, 1, %request_count%) do (
+        echo Created %x% DNS Request for %record_type% record.
+        set /a x+=1
+        cls
+        if "%record_type%"=="A" (
+            nslookup -type=A %domain% %domain_server% > nul
+        ) else if "%record_type%"=="AAAA" (
+            nslookup -type=AAAA %domain% %domain_server% > nul
+        )
+    )
+:dns.done
+    if %logging% == 1 ( call :log Finished_DNS_Spam:%request_count%_Requests_on_%domain_server% )
+    :: DNS Done
+    echo.
+    %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
+    %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
+    %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
+    %$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
+    %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
+    %$Echo% "                             |_|                                              |___/                                                                                                                                  
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo The Script Created %request_count% for %domain% on %domain_server%
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo Do you want to Close the Script or Go to the Menu?
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [1] Close
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [2] Menu
+    echo.
+    @ping -n 1 localhost> nul
+    set /p menu9=Choose an Option from Above:
+    if "%menu9%"=="" goto dns.done
+    If %menu9% == 1 goto cancel
+    If %menu9% == 2 goto menu
+    goto dns.done
+
+    
+
+
+:ftp.spam
+    cls
+    echo This Function spams any FTP-Server with Files.
+    echo.
+    set /P ftpserver=Enter a Domain or IP:
+    set /P username=Enter the Username
+    set /P password=Enter the Password
+    set /P remoteDir=Enter the Directory (leave empty if unsure):
+    set /P filename=Enter the Filename:
+    set /P content=Enter the File-Content:
+    echo %content% > %filename%.txt
+    
+    :: Creates Files on local Machine
+    echo Creating Files...
+    set /a w=1
+    cd %tmp%
+    for /l %%i in (1,1,%filecount%) do (
+        echo %content% >> %filename%%x%.txt
+        set /a w+=1
+    )
+    
+    :: Creates FTP Commands and writes them
+    set ftpCommands=ftpcmd.txt
+    echo open %ftpserver% > %ftpCommands%
+    echo %username% >> %ftpCommands%
+    echo %password% >> %ftpCommands%
+    echo binary >> %ftpCommands%
+    echo cd %remoteDir% >> %ftpCommands%
+    
+    echo Creating Commands...
+    
+    :: Writes multiple Files in Command List
+    set /a x=1
+    for /l %%i in (1,1,%filecount%) do (
+        setlocal enabledelayedexpansion
+        set localFile=%filename%!x!.txt
+        echo put !localFile! >> %ftpCommands%
+        set /a x+=1
+        endlocal
+    )
+    
+    echo bye >> %ftpCommands%
+    ftp -n -s:%ftpCommands%
+    del %ftpCommands%
+    
+    set /a y=1
+    cd %tmp%
+    for /l %%i in (1,1,%filecount%) do (
+        erase %filename%%x%.txt
+        set /a y+=1
+    )
+    
+:ftp.done    
+    if %logging% == 1 ( call :log Finished_FTP_Spam:_%filecount% )
+    cls
+    echo.
+    %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
+    %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
+    %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
+    %$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
+    %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
+    %$Echo% "                             |_|                                              |___/                                                                                                                                     
+
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo The Script Created %filecount% Files on the FTP Server: %ftpserver%
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo Do you want to Close the Script or Go to the Menu?
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [1] Close
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [2] Menu
+    echo.
+    @ping -n 1 localhost> nul
+    set /p app.spam.menu=Choose an Option from Above:
+    if "%app.spam.menu%"=="" goto ftp.done
+    If %app.spam.menu% == 1 goto cancel
+    If %app.spam.menu% == 2 goto menu
+    goto ftp.done
+
+
 
 :app.list.spam
     cls
@@ -1771,7 +1955,7 @@
     echo.
     echo.
     echo Dataspammer: 
-    echo    Script with that you can spam various Windows Directorys and more.
+    echo    Script to stress-test various Protocols or Systems
     echo    Made for educational Purposes only.
     echo.
     echo Usage dataspammer [Argument]
