@@ -69,40 +69,33 @@
         set "sudo=0"
     )
 
-    :sudo.parse
+:sudo.parse
     :: sudo features a Powershell Wrapper (sudo.ps1) to make it more User-Friendly.
     :: I Hope its not neccessarily needed for sudo to work, because converting it to Batch is hard. (base64 conding)
 
 
     setlocal
-
     ver | findstr /i "Windows" >nul
     if errorlevel 1 (
         echo This Script only works with Windows
         exit /b 1
     )
-    
     where sudo.exe >nul
     if errorlevel 1 (
         echo "sudo.exe" wasnt found
         exit /b 1
     )
-    
     set "psProcess=%ComSpec%"
-    
     if "%psProcess%"=="" (
         echo Cannot get Process
         exit /b 1
     )
-    
     :: Simulate Base64 Code
     set "convertToBase64EncodedString=certutil -encode"
-
     if "%~1"=="" (
         echo Got no Arguments.
         exit /b 1
     )
-    
     :: Execute Translatet Argument
     set "cmdLine=%*"
     if "%~1"=="/scriptblock" (
@@ -111,7 +104,6 @@
     ) else (
         sudo.exe %cmdLine%
     )
-    
     exit /b 0
     
 
