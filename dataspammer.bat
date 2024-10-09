@@ -1077,15 +1077,19 @@
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [6] Startmenu Spam
+    echo [6] HTTP(S) Spam
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [7] App-List Spam
+    echo [7] Startmenu Spam
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [8] Go Back
+    echo [8] App-List Spam
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [9] Go Back
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
@@ -1098,10 +1102,61 @@
     If %spam.method% == 3 goto ssh.spam
     If %spam.method% == 4 goto dns.spam
     If %spam.method% == 5 goto ftp.spam
-    If %spam.method% == 6 goto startmenu.spam
-    If %spam.method% == 7 goto app.list.spam
-    If %spam.method% == 8 goto menu
+    If %spam.method% == 6 goto https.spam
+    If %spam.method% == 7 goto startmenu.spam
+    If %spam.method% == 8 goto app.list.spam
+    If %spam.method% == 9 goto menu
     goto start.verified
+
+:https.spam
+    echo Spam a HTTP/HTTPS Server with Requests
+    set /P url=Enter a Domain or an IP:
+    set /P requests=How many requests should be made
+    
+    setlocal enabledelayedexpansion
+    for /L %%i in (1,1,%requests%) do (
+        echo Sending Request %%i of %requests% to %URL%
+        curl -s -o NUL -w "Status: %{http_code}\n" %URL%
+    )
+
+:https.done
+    if %logging% == 1 ( call :log Finished_HTTPS_Spam:%requests%_Requests_on_%url% )
+    :: HTTP(S) Done
+    echo.
+    %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
+    %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
+    %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
+    %$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
+    %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
+    %$Echo% "                             |_|                                              |___/                                                                                                                                  
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo The Script Created %requests% to %url%
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo Do you want to Close the Script or Go to the Menu?
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [1] Close
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [2] Menu
+    echo.
+    @ping -n 1 localhost> nul
+    set /p menu9=Choose an Option from Above:
+    if "%menu9%"=="" goto https.done
+    If %menu9% == 1 goto cancel
+    If %menu9% == 2 goto menu
+    goto https.done
+
 
 :dns.spam
     setlocal enabledelayedexpansion
