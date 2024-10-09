@@ -1,13 +1,12 @@
 :: Use only under MIT License
 :: Use only under License
 ::    Todo: 
-::    Migrate Install/DTS.bat
-::    Add Translation / make multiple Versions in one Script / Setup.exe Include mutliple Files
+::    Implement default Filename in FTP etc.
 ::    Fix SSH Spam
 ::    Add HTTP/HTPPS Spam
-::    Fully Implement Sudo (Beta is at :sudo.implementation)
-::    Add Readable Settings
 ::    Implement Custom Protocol Spam with Calls
+::    Fully Implement Sudo (Beta is at :sudo.implementation)
+
 
 :!top
     @echo off
@@ -140,37 +139,26 @@
 
 
 :check-files
-    setlocal EnableDelayedExpansion
-    cd /d %~dp0
-    set "file=settings.conf"
-    set "linenr=5"
-    set "logging=0"  
-    set /a nr=0
-    set "foundline=false"
-    for /f "tokens=*" %%a in ('type "%file%"') do (
-        set /a nr+=1
-        if !nr! equ %linenr% (
-            set "foundline=true"
-            if "%%a"=="logging" (
-                set "logging=1"
-            ) else (
-                set "logging=0"
-            )
-        )
-    )
-    if "%foundline%"=="false" (
-        set "logging=0"
-    )
-    if %logging% == 1 ( call :log . )
-    if %logging% == 1 ( call :log . )
-    if %logging% == 1 ( call :log . )
-    if %logging% == 1 ( call :log . )
-    if %logging% == 1 ( call :log DataSpammer_Started )
     :: Checks if all Files needed for the Script exist
     setlocal enabledelayedexpansion
     @title Starting Up...
     echo Checking for Data...
     if not exist "settings.conf" goto sys.no.settings
+    
+    :: Parses Settings
+    echo Extracting Settings...
+    set "config_file=settings.conf"
+    for /f "usebackq tokens=1,2 delims==" %%a in (`findstr /v "^::" "%config_file%"`) do (
+        set "%%a=%%b"
+    )
+    
+    :: Makes Log More Readable after Script restart
+    if %logging% == 1 ( call :log . )
+    if %logging% == 1 ( call :log . )
+    if %logging% == 1 ( call :log . )
+    if %logging% == 1 ( call :log . )
+    if %logging% == 1 ( call :log DataSpammer_Started )
+
     echo Checking for Files...
     if not exist "install.bat" (goto sys.error.no.install) else (goto settings.extract.update)
 
@@ -210,23 +198,8 @@
 
 :settings.extract.update
     if %logging% == 1 ( call :log Checking_Settings_for_Update_Command )
-    setlocal enabledelayedexpansion
-    set "file=settings.conf"
-    set "linenr=4"
-    set "searchfor=uy"
-
-    for /f "tokens=1* delims=:" %%a in ('findstr /n "^" "%file%"') do (
-        if %%a equ %linenr% (
-            set "line=%%b"
-            set "line=!line:*:=!"
-            if "!line!" equ "!searchfor!" (
-                call :gitcall.sys
-                goto dts.startup.done
-            )
-        )
-    )
+    if "%logging%"=="1" call :gitcall.sys
     goto dts.startup.done
-
 
 :gitcall.sys
     if %logging% == 1 ( call :log Calling_Update_Check )
@@ -385,25 +358,7 @@
    if %logging% == 1 ( call :log Checking_If_Developer_Mode_Is_Turned_On )
    cd /d %~dp0
    if exist dev.conf (set "dev-mode=1") else (set "dev-mode=0")
-
-
-:sys.extract.settings.to.var
-    if %logging% == 1 ( call :log Extracting_Settings_From_File )
-    :: Extract data from Settings file
-    setlocal enabledelayedexpansion
-    set "file=settings.conf"
-    set nr=0
-    for /l %%i in (1,1,5) do (
-        set "line%%i="
-    )
-    for /f "delims=" %%a in (%file%) do (
-        set /a "nr+=1"
-        set "line!nr!=%%a"
-    )
-    set "insdonevar1=!line1!"
-    set "stdfile=!line2!"
-    set "stdrc1=!line3!"
-    if not defined devtools (goto sys.enable.ascii.tweak) else (goto dtd)
+   if not defined devtools (goto sys.enable.ascii.tweak) else (goto dtd)
 
 :sys.enable.ascii.tweak
     if %logging% == 1 ( call :log Sending_Notification )
@@ -801,57 +756,25 @@
 :settings.change.df.filename
     :: Write Standart Filename to File
     cls 
-    echo The Filename cant have the following Character(s):\ / : * ? " < > |"
-    set /p mainfilename=Type in the Filename you want to use.
-    setlocal enabledelayedexpansion
-    set "file=settings.conf"
-    set "tmpfile=temp.txt"
-    set linenumber=0
-    (for /f "tokens=*" %%a in (!file!) do (
-        set /a "linenumber+=1"
-        if !linenumber! equ 2 (
-            echo !mainfilename!
-        ) else (
-            echo %%a
-        )
-    )) > !tmpfile!
-    move /y !tmpfile! !file!
+    call :update_config "stdfile" "Type in the Filename you want to use:" ""
+    echo Restarting Script...
     if %logging% == 1 ( call :log Changing_Standart_FileName )
-    echo The Standart Filename was saved!
-    cls
-    goto settings
+    @ping -n 2 localhost > nul
+    goto restart.script
+
 
 
 :settings.default.directory.crash
     if %logging% == 1 ( call :log Chaning_Standart_Directory )
     :: Standart Spam Directory Check
     cls 
-    echo.
-    echo.
     set /p directory0=Type Your Directory Here:
     if exist %directory0% (goto settings.default.directory.crash.2) else (goto settings.default.directory.crash.3)
-
-:settings.default.directory.crash.2
-    :: Write Standart Spam Directory to Settings
-    setlocal ENABLEDELAYEDEXPANSION
-    set "setfile=settings.conf"
-    set "tmpfile=temp.txt"
-    set "lineCounter=0"
-
-    (
-      for /f "tokens=*" %%a in (!setfile!) do (
-        set /a "lineCounter+=1"
-        if !lineCounter! equ 3 (
-          echo !directory0!
-        ) else (
-          echo %%a
-        )
-      )
-    ) > !tmpfile!
-    move /y !tmpfile! !setfile!
-    echo The Directory was saved!
-    cls
-    goto settings
+    call :update_config "stdrcch" "" "%directory0%"
+    echo Restarting Script...
+    if %logging% == 1 ( call :log Changing_Default_Directory )
+    @ping -n 2 localhost > nul
+    goto restart.script
 
 :settings.default.directory.crash.3
     :: Not so hard to understand
@@ -897,34 +820,8 @@
 
 :enable.logging
     if %logging% == 1 ( goto settings.logging )
-    cd /d %~dp0
-    set "file=settings.conf"
-    set "linenr=5"
-    set "tempfile=tempfile.conf"
-    set /a nr=0
-    set "foundLine=false"
-    set "logging.content=logging"
-    
-    (
-        for /f "tokens=*" %%a in ('type "%file%" 2^>nul') do (
-            set /a nr+=1
-            if !nr! equ %linenr% (
-                echo %logging.content%
-                set "foundLine=true"
-            ) else (
-                echo %%a
-            )
-        )
-    ) > "%tempfile%"
-    
-    if "%foundLine%"=="false" (
-        echo logging.content >> "%tempfile%"
-    )
-    
-    pause
-    move /y "%tempfile%" "%file%"
+    call :update_config "logging" "" "1"
     echo Enabled Logging. Restarting Script...
-    pause
     @ping -n 2 localhost > nul
     goto restart.script
 
@@ -937,23 +834,7 @@
 :disable.logging
     if %logging% == 0 ( goto settings.logging )
     if %logging% == 1 ( call :log Disabling_Logging )
-    cd /d %~dp0
-    set "file=settings.conf"
-    set "linenr=5"
-    set "tempfile=tempfile.conf"
-    set /a nr=0
-    
-    (
-        for /f "tokens=*" %%a in ('type "%file%"') do (
-            set /a nr+=1
-            if !nr! equ %linenr% (
-                echo.
-            ) else (
-                echo %%a
-            )
-        )
-    ) > "%tempfile%"
-    move /y "%tempfile%" "%file%"
+    call :update_config "logging" "" "0"
     echo Disabled Logging. Restarting Script...
     @ping -n 2 localhost> nul
     goto restart.script
@@ -2153,6 +2034,49 @@
         
         :: Write Log
         ::echo !currentDate! !formattedTime! %log.content% >> "%folder%\%logfile%"
+
+
+:update_config
+    :: Example for Interactive Change
+    :: call :update_config "stdfile" "Type in the Filename you want to use." ""
+    
+    :: Example for Automated Change
+    :: call :update_config "logging" "" "1"
+    
+    :: Parameter 1: Value (logging etc.)
+    :: Parameter 2: User Choice (interactive prompt, empty for automated)
+    :: Parameter 3: New Value (leave empty for user input)
+    
+    setlocal enabledelayedexpansion
+    cd /d %~dp0
+    
+    set "key=%~1"
+    set "prompt=%~2"
+    set "new_value=%~3"
+
+    if "%new_value%"=="" (
+        set /p new_value=%prompt%
+    )
+    
+    set "file=settings.conf"
+    set "tmpfile=temp.txt"
+    set linenumber=0
+    
+    (for /f "tokens=1,* delims==" %%a in (!file!) do (
+        if "%%a"=="%key%" (
+            echo %%a=!new_value!
+        ) else (
+            echo %%a=%%b
+        )
+    )) > !tmpfile!
+    
+    move /y !tmpfile! !file!
+    
+    if !logging!==1 ( call :log Changing_%key% )
+    cls
+    endlocal
+    goto :eof
+    
 
 
 :sys.verify.execution

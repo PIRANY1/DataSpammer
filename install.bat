@@ -407,19 +407,27 @@ color 2
     cd /d "%directory9%"
     :: Create settings.conf
     setlocal enabledelayedexpansion
+    
+    cd /d "%directory9%"
     set "insdonevar=insdone"
-    set "stdfil=notused"
+    set "stdfile=notused"
     set "stdrcch=notused"
-    set "update=notused"
-    set "file=settings.conf"
-    echo !insdonevar! >> %file%
-    echo !stdfil! >> %file%
-    echo !stdrcch! >> %file%
-    echo !update! >> %file%
-    echo Settings.conf was created.
+    set "update=0"
+    set "logging=0"
+    (
+        echo :: DataSpammer configuration
+        echo insdonevar=%insdonevar%
+        echo stdfile=%stdfile%
+        echo stdrcch=%stdrcch%
+        echo update=%update%
+        echo logging=%logging%
+    ) > settings.conf
+    
+    
     cd /d %~dp0
     del dataspammer.bat
     cd /d "%directory9%"
+
 
 :installer.copy.settings.done
     :: Check if there where errors installing the base script
@@ -443,25 +451,32 @@ color 2
 
 
 :installer.common.drc.switch
+    :: Write Settings.conf with Update
+    setlocal enabledelayedexpansion
     cd /d "%directory9%"
+    set "insdonevar=insdone"
+    set "stdfile=notused"
+    set "stdrcch=notused"
+    set "update=1"
+    set "logging=1"
     
-:installer.start.template
-    :: Write Settings Template
-    set "line1=insdone"
-    set "line2=notused"
-    set "line3=notused"
-    set "line4=uy"
-    set "setfile=settings.conf"
-    if exist !setfile! (
-        del !setfile!
-    )
+    
     (
-        echo !line1!
-        echo !line2!
-        echo !line3!
-        echo !line4!
-    ) > !setfile!
+        echo :: DataSpammer configuration
+        echo insdonevar=%insdonevar%
+        :: Standart Filename
+        echo stdfile=%stdfile%
+        :: Standart Directory
+        echo stdrcch=%stdrcch%
+        :: Check for Updates
+        echo update=%update%
+        :: Logging is on by default
+        echo logging=%logging%
+    ) > settings.conf
+    
+    cd /d %~dp0
     goto install.additional.links
+    
 
 :install.additional.links
     cd /d "%directory9%"
