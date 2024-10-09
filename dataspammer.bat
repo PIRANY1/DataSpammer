@@ -73,6 +73,50 @@
     :: sudo requires a Wrapper to work in Powershell (sudo.ps1) maybe sudo will work without it natively in Batch
     :: else i will need to convert sudo.ps1 to Batch
 
+    :: First attempt of converting, but many modules are missing in Batch so this is almost impossible.
+    :: The ps1 Script is only a converter so maybe i can invoke it directly to sudo.exe
+    setlocal
+
+    ver | findstr /i "Windows" >nul
+    if errorlevel 1 (
+        echo This Script only works with Windows
+        exit /b 1
+    )
+    
+    where sudo.exe >nul
+    if errorlevel 1 (
+        echo "sudo.exe" wasnt found
+        exit /b 1
+    )
+    
+    set "psProcess=%ComSpec%"
+    
+    if "%psProcess%"=="" (
+        echo Cannot get Process
+        exit /b 1
+    )
+    
+    :: Simulate Base64 Code
+    set "convertToBase64EncodedString=certutil -encode"
+
+    if "%~1"=="" (
+        echo Got no Arguments.
+        exit /b 1
+    )
+    
+    :: Execute Translatet Argument
+    set "cmdLine=%*"
+    if "%~1"=="/scriptblock" (
+        echo Scriptblock Mode isnt supported in Batch
+        exit /b 1
+    ) else (
+        sudo.exe %cmdLine%
+    )
+    
+    exit /b 0
+    
+
+
 :top-startup
     set inputFile=settings.conf
     set "firstLine="
