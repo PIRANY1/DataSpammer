@@ -15,23 +15,10 @@ Desktop Shortcut, Autostart, Auto Update, Logging, Elevation via sudo/pwsh
 <details>
     <summary>Click To Open.</summary>
 
-    Migrate Install/DTS.bat
-
-    Add Translation / make multiple Versions in one Script / Setup.exe Include mutliple Files
-
-    Add FTP support
-
     Fix SSH Spam
-
-    Add DNS Spam
-
-    Add HTTP/HTPPS Spam
 
     Fully Implement Sudo (Beta is at :sudo.implementation)
 
-    Implement Readable Settings
-
-    
 </details>
 
 ## Install

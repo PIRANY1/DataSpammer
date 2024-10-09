@@ -1,10 +1,7 @@
 :: Use only under MIT License
 :: Use only under License
 ::    Todo: 
-::    Implement default Filename in FTP etc.
-::    Implement default Filename in FTP etc.
 ::    Fix SSH Spam
-::    Add HTTP/HTPPS Spam
 ::    Implement Custom Protocol Spam with Calls
 ::    Fully Implement Sudo (Beta is at :sudo.implementation)
 
@@ -2145,4 +2142,3 @@
 :cancel 
     :: yes
     exit
-
