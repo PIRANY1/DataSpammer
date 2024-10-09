@@ -409,25 +409,29 @@ color 2
     setlocal enabledelayedexpansion
     
     cd /d "%directory9%"
-    set "insdonevar=insdone"
     set "stdfile=notused"
     set "stdrcch=notused"
     set "update=0"
     set "logging=0"
     set "dev.mode=0"
+    set "default-filecount=notused"
+    set "default-domain=notused"
     (
         echo :: DataSpammer configuration
-        echo insdonevar=%insdonevar%
         echo :: Standart Filename
-        echo stdfile=%stdfile%
+        echo default_filename=%stdfile%
         echo :: Standart Directory
-        echo stdrcch=%stdrcch%
+        echo default_directory=%stdrcch%
         echo :: Check for Updates
         echo update=%update%
         echo :: Logging is on by default
         echo logging=%logging%
         echo :: Developer Mode
         echo developermode=%dev.mode%
+        echo :: Default Filecount
+        echo default-filecount=%default-filecount%
+        echo :: Default Domain
+        echo default-domain=%default-domain%
     ) > settings.conf
     
     
@@ -461,26 +465,30 @@ color 2
     :: Write Settings.conf with Update
     setlocal enabledelayedexpansion
     cd /d "%directory9%"
-    set "insdonevar=insdone"
     set "stdfile=notused"
     set "stdrcch=notused"
     set "update=1"
     set "logging=1"
     set "dev.mode=0"
+    set "default-filecount=notused"
+    set "default-domain=notused"
     
     (
         echo :: DataSpammer configuration
-        echo insdonevar=%insdonevar%
         echo :: Standart Filename
-        echo stdfile=%stdfile%
+        echo default_filename=%stdfile%
         echo :: Standart Directory
-        echo stdrcch=%stdrcch%
+        echo default_directory=%stdrcch%
         echo :: Check for Updates
         echo update=%update%
         echo :: Logging is on by default
         echo logging=%logging%
         echo :: Developer Mode
         echo developermode=%dev.mode%
+        echo :: Default Filecount
+        echo default-filecount=%default-filecount%
+        echo :: Default Domain
+        echo default-domain=%default-domain%
     ) > settings.conf
     
     cd /d %~dp0

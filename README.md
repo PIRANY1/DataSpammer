@@ -4,7 +4,7 @@
 
 ### Spam Features
 
-SSH Spam, Desktop Spam, Folder Spam, Startmenu Spam, Applist Spam
+SSH, FTP, DNS, HTTP(S), Desktop Spam, Folder Spam, Startmenu Spam, Applist Spam
 
 ### Other Features
 
