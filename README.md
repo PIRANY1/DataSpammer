@@ -29,7 +29,9 @@ Download the Source code manually, use the setup.exe in the Versions tab or use 
 
 ``` cmd
 
-curl -so install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat && ./install.bat
+
+curl -so install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat && install.bat
+
 
 ```
 

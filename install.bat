@@ -421,8 +421,8 @@ color 2
     setlocal enabledelayedexpansion
     
     cd /d "%directory9%"
-    set "stdfile=notused"
-    set "stdrcch=notused"
+    set "default.filename=notused"
+    set "default.directory=notused"
     set "update=0"
     set "logging=0"
     set "dev.mode=0"
@@ -431,9 +431,9 @@ color 2
     (
         echo :: DataSpammer configuration
         echo :: Standart Filename
-        echo default_filename=%stdfile%
+        echo default_filename=%default.filename%
         echo :: Standart Directory
-        echo default_directory=%stdrcch%
+        echo default_directory=%default.directory%
         echo :: Check for Updates
         echo update=%update%
         echo :: Logging is on by default
