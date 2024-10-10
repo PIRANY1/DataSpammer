@@ -416,6 +416,25 @@ color 2
     curl -so dataspammer.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat > nul
     curl -so install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat > nul
 
+    :: Add Script to Registry / AppList
+    set "app.name=DataSpammer"
+    set "app.version=%current-script-version%"
+    set "app.path=%directory9%"
+    set "app.publisher=PIRANY1"
+
+    set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\%app.name%"
+    if defined ProgramFiles(x86) (
+        set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\%app.name%"
+    )
+    reg add "%RegPath%" /v "DisplayName" /d "%app.name%%x%" /f
+    reg add "%RegPath%" /v "DisplayVersion" /d "%app.version%" /f
+    reg add "%RegPath%" /v "InstallLocation" /d "%app.path%" /f
+    reg add "%RegPath%" /v "Publisher" /d "%app.publisher%" /f
+    reg add "%RegPath%" /v "UninstallString" /d "%directory9%\dataspammer.bat remove" /f
+
+
+    
+
 :installer.start.settings
     :: Create settings.conf
     setlocal enabledelayedexpansion
@@ -637,7 +656,7 @@ color 2
     cd /d %~dp0
     erase install.bat > nul
     cd /d "%directory9%"
-    goto sys.open.main.script
+    dataspammer.bat
 
 :cancel
     :: When the Install got canceled

@@ -550,7 +550,7 @@
     @ping -n 1 localhost> nul
     echo. 
     @ping -n 1 localhost> nul
-    echo [1] Standart Filename
+    echo [1] Spam Settings
     @ping -n 1 localhost> nul
     echo. 
     @ping -n 1 localhost> nul
