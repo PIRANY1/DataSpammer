@@ -46,10 +46,10 @@ color 2
     @ping -n 1 localhost> nul
     echo.
     echo.
-    set /P updateinstalledvar=Choose an Option from above
-    if "%updateinstalledvar%"=="" goto sys.new.update.installed
-    if %updateinstalledvar% == 1 goto sys.open.main.script
-    if %updateinstalledvar% == 2 goto cancel
+    set /P update.installed.menu=Choose an Option from above
+    if "%update.installed.menu%"=="" goto sys.new.update.installed
+    if %update.installed.menu% == 1 goto sys.open.main.script
+    if %update.installed.menu% == 2 goto cancel
     goto sys.new.update.installed
 
 
@@ -83,14 +83,14 @@ color 2
     echo.
     @ping -n 1 localhost> nul
     echo [4] Reinstall Script
-    set /p insdone123=Choose an Option from above
+    set /p installer.executed.menu=Choose an Option from above
     
-    if "%insdone123%"=="" goto sys.installer.execution.finished
-    If %insdone123% == 1 goto sys.open.main.script
-    If %insdone123% == 2 goto open.settings.dts
-    If %insdone123% == 3 goto delete.script.confirmation.window
-    If %insdone123% == 4 goto installer.main.window
-    If %insdone123% == 6 goto sys.add.developer.tool
+    if "%installer.executed.menu%"=="" goto sys.installer.execution.finished
+    If %installer.executed.menu% == 1 goto sys.open.main.script
+    If %installer.executed.menu% == 2 goto open.settings.dts
+    If %installer.executed.menu% == 3 goto delete.script.confirmation.window
+    If %installer.executed.menu% == 4 goto installer.main.window
+    If %installer.executed.menu% == 6 goto sys.add.developer.tool
     goto sys.installer.execution.finished
 
 :sys.add.developer.tool
@@ -154,19 +154,19 @@ color 2
     @ping -n 1 localhost> nul
     echo.
     echo.
-    set /p delscrconf=Choose an Option from Above
+    set /p delete.script.menu=Choose an Option from Above
 
-    if "%delscrconf%"=="" goto delete.script.confirmation.window
-    If %delscrconf% == 1 goto delete.script.verify
-    If %delscrconf% == 2 start "" "https://github.com/PIRANY1/DataSpammer" && goto delete.script.confirmation.window
-    If %delscrconf% == 3 goto open.install.done
+    if "%delete.script.menu%"=="" goto delete.script.confirmation.window
+    If %delete.script.menu% == 1 goto delete.script.verify
+    If %delete.script.menu% == 2 start "" "https://github.com/PIRANY1/DataSpammer" && goto delete.script.confirmation.window
+    If %delete.script.menu% == 3 goto open.install.done
     goto delete.script.confirmation.window
 
 
 :open.settings.dts
     :: Open Settings in Main Script
-    set "settingsmainscriptvar=1"
-    goto sys.open.main.script
+    cd /d %~dp0
+    dataspammer.bat settings
 
 :delete.script.verify
     call :verify
@@ -232,10 +232,10 @@ color 2
     echo.
     echo.
     @ping -n 1 localhost> nul
-    set /P programdrccustom=Choose an Option from Above:
-    if "%programdrccustom%"=="" goto installer.main.window
-    if %programdrccustom% == 2 goto installer.custom.install.directory
-    if %programdrccustom% == 1 goto standart.install.run
+    set /P installer.main=Choose an Option from Above:
+    if "%installer.main%"=="" goto installer.main.window
+    if "%installer.main%" == 2 goto installer.custom.install.directory
+    if "%installer.main%" == 1 goto standart.install.run
     goto installer.main.window
 
 :standart.install.run
@@ -256,7 +256,7 @@ color 2
 :standart.install.run.2
     :: Preset some Variables
     set "startmenushortcut=Not Included"
-    set "desktopic=Not Included"
+    set "desktopicon=Not Included"
     set "autostart=Not Included"
 :standart.install.run.3
     :: AV Deactivate TLI
@@ -303,7 +303,7 @@ color 2
     @ping -n 1 localhost> nul
     echo. 
     @ping -n 1 localhost> nul
-    echo [2] (%desktopic%) Desktop Shortcut
+    echo [2] (%desktopicon%) Desktop Shortcut
     @ping -n 1 localhost> nul
     echo. 
     @ping -n 1 localhost> nul
@@ -334,7 +334,7 @@ color 2
 
 :n2varinst
     cls
-    set "desktopic=Included"
+    set "desktopicon=Included"
     set "desktopic1=1"
     goto standart.install.run.4
 
@@ -396,10 +396,10 @@ color 2
     echo.
     @ping -n 1 localhost> nul
     echo.
-    set /p menu3=Choose an Option from Above:
-    if "%menu3%"=="" goto installer.updater.installation.confirm
-    If %menu3% == 1 set "gitinsyn=1"
-    If %menu3% == 2 goto installer.start.copy
+    set /p install.updater=Choose an Option from Above:
+    if "%install.updater%"=="" goto installer.updater.installation.confirm
+    If "%install.updater%" == 1 set "gitinsyn=1"
+    If "%install.updater%" == 2 goto installer.start.copy
 
 :installer.start.copy
     :: Main install part
@@ -586,14 +586,14 @@ color 2
     echo.
     @ping -n 1 localhost> nul
     echo.
-    set /p ynins1=Select an Answer from above
-    if "%ynins1%"=="" goto additionals.ask.window
-    If %ynins1% == 1 goto list.content.LC
-    If %ynins1% == 2 goto list.content.RD
-    If %ynins1% == 3 goto delete.license
-    If %ynins1% == 4 goto delete.readme
-    If %ynins1% == 5 goto copy.rl.to.script
-    If %ynins1% == 6 goto sys.main.installer.done
+    set /p RL.menu=Select an Answer from above
+    if "%RL.menu%"=="" goto additionals.ask.window
+    If %RL.menu% == 1 goto list.content.LC
+    If %RL.menu% == 2 goto list.content.RD
+    If %RL.menu% == 3 goto delete.license
+    If %RL.menu% == 4 goto delete.readme
+    If %RL.menu% == 5 goto copy.rl.to.script
+    If %RL.menu% == 6 goto sys.main.installer.done
     goto additionals.ask.window
 
 :copy.rl.to.script
@@ -680,13 +680,14 @@ color 2
     echo [5] Restart the Script (Variables will be kept)
     echo.
     echo [6] Restart the Script (Variables wont be kept)
-    set /P devoption=Choose an Option From Above.
-    if %devoption% == 1 goto dev.jump.callsign
-    if %devoption% == 2 goto dev.options
-    if %devoption% == 3 @ECHO ON && goto normal.start
-    if %devoption% == 4 goto dev.custom.var.set 
-    if %devoption% == 5 restart.script.dev
-    if %devoption% == 6 restart.script
+    set /P dev.option=Choose an Option From Above.
+    if "%devoption%" == "" goto dev.options 
+    if "%devoption%" == 1 goto dev.jump.callsign
+    if "%devoption%" == 2 goto dev.options
+    if "%devoption%" == 3 @ECHO ON && goto normal.start
+    if "%devoption%" == 4 goto dev.custom.var.set 
+    if "%devoption%" == 5 restart.script.dev
+    if "%devoption%" == 6 restart.script
     goto dev.options
     
     :dev.jump.callsign
