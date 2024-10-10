@@ -177,28 +177,28 @@ color 2
 
 :delete.script.confirmed.2
     :: Delete Script 
-    if exist "%~dp0\LICENSE" del "%~dp0\LICENSE"
+    if exist "%~dp0\LICENSE" erase "%~dp0\LICENSE" > nul
     echo 1/7 Files Deleted
     @ping -n 1 localhost> nul
-    if exist "%~dp0\README.md" del "%~dp0\README.md"
+    if exist "%~dp0\README.md" erase "%~dp0\README.md" > nul
     echo 2/7 Files Deleted
     @ping -n 1 localhost> nul
-    if exist "%~dp0\dataspammer.bat" del "%~dp0\dataspammer.bat"
+    if exist "%~dp0\dataspammer.bat" erase "%~dp0\dataspammer.bat" > nul
     echo 3/7 Files Deleted
     @ping -n 1 localhost> nul
-    if exist "%~dp0\install.bat" del "%~dp0\install.bat"
+    if exist "%~dp0\install.bat" erase "%~dp0\install.bat" > nul
     echo 4/7 Files Deleted
     cd /d C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
-    if exist "autostart.bat" del "autostart.bat"
+    if exist "autostart.bat" erase "autostart.bat" > nul
     echo 5/7 Files Deleted
     @ping -n 1 localhost> nul
     cd /d %userprofile%\Desktop
-    if exist "Dataspammer.bat" del "Dataspammer.bat"
+    if exist "Dataspammer.bat" erase "Dataspammer.bat" > nul
     echo 6/7 Files Deleted
     @ping -n 1 localhost> nul
     set "startMenuPrograms=%ProgramData%\Microsoft\Windows\Start Menu\Programs"
     cd /d %startMenuPrograms%
-    if exist "Dataspammer.bat" del "Dataspammer.bat"
+    if exist "Dataspammer.bat" erase "Dataspammer.bat" > nul
     echo 7/7 Files Deleted
     echo Uninstall Successfull
 
@@ -244,10 +244,15 @@ color 2
     set "directory=%ProgramFiles%"
     cd /d "%directory%"
 :standart.install.run.1
-    :: Check if script is elevated
-    setlocal enableextensions ENABLEDELAYEDEXPANSION 
+    setlocal EnableDelayedExpansion
     net session >nul 2>&1
-    if %errorLevel% == 0 (goto standart.install.run.2) else (goto sys.verify.execution)
+    if %errorLevel% neq 0 (
+        echo Script will request Administrator Rights.
+        @ping -n 2 localhost> nul
+        powershell -Command "Start-Process '%~f0' -Verb runAs"
+        exit
+    )
+
 :standart.install.run.2
     :: Preset some Variables
     set "startmenushortcut=Not Included"
@@ -362,18 +367,18 @@ color 2
     mkdir DataSpammer
     set "install-directory=%cd%"
     xcopy dataspammer.bat "%install-directory%\DataSpammer"
-    del dataspammer.bat
+    erase dataspammer.bat > nul
     cd /d DataSpammer
     echo small-install > settings.conf
     cd /d %~dp0
     echo Do you want to copy the README into the Script Folder too or should it be deleted?
     choice /C DC /M "Press D If you want to Delete README and C to Copy it into the Script folder"
     set _erl=%errorlevel%
-    if %_erl%==D del README.md
+    if %_erl%==D erase README.md > nul
     if %_erl%==C xcopy "README.md" "%install-directory%\DataSpammer"
     echo Installation Done.
     cd /d DataSpammer 
-    del %install-directory%\install.bat
+    erase %install-directory%\install.bat > nul
     goto sys.open.main.script
 
 :installer.updater.installation.confirm
@@ -400,11 +405,18 @@ color 2
     :: Main install part
     set "directory9=%directory%\%foldername%"
     mkdir "%directory9%" 
-    xcopy "%~dp0\dataspammer.bat" "%directory9%" 
-    xcopy "%~dp0\install.bat" "%directory9%"     
+ 
+    cd /d %~dp0
+    erase readme.md > nul   
+    erase license > nul
+    curl -so license https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/license
+    curl -so readme.md https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/readme.md
+    erase dataspammer.bat > nul
+    cd /d "%directory9%"
+    curl -so dataspammer.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat > nul
+    curl -so install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat > nul
 
 :installer.start.settings
-    cd /d "%directory9%"
     :: Create settings.conf
     setlocal enabledelayedexpansion
     
@@ -434,24 +446,6 @@ color 2
         echo default-domain=%default-domain%
     ) > settings.conf
     
-    
-    cd /d %~dp0
-    del dataspammer.bat
-    cd /d "%directory9%"
-
-
-:installer.copy.settings.done
-    :: Check if there where errors installing the base script
-    if %errorlevel% equ 0 (
-        echo Success.
-        cls
-        goto check.if.updater.install
-    ) else (
-        echo There was an Error.
-        echo Please Restart the Script.
-        pause
-        goto cancel
-    )
 
 :check.if.updater.install
     if defined gitinsyn (
@@ -588,8 +582,8 @@ color 2
     :: Copy readme and license to install directory
     if exist "%~dp0\LICENSE" xcopy "%~dp0\LICENSE" "%directory%\%foldername%\%current-script-version%" > nul
     if exist "%~dp0\README.md" xcopy "%~dp0\README.md" "%directory%\%foldername%\%current-script-version%" > nul  
-    del %~dp0\LICENSE
-    del %~dp0\README.md
+    erase %~dp0\LICENSE > nul
+    erase %~dp0\README.md > nul
     goto sys.main.installer.done
 
 :list.content.LC
@@ -623,7 +617,7 @@ color 2
 :delete.license
     :: delete the license
     if exist "%~dp0\LICENSE" (
-        del "%~dp0\LICENSE"
+        erase "%~dp0\LICENSE" > nul
     ) else (
         goto additionals.ask.window
     )
@@ -631,7 +625,7 @@ color 2
 :delete.readme
     :: Delete readme 
     if exist "%~dp0\README.md" (
-        del "%~dp0\README.md"
+        erase "%~dp0\README.md" > nul
     ) else (
         goto additionals.ask.window
     )
@@ -641,7 +635,7 @@ color 2
     :: Cleanup install directory and finish the installation
     echo Finishing Installation....
     cd /d %~dp0
-    del install.bat
+    erase install.bat > nul
     cd /d "%directory9%"
     goto sys.open.main.script
 
