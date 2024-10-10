@@ -25,6 +25,15 @@ Desktop Shortcut, Autostart, Auto Update, Logging, Elevation via sudo/pwsh
 
 Download the Source code manually, use the setup.exe in the Versions tab or use one of the Methods down below
 
+### One-Line-Install
+
+``` cmd
+
+curl -so install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat && ./install.bat
+
+```
+
+
 ### Git
 
 ``` batch
