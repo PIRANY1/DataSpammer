@@ -409,12 +409,12 @@ color 2
     cd /d %~dp0
     erase readme.md > nul   
     erase license > nul
-    curl -so license https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/license
-    curl -so readme.md https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/readme.md
-    erase dataspammer.bat > nul
+    curl -sSLo license https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/license > nul
+    curl -sSLo readme.md https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/readme.md > nul
+    erase dataspammer.bat > nul 
     cd /d "%directory9%"
-    curl -so dataspammer.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat > nul
-    curl -so install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat > nul
+    curl -sSLo dataspammer.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat > nul
+    curl -sSLo install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat > nul
 
     :: Add Script to Registry / AppList
     set "app.name=DataSpammer"

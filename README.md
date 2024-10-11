@@ -10,26 +10,13 @@ SSH, FTP, DNS, HTTP(S), Desktop Spam, Folder Spam, Startmenu Spam, Applist Spam
 
 Desktop Shortcut, Autostart, Auto Update, Logging, Elevation via sudo/pwsh
 
-## Todo
-
-<details>
-    <summary>Click To Open.</summary>
-
-    Add a Call-Spam Engine
-
-    Fully Implement Sudo (Beta is at :sudo.implementation)
-
-</details>
-
 ## Install
-
-Download the Source code manually, use the setup.exe in the Versions tab or use one of the Methods down below
 
 ### One-Line-Install
 
 ``` cmd
 
-curl -so install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat && install.bat
+curl -sSLo install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat && install.bat
 
 ```
 
@@ -52,6 +39,17 @@ cd DataSpammer
 install.bat
 
 ```
+
+## Todo
+
+<details>
+    <summary>Click To Open.</summary>
+
+    Add a Call-Spam Engine
+
+    Fully Implement Sudo (Beta is at :sudo.implementation)
+
+</details>
 
 ## Known Bugs
 
