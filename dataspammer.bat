@@ -1602,101 +1602,68 @@
 
 :desktop.icon.spam
     if %logging% == 1 ( call :log Opened_Desktop_Spam )
-    :: Desktop Spam Start TLI
-    @ping -n 1 localhost> nul
-    echo This Method will Spam your Desktop with Files
-    @ping -n 1 localhost> nul
-    echo You can customise four things here. 
-    @ping -n 1 localhost> nul
-    echo 1:Filename
-    @ping -n 1 localhost> nul
-    echo 2:Format of the File (for example .txt or .bat)
-    @ping -n 1 localhost> nul
-    echo 3:The Text in the File
-    @ping -n 1 localhost> nul
-    echo 4:Count of Files
-    @ping -n 1 localhost> nul
-    echo.
-    echo [1] Start 
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [2] Go Back
-    @ping -n 1 localhost> nul
-    echo.
-    echo.
-    set /p desktop.icon.spam=Choose an Option from Above:
-    if "%desktop.icon.spam%" =="" goto desktop.icon.spam
-    If "%desktop.icon.spam%" == 2 goto start
-    If "%desktop.icon.spam%" == 1 goto desktop.icon.spam.1
-    goto desktop.icon.spam
 
-:desktop.icon.spam.1
-    :: Name TLI
-    echo How Should the Files be named?
-    if "%default-filename%"=="notused" set /p "deskiconspamname=Choose a Filename:"
-    if not "%default-filename%"=="notused" set "deskiconspamname=%default-filename%"
-    echo Now Choose the Format of the File
-    echo If you are not sure type txt
-    echo Dont Include the Dot
-    set /p "deskiconspamformat=Choose the Format:"
-    echo Now Choose the Content the File should include
-    set /p "deskiconspamcontent=Type something in:"
-    echo Now Choose how many files should be created 
-    echo Leave empty if you want infinite.
-    set /p "deskiconspamamount=Type a Number:"
-    call :sys.verify.execution
+    if "%default-filename%"=="notused" set /p "desk.spam.name=Choose a Filename:"
+    if not "%default-filename%"=="notused" set "desk.spam.name=%default-filename%"
+
+    set /p desk.spam.format=Choose the Format (without the dot):
+    set /p desk.spam.content=Enter the File-Content:
+
+    if "%default-filecount%"=="notused" set /P filecount=How many Files should be created:
+    if not "%default-filecount%"=="notused" set "desk.filecount=%default-filecount%"
+
     cls
-
-:desktop.icon.spam.confirm.data
-    :: 100% UD ASSET COUNTER (does nothing but look cool)
-    set "assetcount=1"
-    :assetcounttop
-    color 02
-    @ping -n 1 localhost> nul
-    echo Loading Assets(%assetcount%/32)
-    set /a "assetcount+=1"
-    If %assetcount% == 33 (goto desktop.icon.spam.confirmed.start) else (goto assetcounttop)
-
-:desktop.icon.spam.confirmed.start
-    :: Desktop Spam Countdown
-    cls
-    color 02
-    echo 3 Seconds Left
-    @ping -n 2 localhost> nul
-    echo 2 Seconds Left
-    @ping -n 2 localhost> nul
-    echo 1 Seconds Left
-    @ping -n 1 localhost> nul
     echo Starting.....
+    @ping -n 2 localhost> nul
     cd /d %userprofile%\Desktop
-    if not defined deskiconspamamount (
-        goto infinite.desktop.spam
-    ) else (
-        goto limitedspam.desktop.spam
+    set /a x=1
+
+    for /L %%i in (1,1,%desk.filecount%) do (
+        echo Creating File %desk.spam.name%%x%.%desk.spam.format%
+        echo %desk.spam.content% > %desk.spam.name%%x%.%desk.spam.format%
+        set /a x+=1
     )
-    exit
 
+:done2
+    if %logging% == 1 ( call :log Finished_Spamming_Files:_%deskspamlimitedvar% )
+    :: done tli
+    echo.
+    %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
+    %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
+    %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
+    %$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
+    %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
+    %$Echo% "                             |_|                                              |___/                                     
+                                                                                              
 
-:infinite.desktop.spam
-    :: Infinite Spam Function
-    :infinite.desktop.spam.1
-    echo %deskiconspamcontent% > %deskiconspamname%.%deskiconspamformat%
-    goto infinite.desktop.spam.1
-    exit
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo The Script Created %deskspamlimitedvar% Files.
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo Do you want to Close the Script or Go to the Menu?
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [1] Close
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [2] Menu
+    echo.
+    @ping -n 1 localhost> nul
+    set /p done=Choose an Option from Above:
+    if "%done%" =="" goto done2
+    If "%done%" == 1 goto cancel
+    If "%done%" == 2 goto menu
+    goto done2
 
-:limited.desktop.spam
-    if %logging% == 1 ( call :log Spamming_Desktop_Count:_%deskiconspamamount% )
-    :: Limited Spam Function
-    color 02
-    set "deskspamlimitedvar=1"
-    :limited.desktop.spam.1
-    If %deskspamlimitedvar% == %deskiconspamamount% (goto done2) else (goto limited.desktop.spam.2)
-    :limited.desktop.spam.2
-    echo Created %deskspamlimitedvar% File(s)
-    echo %deskiconspamcontent% > %deskiconspamname%%deskspamlimitedvar%.%deskiconspamformat%
-    set /a "deskspamlimitedvar+=1"
-    goto limited.desktop.spam.1
 
 :normal.text.spam
     if %logging% == 1 ( call :log Opened_Normal_Spam )
@@ -1771,45 +1738,6 @@
     If "%done%" == 2 goto menu
     goto done
 
-:done2
-    if %logging% == 1 ( call :log Finished_Spamming_Files:_%deskspamlimitedvar% )
-    :: done tli
-    echo.
-    %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
-    %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
-    %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
-    %$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
-    %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
-    %$Echo% "                             |_|                                              |___/                                     
-                                                                                              
-
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo The Script Created %deskspamlimitedvar% Files.
-    echo.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo Do you want to Close the Script or Go to the Menu?
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [1] Close
-    echo.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [2] Menu
-    echo.
-    @ping -n 1 localhost> nul
-    set /p done=Choose an Option from Above:
-    if "%done%" =="" goto done2
-    If "%done%" == 1 goto cancel
-    If "%done%" == 2 goto menu
-    goto done2
 
     :: Display Help Dialog
 :help.startup
