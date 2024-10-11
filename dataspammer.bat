@@ -3,7 +3,14 @@
 ::    Todo: 
 ::    Fully Implement Sudo (Beta is at :sudo.implementation)
 ::    Fix Variable Name
-::    Rework Old Spams
+::    Use one Spam engine (would it even be more efficient?)
+
+
+:: Developer Notes:
+:: Define %debug_asist% to bypass echo_off
+:: Define devtools to open useless dev menu (needs improvements)
+:: Dev Tool is in install.bat   :sys.add.developer.tool
+
 
 :!top
     @echo off
