@@ -3,7 +3,7 @@
 ::    Todo: 
 ::    Fully Implement Sudo (Beta is at :sudo.implementation)
 ::    Fix Variable Name
-
+::    Rework Old Spams
 
 :!top
     @echo off
@@ -1700,127 +1700,35 @@
 
 :normal.text.spam
     if %logging% == 1 ( call :log Opened_Normal_Spam )
-    :: dont know if that function is even used but it works
-    if default_directory equ notused (goto sys.no.var.set) else (cd /d %default_directory% && goto sys.check.custom.name)
+    if not "%default_directory%"=="notused" cd /d %default_directory% && goto spam.directory.set
+    set /p %default_directory%=Type Your Directory Here:
 
-:sys.no.var.set
-    :: normal spam tli
-    cls
-    echo Please enter the Directory of the Folder/Server you want to Spam.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo You can find the Directory by Clicking on the Path in you Explorer (on top) and copy it in here. 
-    @ping -n 1 localhost> nul
-    echo. 
-    @ping -n 1 localhost> nul
-    echo It should look something like this: C:\User\Dokuments\SpamFolder
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo You can use your User Directory if you are using a Server. This works in most Cases but it sometimes doesnt work. Why dont you try?
-    @ping -n 1 localhost> nul
-    echo. 
-    @ping -n 1 localhost> nul
-    echo [1] Use User Directory
-    @ping -n 1 localhost> nul
-    echo. 
-    @ping -n 1 localhost> nul
-    echo [2] Enter a Directory
-    @ping -n 1 localhost> nul
-    set /p directory.spam=Choose an Option from Above:
-    if "%directory.spam%" =="" goto sys.no.var.set
-    If "%directory.spam%" == 1 goto spam.use.user
-    If "%directory.spam%" == 2 goto spam.custom.directory
-
-:spam.use.user
-    :: what is this doin here?
-    cd /d %userprofile%
-
-:spam.custom.directory
-    :: enter directory tli
-    echo.
-    echo.
-    set /p directory1=Type Your Directory Here:
-
-    cd /d %directory1%
-
-    if %ERRORLEVEL% neq 0 (
-        echo There was an Error. Please check if the Directory is correct or retry later. 
+    if exist %default_directory% (
+        echo goto sys.check.custom.name
     ) else (
-        echo The Directory was Correct!
-        goto sys.check.custom.name
+        echo The Directory is invalid!
+        pause
+        goto spam.custom.directory
     )
 
-:sys.check.custom.name
-    :: check if filename setting is used
-    if %default-filename% equ notused (goto sys.check.custom.name.2) else (goto spam.time.window.ask)
+:spam.directory.set
+    if "%default-filename%"=="notused" set /P filename=Enter the Filename:
+    if not "%default-filename%"=="notused" set "filename=%default-filename%"
 
-:sys.check.custom.name.2
-    :: filename tli
-    cls
-    echo Now You have to choose a filename. It can be anything as long as the 
-    echo Filename doesnt have the following Character(s):\ / : * ? " < > |"
-    set /p default-filename=Type in the Filename you want to use.
-    setlocal enabledelayedexpansion
-    goto spam.time.window.ask
-
-:spam.time.window.ask
-    :: check if the script should run for eternity
-    cls
-    echo.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo Do you want to set how many files should be created?
-    @ping -n 1 localhost> nul
-    echo If you choose No the script will run for eternity.
-    @ping -n 1 localhost> nul
-    set /p filecount.menu=Yes[y]  No [n]:
-    If "%filecount.menu%" =="" goto spam.time.window.ask
-    If "%filecount.menu%" == y goto spam.time.window.set 
-    If "%filecount.menu%" == n set "filecount=1%large%%large%%large%%large%%large%%large%%large%%large%%large%%large%%large%" && goto spam.ready.to.start
-    goto spam.time.window.ask
-
-:spam.time.window.set 
-    :: filecount tli
-    cls
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo How many Files should be created?
-    set /p filecount=Type a Number:
-    goto spam.ready.to.start
-
-:spam.ready.to.start
-    :: confirmation dialoge
-    cls
-    echo. 
-    echo.
-    echo Please confirm.
-    pause
-    echo Loading...
-    @ping -n 2 localhost> nul
-    echo 5 Seconds left
-    @ping -n 2 localhost> nul
-    echo 4 Seconds left
-    @ping -n 2 localhost> nul
-    echo 3 Seconds left
-    @ping -n 2 localhost> nul
-    echo 2 Seconds left
-    @ping -n 2 localhost> nul
-    echo 1 Second left
-    @ping -n 2 localhost> nul
-    echo Starting......
-    echo If you want to stop this script simply close the Command Windows or press ALT+F4 / CTRL+C
+    if "%default-filecount%"=="notused" set /P filecount=How many Files should be created:
+    if not "%default-filecount%"=="notused" set "filecount=%default-filecount%"
+    
+    set /P defaultspam.content=Enter the File Content:
+    
 :spam.normal.top
-    :: create files
-    set /a x+=1
-    echo. > %default-filename%%x%.txt
-    echo Created %x% File(s).
-    if %x% equ %filecount% (goto done) else (goto spam.normal.top)
+    set /a x=1
+    cd /d %default_directory%
+
+    for /L %%i in (1,1,%filecount%) do (
+        echo Creating File %default-filename%%x%.txt
+        echo %defaultspam.content% > %default-filename%%x%.txt
+        set /a x+=1
+    )
 
 
 :done
