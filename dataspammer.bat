@@ -4,6 +4,8 @@
 ::    Fully Implement Sudo (Beta is at :sudo.implementation)
 ::    Fix Variable Name
 ::    Use one Spam engine (would it even be more efficient?)
+::    Print, SMTP, DHCP, TELNET, IMAP, ICMP, SNMP, NTP, SIP Spam
+::    Add Done Call APIs
 
 
 :: Developer Notes:
@@ -1092,9 +1094,15 @@
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [9] Go Back
+    echo [9] Printer Spam (only default Printer currently)
     @ping -n 1 localhost> nul
     echo.
+    @ping -n 1 localhost> nul
+    echo [10] Go Back
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo Spams in developement: SMTP (mail), DHCP (network auth), TELNET (old ssh), IMAP (mail), ICMP (ping), SNMP (Management), NTP (Time), SIP (VoIP)
     @ping -n 1 localhost> nul
     echo.
     set /p spam.method=Choose an Option from Above:
@@ -1108,8 +1116,67 @@
     If "%spam.method%" == 6 goto https.spam
     If "%spam.method%" == 7 goto startmenu.spam
     If "%spam.method%" == 8 goto app.list.spam
-    If "%spam.method%" == 9 goto menu
+    If "%spam.method%" == 9 goto printer.spam
+    If "%spam.method%" == 10 goto menu
     goto start.verified
+
+:printer.spam
+:: print /D:%printer% %file%
+:: set printer="\\NetworkPrinter\PrinterName"
+    if "%default-filecount%"=="notused" set /P printer.count=How many Files should be printed
+    if not "%default-filecount%"=="notused" set "printer.count=default-domain"
+
+    if "%default-filename%"=="notused" set /P print.filename=Enter the Filename:
+    if not "%default-filename%"=="notused" set "print.filename=%default-filename%"
+
+    set /P printer.content=Enter the Content:
+    cd /d %~dp0
+    echo %printer.content% > %print.filename%.txt
+
+    for /L %%i in (1,1,%printer.count%) do (
+        print %print.filename%.txt
+    )
+    
+    
+:printer.done
+    if %logging% == 1 ( call :log Finished_Printer_Spam:%printer.count%_Requests_on_default_Printer )
+    :: HTTP(S) Done
+    echo.
+    %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
+    %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
+    %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
+    %$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
+    %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
+    %$Echo% "                             |_|                                              |___/                                                                                                                                  
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo The Script Created %printer.count% to Default Printer
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo Do you want to Close the Script or Go to the Menu?
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [1] Close
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [2] Menu
+    echo.
+    @ping -n 1 localhost> nul
+    set /p menu9=Choose an Option from Above:
+    if "%menu9%"=="" goto printer.done
+    If %menu9% == 1 goto cancel
+    If %menu9% == 2 goto menu
+    goto printer.done
+
+
 
 :https.spam
     echo Spam a HTTP/HTTPS Server with Requests
