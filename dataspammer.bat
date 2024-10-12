@@ -64,7 +64,7 @@
 
     net session >nul 2>&1
     if %errorLevel% neq 0 (
-        if not "%elevation%"=="pwsh" goto sudo.elevation
+        if "%elevation%"=="sudo" goto sudo.elevation
         powershell -Command "Start-Process '%~f0' -Verb runAs"
         exit
     )
