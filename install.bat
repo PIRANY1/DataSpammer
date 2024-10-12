@@ -46,7 +46,7 @@ color 2
     echo.
     echo.
     set /P update.installed.menu=Choose an Option from above
-    if "%update.installed.menu%"=="" goto sys.new.update.installed
+    if %update.installed.menu%=="" goto sys.new.update.installed
     if %update.installed.menu% == 1 goto sys.open.main.script
     if %update.installed.menu% == 2 goto cancel
     goto sys.new.update.installed
@@ -84,7 +84,7 @@ color 2
     echo [4] Reinstall Script
     set /p installer.executed.menu=Choose an Option from above
     
-    if "%installer.executed.menu%"=="" goto sys.installer.execution.finished
+    if %installer.executed.menu%=="" goto sys.installer.execution.finished
     If %installer.executed.menu% == 1 goto sys.open.main.script
     If %installer.executed.menu% == 2 goto open.settings.dts
     If %installer.executed.menu% == 3 goto delete.script.confirmation.window
@@ -155,7 +155,7 @@ color 2
     echo.
     set /p delete.script.menu=Choose an Option from Above
 
-    if "%delete.script.menu%"=="" goto delete.script.confirmation.window
+    if %delete.script.menu%=="" goto delete.script.confirmation.window
     If %delete.script.menu% == 1 goto delete.script.verify
     If %delete.script.menu% == 2 start "" "https://github.com/PIRANY1/DataSpammer" && goto delete.script.confirmation.window
     If %delete.script.menu% == 3 goto open.install.done
@@ -232,9 +232,9 @@ color 2
     echo.
     @ping -n 1 localhost> nul
     set /P installer.main=Choose an Option from Above:
-    if "%installer.main%"=="" goto installer.main.window
-    if "%installer.main%" == 2 goto installer.custom.install.directory
-    if "%installer.main%" == 1 goto standart.install.run
+    if %installer.main% =="" goto installer.main.window
+    if %installer.main% == 2 goto installer.custom.install.directory
+    if %installer.main% == 1 goto standart.install.run
     goto installer.main.window
 
 :standart.install.run
@@ -278,7 +278,7 @@ color 2
     echo [4] Close the Script
     set /P avturnoff=Choose an Option from above
 
-    if "%avturnoff%"=="" goto standart.install.run.3
+    if %avturnoff% =="" goto standart.install.run.3
     if %avturnoff% == 1 start "" "https://www.security.org/antivirus/turn-off/" & cls & goto standart.install.run.3
     if %avturnoff% == 2 cls & goto installer.main.window
     if %avturnoff% == 3 cls & goto standart.install.run.4
@@ -316,7 +316,7 @@ color 2
     @ping -n 1 localhost> nul
     echo [5] De-select / Cancel Options
     set /P stdprogdrcvar=Choose the Options from Above:
-    if "%stdprogdrcvar%"=="" goto standart.install.run.4
+    if %stdprogdrcvar% =="" goto standart.install.run.4
     if %stdprogdrcvar% == 1 goto n1varinst
     if %stdprogdrcvar% == 2 goto n2varinst
     if %stdprogdrcvar% == 3 goto n3varinst
@@ -396,9 +396,9 @@ color 2
     @ping -n 1 localhost> nul
     echo.
     set /p install.updater=Choose an Option from Above:
-    if "%install.updater%"=="" goto installer.updater.installation.confirm
-    If "%install.updater%" == 1 set "gitinsyn=1"
-    If "%install.updater%" == 2 goto installer.start.copy
+    if %install.updater% =="" goto installer.updater.installation.confirm
+    If %install.updater% == 1 set "gitinsyn=1"
+    If %install.updater% == 2 goto installer.start.copy
 
 :installer.start.copy
     :: Main install part
@@ -589,7 +589,7 @@ color 2
     @ping -n 1 localhost> nul
     echo.
     set /p RL.menu=Select an Answer from above
-    if "%RL.menu%"=="" goto additionals.ask.window
+    if %RL.menu% =="" goto additionals.ask.window
     If %RL.menu% == 1 goto list.content.LC
     If %RL.menu% == 2 goto list.content.RD
     If %RL.menu% == 3 goto delete.license
