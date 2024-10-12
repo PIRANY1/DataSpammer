@@ -4,8 +4,10 @@
 ::    Fully Implement Sudo (Beta is at :sudo.implementation)
 ::    Fix Variable Name
 ::    Use one Spam engine (would it even be more efficient?)
-::    SMTP, DHCP, TELNET, IMAP, ICMP, SNMP, NTP, SIP Spam
+::    SMTP, IMAP,
 ::    Add printer network
+::    Auto Update Settings after Update
+
 
 :: Developer Notes:
 :: Define %debug_asist% to bypass echo_off
@@ -16,7 +18,7 @@
 :!top
     @echo off
     mode con: cols=140 lines=40
-    set "current-script-version=v3.5"
+    set "current-script-version=v3.6"
     if "%1"=="h" goto help.startup
     if "%1"=="-h" goto help.startup
     if "%1"=="help" goto help.startup
@@ -28,7 +30,6 @@
     if "%1"=="" goto normal.start
     if "%1"=="cli" goto sys.cli
     if "%1"=="api" goto sys.api
-    if "%1"=="go" goto custom.go
     if "%1"=="noelev" @ECHO OFF && cd /d %~dp0 && @color 02 && set "small-install=1" && goto check-files
 
 
@@ -38,79 +39,6 @@
     cd /d %~dp0
     @if not defined debug_assist (@ECHO OFF) else (@echo on)
     if not defined devtools (goto top-startup) else (gotod open.dev.settings)
-
-:sudo.implementation
-    :: Windows will support sudo, starting in 24H2
-    :: Check for Windows Version 24H2 or higher > where SUDO > start via sudo
-    :: Currently the only way is to run via a ps1 script, maybe manual covertion is needed
-    :: https://github.com/microsoft/sudo
-    :: https://github.com/microsoft/sudo/blob/main/scripts/sudo.ps1
-
-    :: Read Version from Registry
-    for /f "tokens=3" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v "ReleaseId"') do set "releaseid=%%a"
-    for /f "tokens=3" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v "CurrentBuild"') do set "build=%%a"
-    
-    :: Version: %releaseid%
-    :: Build-Number: %build%
-    set /a min_build=25900
-    if %build% geq %min_build% (
-        :: Is 24H2 or higher
-        set "sudo=1"
-        goto where.sudo
-    ) else (
-        :: is lower than 24H2
-        set "sudo=0"
-        goto top-startup
-    )
-    
-:where.sudo
-    :: Check if sudo is defined in Path
-    for /f "delims=" %%a in ('where sudo') do (
-        set "where_output=%%a"
-    )
-    if defined where_output (
-        goto sudo.parse
-    ) else (
-        set "sudo=0"
-    )
-
-:sudo.parse
-    :: sudo features a Powershell Wrapper (sudo.ps1) to make it more User-Friendly.
-    :: I Hope its not neccessarily needed for sudo to work, because converting it to Batch is hard. (base64 conding)
-
-
-    setlocal
-    ver | findstr /i "Windows" >nul
-    if errorlevel 1 (
-        echo This Script only works with Windows
-        exit /b 1
-    )
-    where sudo.exe >nul
-    if errorlevel 1 (
-        echo "sudo.exe" wasnt found
-        exit /b 1
-    )
-    set "psProcess=%ComSpec%"
-    if "%psProcess%"=="" (
-        echo Cannot get Process
-        exit /b 1
-    )
-    :: Simulate Base64 Code
-    set "convertToBase64EncodedString=certutil -encode"
-    if "%~1"=="" (
-        echo Got no Arguments.
-        exit /b 1
-    )
-    :: Execute Translated Argument
-    set "cmdLine=%*"
-    if "%~1"=="/scriptblock" (
-        echo Scriptblock Mode isnt supported in Batch
-        exit /b 1
-    ) else (
-        sudo.exe %cmdLine%
-    )
-    exit /b 0
-    
 
 
 :top-startup
@@ -125,11 +53,26 @@
     )
 
 :sys.req.elevation
+    :: Parses Settings
+    echo Checking for Data...
+    if not exist "settings.conf" goto sys.no.settings
+    echo Extracting Settings...
+    set "config_file=settings.conf"
+    for /f "usebackq tokens=1,2 delims==" %%a in (`findstr /v "^::" "%config_file%"`) do (
+        set "%%a=%%b"
+    )
+
     net session >nul 2>&1
     if %errorLevel% neq 0 (
+        if not "%elevation%"=="pwsh" goto sudo.elevation
         powershell -Command "Start-Process '%~f0' -Verb runAs"
         exit
     )
+    cd /d %~dp0
+    goto check-files
+    
+:sudo.elevation
+    powershell -Command "sudo cmd.exe -k %~f0"
     cd /d %~dp0
     goto check-files
 
@@ -139,16 +82,6 @@
     :: Checks if all Files needed for the Script exist
     setlocal enabledelayedexpansion
     @title Starting Up...
-    echo Checking for Data...
-    if not exist "settings.conf" goto sys.no.settings
-    
-    :: Parses Settings
-    echo Extracting Settings...
-    set "config_file=settings.conf"
-    for /f "usebackq tokens=1,2 delims==" %%a in (`findstr /v "^::" "%config_file%"`) do (
-        set "%%a=%%b"
-    )
-    
     :: Makes Log More Readable after Script restart
     if %logging% == 1 ( call :log . )
     if %logging% == 1 ( call :log . )
@@ -227,7 +160,7 @@
 
 
     
-    if "%latest_version%" equ "v3.5" (
+    if "%latest_version%" equ "v3.6" (
         set "uptodate=up"
     ) else (
         set "uptodate="
@@ -365,7 +298,7 @@
     if "%1"=="settings" goto settings
     if %logging% == 1 ( call :log Displaying_Menu )
     if %logging% == 1 ( call :log Startup_Complete )
-    title DataSpammer v3.5
+    title DataSpammer v3.6
     if "%small-install%" == "1" (
         set "settings-lock=Locked. Find Information under [44mHelp[32m"
     ) else (
@@ -384,7 +317,7 @@
 
 
     @ping -n 1 localhost> nul
-    echo Made by PIRANY                 v3.5
+    echo Made by PIRANY                 v3.6
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
@@ -560,7 +493,7 @@
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [2] [31mActivate Developer Options (Currently %settings-dev-display%) [32m
+    echo [2] [31mDeveloper Options (Currently %settings-dev-display%) [32m
     @ping -n 1 localhost> nul
     echo. 
     @ping -n 1 localhost> nul
@@ -584,7 +517,7 @@
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [6] Start with Arguments (non permanent)
+    echo [6] Experimental Features
     @ping -n 1 localhost> nul
     echo. 
     @ping -n 1 localhost> nul
@@ -605,9 +538,103 @@
     If "%credit.menu%" == 3 goto settings.version.control
     If "%credit.menu%" == 4 goto settings.logging
     If "%credit.menu%" == 5 goto restart.script
-    If "%credit.menu%" == 6 goto start.with.argument
+    If "%credit.menu%" == 6 goto experimental.features
     If "%credit.menu%" == 7 goto menu
     goto settings
+
+:experimental.features
+    echo [1] Switch Elevation Method (pswh / sudo)
+    @ping -n 1 localhost> nul
+    echo. 
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [2] Go back
+    set /P experimental.features=Choose an Option from Above
+    If "%experimental.features%" =="" goto experimental.features
+    If "%experimental.features%" == 1 goto switch.elevation
+    If "%experimental.features%" == 2 goto settings
+    goto experimental.features
+
+:switch.elevation
+    if "%elevation%"=="pwsh" goto switch.sudo.elevation
+    if "%elevation%"=="sudo" goto switch.pwsh.elevation
+    
+:switch.sudo.elevation
+    for /f "tokens=3" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v "ReleaseId"') do set "releaseid=%%a"
+    for /f "tokens=3" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v "CurrentBuild"') do set "build=%%a"
+    
+    :: Version: %releaseid%
+    :: Build-Number: %build%
+    set /a min_build=25900
+    if %build% geq %min_build% (
+        :: Is 24H2 or higher
+        goto where.sudo
+    ) else (
+        :: is lower than 24H2
+        echo You dont have Version 24H2 && pause && goto experimental.features
+    )
+    
+:where.sudo
+    for /f "delims=" %%a in ('where sudo') do (
+        set "where_output=%%a"
+    )
+    if not defined where_output (echo You dont have sudo enabled. && pause && goto experimental.features)
+
+    if %logging% == 1 ( call :log Chaning_Elevation_to_sudo )
+    call :update_config "elevation" "" "sudo"
+    echo Switched to Sudo.
+    @ping -n 2 localhost> nul
+    goto restart.script
+
+
+:switch.pwsh.elevation
+    echo Switching to Powershell Elevation...
+    @ping -n 2 localhost> nul
+    if %logging% == 1 ( call :log Chaning_Elevation_to_pwsh )
+    call :update_config "elevation" "" "pwsh"
+    echo Switched to Powershell.
+    @ping -n 2 localhost> nul
+    goto restart.script
+
+
+:sudo.implementation
+    :: Works, but PWSH is more reliable
+    :: Windows will support sudo, starting in 24H2
+    :: Check for Windows Version 24H2 or higher > where SUDO > start via sudo
+
+    :: https://github.com/microsoft/sudo
+    :: https://github.com/microsoft/sudo/blob/main/scripts/sudo.ps1
+
+    :: Read Version from Registry
+    for /f "tokens=3" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v "ReleaseId"') do set "releaseid=%%a"
+    for /f "tokens=3" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v "CurrentBuild"') do set "build=%%a"
+    
+    :: Version: %releaseid%
+    :: Build-Number: %build%
+    set /a min_build=25900
+    if %build% geq %min_build% (
+        :: Is 24H2 or higher
+        set "sudo=1"
+        goto where.sudo
+    ) else (
+        :: is lower than 24H2
+        set "sudo=0"
+        goto top-startup
+    )
+    
+:where.sudo
+    :: Check if sudo is defined in Path
+    for /f "delims=" %%a in ('where sudo') do (
+        set "where_output=%%a"
+    )
+    if defined where_output (
+        goto sudo.parse
+    ) else (
+        set "sudo=0"
+    )
+
+
 
 :spam.settings
     echo [1] Default Filename
@@ -654,11 +681,6 @@
     @ping -n 2 localhost > nul
     goto restart.script
 
-:start.with.argument
-    call :help.startup
-    set /P "argument=Enter an Argument:"
-    cd /d %~dp0
-    install.bat -reverse.arg %argument%
 
 
 :settings.version.control
@@ -752,8 +774,7 @@
     
 :open.dev.settings
     if %logging% == 1 ( call :log opening_dev_settings )
-    cd /d %~dp0 
-    .\install.bat -dev.secret
+    goto dev.options
     
 :write-dev-options
     if %logging% == 1 ( call :log Activating_Dev_Options )
@@ -1636,7 +1657,7 @@
 
     :: Whitout the UD stuff
 :fast.git.update
-    set "current-script-version=v3.5"
+    set "current-script-version=v3.6"
     set "owner=PIRANY1"
     set "repo=DataSpammer"
     set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
@@ -1882,6 +1903,55 @@
     If "%done%" == 1 goto cancel
     If "%done%" == 2 goto menu
     goto done
+
+:dev.options 
+    title Developer Options DataSpammer
+    :: Rework In Process.
+    echo Dev Tools
+    echo.
+    echo [1] Goto Specific Call Sign
+    echo.
+    echo [2] -
+    echo.
+    echo [3] @ECHO ON
+    echo.
+    echo [4] Set a Variable 
+    echo.
+    echo [5] Restart the Script (Variables will be kept)
+    echo.
+    echo [6] Restart the Script (Variables wont be kept)
+    set /P dev.option=Choose an Option From Above.
+    if "%devoption%" =="" goto dev.options 
+    if "%devoption%" == 1 goto dev.jump.callsign
+    if "%devoption%" == 2 goto dev.options
+    if "%devoption%" == 3 @ECHO ON && goto restart.script
+    if "%devoption%" == 4 goto dev.custom.var.set 
+    if "%devoption%" == 5 restart.script.dev
+    if "%devoption%" == 6 restart.script
+    goto dev.options
+    
+:dev.jump.callsign
+    echo In which Script you want go to
+    echo [1] DataSpammer.bat
+    echo [2] Install.bat
+    echo. 
+    set /P callsign.custom=Choose an Option from Above:
+    if %callsign.custom% == 1 goto dev.jump.callsign.dts
+    if %callsign.custom% == 2 goto dev.jump.callsign.install
+    goto dev.jump.callsign
+
+
+:dev.jump.callsign.dts
+    set /P jump-to-call-sign=Enter a Call Sign:
+    goto %jump-to-call-sign%
+
+
+:dev.jump.callsign.install
+    cd /d %~dp0
+    set /P jump-to-call-sign=Enter a Call Sign:
+    install.bat go %jump-to-call-sign%
+
+
 
 
 :sys.verify.execution

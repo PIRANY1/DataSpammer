@@ -1,16 +1,15 @@
 @if not defined debug_assist (@ECHO OFF) else (@echo on)
-if not defined devtools (goto normal.start) else (goto dev.options)
 :normal.start
 mode con: cols=120 lines=30
 if "%restart-main%" == "1" goto sys.open.main.script
 @title Script Installer by PIRANY
 set "foldername=DataSpammer"
-set "current-script-version=v3.5"
+set "current-script-version=v3.6"
 cd /d %~dp0
 color 2
 cls  
 color 2
-    if "%1"=="-dev.secret" goto dev.options
+    if "%1"=="go" goto custom.go
     if "%1"=="-reverse.arg" dataspammer.bat %2
 
 :script.install.check
@@ -447,6 +446,7 @@ color 2
     set "dev.mode=0"
     set "default-filecount=notused"
     set "default-domain=notused"
+    set "elevation=pwsh"
     (
         echo :: DataSpammer configuration
         echo :: Standart Filename
@@ -463,6 +463,8 @@ color 2
         echo default-filecount=%default-filecount%
         echo :: Default Domain
         echo default-domain=%default-domain%
+        echo :: Elevation Method used (pwsh / sudo)
+        echo elevation=%elevation%
     ) > settings.conf
     
 
@@ -664,55 +666,52 @@ color 2
     @ping -n 2 localhost> nul
     exit
 
-:dev.options 
-    title Developer Options DataSpammer
-    :: Rework In Process.
-    echo Dev Tools
-    echo.
-    echo [1] Goto Specific Call Sign
-    echo.
-    echo [2] -
-    echo.
-    echo [3] @ECHO ON
-    echo.
-    echo [4] Set a Variable 
-    echo.
-    echo [5] Restart the Script (Variables will be kept)
-    echo.
-    echo [6] Restart the Script (Variables wont be kept)
-    set /P dev.option=Choose an Option From Above.
-    if "%devoption%" == "" goto dev.options 
-    if "%devoption%" == 1 goto dev.jump.callsign
-    if "%devoption%" == 2 goto dev.options
-    if "%devoption%" == 3 @ECHO ON && goto normal.start
-    if "%devoption%" == 4 goto dev.custom.var.set 
-    if "%devoption%" == 5 restart.script.dev
-    if "%devoption%" == 6 restart.script
-    goto dev.options
-    
-    :dev.jump.callsign
-    echo In which Script you want go to
-    echo [1] DataSpammer.bat
-    echo [2] Install.bat
-    echo. 
-    set /P callsign.custom=Choose an Option from Above:
-    if %callsign.custom% == 1 goto dev.jump.callsign.dts
-    if %callsign.custom% == 2 goto dev.jump.callsign.install
-    goto dev.jump.callsign
+:custom.go
+   if %logging% == 1 ( call :log Opened_Custom_GOTO ) 
+   if "%1"=="go" goto custom.go
+   set "custom.goto.location=%2"
+   goto %custom.goto.location%
 
-
-    :dev.jump.callsign.install
-    set /P jump-to-call-sign=Enter a Call Sign:
-    goto %jump-to-call-sign%
-
-
-    :dev.jump.callsign.dts
-    cd /d %~dp0
-    set /P jump-to-call-sign=Enter a Call Sign:
-    dataspammer.bat go %jump-to-call-sign%
-
-    :sys.open.main.script
+:sys.open.main.script
         dataspammer.bat
+
+:log
+    :: call scheme is:
+    :: if %logging% == 1 ( call :log Opened_verify_tab )
+    :: _ and - are getting Replaced by Space    
+
+    set "log.content=%1"
+    set "logfile=DataSpammer.log"
+    
+    :: Check Folder Structure
+    set "folder=%userprofile%\Documents\DataSpammerLog"
+    if not exist "%folder%" (
+        mkdir "%folder%"
+    )
+    
+    set "log.content.clean=%log.content%"
+    set log.content.clean=%log.content.clean:_= %
+    set log.content.clean=%log.content.clean:-= %
+
+    echo %date% %time% %log.content.clean% >> "%folder%\%logfile%"
+    :: exit
+    exit /b 0
+    
+    :: NEED TO FIX THIS PART / Content not gets written
+        :: convert time and date to readable format
+        ::setlocal enabledelayedexpansion
+        ::for /f "tokens=1-3 delims=:," %%a in ("%currentTime%") do (
+        ::    set "hours=%%a"
+        ::    set "minutes=%%b"
+        ::    set "seconds=%%c"
+        ::)
+        ::set "seconds=!seconds:~0,2!" 
+        ::set "formattedTime=!hours!:!minutes!:!seconds!"
+        
+        :: Write Log
+        ::echo !currentDate! !formattedTime! %log.content% >> "%folder%\%logfile%"
+
+
 
 :verify
     set "verify=%random%"
