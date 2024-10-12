@@ -1057,6 +1057,105 @@
     if %logging% == 1 ( call :log Start_Verified )
     cls
 :start.verified
+    echo [1] Local Test
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [2] Protocol Test
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    set /P main.tests=Choose an Option from Above:
+    if "%main.tests%" == "" goto start.verified
+    if "%main.tests%" == 1 goto local.spams
+    if "%main.tests%" == 2 internet.spams
+    goto start.verified
+
+
+
+
+:internet.spams
+    echo [1] SSH Test (no Password)
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [2] DNS Test
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [3] FTP Test
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [4] HTTP(S) Test
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [5] Printer Test (only default Printer currently)
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [6] ICMP Test (ping)
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [7] Telnet (Older SSH)
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [8] Go Back
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo Tests in developement: SMTP (mail), IMAP (mail), 
+    @ping -n 1 localhost> nul
+    echo.
+    set /p spam.method=Choose an Option from Above:
+
+    if "%spam.method%" =="" goto internet.spams
+    If "%spam.method%" == 1 goto ssh.spam
+    If "%spam.method%" == 2 goto dns.spam
+    If "%spam.method%" == 3 goto ftp.spam
+    If "%spam.method%" == 4 goto https.spam
+    If "%spam.method%" == 5 goto printer.spam
+    If "%spam.method%" == 6 goto icmp.spam
+    If "%spam.method%" == 7 goto telnet.spam
+    If "%spam.method%" == 8 goto start.verified
+    goto internet.spams
+
+:telnet.spam
+    echo root > temp.txt
+    echo 123456 >> temp.txt
+    echo exit >> temp.txt
+
+    if "%default-domain%"=="notused" set /P telnet.target=Enter the Target:
+    if not "%default-domain%"=="notused" set "telnet.target=%default-domain%"
+    
+    if "%default-filecount%"=="notused" set /P telnet.count=How many Requests should be made
+    if not "%default-filecount%"=="notused" set "telnet.count=default-domain"
+
+    for /L %%i in (1,1,%telnet.count%) do (
+        telnet %telnet.target% 23 < input.txt
+    )
+    
+    del temp.txt
+    if %logging% == 1 ( call :log Finished_Telnet_Spam_on_%telnet.target% )
+    call :done "The Script Tested the Telnet Server %telnet.target% with %telnet.count% Requests
+
+
+:icmp.spam
+    set /P icmp.packet.size=Enter the Packet Size (1500 is default):
+    if "%default-domain%"=="notused" set /P icmp.target=Enter the Target
+    if not "%default-domain%"=="notused" set "icmp.target=%default-domain%"
+    
+    echo Press CTRL+C to stop
+    @ping -n 3 localhost> nul
+    ping %icmp.target% -f -s %icmp.packet.size%
+
+    if %logging% == 1 ( call :log Finished_ICMP_Spam_on_%icmp.target% )
+    call :done "The Script Tested %icmp.target% with %icmp.packet.size% Bytes Packets"
+
+:local.spams
     echo Choose the Method you want to use:
     @ping -n 1 localhost> nul
     echo.
@@ -1069,55 +1168,26 @@
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [3] SSH Spam (no Password)
+    echo [3] Startmenu Spam
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [4] DNS Spam
+    echo [4] App-List Spam
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [5] FTP Spam
-    @ping -n 1 localhost> nul
+    echo [5] Go Back
     echo.
-    @ping -n 1 localhost> nul
-    echo [6] HTTP(S) Spam
-    @ping -n 1 localhost> nul
     echo.
-    @ping -n 1 localhost> nul
-    echo [7] Startmenu Spam
-    @ping -n 1 localhost> nul
     echo.
-    @ping -n 1 localhost> nul
-    echo [8] App-List Spam
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [9] Printer Spam (only default Printer currently)
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [10] Go Back
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo Spams in developement: SMTP (mail), DHCP (network auth), TELNET (old ssh), IMAP (mail), ICMP (ping), SNMP (Management), NTP (Time), SIP (VoIP)
-    @ping -n 1 localhost> nul
-    echo.
-    set /p spam.method=Choose an Option from Above:
-
-    if "%spam.method%" =="" goto start.verified
-    If "%spam.method%" == 1 goto normal.text.spam
-    If "%spam.method%" == 2 goto desktop.icon.spam
-    If "%spam.method%" == 3 goto ssh.spam
-    If "%spam.method%" == 4 goto dns.spam
-    If "%spam.method%" == 5 goto ftp.spam
-    If "%spam.method%" == 6 goto https.spam
-    If "%spam.method%" == 7 goto startmenu.spam
-    If "%spam.method%" == 8 goto app.list.spam
-    If "%spam.method%" == 9 goto printer.spam
-    If "%spam.method%" == 10 goto menu
-    goto start.verified
+    set /P local.spam.menu=Choose an Option from Above:
+    If "%local.spam.menu%" == "" goto local.spams
+    If "%local.spam.menu%" == 1 goto normal.text.spam
+    If "%local.spam.menu%" == 2 goto desktop.icon.spam
+    If "%local.spam.menu%" == 3 goto startmenu.spam
+    If "%local.spam.menu%" == 4 goto app.list.spam
+    If "%local.spam.menu%" == 5 goto start.verified
+    goto local.spams
 
 :printer.spam
 :: print /D:%printer% %file%
