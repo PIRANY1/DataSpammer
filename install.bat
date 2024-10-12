@@ -28,6 +28,46 @@ color 2
 
 
 :sys.new.update.installed
+    setlocal enabledelayedexpansion
+    
+    set "keys[0]=default_filename=notused"
+    set "keys[1]=default_directory=notused"
+    set "keys[2]=update=1"
+    set "keys[3]=logging=1"
+    set "keys[4]=developermode=0"
+    set "keys[5]=default-filecount=notused"
+    set "keys[6]=default-domain=notused"
+    set "keys[7]=elevation=pwsh"
+    
+    set "key_count=8"
+    
+    set "file=settings.conf"
+    set "tmpfile=temp_settings.conf"
+    
+    copy %file% %tmpfile%
+    
+    for /L %%i in (0,1,%key_count%) do (
+        set "found=0"
+        set "key=!keys[%%i]!"
+    
+        for /f "tokens=1 delims==" %%a in ("!key!") do (
+            set "current_key=%%a"
+        )
+    
+        for /f "tokens=1 delims==" %%x in ('type "%file%"') do (
+            if "%%x"=="!current_key!" (
+                set "found=1"
+                goto :continue
+            )
+        )
+    
+        :continue
+        if !found!==0 (
+            echo !key!>>%tmpfile%
+        )
+    )
+    
+    move /y %tmpfile% %file%
     cd /d %~dp0
     erase updater.bat
     :: Update Installed TLI
@@ -60,6 +100,7 @@ color 2
         goto installer.main.window
     )
 :sys.installer.execution.finished
+
     :: Installer Was Executed TLI
     echo The Installer was already executed.
     @ping -n 1 localhost> nul
@@ -487,6 +528,7 @@ color 2
     set "dev.mode=0"
     set "default-filecount=notused"
     set "default-domain=notused"
+    set "elevation=pwsh"
     
     (
         echo :: DataSpammer configuration
@@ -504,6 +546,8 @@ color 2
         echo default-filecount=%default-filecount%
         echo :: Default Domain
         echo default-domain=%default-domain%
+        echo :: Elevation Method used (pwsh / sudo)
+        echo elevation=%elevation%
     ) > settings.conf
     
     cd /d %~dp0

@@ -1973,4 +1973,7 @@
 
 :cancel 
     :: yes
-    exit
+    exit 0
+
+
+exit 0
