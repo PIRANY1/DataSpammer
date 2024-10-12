@@ -4,9 +4,8 @@
 ::    Fully Implement Sudo (Beta is at :sudo.implementation)
 ::    Fix Variable Name
 ::    Use one Spam engine (would it even be more efficient?)
-::    Print, SMTP, DHCP, TELNET, IMAP, ICMP, SNMP, NTP, SIP Spam
-::    Add Done Call APIs
-
+::    SMTP, DHCP, TELNET, IMAP, ICMP, SNMP, NTP, SIP Spam
+::    Add printer network
 
 :: Developer Notes:
 :: Define %debug_asist% to bypass echo_off
@@ -375,12 +374,12 @@
     :: Main Menu TLI
 
     cls
-    %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
-    %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
-    %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
-    %$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
-    %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
-    %$Echo% "                             |_|                                              |___/                                     
+    %$Echo% "   ____        _        ____                                           
+    %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __
+    %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__|
+    %$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  
+    %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  
+    %$Echo% "                             |_|                                                                    
 
 
 
@@ -1140,41 +1139,7 @@
     
 :printer.done
     if %logging% == 1 ( call :log Finished_Printer_Spam:%printer.count%_Requests_on_default_Printer )
-    :: HTTP(S) Done
-    echo.
-    %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
-    %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
-    %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
-    %$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
-    %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
-    %$Echo% "                             |_|                                              |___/                                                                                                                                  
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo The Script Created %printer.count% to Default Printer
-    echo.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo Do you want to Close the Script or Go to the Menu?
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [1] Close
-    echo.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [2] Menu
-    echo.
-    @ping -n 1 localhost> nul
-    set /p menu9=Choose an Option from Above:
-    if "%menu9%"=="" goto printer.done
-    If %menu9% == 1 goto cancel
-    If %menu9% == 2 goto menu
-    goto printer.done
+    call :done "The Script Created %printer.count% to Default Printer"
 
 
 
@@ -1193,41 +1158,7 @@
 
 :https.done
     if %logging% == 1 ( call :log Finished_HTTPS_Spam:%requests%_Requests_on_%url% )
-    :: HTTP(S) Done
-    echo.
-    %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
-    %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
-    %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
-    %$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
-    %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
-    %$Echo% "                             |_|                                              |___/                                                                                                                                  
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo The Script Created %requests% to %url%
-    echo.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo Do you want to Close the Script or Go to the Menu?
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [1] Close
-    echo.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [2] Menu
-    echo.
-    @ping -n 1 localhost> nul
-    set /p menu9=Choose an Option from Above:
-    if "%menu9%"=="" goto https.done
-    If %menu9% == 1 goto cancel
-    If %menu9% == 2 goto menu
-    goto https.done
+    call :done "The Script Created %requests% to %url%"
 
 
 :dns.spam
@@ -1273,41 +1204,7 @@
 
 :dns.done
     if %logging% == 1 ( call :log Finished_DNS_Spam:%request_count%_Requests_on_%domain_server% )
-    :: DNS Done
-    echo.
-    %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
-    %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
-    %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
-    %$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
-    %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
-    %$Echo% "                             |_|                                              |___/                                                                                                                                  
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo The Script Created %request_count% for %domain% on %domain_server%
-    echo.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo Do you want to Close the Script or Go to the Menu?
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [1] Close
-    echo.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [2] Menu
-    echo.
-    @ping -n 1 localhost> nul
-    set /p done=Choose an Option from Above:
-    if "%done%" =="" goto dns.done
-    If "%done%" == 1 goto cancel
-    If "%done%" == 2 goto menu
-    goto dns.done
+    call :done "The Script Created %request_count% for %domain% on %domain_server%"
 
     
 
@@ -1373,42 +1270,7 @@
     
 :ftp.done    
     if %logging% == 1 ( call :log Finished_FTP_Spam:_%filecount% )
-    cls
-    echo.
-    %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
-    %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
-    %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
-    %$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
-    %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
-    %$Echo% "                             |_|                                              |___/                                                                                                                                     
-
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo The Script Created %filecount% Files on the FTP Server: %ftpserver%
-    echo.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo Do you want to Close the Script or Go to the Menu?
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [1] Close
-    echo.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [2] Menu
-    echo.
-    @ping -n 1 localhost> nul
-    set /p done=Choose an Option from Above:
-    if "%done%" =="" goto ftp.done
-    If "%done%" == 1 goto cancel
-    If "%done%" == 2 goto menu
-    goto ftp.done
+    call :done "The Script Created %filecount% Files on the FTP Server: %ftpserver%"
 
 
 
@@ -1480,43 +1342,7 @@
 
 :app.spam.done
     if %logging% == 1 ( call :log Finished_Spamming_Files:_%filecount% )
-    :: done tli
-    cls
-    echo.
-    %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
-    %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
-    %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
-    %$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
-    %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
-    %$Echo% "                             |_|                                              |___/                                                                                                                                     
-
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo The Script Created %x% Entrys.
-    echo.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo Do you want to Close the Script or Go to the Menu?
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [1] Close
-    echo.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [2] Menu
-    echo.
-    @ping -n 1 localhost> nul
-    set /p done=Choose an Option from Above:
-    if "%done%" =="" goto app.spam.done
-    If "%done%" == 1 goto cancel
-    If "%done%" == 2 goto menu
-    goto app.spam.done
+    call :done "The Script Created %x% Entrys."
 
 
 :startmenu.spam
@@ -1638,41 +1464,7 @@
 
 :ssh.done
     if %logging% == 1 ( call :log Finished_SSH_Spam_Files:_%ssh-filecount%_Host_%ssh-name% )
-    :: Remote Spam Done TLI
-    echo.
-    %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
-    %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
-    %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
-    %$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
-    %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
-    %$Echo% "                             |_|                                              |___/                                                                                                                                  
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo The Script Created %ssh-filecount% Files on the Machine of %ssh-name%
-    echo.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo Do you want to Close the Script or Go to the Menu?
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [1] Close
-    echo.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [2] Menu
-    echo.
-    @ping -n 1 localhost> nul
-    set /p done=Choose an Option from Above:
-    if "%done%" =="" goto ssh.done
-    If "%done%" == 1 goto cancel
-    If "%done%" == 2 goto menu
-    goto ssh.done
+    call :done "The Script Created %ssh-filecount% Files on the Machine of %ssh-name%"
 
 :desktop.icon.spam
     if %logging% == 1 ( call :log Opened_Desktop_Spam )
@@ -1700,43 +1492,7 @@
 
 :done2
     if %logging% == 1 ( call :log Finished_Spamming_Files:_%deskspamlimitedvar% )
-    :: done tli
-    echo.
-    %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
-    %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
-    %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
-    %$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
-    %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
-    %$Echo% "                             |_|                                              |___/                                     
-                                                                                              
-
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo The Script Created %deskspamlimitedvar% Files.
-    echo.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo Do you want to Close the Script or Go to the Menu?
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [1] Close
-    echo.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [2] Menu
-    echo.
-    @ping -n 1 localhost> nul
-    set /p done=Choose an Option from Above:
-    if "%done%" =="" goto done2
-    If "%done%" == 1 goto cancel
-    If "%done%" == 2 goto menu
-    goto done2
+    call :done "The Script Created %deskspamlimitedvar% Files."
 
 
 :normal.text.spam
@@ -1771,46 +1527,9 @@
         set /a x+=1
     )
 
-
-:done
     if %logging% == 1 ( call :log Finished_Spamming_Files:_%filecount% )
-    :: done tli
-    cls
-    echo.
-    %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
-    %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
-    %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
-    %$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
-    %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
-    %$Echo% "                             |_|                                              |___/                                                                                                                                     
+    call :done "The Script Created %filecount% Files."
 
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo The Script Created %filecount% Files.
-    echo.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo Do you want to Close the Script or Go to the Menu?
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [1] Close
-    echo.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [2] Menu
-    echo.
-    @ping -n 1 localhost> nul
-    set /p done=Choose an Option from Above:
-    if "%done%" =="" goto done
-    If "%done%" == 1 goto cancel
-    If "%done%" == 2 goto menu
-    goto done
 
 
     :: Display Help Dialog
@@ -2056,6 +1775,43 @@
     goto :eof
     
 
+:done
+    cls
+    echo.
+    %$Echo% "   ____        _        ____                                           
+    %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __
+    %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__|
+    %$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  
+    %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  
+    %$Echo% "  
+    
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo %~1
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo Do you want to Close the Script or Go to the Menu?
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [1] Close
+    echo.
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [2] Menu
+    echo.
+    @ping -n 1 localhost> nul
+    set /p done=Choose an Option from Above:
+    if "%done%" =="" goto done
+    If "%done%" == 1 goto cancel
+    If "%done%" == 2 goto menu
+    goto done
 
 
 :sys.verify.execution
