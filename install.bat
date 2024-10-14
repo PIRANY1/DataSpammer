@@ -28,6 +28,7 @@ color 2
 
 
 :sys.new.update.installed
+    cd /d %~dp0
     setlocal enabledelayedexpansion
     
     set "keys[0]=default_filename=notused"
@@ -39,19 +40,22 @@ color 2
     set "keys[6]=default-domain=notused"
     set "keys[7]=elevation=pwsh"
     
-    set "key_count=8"
+    set "key_count=7"
+    
     
     set "file=settings.conf"
     set "tmpfile=temp_settings.conf"
     
     copy %file% %tmpfile%
     
+    
     for /L %%i in (0,1,%key_count%) do (
         set "found=0"
         set "key=!keys[%%i]!"
     
-        for /f "tokens=1 delims==" %%a in ("!key!") do (
+        for /f "tokens=1,2 delims==" %%a in ("!key!") do (
             set "current_key=%%a"
+            set "new_value=%%b"
         )
     
         for /f "tokens=1 delims==" %%x in ('type "%file%"') do (
@@ -63,9 +67,10 @@ color 2
     
         :continue
         if !found!==0 (
-            echo !key!>>%tmpfile%
+            echo !current_key!=!new_value!>>%tmpfile%
         )
     )
+    
     
     move /y %tmpfile% %file%
     cd /d %~dp0

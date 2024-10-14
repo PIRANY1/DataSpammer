@@ -1089,7 +1089,7 @@
     set /P main.tests=Choose an Option from Above:
     if %main.tests% == "" goto start.verified
     if %main.tests% == 1 goto local.spams
-    if %main.tests% == 2 internet.spams
+    if %main.tests% == 2 goto internet.spams
     goto start.verified
 
 
@@ -1165,13 +1165,12 @@
 
 
 :icmp.spam
-    set /P icmp.packet.size=Enter the Packet Size (1500 is default):
     if "%default-domain%"=="notused" set /P icmp.target=Enter the Target
     if not "%default-domain%"=="notused" set "icmp.target=%default-domain%"
     
     echo Press CTRL+C to stop
     @ping -n 3 localhost> nul
-    ping %icmp.target% -f -s %icmp.packet.size%
+    ping %icmp.target% -f
 
     if %logging% == 1 ( call :log Finished_ICMP_Spam_on_%icmp.target% )
     call :done "The Script Tested %icmp.target% with %icmp.packet.size% Bytes Packets"
