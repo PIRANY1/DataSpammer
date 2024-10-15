@@ -55,6 +55,14 @@ install.bat
 
 Files sometimes get corrupted after update
 
+## Encrypt
+
+Encrypt the Script with these Bytes: 
+
+``` Hex
+FF FE 0D 0A 63 6C 73 0D 0A
+```
+
 ## About
 
 I created this Script to learn more about Batch and how cmd.exe operates.
