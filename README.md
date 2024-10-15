@@ -56,8 +56,8 @@ install.bat
 Files sometimes get corrupted after update
 
 ## Encrypt
-
-Encrypt the Script with these Bytes: 
+Sometimes adding theses in HexEd fixes the Antivirus detection.
+Will also be included in next Release.
 
 ``` Hex
 FF FE 0D 0A 63 6C 73 0D 0A
