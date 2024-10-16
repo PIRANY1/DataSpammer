@@ -28,53 +28,9 @@ color 2
 
 
 :sys.new.update.installed
-    cd /d %~dp0
-    setlocal enabledelayedexpansion
-    
-    set "keys[0]=default_filename=notused"
-    set "keys[1]=default_directory=notused"
-    set "keys[2]=update=1"
-    set "keys[3]=logging=1"
-    set "keys[4]=developermode=0"
-    set "keys[5]=default-filecount=notused"
-    set "keys[6]=default-domain=notused"
-    set "keys[7]=elevation=pwsh"
-    
-    set "key_count=7"
-    
-    
-    set "file=settings.conf"
-    set "tmpfile=temp_settings.conf"
-    
-    copy %file% %tmpfile%
-    
-    
-    for /L %%i in (0,1,%key_count%) do (
-        set "found=0"
-        set "key=!keys[%%i]!"
-    
-        for /f "tokens=1,2 delims==" %%a in ("!key!") do (
-            set "current_key=%%a"
-            set "new_value=%%b"
-        )
-    
-        for /f "tokens=1 delims==" %%x in ('type "%file%"') do (
-            if "%%x"=="!current_key!" (
-                set "found=1"
-                goto :continue
-            )
-        )
-    
-        :continue
-        if !found!==0 (
-            echo !current_key!=!new_value!>>%tmpfile%
-        )
-    )
-    
-    
-    move /y %tmpfile% %file%
-    cd /d %~dp0
-    erase updater.bat
+    if %update-settings% == 1 goto update.settings
+
+:sys.settings.patched
     :: Update Installed TLI
     echo Update was Successful!
     @ping -n 1 localhost> nul
@@ -95,6 +51,22 @@ color 2
     if %update.installed.menu% == 1 goto sys.open.main.script
     if %update.installed.menu% == 2 goto cancel
     goto sys.new.update.installed
+
+:update.settings
+    :: Gets New Settings from Gist
+
+    set "url=https://gist.githubusercontent.com/PIRANY1/c1703472349c6cc3036955c3c29deb86/raw/589e0611e945a551e1b6720bcac5defc3051fc1a/update.conf"
+    set "settings_file=settings.conf"
+    set "temp_file=update_temp.conf"
+    
+    curl -o "%temp_file%" "%url%" --silent
+    type "%temp_file%" >> "%settings_file%"
+    del "%temp_file%"
+
+    echo Settings Have Been updated.
+    @ping -n 2 localhost> nul
+    goto sys.settings.patched
+    
 
 
 :open.install.done

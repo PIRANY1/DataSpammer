@@ -1,12 +1,9 @@
 :: Use only under MIT License
 :: Use only under License
 ::    Todo: 
-::    Fully Implement Sudo (Beta is at :sudo.implementation)
-::    Fix Variable Name
-::    Use one Spam engine (would it even be more efficient?)
-::    SMTP, IMAP,
-::    Add printer network
-::    Auto Update Settings after Update
+::    Add SMTP & IMAP Spam
+::    Add Printer Selection
+
 
 
 :: Developer Notes:
@@ -227,6 +224,7 @@
     echo curl -sSLo license https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/license >> updater.bat
     echo if %%ERRORLEVEL%% neq 0 ( echo Download failed, aborting update ^&^& pause ^&^& exit ) >> updater.bat
     echo set "update-install=1" >> updater.bat
+    echo set "update-settings=1" >> updater.bat
     echo start install.bat >> updater.bat
     echo exit >> updater.bat
 
@@ -634,6 +632,12 @@
         set "sudo=0"
     )
 
+:: Execute PWSH Elev
+:: goto elevated
+
+:sudo.parse
+:: elevate via sudo
+:: goto elevated
 
 
 :spam.settings
@@ -712,10 +716,25 @@
     goto settings.version.control
 
 :dev.force.update
-    if %logging% == 1 ( call :log Forcing_Update )
-    echo Running Update Script...
-    @ping -n 1 localhost> nul
-    goto git.update.version
+    if %logging% == 1 ( call :log Switching_to_stable_branch )
+    cd /d %~dp0
+    echo @echo off > updater.bat
+    echo cd /d %~dp0 >> updater.bat
+    echo echo Updating script... >> updater.bat
+    echo curl -sSLo dataspammer.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat >> updater.bat
+    echo if %%ERRORLEVEL%% neq 0 ( echo Download failed, aborting update ^&^& pause ^&^& exit ) >> updater.bat
+    echo curl -sSLo install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat >> updater.bat
+    echo if %%ERRORLEVEL%% neq 0 ( echo Download failed, aborting update ^&^& pause ^&^& exit ) >> updater.bat
+    echo curl -sSLo readme.md https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/readme.md >> updater.bat
+    echo if %%ERRORLEVEL%% neq 0 ( echo Download failed, aborting update ^&^& pause ^&^& exit ) >> updater.bat
+    echo curl -sSLo license https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/license >> updater.bat
+    echo if %%ERRORLEVEL%% neq 0 ( echo Download failed, aborting update ^&^& pause ^&^& exit ) >> updater.bat
+    echo set "update-install=1" >> updater.bat
+    echo start install.bat >> updater.bat
+    echo exit >> updater.bat
+
+    start updater.bat
+    exit
 
 
 
