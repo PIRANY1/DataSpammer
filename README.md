@@ -12,6 +12,8 @@ Desktop Shortcut, Autostart, Auto Update, Logging, Elevation via sudo/pwsh
 
 ## Install
 
+Use on of the Methods below or download the [Latest Version](https://github.com/PIRANY1/DataSpammer/releases/latest)
+
 ### One-Line-Install
 
 ``` cmd

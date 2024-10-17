@@ -4,7 +4,7 @@ mode con: cols=120 lines=30
 if "%restart-main%" == "1" goto sys.open.main.script
 @title Script Installer by PIRANY
 set "foldername=DataSpammer"
-set "current-script-version=v3.6"
+set "current-script-version=v3.7"
 cd /d %~dp0
 color 2
 cls  
@@ -54,6 +54,7 @@ color 2
 
 :update.settings
     :: Gets New Settings from Gist
+    :: Only Used for essential settings like elevation=pwsh
 
     set "url=https://gist.githubusercontent.com/PIRANY1/c1703472349c6cc3036955c3c29deb86/raw/589e0611e945a551e1b6720bcac5defc3051fc1a/update.conf"
     set "settings_file=settings.conf"

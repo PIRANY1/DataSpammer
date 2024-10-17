@@ -1,7 +1,6 @@
 :: Use only under MIT License
 :: Use only under License
 ::    Todo: 
-::    Add SMTP & IMAP Spam
 ::    Add Printer Selection
 
 
@@ -15,7 +14,7 @@
 :!top
     @echo off
     mode con: cols=140 lines=40
-    set "current-script-version=v3.6"
+    set "current-script-version=v3.7"
     if "%1"=="h" goto help.startup
     if "%1"=="-h" goto help.startup
     if "%1"=="help" goto help.startup
@@ -157,7 +156,7 @@
 
 
     
-    if "%latest_version%" equ "v3.6" (
+    if "%latest_version%" equ "v3.7" (
         set "uptodate=up"
     ) else (
         set "uptodate="
@@ -296,7 +295,7 @@
     if "%1"=="settings" goto settings
     if %logging% == 1 ( call :log Displaying_Menu )
     if %logging% == 1 ( call :log Startup_Complete )
-    title DataSpammer v3.6
+    title DataSpammer v3.7
     if "%small-install%" == "1" (
         set "settings-lock=Locked. Find Information under [44mHelp[32m"
     ) else (
@@ -315,7 +314,7 @@
 
 
     @ping -n 1 localhost> nul
-    echo Made by PIRANY                 v3.6
+    echo Made by PIRANY                 v3.7
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
@@ -1244,9 +1243,6 @@
     for /L %%i in (1,1,%printer.count%) do (
         print %print.filename%.txt
     )
-    
-    
-:printer.done
     if %logging% == 1 ( call :log Finished_Printer_Spam:%printer.count%_Requests_on_default_Printer )
     call :done "The Script Created %printer.count% to Default Printer"
 
