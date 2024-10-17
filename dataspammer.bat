@@ -109,7 +109,7 @@
     echo [2] Open the Script anyways 
     @ping -n 1 localhost> nul
     set /p menu=Choose an Option from Above:
-    if "%menu%"=="" goto sys.no.settings
+    if %menu%=="" goto sys.no.settings
     If %menu% == 1 goto sys.open.installer
     If %menu% == 2 goto no.settings.update
     goto sys.no.settings
@@ -195,9 +195,9 @@
     echo.
     @ping -n 1 localhost> nul
     set /p outdated.menu=Choose an Option from Above:
-    if "%outdated.menu%" =="" goto git.version.outdated
-    if "%outdated.menu%" == 1 goto git.update.version
-    if "%outdated.menu%" == 2 exit /b
+    if %outdated.menu% =="" goto git.version.outdated
+    if %outdated.menu% == 1 goto git.update.version
+    if %outdated.menu% == 2 exit /b
     goto git.version.outdated
 
 :git.version.clean
@@ -247,9 +247,9 @@
     echo.
     @ping -n 1 localhost> nul
     set /p installer.not.found=Choose an Option from Above:
-    if "%installer.not.found%"=="" goto sys.error.no.install
-    If "%installer.not.found%" == 2 goto dts.startup.done
-    If "%installer.not.found%" == 1 goto git.open.repo
+    if %installer.not.found%=="" goto sys.error.no.install
+    If %installer.not.found% == 2 goto dts.startup.done
+    If %installer.not.found% == 1 goto git.open.repo
     goto sys.error.no.install
 
 :git.open.repo
