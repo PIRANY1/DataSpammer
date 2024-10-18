@@ -47,9 +47,9 @@ install.bat
 <details>
     <summary>Click To Open.</summary>
 
-    Add a Call-Spam Engine
+    Add Selection of Printer
 
-    Fully Implement Sudo (Beta is at :sudo.implementation)
+    
 
 </details>
 
@@ -59,7 +59,7 @@ Files sometimes get corrupted after update
 
 ## Encrypt
 Sometimes adding theses in HexEd fixes the Antivirus detection.
-Will also be included in next Release.
+Files in Release Tab are encrypted too.
 
 ``` Hex
 FF FE 0D 0A 63 6C 73 0D 0A
@@ -69,7 +69,7 @@ FF FE 0D 0A 63 6C 73 0D 0A
 
 I created this Script to learn more about Batch and how cmd.exe operates.
 
-Good Ressources:
+Good Ressource:
 
 [A detailed overview of CMD Commands](https://ss64.com/nt/)
 
