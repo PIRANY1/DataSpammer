@@ -2,9 +2,9 @@
 
 ## Features
 
-### Spam Features
+### Stress-Test Features
 
-SSH, FTP, DNS, HTTP(S), Desktop Spam, Folder Spam, Startmenu Spam, Applist Spam
+ICMP, SSH, FTP, DNS, HTTP(S), Printer Spam, Desktop Spam, Folder Spam, Startmenu Spam, Applist Spam
 
 ### Other Features
 
