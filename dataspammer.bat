@@ -1,11 +1,8 @@
 :: Use only under MIT License
 :: Use only under License
 ::    Todo: 
-::    Add Printer Selection
 ::    Fix SSH
 ::    Add Translation
-::    Check Beta Sudo
-::    Rework Settings Update
 ::    Merge In One Script?
 
 :: Developer Notes:
@@ -17,7 +14,7 @@
 :!top
     @echo off
     mode con: cols=140 lines=40
-    set "current-script-version=v3.7"
+    set "current-script-version=v3.8"
     if "%1"=="h" goto help.startup
     if "%1"=="-h" goto help.startup
     if "%1"=="help" goto help.startup
@@ -30,6 +27,7 @@
     if "%1"=="cli" goto sys.cli
     if "%1"=="api" goto sys.api
     if "%1"=="noelev" @ECHO OFF && cd /d %~dp0 && @color 02 && set "small-install=1" && goto check-files
+    if "%update-install%"=="1" ( goto sys.new.update.installed )
 
 
 
@@ -71,7 +69,11 @@
     goto check-files
     
 :sudo.elevation
-    powershell -Command "sudo cmd.exe -k %~f0"
+    net session >nul 2>&1
+    if %errorLevel% neq 0 (
+        powershell -Command "sudo cmd.exe -k %~f0"
+        exit
+    )
     cd /d %~dp0
     goto check-files
 
@@ -159,7 +161,7 @@
 
 
     
-    if "%latest_version%" equ "v3.7" (
+    if "%latest_version%" equ "v3.8" (
         set "uptodate=up"
     ) else (
         set "uptodate="
@@ -226,11 +228,11 @@
     echo curl -sSLo license https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/license >> updater.bat
     echo if %%ERRORLEVEL%% neq 0 ( echo Download failed, aborting update ^&^& pause ^&^& exit ) >> updater.bat
     echo set "update-install=1" >> updater.bat
-    echo set "update-settings=1" >> updater.bat
-    echo start install.bat >> updater.bat
+    echo start powershell -Command "Start-Process 'dataspammer.bat' -Verb runAs" >> updater.bat
     echo exit >> updater.bat
 
-    start updater.bat
+    start powershell -Command "Start-Process 'updater.bat' -Verb runAs"
+
     exit
 
 
@@ -298,7 +300,7 @@
     if "%1"=="settings" goto settings
     if %logging% == 1 ( call :log Displaying_Menu )
     if %logging% == 1 ( call :log Startup_Complete )
-    title DataSpammer v3.7
+    title DataSpammer v3.8
     if "%small-install%" == "1" (
         set "settings-lock=Locked. Find Information under [44mHelp[32m"
     ) else (
@@ -317,7 +319,7 @@
 
 
     @ping -n 1 localhost> nul
-    echo Made by PIRANY                 v3.7
+    echo Made by PIRANY                 v3.8
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
@@ -732,10 +734,10 @@
     echo curl -sSLo license https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/license >> updater.bat
     echo if %%ERRORLEVEL%% neq 0 ( echo Download failed, aborting update ^&^& pause ^&^& exit ) >> updater.bat
     echo set "update-install=1" >> updater.bat
-    echo start install.bat >> updater.bat
+    echo start powershell -Command "Start-Process 'dataspammer.bat' -Verb runAs" >> updater.bat
     echo exit >> updater.bat
 
-    start updater.bat
+    start powershell -Command "Start-Process 'updater.bat' -Verb runAs"
     exit
 
 
@@ -755,10 +757,10 @@
     echo curl -sSLo license https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/license >> updater.bat
     echo if %%ERRORLEVEL%% neq 0 ( echo Download failed, aborting update ^&^& pause ^&^& exit ) >> updater.bat
     echo set "update-install=1" >> updater.bat
-    echo start install.bat >> updater.bat
+    echo start powershell -Command "Start-Process 'dataspammer.bat' -Verb runAs" >> updater.bat
     echo exit >> updater.bat
 
-    start updater.bat
+    start powershell -Command "Start-Process 'updater.bat' -Verb runAs"
     exit /b
 
 :stable.switch.branch
@@ -776,10 +778,10 @@
     echo curl -sSLo license https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/license >> updater.bat
     echo if %%ERRORLEVEL%% neq 0 ( echo Download failed, aborting update ^&^& pause ^&^& exit ) >> updater.bat
     echo set "update-install=1" >> updater.bat
-    echo start install.bat >> updater.bat
+    echo start powershell -Command "Start-Process 'dataspammer.bat' -Verb runAs" >> updater.bat
     echo exit >> updater.bat
 
-    start updater.bat
+    start powershell -Command "Start-Process 'updater.bat' -Verb runAs"
     exit
 
 
@@ -1133,7 +1135,7 @@
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [5] Printer Test (only default Printer currently)
+    echo [5] Printer Test
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
@@ -1239,14 +1241,20 @@
     if "%default-filename%"=="notused" set /P print.filename=Enter the Filename:
     if not "%default-filename%"=="notused" set "print.filename=%default-filename%"
 
+    cls
+    wmic printer get Name
+    set /P printer-device=Choose a Device (full name):
+
     set /P printer.content=Enter the Content:
     cd /d %~dp0
     echo %printer.content% > %print.filename%.txt
 
     for /L %%i in (1,1,%printer.count%) do (
         print %print.filename%.txt
+        print /D:"%printer-device%" %print.filename%.txt
     )
     if %logging% == 1 ( call :log Finished_Printer_Spam:%printer.count%_Requests_on_default_Printer )
+    erase %print.filename%.txt
     call :done "The Script Created %printer.count% to Default Printer"
 
 
@@ -1970,6 +1978,48 @@
     set /P jump-to-call-sign=Enter a Call Sign:
     install.bat go %jump-to-call-sign%
 
+
+
+
+:sys.new.update.installed
+    set "config_file=settings.conf"
+    for /f "usebackq tokens=1,2 delims==" %%a in (`findstr /v "^::" "%config_file%"`) do (
+        set "%%a=%%b"
+    )
+
+    if not defined %default_filename% call :update_config "default_filename" "" "notused"
+    if not defined %default-domain% call :update_config "default-domain" "" "notused"
+    if not defined %default-filecount% call :update_config "default-filecount" "" "notused"
+    if not defined %developermode% call :update_config "developermode" "" "0"
+    if not defined %logging% call :update_config "logging" "" "1"
+    if not defined %default_directory% call :update_config "default_directory" "" "notused"
+    if not defined %elevation% call :update_config "elevation" "" "pwsh"
+    echo Updating Settings...
+    @ping -n 1 localhost> nul    
+    goto sys.settings.patched
+
+
+:sys.settings.patched
+    :: Update Installed TLI
+    echo Update was Successful!
+    @ping -n 1 localhost> nul
+    echo Updated to %latest_version%
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [1] Open Script
+    @ping -n 1 localhost> nul
+    echo.
+    @ping -n 1 localhost> nul
+    echo [2] Exit
+    @ping -n 1 localhost> nul
+    echo.
+    echo.
+    set /P update.installed.menu=Choose an Option from above
+    if %update.installed.menu%=="" goto sys.new.update.installed
+    if %update.installed.menu% == 1 goto restart.script
+    if %update.installed.menu% == 2 goto cancel
+    goto sys.new.update.installed
 
 
 

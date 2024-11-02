@@ -1,10 +1,10 @@
 @if not defined debug_assist (@ECHO OFF) else (@echo on)
 :normal.start
 mode con: cols=120 lines=30
-if "%restart-main%" == "1" goto sys.open.main.script
+if "%restart-main%" == "1" dataspammer.bat
 @title Script Installer by PIRANY
 set "foldername=DataSpammer"
-set "current-script-version=v3.7"
+set "current-script-version=v3.8"
 cd /d %~dp0
 color 2
 cls  
@@ -12,63 +12,13 @@ color 2
     if "%1"=="go" goto custom.go
     if "%1"=="-reverse.arg" dataspammer.bat %2
 
-:script.install.check
-    :: Check if Script started after an update
-    if "%update-install%"=="1" (
-        goto sys.new.update.installed
-    ) else (
-        goto open.install.done
-    )
+
 :sys.verify.execution
     :: Script isnt elevated TLI
     echo Please start the Script as Administrator in order to install.
     echo To do this right click the install.bat File and click "Run As Administrator"
     pause
     exit
-
-
-:sys.new.update.installed
-    if %update-settings% == 1 goto update.settings
-
-:sys.settings.patched
-    :: Update Installed TLI
-    echo Update was Successful!
-    @ping -n 1 localhost> nul
-    echo Updated from %current-script-version% to %latest_version%
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [1] Open Script
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [2] Exit
-    @ping -n 1 localhost> nul
-    echo.
-    echo.
-    set /P update.installed.menu=Choose an Option from above
-    if %update.installed.menu%=="" goto sys.new.update.installed
-    if %update.installed.menu% == 1 goto sys.open.main.script
-    if %update.installed.menu% == 2 goto cancel
-    goto sys.new.update.installed
-
-:update.settings
-    :: Gets New Settings from Gist
-    :: Only Used for essential settings like elevation=pwsh
-
-    set "url=https://gist.githubusercontent.com/PIRANY1/c1703472349c6cc3036955c3c29deb86/raw/589e0611e945a551e1b6720bcac5defc3051fc1a/update.conf"
-    set "settings_file=settings.conf"
-    set "temp_file=update_temp.conf"
-    
-    curl -o "%temp_file%" "%url%" --silent
-    type "%temp_file%" >> "%settings_file%"
-    del "%temp_file%"
-
-    echo Settings Have Been updated.
-    @ping -n 2 localhost> nul
-    goto sys.settings.patched
-    
-
 
 :open.install.done
     :: Check if Settings Exist
@@ -92,59 +42,18 @@ color 2
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [2] Open Settings
+    echo [2] Delete Script (Script need to run as Administator!)
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [3] Delete Script (Script need to run as Administator!)
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [4] Reinstall Script
+    echo [3] Reinstall Script
     set /p installer.executed.menu=Choose an Option from above
     
     if %installer.executed.menu%=="" goto sys.installer.execution.finished
-    If %installer.executed.menu% == 1 goto sys.open.main.script
-    If %installer.executed.menu% == 2 goto open.settings.dts
-    If %installer.executed.menu% == 3 goto delete.script.confirmation.window
-    If %installer.executed.menu% == 4 goto installer.main.window
-    If %installer.executed.menu% == 6 goto sys.add.developer.tool
+    If %installer.executed.menu% == 1 dataspammer.bat
+    If %installer.executed.menu% == 2 goto delete.script.confirmation.window
+    If %installer.executed.menu% == 3 goto installer.main.window
     goto sys.installer.execution.finished
-
-:sys.add.developer.tool
-    :: Add the DevTool - Currently Hidden due to missing Features
-    (
-    echo :topp
-    echo @echo off
-    echo cd /d %%~dp0
-    echo @title DevTool
-    echo if not exist dataspammer.bat goto errornofile
-    echo :dataspammerdevtool
-    echo echo [1] Echo On Debug
-    echo echo [2] DevConsole Input
-    echo set /P dataspammerdevtoolvar=Choose an Answer from Above
-    echo if %%dataspammerdevtoolvar%% == 1 goto echoondebug
-    echo if %%dataspammerdevtoolvar%% == 2 goto devconsoleinput
-    echo goto dataspammerdevtool
-    echo :devconsoleinput
-    echo set /P devconsoleinputvar=For which File:
-    echo set "devtools=1"
-    echo %%devconsoleinputvar%%
-    echo :echoondebug
-    echo set /P echoondebugvar=For Which File:
-    echo set "debug_assist=1"
-    echo %%echoondebugvar%%
-    echo :errornofile
-    echo echo For the Script to work efficiently it has to be in the same Directory.
-    echo @ping -n 1 localhost> nul
-    echo echo Please move the Script.
-    echo @ping -n 1 localhost> nul
-    echo pause
-    echo exit
-    ) > devtool.bat
-    echo gg
-    pause
-    exit
 
 :delete.script.confirmation.window
     :: Delete Script TLI
@@ -397,7 +306,7 @@ color 2
     echo Installation Done.
     cd /d DataSpammer 
     erase %install-directory%\install.bat > nul
-    goto sys.open.main.script
+    dataspammer.bat
 
 :installer.updater.installation.confirm
     :: Updater Install TLI
@@ -581,31 +490,24 @@ color 2
 
 :additionals.ask.window
     :: TLI for Readme and LICENSE
-    color 02
     echo Dow you want to delete the LICENSE and README files?
     @ping -n 1 localhost> nul
     echo.
-    @ping -n 1 localhost> nul
     echo [1] List content of README
     @ping -n 1 localhost> nul
     echo.
-    @ping -n 1 localhost> nul
     echo [2] List content of LICENSE
     @ping -n 1 localhost> nul
     echo.
-    @ping -n 1 localhost> nul
     echo [3] Delete LICENSE
     @ping -n 1 localhost> nul
     echo.
-    @ping -n 1 localhost> nul
     echo [4] Delete README
     @ping -n 1 localhost> nul
     echo.
-    @ping -n 1 localhost> nul
     echo [5] Copy in Script Folder
     @ping -n 1 localhost> nul
     echo.
-    @ping -n 1 localhost> nul
     echo [6] Done/Skip
     echo.
     @ping -n 1 localhost> nul
@@ -637,8 +539,6 @@ color 2
         for /f "tokens=*" %%a in (%liscensefad%) do (
             echo %%a
         )
-    ) else (
-        echo Error. Please open LICENSE manually.
     )
     pause
     goto additionals.ask.window
@@ -651,27 +551,18 @@ color 2
         for /f "tokens=*" %%a in (%liscensefad1%) do (
             echo %%a
         )
-    ) else (
-        echo Error. Please open README manually.
     )
     pause
     goto additionals.ask.window
 
 :delete.license
     :: delete the license
-    if exist "%~dp0\LICENSE" (
-        erase "%~dp0\LICENSE" > nul
-    ) else (
-        goto additionals.ask.window
-    )
+    if exist "%~dp0\LICENSE" ( erase "%~dp0\LICENSE" > nul )
     goto additionals.ask.window
+
 :delete.readme
     :: Delete readme 
-    if exist "%~dp0\README.md" (
-        erase "%~dp0\README.md" > nul
-    ) else (
-        goto additionals.ask.window
-    )
+    if exist "%~dp0\README.md" ( erase "%~dp0\README.md" > nul )
     goto additionals.ask.window
 
 :sys.main.installer.done
@@ -683,7 +574,6 @@ color 2
     dataspammer.bat
 
 :cancel
-    :: When the Install got canceled
     echo The installer is now closing....
     @ping -n 2 localhost> nul
     exit
@@ -694,8 +584,6 @@ color 2
    set "custom.goto.location=%2"
    goto %custom.goto.location%
 
-:sys.open.main.script
-        dataspammer.bat
 
 :log
     :: call scheme is:
@@ -733,6 +621,52 @@ color 2
         :: Write Log
         ::echo !currentDate! !formattedTime! %log.content% >> "%folder%\%logfile%"
 
+:update_config
+    :: Example for Interactive Change
+    :: call :update_config "default-filename" "Type in the Filename you want to use." ""
+    
+    :: Example for Automated Change
+    :: call :update_config "logging" "" "1"
+    
+
+    :: call :update_config "1" "2" "3"
+    :: Parameter 1: Value (logging etc.)
+    :: Parameter 2: User Choice (interactive prompt, empty for automated)
+    :: Parameter 3: New Value (leave empty for user input)
+    
+    setlocal enabledelayedexpansion
+    cd /d %~dp0
+    
+    set "key=%~1"
+    set "prompt=%~2"
+    set "new_value=%~3"
+
+    if "%new_value%"=="" (
+        set /p new_value=%prompt%
+    )
+    
+    set "file=settings.conf"
+    set "tmpfile=temp.txt"
+    set linenumber=0
+    
+    (for /f "tokens=1,* delims==" %%a in (!file!) do (
+        if "%%a"=="%key%" (
+            set found=1
+            echo %%a=!new_value!
+        ) else (
+            echo %%a=%%b
+        )
+    )) > !tmpfile!
+    
+    if !found!==0 (
+        echo %key%=%new_value% >> !tmpfile!
+    )
+
+    if !logging!==1 ( call :log Changing_%key% )
+    cls
+    endlocal
+    goto :eof
+
 
 
 :verify
@@ -751,9 +685,6 @@ color 2
     powershell -Command %msgBoxArgs%
     goto verify
 
-:restart.script.dev
-    cd /d %~dp0
-    goto normal.start
 :restart.script
     cd /d %~dp0
     install.bat
