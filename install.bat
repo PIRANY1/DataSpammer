@@ -12,62 +12,13 @@ color 2
     if "%1"=="go" goto custom.go
     if "%1"=="-reverse.arg" dataspammer.bat %2
 
-:script.install.check
-    :: Check if Script started after an update
-    if "%update-install%"=="1" (
-        goto sys.new.update.installed
-    ) else (
-        goto open.install.done
-    )
+
 :sys.verify.execution
     :: Script isnt elevated TLI
     echo Please start the Script as Administrator in order to install.
     echo To do this right click the install.bat File and click "Run As Administrator"
     pause
     exit
-
-
-:sys.new.update.installed
-    set "config_file=settings.conf"
-    for /f "usebackq tokens=1,2 delims==" %%a in (`findstr /v "^::" "%config_file%"`) do (
-        set "%%a=%%b"
-    )
-
-    if not defined %default_filename% call :update_config "default_filename" "" "notused"
-    if not defined %default-domain% call :update_config "default-domain" "" "notused"
-    if not defined %default-filecount% call :update_config "default-filecount" "" "notused"
-    if not defined %developermode% call :update_config "developermode" "" "0"
-    if not defined %logging% call :update_config "logging" "" "1"
-    if not defined %default_directory% call :update_config "default_directory" "" "notused"
-    if not defined %elevation% call :update_config "elevation" "" "pwsh"
-    echo Updating Settings...
-    @ping -n 1 localhost> nul    
-    goto sys.settings.patched
-
-
-:sys.settings.patched
-    :: Update Installed TLI
-    echo Update was Successful!
-    @ping -n 1 localhost> nul
-    echo Updated from %current-script-version% to %latest_version%
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [1] Open Script
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [2] Exit
-    @ping -n 1 localhost> nul
-    echo.
-    echo.
-    set /P update.installed.menu=Choose an Option from above
-    if %update.installed.menu%=="" goto sys.new.update.installed
-    if %update.installed.menu% == 1 goto sys.open.main.script
-    if %update.installed.menu% == 2 goto cancel
-    goto sys.new.update.installed
-
-
 
 :open.install.done
     :: Check if Settings Exist
