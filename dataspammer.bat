@@ -2,8 +2,11 @@
 :: Use only under License
 ::    Todo: 
 ::    Add Printer Selection
-
-
+::    Fix SSH
+::    Add Translation
+::    Check Beta Sudo
+::    Rework Settings Update
+::    Merge In One Script?
 
 :: Developer Notes:
 :: Define %debug_asist% to bypass echo_off

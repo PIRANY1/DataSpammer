@@ -46,11 +46,12 @@ install.bat
 
 <details>
     <summary>Click To Open.</summary>
-
     Add Selection of Printer
-
-    
-
+    Fix SSH
+    Add Translation
+    Check Beta Sudo
+    Rework Settings Update
+    Merge In One Script?
 </details>
 
 ## Known Bugs
