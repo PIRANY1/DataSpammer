@@ -5,7 +5,6 @@
 ::    Fix SSH
 ::    Add Translation
 ::    Check Beta Sudo
-::    Rework Settings Update
 ::    Merge In One Script?
 
 :: Developer Notes:
@@ -226,7 +225,6 @@
     echo curl -sSLo license https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/license >> updater.bat
     echo if %%ERRORLEVEL%% neq 0 ( echo Download failed, aborting update ^&^& pause ^&^& exit ) >> updater.bat
     echo set "update-install=1" >> updater.bat
-    echo set "update-settings=1" >> updater.bat
     echo start install.bat >> updater.bat
     echo exit >> updater.bat
 

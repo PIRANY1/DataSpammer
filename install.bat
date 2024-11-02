@@ -28,7 +28,22 @@ color 2
 
 
 :sys.new.update.installed
-    if %update-settings% == 1 goto update.settings
+    set "config_file=settings.conf"
+    for /f "usebackq tokens=1,2 delims==" %%a in (`findstr /v "^::" "%config_file%"`) do (
+        set "%%a=%%b"
+    )
+
+    if not defined %default_filename% call :update_config "default_filename" "" "notused"
+    if not defined %default-domain% call :update_config "default-domain" "" "notused"
+    if not defined %default-filecount% call :update_config "default-filecount" "" "notused"
+    if not defined %developermode% call :update_config "developermode" "" "0"
+    if not defined %logging% call :update_config "logging" "" "1"
+    if not defined %default_directory% call :update_config "default_directory" "" "notused"
+    if not defined %elevation% call :update_config "elevation" "" "pwsh"
+    echo Updating Settings...
+    @ping -n 1 localhost> nul    
+    goto sys.settings.patched
+
 
 :sys.settings.patched
     :: Update Installed TLI
@@ -52,22 +67,6 @@ color 2
     if %update.installed.menu% == 2 goto cancel
     goto sys.new.update.installed
 
-:update.settings
-    :: Gets New Settings from Gist
-    :: Only Used for essential settings like elevation=pwsh
-
-    set "url=https://gist.githubusercontent.com/PIRANY1/c1703472349c6cc3036955c3c29deb86/raw/589e0611e945a551e1b6720bcac5defc3051fc1a/update.conf"
-    set "settings_file=settings.conf"
-    set "temp_file=update_temp.conf"
-    
-    curl -o "%temp_file%" "%url%" --silent
-    type "%temp_file%" >> "%settings_file%"
-    del "%temp_file%"
-
-    echo Settings Have Been updated.
-    @ping -n 2 localhost> nul
-    goto sys.settings.patched
-    
 
 
 :open.install.done
@@ -732,6 +731,52 @@ color 2
         
         :: Write Log
         ::echo !currentDate! !formattedTime! %log.content% >> "%folder%\%logfile%"
+
+:update_config
+    :: Example for Interactive Change
+    :: call :update_config "default-filename" "Type in the Filename you want to use." ""
+    
+    :: Example for Automated Change
+    :: call :update_config "logging" "" "1"
+    
+
+    :: call :update_config "1" "2" "3"
+    :: Parameter 1: Value (logging etc.)
+    :: Parameter 2: User Choice (interactive prompt, empty for automated)
+    :: Parameter 3: New Value (leave empty for user input)
+    
+    setlocal enabledelayedexpansion
+    cd /d %~dp0
+    
+    set "key=%~1"
+    set "prompt=%~2"
+    set "new_value=%~3"
+
+    if "%new_value%"=="" (
+        set /p new_value=%prompt%
+    )
+    
+    set "file=settings.conf"
+    set "tmpfile=temp.txt"
+    set linenumber=0
+    
+    (for /f "tokens=1,* delims==" %%a in (!file!) do (
+        if "%%a"=="%key%" (
+            set found=1
+            echo %%a=!new_value!
+        ) else (
+            echo %%a=%%b
+        )
+    )) > !tmpfile!
+    
+    if !found!==0 (
+        echo %key%=%new_value% >> !tmpfile!
+    )
+
+    if !logging!==1 ( call :log Changing_%key% )
+    cls
+    endlocal
+    goto :eof
 
 
 
