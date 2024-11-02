@@ -1,7 +1,7 @@
 @if not defined debug_assist (@ECHO OFF) else (@echo on)
 :normal.start
 mode con: cols=120 lines=30
-if "%restart-main%" == "1" goto sys.open.main.script
+if "%restart-main%" == "1" dataspammer.bat
 @title Script Installer by PIRANY
 set "foldername=DataSpammer"
 set "current-script-version=v3.7"
@@ -42,59 +42,18 @@ color 2
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [2] Open Settings
+    echo [2] Delete Script (Script need to run as Administator!)
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [3] Delete Script (Script need to run as Administator!)
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [4] Reinstall Script
+    echo [3] Reinstall Script
     set /p installer.executed.menu=Choose an Option from above
     
     if %installer.executed.menu%=="" goto sys.installer.execution.finished
-    If %installer.executed.menu% == 1 goto sys.open.main.script
-    If %installer.executed.menu% == 2 goto open.settings.dts
-    If %installer.executed.menu% == 3 goto delete.script.confirmation.window
-    If %installer.executed.menu% == 4 goto installer.main.window
-    If %installer.executed.menu% == 6 goto sys.add.developer.tool
+    If %installer.executed.menu% == 1 dataspammer.bat
+    If %installer.executed.menu% == 2 goto delete.script.confirmation.window
+    If %installer.executed.menu% == 3 goto installer.main.window
     goto sys.installer.execution.finished
-
-:sys.add.developer.tool
-    :: Add the DevTool - Currently Hidden due to missing Features
-    (
-    echo :topp
-    echo @echo off
-    echo cd /d %%~dp0
-    echo @title DevTool
-    echo if not exist dataspammer.bat goto errornofile
-    echo :dataspammerdevtool
-    echo echo [1] Echo On Debug
-    echo echo [2] DevConsole Input
-    echo set /P dataspammerdevtoolvar=Choose an Answer from Above
-    echo if %%dataspammerdevtoolvar%% == 1 goto echoondebug
-    echo if %%dataspammerdevtoolvar%% == 2 goto devconsoleinput
-    echo goto dataspammerdevtool
-    echo :devconsoleinput
-    echo set /P devconsoleinputvar=For which File:
-    echo set "devtools=1"
-    echo %%devconsoleinputvar%%
-    echo :echoondebug
-    echo set /P echoondebugvar=For Which File:
-    echo set "debug_assist=1"
-    echo %%echoondebugvar%%
-    echo :errornofile
-    echo echo For the Script to work efficiently it has to be in the same Directory.
-    echo @ping -n 1 localhost> nul
-    echo echo Please move the Script.
-    echo @ping -n 1 localhost> nul
-    echo pause
-    echo exit
-    ) > devtool.bat
-    echo gg
-    pause
-    exit
 
 :delete.script.confirmation.window
     :: Delete Script TLI
@@ -347,7 +306,7 @@ color 2
     echo Installation Done.
     cd /d DataSpammer 
     erase %install-directory%\install.bat > nul
-    goto sys.open.main.script
+    dataspammer.bat
 
 :installer.updater.installation.confirm
     :: Updater Install TLI
@@ -531,31 +490,24 @@ color 2
 
 :additionals.ask.window
     :: TLI for Readme and LICENSE
-    color 02
     echo Dow you want to delete the LICENSE and README files?
     @ping -n 1 localhost> nul
     echo.
-    @ping -n 1 localhost> nul
     echo [1] List content of README
     @ping -n 1 localhost> nul
     echo.
-    @ping -n 1 localhost> nul
     echo [2] List content of LICENSE
     @ping -n 1 localhost> nul
     echo.
-    @ping -n 1 localhost> nul
     echo [3] Delete LICENSE
     @ping -n 1 localhost> nul
     echo.
-    @ping -n 1 localhost> nul
     echo [4] Delete README
     @ping -n 1 localhost> nul
     echo.
-    @ping -n 1 localhost> nul
     echo [5] Copy in Script Folder
     @ping -n 1 localhost> nul
     echo.
-    @ping -n 1 localhost> nul
     echo [6] Done/Skip
     echo.
     @ping -n 1 localhost> nul
@@ -587,8 +539,6 @@ color 2
         for /f "tokens=*" %%a in (%liscensefad%) do (
             echo %%a
         )
-    ) else (
-        echo Error. Please open LICENSE manually.
     )
     pause
     goto additionals.ask.window
@@ -601,27 +551,18 @@ color 2
         for /f "tokens=*" %%a in (%liscensefad1%) do (
             echo %%a
         )
-    ) else (
-        echo Error. Please open README manually.
     )
     pause
     goto additionals.ask.window
 
 :delete.license
     :: delete the license
-    if exist "%~dp0\LICENSE" (
-        erase "%~dp0\LICENSE" > nul
-    ) else (
-        goto additionals.ask.window
-    )
+    if exist "%~dp0\LICENSE" ( erase "%~dp0\LICENSE" > nul )
     goto additionals.ask.window
+
 :delete.readme
     :: Delete readme 
-    if exist "%~dp0\README.md" (
-        erase "%~dp0\README.md" > nul
-    ) else (
-        goto additionals.ask.window
-    )
+    if exist "%~dp0\README.md" ( erase "%~dp0\README.md" > nul )
     goto additionals.ask.window
 
 :sys.main.installer.done
@@ -633,7 +574,6 @@ color 2
     dataspammer.bat
 
 :cancel
-    :: When the Install got canceled
     echo The installer is now closing....
     @ping -n 2 localhost> nul
     exit
@@ -644,8 +584,6 @@ color 2
    set "custom.goto.location=%2"
    goto %custom.goto.location%
 
-:sys.open.main.script
-        dataspammer.bat
 
 :log
     :: call scheme is:
@@ -747,9 +685,6 @@ color 2
     powershell -Command %msgBoxArgs%
     goto verify
 
-:restart.script.dev
-    cd /d %~dp0
-    goto normal.start
 :restart.script
     cd /d %~dp0
     install.bat
