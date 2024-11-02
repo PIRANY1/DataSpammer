@@ -14,7 +14,7 @@
 :!top
     @echo off
     mode con: cols=140 lines=40
-    set "current-script-version=v3.7"
+    set "current-script-version=v3.8"
     if "%1"=="h" goto help.startup
     if "%1"=="-h" goto help.startup
     if "%1"=="help" goto help.startup
@@ -161,7 +161,7 @@
 
 
     
-    if "%latest_version%" equ "v3.7" (
+    if "%latest_version%" equ "v3.8" (
         set "uptodate=up"
     ) else (
         set "uptodate="
@@ -300,7 +300,7 @@
     if "%1"=="settings" goto settings
     if %logging% == 1 ( call :log Displaying_Menu )
     if %logging% == 1 ( call :log Startup_Complete )
-    title DataSpammer v3.7
+    title DataSpammer v3.8
     if "%small-install%" == "1" (
         set "settings-lock=Locked. Find Information under [44mHelp[32m"
     ) else (
@@ -319,7 +319,7 @@
 
 
     @ping -n 1 localhost> nul
-    echo Made by PIRANY                 v3.7
+    echo Made by PIRANY                 v3.8
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
