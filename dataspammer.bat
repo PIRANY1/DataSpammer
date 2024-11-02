@@ -70,7 +70,11 @@
     goto check-files
     
 :sudo.elevation
-    powershell -Command "sudo cmd.exe -k %~f0"
+    net session >nul 2>&1
+    if %errorLevel% neq 0 (
+        powershell -Command "sudo cmd.exe -k %~f0"
+        exit
+    )
     cd /d %~dp0
     goto check-files
 
