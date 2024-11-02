@@ -4,7 +4,6 @@
 ::    Add Printer Selection
 ::    Fix SSH
 ::    Add Translation
-::    Check Beta Sudo
 ::    Merge In One Script?
 
 :: Developer Notes:
@@ -1135,7 +1134,7 @@
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [5] Printer Test (only default Printer currently)
+    echo [5] Printer Test
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
@@ -1241,14 +1240,20 @@
     if "%default-filename%"=="notused" set /P print.filename=Enter the Filename:
     if not "%default-filename%"=="notused" set "print.filename=%default-filename%"
 
+    cls
+    wmic printer get Name
+    set /P printer-device=Choose a Device (full name):
+
     set /P printer.content=Enter the Content:
     cd /d %~dp0
     echo %printer.content% > %print.filename%.txt
 
     for /L %%i in (1,1,%printer.count%) do (
         print %print.filename%.txt
+        print /D:"%printer-device%" %print.filename%.txt
     )
     if %logging% == 1 ( call :log Finished_Printer_Spam:%printer.count%_Requests_on_default_Printer )
+    erase %print.filename%.txt
     call :done "The Script Created %printer.count% to Default Printer"
 
 
