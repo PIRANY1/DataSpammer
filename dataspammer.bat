@@ -12,7 +12,10 @@
 
 
 :!top
-    @echo off
+    @if "%debug_assist%"=="" @echo off
+    if "%OS%"=="Windows_NT" setlocal
+    set DIRNAME=%~dp0
+    if "%DIRNAME%"=="" set DIRNAME=.
     mode con: cols=140 lines=40
     set "current-script-version=v3.8"
     if "%1"=="h" goto help.startup
@@ -34,7 +37,6 @@
 :normal.start
     @color 02
     cd /d %~dp0
-    @if not defined debug_assist (@ECHO OFF) else (@echo on)
     if not defined devtools (goto top-startup) else (gotod open.dev.settings)
 
 
@@ -1740,7 +1742,7 @@
     if %delete.script.menu% =="" goto sys.delete.script
     If %delete.script.menu% == 1 goto sys.delete.script.check.elevation
     If %delete.script.menu% == 2 explorer "https://github.com/PIRANY1/DataSpammer" && goto sys.delete.script
-    If %delete.script.menu% == 3 exit /b 100
+    If %delete.script.menu% == 3 goto cancel
     goto sys.delete.script
 
 :sys.delete.script.check.elevation
@@ -2041,8 +2043,10 @@
     goto sys.verify.execution
 
 :cancel 
-    :: yes
-    exit 0
+    set EXIT_CODE=%ERRORLEVEL%
+    if %EXIT_CODE% equ 0 set EXIT_CODE=1
+    if "%OS%"=="Windows_NT" endlocal
+    exit /b %EXIT_CODE%
 
 
 exit 0

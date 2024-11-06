@@ -1,16 +1,18 @@
-@if not defined debug_assist (@ECHO OFF) else (@echo on)
-:normal.start
-mode con: cols=120 lines=30
-if "%restart-main%" == "1" dataspammer.bat
-@title Script Installer by PIRANY
-set "foldername=DataSpammer"
-set "current-script-version=v3.8"
-cd /d %~dp0
-color 2
-cls  
-color 2
-    if "%1"=="go" goto custom.go
-    if "%1"=="-reverse.arg" dataspammer.bat %2
+    @if "%debug_assist%"=="" @echo off
+    if "%OS%"=="Windows_NT" setlocal
+    set DIRNAME=%~dp0
+    if "%DIRNAME%"=="" set DIRNAME=.
+    mode con: cols=140 lines=40
+    if "%restart-main%" == "1" dataspammer.bat
+    @title Script Installer by PIRANY
+    set "foldername=DataSpammer"
+    set "current-script-version=v3.8"
+    cd /d %~dp0
+    color 2
+    cls  
+    color 2
+        if "%1"=="go" goto custom.go
+        if "%1"=="-reverse.arg" dataspammer.bat %2
 
 
 :sys.verify.execution
@@ -576,7 +578,11 @@ color 2
 :cancel
     echo The installer is now closing....
     @ping -n 2 localhost> nul
-    exit
+    set EXIT_CODE=%ERRORLEVEL%
+    if %EXIT_CODE% equ 0 set EXIT_CODE=1
+    if "%OS%"=="Windows_NT" endlocal
+    exit /b %EXIT_CODE%
+
 
 :custom.go
    if %logging% == 1 ( call :log Opened_Custom_GOTO ) 
@@ -689,4 +695,5 @@ color 2
     cd /d %~dp0
     install.bat
 
-exit 0
+
+exit /b 0
