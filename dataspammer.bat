@@ -148,14 +148,11 @@
     set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
     echo Getting Latest Release Info from API...
     curl -s %api_url% > apianswer.txt
-    @ping -n 1 localhost> nul
-    echo Got Release Info.
-    @ping -n 1 localhost> nul
+    echo Got Release Info...
     echo Awaiting Response...
-    @ping -n 1 localhost> nul
-    echo Recieved API Response.
+    echo Recieved API Response...
     echo Extracting Data...
-   
+    @ping -n 2 localhost> nul
     for /f "tokens=2 delims=:, " %%a in ('findstr /R /C:"\"tag_name\"" apianswer.txt') do (
         set "latest_version=%%a"
     )
