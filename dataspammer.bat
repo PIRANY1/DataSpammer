@@ -79,6 +79,13 @@
     cd /d %~dp0
     goto check-files
 
+:: Alternative sudo usage - in active developement
+    net session >nul 2>&1
+    if %errorLevel% neq 0 ( 
+        for "where sudo" do set %%a
+        %%a/sudo.exe %f1
+        exit
+    )
 
 
 :check-files
