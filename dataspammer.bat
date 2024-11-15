@@ -4,6 +4,9 @@
 ::    Fix SSH
 ::    Add Translation
 ::    Merge In One Script?
+::    Rework Autostart 
+::    Switch to no PWSH
+::    Put Encrypt in regular Settings
 
 :: Developer Notes:
 :: Define %debug_asist% to bypass echo_off
