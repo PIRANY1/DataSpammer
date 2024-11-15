@@ -4,6 +4,9 @@
 ::    Fix SSH
 ::    Add Translation
 ::    Merge In One Script?
+::    Rework Autostart 
+::    Switch to no PWSH
+::    Put Encrypt in regular Settings
 
 :: Developer Notes:
 :: Define %debug_asist% to bypass echo_off
@@ -100,21 +103,21 @@
     :: TLI when Settings arent found
     cls
     echo The File "settings.conf" doesnt exist. 
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo Theres a high Chance that the Installer didnt run yet.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo Please consider rerunning the installer to make sure the script can run accurately.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo Do you want to reinstall the Script or do you want to open the Script anyways?
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [1] Open the Installer
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [2] Open the Script anyways 
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     set /p menu=Choose an Option from Above:
     if %menu%=="" goto sys.no.settings
     If %menu% == 1 goto sys.open.installer
@@ -148,14 +151,11 @@
     set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
     echo Getting Latest Release Info from API...
     curl -s %api_url% > apianswer.txt
-    @ping -n 1 localhost> nul
-    echo Got Release Info.
-    @ping -n 1 localhost> nul
+    echo Got Release Info...
     echo Awaiting Response...
-    @ping -n 1 localhost> nul
-    echo Recieved API Response.
+    echo Recieved API Response...
     echo Extracting Data...
-   
+    @ping -n 2 localhost> nul
     for /f "tokens=2 delims=:, " %%a in ('findstr /R /C:"\"tag_name\"" apianswer.txt') do (
         set "latest_version=%%a"
     )
@@ -183,24 +183,24 @@
 :git.version.outdated
     if %logging% == 1 ( call :log Version_Outdated )
     echo Version Outdated!
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo Please consider downloading the new Version. 
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo The Version you are currently using is %current-script-version%
-    @ping -n 1 localhost> nul 
+    call :sys.lt 1call :sys.lt 1 
     echo The newest Version avaiable is %latest_version%
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
     echo [1] Update
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [2] Continue Anyways
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     set /p outdated.menu=Choose an Option from Above:
     if %outdated.menu% =="" goto git.version.outdated
     if %outdated.menu% == 1 goto git.update.version
@@ -210,7 +210,7 @@
 :git.version.clean
     if %logging% == 1 ( call :log Version_Is_Up_To_Date )
     echo The Version you are currently using is the newest one (%latest_version%)
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     exit /b
 
 
@@ -242,17 +242,17 @@
     if %logging% == 1 ( call :log Install_Bat_Doesnt_Exist )
     :: TLI When the Installer doesnt exist
     echo The "Install.bat" doesnt exist. Some Features may not work.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [1] Open GitHub for Versions.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [2] Continue Anyways
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     set /p installer.not.found=Choose an Option from Above:
     if %installer.not.found%=="" goto sys.error.no.install
     If %installer.not.found% == 2 goto dts.startup.done
@@ -320,42 +320,42 @@
 
 
 
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo Made by PIRANY                 v3.8
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [1] Help
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [2] Start
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [3] Cancel
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [4] Credits/Contact
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [5] %settings-lock%
     color 02
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [6] Autostart/Desktop Icon
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [7] Open GitHub-Repo
     echo.
     echo.
@@ -379,33 +379,33 @@
     :: TLI for Infos
     cls
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo No liability for any Damages on your Software.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo If you want to use this Script on a Server you have to be able to write something in the Folder you want to use.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo When youre on a Small Install you cant access the "Locked." Tab because it needs different Variables in the settings.conf file. 
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo To use the Settings you need to reinstall the Script. Simply open the Github Repo via the Main Page and choose one of the download Options.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo. 
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [1] Go back
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [2] Exit
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [3] Exit
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     set /p help.menu=Choose an Option from Above:
     if %help.menu%=="" goto help
     If %help.menu% == 1 goto menu
@@ -445,31 +445,31 @@
     :: TLI Code for Credits
     cls 
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo. 
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo This Script is made by PIRANY for Educational Use only.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo The whole Code is made by PIRANY  
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo If you found any Bugs/Glitches or have a Problem With this software please Create a Issue on the Github-Repo
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo. 
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo. 
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [1] Go back
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [2] Open the Github-Repo
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [3] Exit
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     set /p credit.menu=Choose an Option from Above:
     if %credit.menu% =="" goto credits
     If %credit.menu% == 1 goto menu
@@ -488,51 +488,51 @@
     echo Settings
     echo ========
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo. 
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [1] Spam Settings
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo. 
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [2] [31mDeveloper Options (Currently %settings-dev-display%) [32m
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo. 
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [3] Version Control
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo. 
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [4] Logging
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo. 
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [5] Restart Script
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo. 
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [6] Experimental Features
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo. 
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [7] Go back
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo. 
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
 
 
     set /p settings.menu=Choose an Option from Above:
@@ -548,17 +548,45 @@
 
 :experimental.features
     echo [1] Switch Elevation Method (pswh / sudo)
-    @ping -n 1 localhost> nul
-    echo. 
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
+    echo [2] Encrypt Files (still usable)
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
-    echo [2] Go back
+    call :sys.lt 1
+    echo [3] Go back
     set /P experimental.features=Choose an Option from Above
     If %experimental.features% =="" goto experimental.features
     If %experimental.features% == 1 goto switch.elevation
-    If %experimental.features% == 2 goto settings
+    If %experimental.features% == 2 goto encrypt
+    If %experimental.features% == 3 goto settings
     goto experimental.features
+
+
+:encrypt
+    if %logging% == 1 ( call :log Encrypting_Script )
+    echo Encrypting...
+    call :sys.lt 1
+    
+    (
+        @echo off
+        cd /d %~dp0
+        echo FF FE 0D 0A 63 6C 73 0D 0A > temp_hex.txt
+        certutil -f -decodehex temp_hex.txt temp_prefix.bin
+        move dataspammer.bat original_dataspammer.bat
+        copy /b temp_prefix.bin + original_dataspammer.bat dataspammer.bat
+        del original_dataspammer.bat
+        del temp_hex.txt
+        del temp_prefix.bin
+        start powershell -Command "Start-Process 'dataspammer.bat' -Verb runAs"
+        del encrypt.bat
+        exit
+    ) > encrypt.bat
+    
+    cd /d %~dp0  
+    start powershell -Command "Start-Process 'encrypt.bat' -Verb runAs"
+
+
+
 
 :switch.elevation
     if "%elevation%"=="pwsh" goto switch.sudo.elevation
@@ -648,21 +676,21 @@
 
 :spam.settings
     echo [1] Default Filename
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo. 
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [2] Default Directory
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo. 
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [3] Default Filecount / Request Count
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo. 
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [4] Default Domain (HTTPS/DNS)
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo. 
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [5] Go back
     set /P spam.settings=Choose an Option from Above
     If %spam.settings%=="" goto spam.settings
@@ -691,26 +719,24 @@
     @ping -n 2 localhost > nul
     goto restart.script
 
-
-
 :settings.version.control
     echo.
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [1] Force Update
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [2] Switch to Main Branch
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [3] Switch to Developer Branch
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [4] Go Back
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
     echo.
     set /P vs.control=Choose an Option From Above:
@@ -843,21 +869,21 @@
     )
     echo Logging is currently: %settings.logging%
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [1] Activate Logging
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [2] Disable Logging
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [3] Open Latest Log
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [4] Go Back
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
     echo.
     set /P logging.control=Choose an Option From Above:
@@ -897,25 +923,25 @@
     echo =================================
     echo Autostart / Desktop Icon Settings
     echo =================================
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [1] Setup 
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [2] Delete Autostart
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [3] Delete DesktopIcon
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [4] Back
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [5] Settings
     echo.
     echo.
@@ -932,25 +958,25 @@
 :autostart.setup
     :: Autostart Setup TLI - INOPERATIONAL - NEED TO FIX ASAP
     echo This Setup will lead you trough the Autostart/Desktopicon Setup.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo If you are not sure what that is please take a look at the Information.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [1] Start Setup for Autostart
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [2] Start Setup for DesktopIcon
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [3] View Information
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [4] Go Back
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
     set /p autostart.setup=Choose an Option from Above:
 
@@ -962,30 +988,30 @@
     goto autostart.setup
 
 :viewdocs 
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo If you put for example Links or Programms into your Autostart Folder 
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo They will automaticly launch if you boot your Device.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo Your System cant be more vulnerable if you do this.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo You can create an Desktop Icon too if you dont want the Script to open 
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo Every time you boot.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo Please note that if you change the Directory you also need to change it in the Autostart Settings.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [1] Go back
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [2] Open Desktop Icon Setup.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [3] Open AutostartSetup
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     set /p viewdocs.menu=Choose an Option from above:
 
     if %viewdocs.menu% =="" goto viewdocs
@@ -1002,19 +1028,19 @@
     echo Autostart is getting detected as a Virus from some antivirus Programs. 
     echo A Tutorial on how to temporarily turn off your AV is down below
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [1] Open Tutorial on how to turn off AV
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [2] Go back
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [3] My AV is turned off!
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [4] Close the Script
     set /P av.turnoff=Choose an Option from above
     if %av.turnoff% =="" goto autostart.delete.2
@@ -1080,9 +1106,9 @@
 
 :autostart.settings.page
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo If you have moved the Directory please Delete the Autostart and Then Set it up new
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     pause
     goto autostart.desktop.settings
 
@@ -1104,13 +1130,13 @@
     cls
 :start.verified
     echo [1] Local Test
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [2] Protocol Test
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     set /P main.tests=Choose an Option from Above:
     if %main.tests% == "" goto start.verified
     if %main.tests% == 1 goto local.spams
@@ -1122,39 +1148,39 @@
 
 :internet.spams
     echo [1] SSH Test (no Password)
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [2] DNS Test
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [3] FTP Test
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [4] HTTP(S) Test
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [5] Printer Test
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [6] ICMP Test (ping)
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [7] Telnet (Older SSH)
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [8] Go Back
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo Tests in developement: SMTP (mail), IMAP (mail), 
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
     set /p spam.method=Choose an Option from Above:
 
@@ -1202,25 +1228,25 @@
 
 :local.spams
     echo Choose the Method you want to use:
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [1] .txt Spam in custom Directory
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [2] Desktop Icon Spam
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [3] Startmenu Spam
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [4] App-List Spam
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [5] Go Back
     echo.
     echo.
@@ -1716,25 +1742,25 @@
     if %logging% == 1 ( call :log Opened_Delete_Script )
     :: Delete Script TLI
     echo. 
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo You are about to delete the whole script.
-    @ping -n 1 localhost> nul 
+    call :sys.lt 1 
     echo Are you sure about this decision?
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo If the script is bugged or you want to download the new Version please Visit the GitHub Repo
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [1] Yes, Delete the Whole Script
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [2] Open the Github-Repo
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [3] No Go Back
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
     echo.
     set /p delete.script.menu=Choose an Option from Above
@@ -1756,23 +1782,23 @@
     :: Delete Script 
     if exist "%~dp0\LICENSE" del "%~dp0\LICENSE"
     echo 1/7 Files Deleted
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     if exist "%~dp0\README.md" del "%~dp0\README.md"
     echo 2/7 Files Deleted
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     if exist "%~dp0\dataspammer.bat" del "%~dp0\dataspammer.bat"
     echo 3/7 Files Deleted
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     if exist "%~dp0\install.bat" del "%~dp0\install.bat"
     echo 4/7 Files Deleted
     cd /d C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
     if exist "autostart.bat" del "autostart.bat"
     echo 5/7 Files Deleted
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     cd /d %userprofile%\Desktop
     if exist "Dataspammer.bat" del "Dataspammer.bat"
     echo 6/7 Files Deleted
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     set "startMenuPrograms=%ProgramData%\Microsoft\Windows\Start Menu\Programs"
     cd /d %startMenuPrograms%
     if exist "Dataspammer.bat" del "Dataspammer.bat"
@@ -1810,6 +1836,13 @@
 :sys.api
     echo This Feature is in Active Developement!
     exit /b api.dev.active
+
+
+
+:sys.lt
+    set "dur=%1"
+    @ping -n %dur% localhost> nul
+    exit /b 0
 
 :log
     :: call scheme is:
@@ -1905,28 +1938,28 @@
 
 
     
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo %~1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo Do you want to Close the Script or Go to the Menu?
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [1] Close
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [2] Menu
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     set /p done=Choose an Option from Above:
     if %done% =="" goto done
     If %done% == 1 goto cancel
@@ -1997,24 +2030,24 @@
     if not defined %default_directory% call :update_config "default_directory" "" "notused"
     if not defined %elevation% call :update_config "elevation" "" "pwsh"
     echo Updating Settings...
-    @ping -n 1 localhost> nul    
+    call :sys.lt 1    
     goto sys.settings.patched
 
 
 :sys.settings.patched
     :: Update Installed TLI
     echo Update was Successful!
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo Updated to %latest_version%
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [1] Open Script
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [2] Exit
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
     echo.
     set /P update.installed.menu=Choose an Option from above
