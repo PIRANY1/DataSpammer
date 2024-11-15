@@ -546,16 +546,44 @@
 :experimental.features
     echo [1] Switch Elevation Method (pswh / sudo)
     call :sys.lt 1
-    echo. 
+    echo [2] Encrypt Files (still usable)
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [2] Go back
+    echo [3] Go back
     set /P experimental.features=Choose an Option from Above
     If %experimental.features% =="" goto experimental.features
     If %experimental.features% == 1 goto switch.elevation
-    If %experimental.features% == 2 goto settings
+    If %experimental.features% == 2 goto encrypt
+    If %experimental.features% == 3 goto settings
     goto experimental.features
+
+
+:encrypt
+    if %logging% == 1 ( call :log Encrypting_Script )
+    echo Encrypting...
+    call :sys.lt 1
+    
+    (
+        @echo off
+        cd /d %~dp0
+        echo FF FE 0D 0A 63 6C 73 0D 0A > temp_hex.txt
+        certutil -f -decodehex temp_hex.txt temp_prefix.bin
+        move dataspammer.bat original_dataspammer.bat
+        copy /b temp_prefix.bin + original_dataspammer.bat dataspammer.bat
+        del original_dataspammer.bat
+        del temp_hex.txt
+        del temp_prefix.bin
+        start powershell -Command "Start-Process 'dataspammer.bat' -Verb runAs"
+        del encrypt.bat
+        exit
+    ) > encrypt.bat
+    
+    cd /d %~dp0  
+    start powershell -Command "Start-Process 'encrypt.bat' -Verb runAs"
+
+
+
 
 :switch.elevation
     if "%elevation%"=="pwsh" goto switch.sudo.elevation
