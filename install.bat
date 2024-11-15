@@ -33,21 +33,21 @@
 
     :: Installer Was Executed TLI
     echo The Installer was already executed.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo You can either delete The Script from here or you can open the main script
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo You can install the Script to antother Directory too.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [1] Open the Main Script
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [2] Delete Script (Script need to run as Administator!)
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [3] Reinstall Script
     set /p installer.executed.menu=Choose an Option from above
     
@@ -60,27 +60,27 @@
 :delete.script.confirmation.window
     :: Delete Script TLI
     echo. 
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo You are about to delete the whole script.
-    @ping -n 1 localhost> nul 
+    call :sys.lt 1 
     echo Are you sure about this decision?
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo If the script is bugged or you want to download the new Version please 
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo Visit the GitHub Repo
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [1] Yes, Delete the Whole Script
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [2] Open the Github-Repo
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [3] No Please Go back
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
     echo.
     set /p delete.script.menu=Choose an Option from Above
@@ -108,23 +108,23 @@
     :: Delete Script 
     if exist "%~dp0\LICENSE" erase "%~dp0\LICENSE" > nul
     echo 1/7 Files Deleted
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     if exist "%~dp0\README.md" erase "%~dp0\README.md" > nul
     echo 2/7 Files Deleted
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     if exist "%~dp0\dataspammer.bat" erase "%~dp0\dataspammer.bat" > nul
     echo 3/7 Files Deleted
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     if exist "%~dp0\install.bat" erase "%~dp0\install.bat" > nul
     echo 4/7 Files Deleted
     cd /d C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
     if exist "autostart.bat" erase "autostart.bat" > nul
     echo 5/7 Files Deleted
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     cd /d %userprofile%\Desktop
     if exist "Dataspammer.bat" erase "Dataspammer.bat" > nul
     echo 6/7 Files Deleted
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     set "startMenuPrograms=%ProgramData%\Microsoft\Windows\Start Menu\Programs"
     cd /d %startMenuPrograms%
     if exist "Dataspammer.bat" erase "Dataspammer.bat" > nul
@@ -146,21 +146,21 @@
 
 
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo This Installer will lead you throuh the Process of Installing the DataSpammer Utility.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [1] Normal Install  (Recommended, Needs Administrator Priviliges)
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [2] Small Install (WITHOUT Updater, Settings and some less-important Features)
     echo. 
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     set /P installer.main=Choose an Option from Above:
     if %installer.main% =="" goto installer.main.window
     if %installer.main% == 2 goto installer.custom.install.directory
@@ -192,19 +192,19 @@
     echo These extra Files get detected as a Virus from some antivirus Programs. 
     echo A Tutorial on how to temporarily turn off your AV is down below
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [1] Open Tutorial on how to turn off AV
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [2] Go back
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [3] My AV is turned off!
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [4] Close the Script
     set /P avturnoff=Choose an Option from above
 
@@ -217,33 +217,33 @@
 :standart.install.run.4
     :: Default Install Options TLI
     echo The Script will install itself in the Following Directory: %ProgramFiles%
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo For Better Accessibility of the Script you can create for example a Startmenu Shortcut or a Desktop Shortcut
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo Please note that you need to reinstall those if you move the Script into another Folder.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo Please Choose the Options you want to install:
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo Sometimes they get detected by Antivirus and get deleted.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [1] (%startmenushortcut%) Startmenu Shortcut/All Apps List 
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo. 
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [2] (%desktopicon%) Desktop Shortcut
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo. 
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [3] (%autostart%) Start with Windows/Autostart
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [4] Done/Skip
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [5] De-select / Cancel Options
     set /P stdprogdrcvar=Choose the Options from Above:
     if %stdprogdrcvar% =="" goto standart.install.run.4
@@ -278,13 +278,13 @@
     call :verify
     set "small-install=1"
     :: Script Install Location
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo Please specify the Directory where the Script should be installed.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo It can be any Directory as long as you have write/read access to it.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     set /p directory=Type Your Directory Here: 
     :: Installer Confirmation Dialog
     call :verify
@@ -313,17 +313,17 @@
 :installer.updater.installation.confirm
     :: Updater Install TLI
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo Do you want the Script to automaticcaly scan for Updates on every start?
     echo This will be fully automaticly.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [1] Yes
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo [2] No
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
     set /p install.updater=Choose an Option from Above:
     if %install.updater% =="" goto installer.updater.installation.confirm
@@ -493,26 +493,26 @@
 :additionals.ask.window
     :: TLI for Readme and LICENSE
     echo Dow you want to delete the LICENSE and README files?
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
     echo [1] List content of README
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
     echo [2] List content of LICENSE
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
     echo [3] Delete LICENSE
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
     echo [4] Delete README
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
     echo [5] Copy in Script Folder
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
     echo [6] Done/Skip
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
     echo.
     set /p RL.menu=Select an Answer from above
     if %RL.menu% =="" goto additionals.ask.window
@@ -673,7 +673,10 @@
     endlocal
     goto :eof
 
-
+:sys.lt
+    set "dur=%1"
+    @ping -n %dur% localhost> nul
+    exit /b 0
 
 :verify
     set "verify=%random%"
