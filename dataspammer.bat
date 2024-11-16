@@ -366,7 +366,7 @@
     If %main.menu% == 3 goto cancel
     If %main.menu% == 4 goto credits
     If %main.menu% == 5 goto settings
-    If %main.menu% == 6 goto autostart.desktop.settings
+    If %main.menu% == 6 goto ad.settings
     If %main.menu% == 7 start "" "https://github.com/PIRANY1/DataSpammer" | cls | goto menu
     if %main.menu% =="" goto menu
     goto menu
@@ -889,7 +889,7 @@
     @ping -n 2 localhost> nul
     goto restart.script
 
-:autostart.desktop.settings
+:ad.settings
     :: Autostart TLI
     echo.
     cls
@@ -900,195 +900,123 @@
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [1] Setup 
+    echo [1] Setup
     echo.
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
     echo [2] Delete Autostart
-    @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [3] Delete DesktopIcon
-    echo.
-    @ping -n 1 localhost> nul
-    echo [4] Back
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [5] Settings
+    echo [3] Back
     echo.
     echo.
     set /p auto.desktop.settings=Choose an Option from Above:
     
-    if %auto.desktop.settings% =="" goto autostart.desktop.settings
-    If %auto.desktop.settings% == 1 goto autostart.setup
-    If %auto.desktop.settings% == 2 goto autostart.delete
-    If %auto.desktop.settings% == 4 goto menu
-    If %auto.desktop.settings% == 3 goto desktop.icon.delete  
-    If %auto.desktop.settings% == 5 goto autostart.settings.page
-    goto autostart.desktop.settings
+    if %auto.desktop.settings% =="" goto ad.settings
+    If %auto.desktop.settings% == 1 goto ad.setup
+    If %auto.desktop.settings% == 2 goto ad.remove
+    If %auto.desktop.settings% == 3 goto menu
+    goto ad.settings
 
-:autostart.setup
-    :: Autostart Setup TLI - INOPERATIONAL - NEED TO FIX ASAP
-    echo This Setup will lead you trough the Autostart/Desktopicon Setup.
-    @ping -n 1 localhost> nul
-    echo If you are not sure what that is please take a look at the Information.
-    @ping -n 1 localhost> nul
+
+    :ad.remove
+    echo [1] Delete Autostart
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 1
+    echo.
+    echo [2] Delete Desktop Icon
+    echo.
+    call :sys.lt 1
+    echo.
+    echo [3] Back
+    echo.
+    echo.
+    set /P ad.remove=Choose an Option from Above
+    if %ad.remove% ==""
+    if %ad.remove% ==1 goto autostart.delete
+    if %ad.remove% ==2 goto desktop.icon.delete  
+    if %ad.remove% ==3 goto ad.settings
+    goto ad.remove
+
+:ad.setup
     echo [1] Start Setup for Autostart
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [2] Start Setup for DesktopIcon
+    echo [2] Start Setup for Desktop Icon
     @ping -n 1 localhost> nul
     echo.
     @ping -n 1 localhost> nul
-    echo [3] View Information
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [4] Go Back
+    echo [3] Go Back
     @ping -n 1 localhost> nul
     echo.
     set /p autostart.setup=Choose an Option from Above:
 
-    if %autostart.setup% =="" goto autostart.setup
-    If %autostart.setup% == 3 goto viewdocs 
+    if %autostart.setup% =="" goto ad.setup
     If %autostart.setup% == 1 goto autostart.setup.confirmed
-    If %autostart.setup% == 4 goto autostart
     If %autostart.setup% == 2 goto desktop.icon.setup
-    goto autostart.setup
+    If %autostart.setup% == 3 goto autostart
+    goto ad.setup
 
-:viewdocs 
-    @ping -n 1 localhost> nul
-    echo If you put for example Links or Programms into your Autostart Folder 
-    @ping -n 1 localhost> nul
-    echo They will automaticly launch if you boot your Device.
-    @ping -n 1 localhost> nul
-    echo Your System cant be more vulnerable if you do this.
-    @ping -n 1 localhost> nul
-    echo You can create an Desktop Icon too if you dont want the Script to open 
-    @ping -n 1 localhost> nul
-    echo Every time you boot.
-    @ping -n 1 localhost> nul
-    echo Please note that if you change the Directory you also need to change it in the Autostart Settings.
-    @ping -n 1 localhost> nul
-    echo [1] Go back
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [2] Open Desktop Icon Setup.
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [3] Open AutostartSetup
-    echo.
-    @ping -n 1 localhost> nul
-    set /p viewdocs.menu=Choose an Option from above:
-
-    if %viewdocs.menu% =="" goto viewdocs
-    If %viewdocs.menu% == 1 goto autostart.setup
-    If %viewdocs.menu% == 2 goto desktop.icon.setup
-    If %viewdocs.menu% == 3 goto autostart.setup.confirmed
-    goto viewdocs
 
 :autostart.delete
-    setlocal enableextensions ENABLEDELAYEDEXPANSION 
     net session >nul 2>&1
-    if %errorLevel% == 0 (goto autostart.delete.2) else (goto sys.script.administrator)
-:autostart.delete.2
-    echo Autostart is getting detected as a Virus from some antivirus Programs. 
-    echo A Tutorial on how to temporarily turn off your AV is down below
-    echo.
-    @ping -n 1 localhost> nul
-    echo [1] Open Tutorial on how to turn off AV
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [2] Go back
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [3] My AV is turned off!
-    @ping -n 1 localhost> nul
-    echo.
-    @ping -n 1 localhost> nul
-    echo [4] Close the Script
-    set /P av.turnoff=Choose an Option from above
-    if %av.turnoff% =="" goto autostart.delete.2
-    if %av.turnoff% == 1 start "" "https://www.security.org/antivirus/turn-off/" | cls | goto autostart.delete.2
-    if %av.turnoff% == 2 cls | goto viewdocs 
-    if %av.turnoff% == 3 cls | goto autostart.delete.3
-    if %av.turnoff% == 4 cls | goto cancel
-    goto autostart.delete.2
-
-:autostart.delete.3
-    @ping -n 1 localhost> nul
+    if %errorLevel% NEQ 0 goto sys.script.administrator
+    call :sys.lt 1
     cd /d C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
     del autostart.bat
-    cd /d %~dp0
+    echo Autostart Link Removed.
+    echo Restarting Script...
+    call :sys.lt 2
+    goto restart.script
 
 :autostart.setup.confirmed
-    setlocal enableextensions ENABLEDELAYEDEXPANSION 
     net session >nul 2>&1
-    if %errorLevel% == 0 (goto autostart.setup.confirmed.2) else (goto sys.script.administrator)
-:autostart.setup.confirmed.2
-    @ping -n 1 localhost> nul
-    echo The Setup for Autostart is now starting...
+    if %errorLevel% NEQ 0 goto sys.script.administrator
+    call :sys.lt 1
     cd /d C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
-    @ping -n 1 localhost> nul
-    echo. > DataSpammer.bat
     set "varlinkauto=%~dp0"
     (
     echo @echo off
     echo cd /d %varlinkauto%
     dataspammer.bat
     ) > autostart.bat
-    cd /d %~dp0
-
+    echo Autostart Link Added.
+    echo Restarting Script...
+    call :sys.lt 2
+    goto restart.script
 
 :desktop.icon.setup
-    setlocal enableextensions ENABLEDELAYEDEXPANSION 
     net session >nul 2>&1
-    if %errorLevel% == 0 (goto desktop.icon.setup.2) else (goto sys.script.administrator)
-:desktop.icon.setup.2
+    if %errorLevel% NEQ 0 goto sys.script.administrator
     cd /d %userprofile%\Desktop
-    echo. > DataSpammer.bat
     set "varlinkauto=%~dp0"
     (
     echo @echo off
     echo cd /d %varlinkauto%
     dataspammer.bat
     ) > DataSpammer.bat
-    echo Added Icon
-    @ping -n 3 localhost> nul
-    goto autostart.desktop.settings
+    echo Added Desktop Icon
+    echo Restarting Script...
+    call :sys.lt 2
+    goto restart.script
 
 :desktop.icon.delete                                                                                                    
-    setlocal enableextensions ENABLEDELAYEDEXPANSION 
     net session >nul 2>&1
-    if %errorLevel% == 0 (goto desktop.icon.delete.2) else (goto sys.script.administrator)
-
-:desktop.icon.delete.2
+    if %errorLevel% NEQ 0 goto sys.script.administrator
     cd %userprofile%\Desktop
     del DataSpammer.bat
     echo Successfully Deleted Desktop Icon.
-    @ping -n 2 localhost> nul
+    echo Removed Desktop Icon
+    echo Restarting Script...
+    call :sys.lt 2
+    goto restart.script
 
-
-:autostart.settings.page
-    echo.
-    @ping -n 1 localhost> nul
-    echo If you have moved the Directory please Delete the Autostart and Then Set it up new
-    @ping -n 1 localhost> nul
-    pause
-    goto autostart.desktop.settings
 
 
 ::
-::                ^            ^ 
+::               /\            /\ 
 ::                |  SETTINGS  |  
 ::                |  SPAM PART |
 ::               \/            \/
