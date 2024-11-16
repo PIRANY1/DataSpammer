@@ -310,6 +310,8 @@
     SETLOCAL DisableDelayedExpansion
 
 :menu
+    if exist updater.bat erase updater.bat
+    if exist encrypt.bat erase encrypt.bat
     if "%1"=="settings" goto settings
     if %logging% == 1 ( call :log Displaying_Menu )
     if %logging% == 1 ( call :log Startup_Complete )
@@ -589,8 +591,7 @@
         del temp_hex.txt
         del temp_prefix.bin
         start powershell -Command "Start-Process 'dataspammer.bat' -Verb runAs"
-        del encrypt.bat
-        exit
+        erase encrypt.bat
     ) > encrypt.bat
     
     cd /d %~dp0  
