@@ -3,11 +3,6 @@
 ::    Todo: 
 ::    Fix SSH
 ::    Add Translation
-::    Merge In One Script?
-::    Rework Autostart 
-::    Switch to no PWSH
-::    Put Encrypt in regular Settings
-::    Rework Installer Elevation (request at start?)
 
 :: Developer Notes:
 :: Define %debug_asist% to bypass echo_off
@@ -21,7 +16,7 @@
     set DIRNAME=%~dp0
     if "%DIRNAME%"=="" set DIRNAME=.
     mode con: cols=140 lines=40
-    set "current-script-version=v3.9"
+    set "current-script-version=v4"
     if "%1"=="h" goto help.startup
     if "%1"=="-h" goto help.startup
     if "%1"=="help" goto help.startup
@@ -174,7 +169,7 @@
 
 
     
-    if "%latest_version%" equ "v3.9" (
+    if "%latest_version%" equ "v4" (
         set "uptodate=up"
     ) else (
         set "uptodate="
@@ -313,7 +308,7 @@
     if "%1"=="settings" goto settings
     if %logging% == 1 ( call :log Displaying_Menu )
     if %logging% == 1 ( call :log Startup_Complete )
-    title DataSpammer v3.9
+    title DataSpammer v4
     if "%small-install%" == "1" (
         set "settings-lock=Locked. Find Information under [44mHelp[32m"
     ) else (
@@ -332,7 +327,7 @@
 
 
     call :sys.lt 1
-    echo Made by PIRANY                 v3.9
+    echo Made by PIRANY                 v4
     call :sys.lt 1
     echo.
     call :sys.lt 1
@@ -532,7 +527,7 @@
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [6] Experimental Features
+    echo [6] Advanced Options
     call :sys.lt 1
     echo. 
     call :sys.lt 1
@@ -553,11 +548,11 @@
     If %settings.menu% == 3 goto settings.version.control
     If %settings.menu% == 4 goto settings.logging
     If %settings.menu% == 5 goto restart.script
-    If %settings.menu% == 6 goto experimental.features
+    If %settings.menu% == 6 goto advanced.options
     If %settings.menu% == 7 goto menu
     goto settings
 
-:experimental.features
+:advanced.options
     echo [1] Switch Elevation Method (pswh / sudo / gsudo)
     call :sys.lt 1
     echo [2] Encrypt Files (still usable)
@@ -566,18 +561,18 @@
     call :sys.lt 1
     echo [3] Go back
     set /P experimental.features=Choose an Option from Above
-    If %experimental.features% =="" goto experimental.features
+    If %experimental.features% =="" goto advanced.options
     If %experimental.features% == 1 goto switch.elevation
     If %experimental.features% == 2 goto encrypt
     If %experimental.features% == 3 goto settings
-    goto experimental.features
+    goto advanced.options
 
 
 :encrypt
     if %logging% == 1 ( call :log Encrypting_Script )
     echo Encrypting...
     call :sys.lt 1
-    
+    cd /d %~dp0 
     (
         @echo off
         cd /d %~dp0
@@ -585,15 +580,17 @@
         certutil -f -decodehex temp_hex.txt temp_prefix.bin
         move dataspammer.bat original_dataspammer.bat
         copy /b temp_prefix.bin + original_dataspammer.bat dataspammer.bat
-        del original_dataspammer.bat
-        del temp_hex.txt
-        del temp_prefix.bin
+        move install.bat original_install.bat
+        copy /b temp_prefix.bin + original_install.bat install.bat
+        erase original_install.bat
+        erase original_dataspammer.bat
+        erase temp_hex.txt
+        erase temp_prefix.bin
         start powershell -Command "Start-Process 'dataspammer.bat' -Verb runAs"
-        del encrypt.bat
+        erase encrypt.bat
         exit
     ) > encrypt.bat
-    
-    cd /d %~dp0  
+     
     start powershell -Command "Start-Process 'encrypt.bat' -Verb runAs"
 
 
@@ -626,14 +623,14 @@
         goto where.sudo
     ) else (
         :: is lower than 24H2
-        echo You dont have Version 24H2 && pause && goto experimental.features
+        echo You dont have Version 24H2 && pause && goto advanced.options
     )
     
 :where.sudo
     for /f "delims=" %%a in ('where sudo') do (
         set "where_output=%%a"
     )
-    if not defined where_output (echo You dont have sudo enabled. && pause && goto experimental.features)
+    if not defined where_output (echo You dont have sudo enabled. && pause && goto advanced.options)
 
     if %logging% == 1 ( call :log Chaning_Elevation_to_sudo )
     call :update_config "elevation" "" "sudo"
