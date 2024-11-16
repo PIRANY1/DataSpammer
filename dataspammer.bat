@@ -3,11 +3,6 @@
 ::    Todo: 
 ::    Fix SSH
 ::    Add Translation
-::    Merge In One Script?
-::    Rework Autostart 
-::    Switch to no PWSH
-::    Put Encrypt in regular Settings
-::    Rework Installer Elevation (request at start?)
 
 :: Developer Notes:
 :: Define %debug_asist% to bypass echo_off
@@ -21,7 +16,7 @@
     set DIRNAME=%~dp0
     if "%DIRNAME%"=="" set DIRNAME=.
     mode con: cols=140 lines=40
-    set "current-script-version=v3.9"
+    set "current-script-version=v4"
     if "%1"=="h" goto help.startup
     if "%1"=="-h" goto help.startup
     if "%1"=="help" goto help.startup
@@ -174,7 +169,7 @@
 
 
     
-    if "%latest_version%" equ "v3.9" (
+    if "%latest_version%" equ "v4" (
         set "uptodate=up"
     ) else (
         set "uptodate="
@@ -313,7 +308,7 @@
     if "%1"=="settings" goto settings
     if %logging% == 1 ( call :log Displaying_Menu )
     if %logging% == 1 ( call :log Startup_Complete )
-    title DataSpammer v3.9
+    title DataSpammer v4
     if "%small-install%" == "1" (
         set "settings-lock=Locked. Find Information under [44mHelp[32m"
     ) else (
@@ -332,7 +327,7 @@
 
 
     call :sys.lt 1
-    echo Made by PIRANY                 v3.9
+    echo Made by PIRANY                 v4
     call :sys.lt 1
     echo.
     call :sys.lt 1
@@ -377,7 +372,7 @@
     If %main.menu% == 3 goto cancel
     If %main.menu% == 4 goto credits
     If %main.menu% == 5 goto settings
-    If %main.menu% == 6 goto autostart.desktop.settings
+    If %main.menu% == 6 goto ad.settings
     If %main.menu% == 7 start "" "https://github.com/PIRANY1/DataSpammer" | cls | goto menu
     if %main.menu% =="" goto menu
     goto menu
@@ -532,7 +527,7 @@
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [6] Experimental Features
+    echo [6] Advanced Options
     call :sys.lt 1
     echo. 
     call :sys.lt 1
@@ -553,11 +548,11 @@
     If %settings.menu% == 3 goto settings.version.control
     If %settings.menu% == 4 goto settings.logging
     If %settings.menu% == 5 goto restart.script
-    If %settings.menu% == 6 goto experimental.features
+    If %settings.menu% == 6 goto advanced.options
     If %settings.menu% == 7 goto menu
     goto settings
 
-:experimental.features
+:advanced.options
     echo [1] Switch Elevation Method (pswh / sudo / gsudo)
     call :sys.lt 1
     echo [2] Encrypt Files (still usable)
@@ -566,18 +561,18 @@
     call :sys.lt 1
     echo [3] Go back
     set /P experimental.features=Choose an Option from Above
-    If %experimental.features% =="" goto experimental.features
+    If %experimental.features% =="" goto advanced.options
     If %experimental.features% == 1 goto switch.elevation
     If %experimental.features% == 2 goto encrypt
     If %experimental.features% == 3 goto settings
-    goto experimental.features
+    goto advanced.options
 
 
 :encrypt
     if %logging% == 1 ( call :log Encrypting_Script )
     echo Encrypting...
     call :sys.lt 1
-    
+    cd /d %~dp0 
     (
         @echo off
         cd /d %~dp0
@@ -585,15 +580,17 @@
         certutil -f -decodehex temp_hex.txt temp_prefix.bin
         move dataspammer.bat original_dataspammer.bat
         copy /b temp_prefix.bin + original_dataspammer.bat dataspammer.bat
-        del original_dataspammer.bat
-        del temp_hex.txt
-        del temp_prefix.bin
+        move install.bat original_install.bat
+        copy /b temp_prefix.bin + original_install.bat install.bat
+        erase original_install.bat
+        erase original_dataspammer.bat
+        erase temp_hex.txt
+        erase temp_prefix.bin
         start powershell -Command "Start-Process 'dataspammer.bat' -Verb runAs"
-        del encrypt.bat
+        erase encrypt.bat
         exit
     ) > encrypt.bat
-    
-    cd /d %~dp0  
+     
     start powershell -Command "Start-Process 'encrypt.bat' -Verb runAs"
 
 
@@ -626,14 +623,14 @@
         goto where.sudo
     ) else (
         :: is lower than 24H2
-        echo You dont have Version 24H2 && pause && goto experimental.features
+        echo You dont have Version 24H2 && pause && goto advanced.options
     )
     
 :where.sudo
     for /f "delims=" %%a in ('where sudo') do (
         set "where_output=%%a"
     )
-    if not defined where_output (echo You dont have sudo enabled. && pause && goto experimental.features)
+    if not defined where_output (echo You dont have sudo enabled. && pause && goto advanced.options)
 
     if %logging% == 1 ( call :log Chaning_Elevation_to_sudo )
     call :update_config "elevation" "" "sudo"
@@ -946,7 +943,7 @@
     @ping -n 2 localhost> nul
     goto restart.script
 
-:autostart.desktop.settings
+:ad.settings
     :: Autostart TLI
     echo.
     cls
@@ -963,176 +960,111 @@
     echo.
     call :sys.lt 1
     echo [2] Delete Autostart
-    call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [3] Delete DesktopIcon
-    echo.
-    call :sys.lt 1
-    echo [4] Back
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    echo [5] Settings
+    echo [3] Back
     echo.
     echo.
     set /p auto.desktop.settings=Choose an Option from Above:
     
-    if %auto.desktop.settings% =="" goto autostart.desktop.settings
-    If %auto.desktop.settings% == 1 goto autostart.setup
-    If %auto.desktop.settings% == 2 goto autostart.delete
-    If %auto.desktop.settings% == 4 goto menu
-    If %auto.desktop.settings% == 3 goto desktop.icon.delete  
-    If %auto.desktop.settings% == 5 goto autostart.settings.page
-    goto autostart.desktop.settings
+    if %auto.desktop.settings% =="" goto ad.settings
+    If %auto.desktop.settings% == 1 goto ad.setup
+    If %auto.desktop.settings% == 2 goto ad.remove
+    If %auto.desktop.settings% == 3 goto menu
+    goto ad.settings
 
-:autostart.setup
-    :: Autostart Setup TLI - INOPERATIONAL - NEED TO FIX ASAP
-    echo This Setup will lead you trough the Autostart/Desktopicon Setup.
-    call :sys.lt 1
-    echo If you are not sure what that is please take a look at the Information.
-    call :sys.lt 1
+    :ad.remove
+    echo [1] Delete Autostart
     echo.
     call :sys.lt 1
+    echo.
+    echo [2] Delete Desktop Icon
+    echo.
+    call :sys.lt 1
+    echo.
+    echo [3] Back
+    echo.
+    echo.
+    set /P ad.remove=Choose an Option from Above
+    if %ad.remove% ==""
+    if %ad.remove% ==1 goto autostart.delete
+    if %ad.remove% ==2 goto desktop.icon.delete  
+    if %ad.remove% ==3 goto ad.settings
+    goto ad.remove
+
+:ad.setup
     echo [1] Start Setup for Autostart
-    call :sys.lt 1
+    @ping -n 1 localhost> nul
     echo.
-    call :sys.lt 1
-    echo [2] Start Setup for DesktopIcon
-    call :sys.lt 1
+    @ping -n 1 localhost> nul
+    echo [2] Start Setup for Desktop Icon
+    @ping -n 1 localhost> nul
     echo.
-    call :sys.lt 1
-    echo [3] View Information
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    echo [4] Go Back
-    call :sys.lt 1
+    @ping -n 1 localhost> nul
+    echo [3] Go Back
+    @ping -n 1 localhost> nul
     echo.
     set /p autostart.setup=Choose an Option from Above:
 
-    if %autostart.setup% =="" goto autostart.setup
-    If %autostart.setup% == 3 goto viewdocs 
+    if %autostart.setup% =="" goto ad.setup
     If %autostart.setup% == 1 goto autostart.setup.confirmed
-    If %autostart.setup% == 4 goto autostart
     If %autostart.setup% == 2 goto desktop.icon.setup
-    goto autostart.setup
+    If %autostart.setup% == 3 goto autostart
+    goto ad.setup
 
-:viewdocs 
-    call :sys.lt 1
-    echo If you put for example Links or Programms into your Autostart Folder 
-    call :sys.lt 1
-    echo They will automaticly launch if you boot your Device.
-    call :sys.lt 1
-    echo Your System cant be more vulnerable if you do this.
-    call :sys.lt 1
-    echo You can create an Desktop Icon too if you dont want the Script to open 
-    call :sys.lt 1
-    echo Every time you boot.
-    call :sys.lt 1
-    echo Please note that if you change the Directory you also need to change it in the Autostart Settings.
-    call :sys.lt 1
-    echo [1] Go back
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    echo [2] Open Desktop Icon Setup.
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    echo [3] Open AutostartSetup
-    echo.
-    call :sys.lt 1
-    set /p viewdocs.menu=Choose an Option from above:
-
-    if %viewdocs.menu% =="" goto viewdocs
-    If %viewdocs.menu% == 1 goto autostart.setup
-    If %viewdocs.menu% == 2 goto desktop.icon.setup
-    If %viewdocs.menu% == 3 goto autostart.setup.confirmed
-    goto viewdocs
 
 :autostart.delete
-    setlocal enableextensions ENABLEDELAYEDEXPANSION 
     net session >nul 2>&1
-    if %errorLevel% == 0 (goto autostart.delete.2) else (goto sys.script.administrator)
-:autostart.delete.2
-    echo Autostart is getting detected as a Virus from some antivirus Programs. 
-    echo A Tutorial on how to temporarily turn off your AV is down below
-    echo.
+    if %errorLevel% NEQ 0 goto sys.script.administrator
     call :sys.lt 1
-    echo [1] Open Tutorial on how to turn off AV
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    echo [2] Go back
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    echo [3] My AV is turned off!
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    echo [4] Close the Script
-    set /P av.turnoff=Choose an Option from above
-    if %av.turnoff% =="" goto autostart.delete.2
-    if %av.turnoff% == 1 start "" "https://www.security.org/antivirus/turn-off/" | cls | goto autostart.delete.2
-    if %av.turnoff% == 2 cls | goto viewdocs 
-    if %av.turnoff% == 3 cls | goto autostart.delete.3
-    if %av.turnoff% == 4 cls | goto cancel
-    goto autostart.delete.2
-
-:autostart.delete.3
-    @ping -n 1 localhost> nul
     cd /d C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
     del autostart.bat
-    cd /d %~dp0
+    echo Autostart Link Removed.
+    echo Restarting Script...
+    call :sys.lt 2
+    goto restart.script
 
 :autostart.setup.confirmed
-    setlocal enableextensions ENABLEDELAYEDEXPANSION 
     net session >nul 2>&1
-    if %errorLevel% == 0 (goto autostart.setup.confirmed.2) else (goto sys.script.administrator)
-:autostart.setup.confirmed.2
-    @ping -n 1 localhost> nul
-    echo The Setup for Autostart is now starting...
+    if %errorLevel% NEQ 0 goto sys.script.administrator
+    call :sys.lt 1
     cd /d C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
-    @ping -n 1 localhost> nul
-    echo. > DataSpammer.bat
     set "varlinkauto=%~dp0"
     (
     echo @echo off
     echo cd /d %varlinkauto%
     dataspammer.bat
     ) > autostart.bat
-    cd /d %~dp0
-
+    echo Autostart Link Added.
+    echo Restarting Script...
+    call :sys.lt 2
+    goto restart.script
 
 :desktop.icon.setup
-    setlocal enableextensions ENABLEDELAYEDEXPANSION 
     net session >nul 2>&1
-    if %errorLevel% == 0 (goto desktop.icon.setup.2) else (goto sys.script.administrator)
-:desktop.icon.setup.2
+    if %errorLevel% NEQ 0 goto sys.script.administrator
     cd /d %userprofile%\Desktop
-    echo. > DataSpammer.bat
     set "varlinkauto=%~dp0"
     (
     echo @echo off
     echo cd /d %varlinkauto%
     dataspammer.bat
     ) > DataSpammer.bat
-    echo Added Icon
-    @ping -n 3 localhost> nul
-    goto autostart.desktop.settings
+    echo Added Desktop Icon
+    echo Restarting Script...
+    call :sys.lt 2
+    goto restart.script
 
 :desktop.icon.delete                                                                                                    
-    setlocal enableextensions ENABLEDELAYEDEXPANSION 
     net session >nul 2>&1
-    if %errorLevel% == 0 (goto desktop.icon.delete.2) else (goto sys.script.administrator)
-
-:desktop.icon.delete.2
+    if %errorLevel% NEQ 0 goto sys.script.administrator
     cd %userprofile%\Desktop
     del DataSpammer.bat
     echo Successfully Deleted Desktop Icon.
-    @ping -n 2 localhost> nul
+    echo Removed Desktop Icon
+    echo Restarting Script...
+    call :sys.lt 2
+    goto restart.script
 
 
 :autostart.settings.page
@@ -1144,8 +1076,9 @@
     goto autostart.desktop.settings
 
 
+
 ::
-::                ^            ^ 
+::               /\            /\ 
 ::                |  SETTINGS  |  
 ::                |  SPAM PART |
 ::               \/            \/
