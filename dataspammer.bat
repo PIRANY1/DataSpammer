@@ -7,6 +7,7 @@
 ::    Rework Autostart 
 ::    Switch to no PWSH
 ::    Put Encrypt in regular Settings
+::    Rework Installer Elevation (request at start?)
 
 :: Developer Notes:
 :: Define %debug_asist% to bypass echo_off
@@ -20,7 +21,7 @@
     set DIRNAME=%~dp0
     if "%DIRNAME%"=="" set DIRNAME=.
     mode con: cols=140 lines=40
-    set "current-script-version=v3.8"
+    set "current-script-version=v3.9"
     if "%1"=="h" goto help.startup
     if "%1"=="-h" goto help.startup
     if "%1"=="help" goto help.startup
@@ -173,7 +174,7 @@
 
 
     
-    if "%latest_version%" equ "v3.8" (
+    if "%latest_version%" equ "v3.9" (
         set "uptodate=up"
     ) else (
         set "uptodate="
@@ -312,7 +313,7 @@
     if "%1"=="settings" goto settings
     if %logging% == 1 ( call :log Displaying_Menu )
     if %logging% == 1 ( call :log Startup_Complete )
-    title DataSpammer v3.8
+    title DataSpammer v3.9
     if "%small-install%" == "1" (
         set "settings-lock=Locked. Find Information under [44mHelp[32m"
     ) else (
@@ -331,7 +332,7 @@
 
 
     call :sys.lt 1
-    echo Made by PIRANY                 v3.8
+    echo Made by PIRANY                 v3.9
     call :sys.lt 1
     echo.
     call :sys.lt 1

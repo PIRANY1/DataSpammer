@@ -6,7 +6,7 @@
     if "%restart-main%" == "1" dataspammer.bat
     @title Script Installer by PIRANY
     set "foldername=DataSpammer"
-    set "current-script-version=v3.8"
+    set "current-script-version=v3.9"
     cd /d %~dp0
     color 2
     cls  
