@@ -67,6 +67,7 @@
     net session >nul 2>&1
     if %errorLevel% neq 0 (
         if "%elevation%"=="sudo" goto sudo.elevation
+        if "%elevation%"=="gsudo" goto gsudo.elevation
         powershell -Command "Start-Process '%~f0' -Verb runAs"
         exit
     )
@@ -75,14 +76,23 @@
     
 :sudo.elevation
     net session >nul 2>&1
-    if %errorLevel% neq 0 (
-        powershell -Command "sudo cmd.exe -k %~f0"
+    if %errorLevel% neq 0 ( 
+        for /f "delims=" %%A in ('where sudo') do set SUDO_PATH=%%A
+        %SUDO_PATH% cmd.exe -k %~f0
         exit
     )
     cd /d %~dp0
     goto check-files
 
-
+:gsudo.elevation
+    net session >nul 2>&1
+    if %errorLevel% neq 0 ( 
+        for /f "delims=" %%A in ('where gsudo') do set GSUDO_PATH=%%A
+        %GSUDO_PATH% cmd.exe -k %~f0
+        exit
+    )
+    cd /d %~dp0
+    goto check-files
 
 :check-files
     :: Checks if all Files needed for the Script exist
@@ -547,7 +557,7 @@
     goto settings
 
 :experimental.features
-    echo [1] Switch Elevation Method (pswh / sudo)
+    echo [1] Switch Elevation Method (pswh / sudo / gsudo)
     call :sys.lt 1
     echo [2] Encrypt Files (still usable)
     call :sys.lt 1
@@ -589,9 +599,20 @@
 
 
 :switch.elevation
-    if "%elevation%"=="pwsh" goto switch.sudo.elevation
-    if "%elevation%"=="sudo" goto switch.pwsh.elevation
-    
+    echo What do you want to elevate Dataspammer.bat
+    echo.
+    echo [1] Powershell
+    echo.
+    echo [2] sudo (needs 24H2)
+    echo.
+    echo [3] gsudo (/gerardog/gsudo)
+    echo.
+    echo. 
+    set /P elevation.choice=Choose an Option from Above:
+    if %elevation.choice%==1 goto switch.pwsh.elevation
+    if %elevation.choice%==2 goto switch.sudo.elevation
+    if %elevation.choice%==3 goto switch.gsudo.elevation
+
 :switch.sudo.elevation
     for /f "tokens=3" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v "ReleaseId"') do set "releaseid=%%a"
     for /f "tokens=3" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v "CurrentBuild"') do set "build=%%a"
@@ -626,6 +647,15 @@
     if %logging% == 1 ( call :log Chaning_Elevation_to_pwsh )
     call :update_config "elevation" "" "pwsh"
     echo Switched to Powershell.
+    @ping -n 2 localhost> nul
+    goto restart.script
+
+:switch.gsudo.elevation
+    echo Switching to GSUDO Elevation...
+    @ping -n 2 localhost> nul
+    if %logging% == 1 ( call :log Chaning_Elevation_to_gsudo )
+    call :update_config "elevation" "" "gsudo"
+    echo Switched to GSudo.
     @ping -n 2 localhost> nul
     goto restart.script
 
