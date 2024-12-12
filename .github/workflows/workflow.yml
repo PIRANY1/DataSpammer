@@ -13,9 +13,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install Git
-        run: |
-          choco install git -y
 
       - name: Verify Git Installation
         run: |
@@ -31,4 +28,4 @@ jobs:
       - name: Run DataSpammer Debug Test
         run: |
           cd DataSpammer
-          cmd.exe -k dataspammer.bat debugtest
+          $GITHUB_WORKSPACE\DataSpammer\dataspammer.bat debugtest
