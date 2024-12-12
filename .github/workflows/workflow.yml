@@ -1,0 +1,34 @@
+name: Dataspammer Functionality Test
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Git
+        run: |
+          choco install git -y
+
+      - name: Verify Git Installation
+        run: |
+          git --version
+
+      - name: Clone Repository and Checkout PR Branch
+        run: |
+          git clone https://github.com/PIRANY1/DataSpammer
+          cd DataSpammer
+          git fetch origin ${{ github.event.pull_request.head.ref }}
+          git checkout ${{ github.event.pull_request.head.ref }}
+
+      - name: Run DataSpammer Debug Test
+        run: |
+          cd DataSpammer
+          dataspammer.bat debugtest
