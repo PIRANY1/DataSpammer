@@ -31,4 +31,4 @@ jobs:
       - name: Run DataSpammer Debug Test
         run: |
           cd DataSpammer
-          dataspammer.bat debugtest
+          cmd.exe -k dataspammer.bat debugtest

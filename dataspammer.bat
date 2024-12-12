@@ -13,6 +13,8 @@
 
 
 :!top
+    cd %~dp0
+    set "script.dir=%cd%"
     @if "%debug_assist%"=="" @echo off
     if "%OS%"=="Windows_NT" setlocal
     set DIRNAME=%~dp0
@@ -30,6 +32,7 @@
     if "%1"=="" goto normal.start
     if "%1"=="cli" goto sys.cli
     if "%1"=="debug" goto debuglog
+    if "%1"=="debug" goto debugtest
     if "%1"=="api" goto sys.api
     if "%1"=="noelev" @ECHO OFF && cd /d %~dp0 && @color 02 && set "small-install=1" && goto check-files
     if "%update-install%"=="1" ( goto sys.new.update.installed )
@@ -2030,21 +2033,21 @@
     goto sys.new.update.installed
 
 
-:: WIP
-:: maybe option to delete new dir
+
+:: Maybe add Option to add New Directory
 
 :debuglog
-echo Generate Debug Log
-cd %~dp0
-set SOURCE_DIR="%~f0\Debug"
-mkdir Debug
-:: More Content here ::
-copy "%userprofile%\Documents\DataSpammerLog\DataSpammer.log" "%SOURCE_DIR%"
+    echo Generating Debug Log
+    cd %~dp0
+    set SOURCE_DIR="%script.dir%\Debug"
+    mkdir Debug
+    :: More Content here ::
+    copy "%userprofile%\Documents\DataSpammerLog\DataSpammer.log" "%SOURCE_DIR%"
+    
+    set ZIP_FILE="%script.dir%\debug.log.zip"
+    tar -a -cf "%ZIP_FILE%" -C "%SOURCE_DIR%" .
 
-set ZIP_FILE="%~f0\debug.log.zip"
-tar -a -cf "%ZIP_FILE%" -C "%SOURCE_DIR%" .
-
-    :debug.done
+:debug.done
     echo Successfully Generated debug.log.zip
     echo. 
     echo [1] Copy to Clipboard
@@ -2061,7 +2064,19 @@ tar -a -cf "%ZIP_FILE%" -C "%SOURCE_DIR%" .
     if %_erl%==2 explorer "https://github.com/PIRANY1/DataSpammer/issues"
     if %_erl%==3 goto advanced.options
     goto debug.done
-    
+
+    :: Collect Functionalities HERE..
+    :: DNS & HTTPS & Basic Filespam 
+:debugtest
+    echo Running Debug Test...
+    echo %time%
+    call :sys.lt 10
+    echo %time%
+    call :log Tested_Functionality
+    type %userprofile%\Documents\DataSpammerLog\Dataspammer.log
+    echo Finished Testing...
+    echo Exiting
+    goto cancel
 
 :sys.verify.execution
     if %logging% == 1 ( call :log Opened_verify_tab )
