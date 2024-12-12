@@ -3,6 +3,8 @@
 ::    Todo: 
 ::    Fix SSH
 ::    Add Translation
+::    Replace set /p with choice
+::    Fix Logging Date (1838)
 
 :: Developer Notes:
 :: Define %debug_asist% to bypass echo_off
@@ -11,6 +13,8 @@
 
 
 :!top
+    cd %~dp0
+    set "script.dir=%cd%"
     @if "%debug_assist%"=="" @echo off
     if "%OS%"=="Windows_NT" setlocal
     set DIRNAME=%~dp0
@@ -27,6 +31,8 @@
     if "%1"=="remove" goto sys.delete.script
     if "%1"=="" goto normal.start
     if "%1"=="cli" goto sys.cli
+    if "%1"=="debug" goto debuglog
+    if "%1"=="debugtest" goto debugtest
     if "%1"=="api" goto sys.api
     if "%1"=="noelev" @ECHO OFF && cd /d %~dp0 && @color 02 && set "small-install=1" && goto check-files
     if "%update-install%"=="1" ( goto sys.new.update.installed )
@@ -557,16 +563,19 @@
 :advanced.options
     echo [1] Switch Elevation Method (pswh / sudo / gsudo)
     call :sys.lt 1
-    echo [2] Encrypt Files (still usable)
+    echo [2] Encrypt Files (Bypass most Antivirus detections)
+    call :sys.lt 1
+    echo [3] Generate Debug Log
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [3] Go back
+    echo [4] Go back
     set /P experimental.features=Choose an Option from Above
     If %experimental.features% =="" goto advanced.options
     If %experimental.features% == 1 goto switch.elevation
     If %experimental.features% == 2 goto encrypt
-    If %experimental.features% == 3 goto settings
+    If %experimental.features% == 3 goto debuglog
+    If %experimental.features% == 4 goto settings
     goto advanced.options
 
 
@@ -1669,6 +1678,8 @@
     echo.
     echo    noelev Start the Script without Administrator
     echo.
+    echo    debug Generate Debug Log
+    echo.
     echo.
 
     exit /b 1464
@@ -1831,7 +1842,7 @@
     :: exit
     exit /b 0
     
-    :: NEED TO FIX THIS PART / Content not gets written
+    :: Fix this Part Sometimes / Content not gets written
         :: convert time and date to readable format
         ::setlocal enabledelayedexpansion
         ::for /f "tokens=1-3 delims=:," %%a in ("%currentTime%") do (
@@ -2022,6 +2033,50 @@
     goto sys.new.update.installed
 
 
+
+:: Maybe add Option to add New Directory
+
+:debuglog
+    echo Generating Debug Log
+    cd %~dp0
+    set SOURCE_DIR="%script.dir%\Debug"
+    mkdir Debug
+    :: More Content here ::
+    copy "%userprofile%\Documents\DataSpammerLog\DataSpammer.log" "%SOURCE_DIR%"
+    
+    set ZIP_FILE="%script.dir%\debug.log.zip"
+    tar -a -cf "%ZIP_FILE%" -C "%SOURCE_DIR%" .
+
+:debug.done
+    echo Successfully Generated debug.log.zip
+    echo. 
+    echo [1] Copy to Clipboard
+    echo.
+    echo [2] Open GitHub Repository
+    echo. 
+    echo [3] Go Back
+    echo.
+    echo.
+    set /P debuglog=Choose an Option from Above
+    choice /C 123 /M "Choose an Option from Above:"
+    set _erl=%errorlevel%
+    if %_erl%==1 echo %ZIP_FILE% | clip && cls && echo Copied debug.log.zip to your Clipboard && pause
+    if %_erl%==2 explorer "https://github.com/PIRANY1/DataSpammer/issues"
+    if %_erl%==3 goto advanced.options
+    goto debug.done
+
+    :: Collect Functionalities HERE..
+    :: DNS & HTTPS & Basic Filespam 
+:debugtest
+    echo Running Debug Test...
+    echo %time%
+    call :sys.lt 10
+    echo %time%
+    call :log Tested_Functionality
+    type %userprofile%\Documents\DataSpammerLog\Dataspammer.log
+    echo Finished Testing...
+    echo Exiting
+    goto cancel
 
 :sys.verify.execution
     if %logging% == 1 ( call :log Opened_verify_tab )
