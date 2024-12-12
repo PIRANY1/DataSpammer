@@ -27,6 +27,5 @@ jobs:
 
       - name: Run DataSpammer Debug Test
         run: |
-          cd DataSpammer
-          cmd.exe /c "$GITHUB_WORKSPACE\Dataspammer\dataspammer.bat debugtest"
-
+          cd $GITHUB_WORKSPACE/DataSpammer
+          cmd.exe /c "$Env:GITHUB_WORKSPACE\DataSpammer\dataspammer.bat debugtest"
