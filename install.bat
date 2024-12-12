@@ -1,16 +1,16 @@
-    @if "%debug_assist%"=="" @echo off
-    if "%OS%"=="Windows_NT" setlocal
-    set DIRNAME=%~dp0
-    if "%DIRNAME%"=="" set DIRNAME=.
-    mode con: cols=140 lines=40
-    if "%restart-main%" == "1" dataspammer.bat
-    @title Script Installer by PIRANY
-    set "foldername=DataSpammer"
-    set "current-script-version=v4"
-    cd /d %~dp0
-    color 2
-    cls  
-    color 2
+@if "%debug_assist%"=="" @echo off
+if "%OS%"=="Windows_NT" setlocal
+set DIRNAME=%~dp0
+if "%DIRNAME%"=="" set DIRNAME=.
+mode con: cols=140 lines=40
+if "%restart-main%" == "1" dataspammer.bat
+@title Script Installer by PIRANY
+set "foldername=DataSpammer"
+set "current-script-version=v4"
+cd /d %~dp0
+color 2
+cls  
+color 2
         if "%1"=="go" goto custom.go
         if "%1"=="-reverse.arg" dataspammer.bat %2
 
@@ -136,6 +136,8 @@
     SETLOCAL EnableDelayedExpansion
     SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
     SETLOCAL DisableDelayedExpansion
+
+    call :save.progress main
 
     %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
     %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
@@ -590,6 +592,12 @@
    set "custom.goto.location=%2"
    goto %custom.goto.location%
 
+ :: WIP
+:save.progress 
+    set "input=%1"
+    cd %temp%
+    if not exist progress.txt echo %input% > progress.txt
+    exit /b 0
 
 :log
     :: call scheme is:
