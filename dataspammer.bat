@@ -32,7 +32,7 @@
     if "%1"=="" goto normal.start
     if "%1"=="cli" goto sys.cli
     if "%1"=="debug" goto debuglog
-    if "%1"=="debug" goto debugtest
+    if "%1"=="debugtest" goto debugtest
     if "%1"=="api" goto sys.api
     if "%1"=="noelev" @ECHO OFF && cd /d %~dp0 && @color 02 && set "small-install=1" && goto check-files
     if "%update-install%"=="1" ( goto sys.new.update.installed )
