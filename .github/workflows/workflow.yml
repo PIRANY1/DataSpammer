@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  test:
+  Debug Test:
     runs-on: windows-latest
 
     steps:
