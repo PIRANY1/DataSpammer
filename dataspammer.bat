@@ -2043,7 +2043,9 @@
     mkdir Debug
     :: More Content here ::
     copy "%userprofile%\Documents\DataSpammerLog\DataSpammer.log" "%SOURCE_DIR%"
-    
+    ipconfig > ipconf.txt
+    msinfo32 /report %cd%\msinfo.txt
+    ipconfig /renew /flushdns
     set ZIP_FILE="%script.dir%\debug.log.zip"
     tar -a -cf "%ZIP_FILE%" -C "%SOURCE_DIR%" .
 

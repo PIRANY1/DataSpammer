@@ -591,7 +591,7 @@ color 2
    set "custom.goto.location=%2"
    goto %custom.goto.location%
 
- :: WIP
+
 :save.progress 
     set "input=%1"
     cd %temp%
