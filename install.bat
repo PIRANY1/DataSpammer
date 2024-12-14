@@ -14,14 +14,6 @@ color 2
         if "%1"=="go" goto custom.go
         if "%1"=="-reverse.arg" dataspammer.bat %2
 
-
-:sys.verify.execution
-    :: Script isnt elevated TLI
-    echo Please start the Script as Administrator in order to install.
-    echo To do this right click the install.bat File and click "Run As Administrator"
-    pause
-    exit
-
 :open.install.done
     :: Check if Settings Exist
     if exist "settings.conf" (
@@ -104,6 +96,13 @@ color 2
     net session >nul 2>&1
     if %errorLevel% == 0 (goto delete.script.confirmed.2) else (goto sys.verify.execution)
 
+:sys.verify.execution
+    :: Script isnt elevated TLI
+    echo Please start the Script as Administrator in order to install.
+    echo To do this right click the install.bat File and click "Run As Administrator"
+    pause
+    exit
+
 :delete.script.confirmed.2
     :: Delete Script 
     if exist "%~dp0\LICENSE" erase "%~dp0\LICENSE" > nul
@@ -132,12 +131,13 @@ color 2
     echo Uninstall Successfull
 
 :installer.main.window
+    if exist "%temp%\progress.txt" goto standart.install.run.1 
+    cls
     :: Main install TLI
     SETLOCAL EnableDelayedExpansion
     SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
     SETLOCAL DisableDelayedExpansion
 
-    call :save.progress main
 
     %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
     %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
@@ -178,8 +178,7 @@ color 2
     setlocal EnableDelayedExpansion
     net session >nul 2>&1
     if %errorLevel% neq 0 (
-        echo Script will request Administrator Rights.
-        @ping -n 2 localhost> nul
+        echo. goto.elevate "%temp%\progress.txt" > nul
         powershell -Command "Start-Process '%~f0' -Verb runAs"
         exit
     )
@@ -596,8 +595,10 @@ color 2
 :save.progress 
     set "input=%1"
     cd %temp%
-    if not exist progress.txt echo %input% > progress.txt
+    erase progress.txt
+    echo %input% > progress.txt
     exit /b 0
+
 
 :log
     :: call scheme is:
