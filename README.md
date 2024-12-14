@@ -8,7 +8,7 @@ ICMP, SSH, FTP, DNS, HTTP(S), Printer Spam, Desktop Spam, Folder Spam, Startmenu
 
 ### Other Features
 
-Desktop Shortcut, Autostart, Auto Update, Logging, Elevation via sudo/pwsh
+Desktop Shortcut, Autostart, Auto Update, Logging, Elevation via sudo/pwsh/gsudo, Encryption, Debugging
 
 ## Install
 
@@ -56,12 +56,8 @@ install.bat
 Files sometimes get corrupted after update
 
 ## Encrypt
-Sometimes adding theses in HexEd fixes the Antivirus detection.
-Files in Release Tab are encrypted too.
-
-``` Hex
-FF FE 0D 0A 63 6C 73 0D 0A
-```
+Files in Release Tab are Encryption to prevent Anti Virus detection when writing in Program Files Folder.
+When you are downloading the Files elsewhere you can Encrypt them later on.
 
 ## About
 

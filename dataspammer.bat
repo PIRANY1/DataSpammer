@@ -3,7 +3,6 @@
 ::    Todo: 
 ::    Fix SSH
 ::    Add Translation
-::    Replace set /p with choice
 ::    Fix Logging Date (1838)
 
 :: Developer Notes:
@@ -20,7 +19,7 @@
     set DIRNAME=%~dp0
     if "%DIRNAME%"=="" set DIRNAME=.
     mode con: cols=140 lines=40
-    set "current-script-version=v4"
+    set "current-script-version=v4.1"
     if "%1"=="h" goto help.startup
     if "%1"=="-h" goto help.startup
     if "%1"=="help" goto help.startup
@@ -175,7 +174,7 @@
 
 
     
-    if "%latest_version%" equ "v4" (
+    if "%latest_version%" equ "v4.1" (
         set "uptodate=up"
     ) else (
         set "uptodate="
@@ -320,7 +319,7 @@
     if "%1"=="settings" goto settings
     if %logging% == 1 ( call :log Displaying_Menu )
     if %logging% == 1 ( call :log Startup_Complete )
-    title DataSpammer v4
+    title DataSpammer v4.1
     if "%small-install%" == "1" (
         set "settings-lock=Locked. Find Information under [44mHelp[32m"
     ) else (
@@ -339,7 +338,7 @@
 
 
     call :sys.lt 1
-    echo Made by PIRANY                 v4
+    echo Made by PIRANY                 v4.1
     call :sys.lt 1
     echo.
     call :sys.lt 1
