@@ -130,10 +130,10 @@
     call :sys.lt 1
     echo [2] Open the Script anyways 
     call :sys.lt 1
-    set /p menu=Choose an Option from Above:
-    if %menu%=="" goto sys.no.settings
-    If %menu% == 1 goto sys.open.installer
-    If %menu% == 2 goto no.settings.update
+    choice /C 12 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto sys.open.installer
+        if %_erl%==2 goto no.settings.update
     goto sys.no.settings
 
 
@@ -213,11 +213,14 @@
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    set /p outdated.menu=Choose an Option from Above:
-    if %outdated.menu% =="" goto git.version.outdated
-    if %outdated.menu% == 1 goto git.update.version
-    if %outdated.menu% == 2 exit /b
+    choice /C 12 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto git.update.version
+        if %_erl%==2 exit /b
     goto git.version.outdated
+
+
+
 
 :git.version.clean
     if %logging% == 1 ( call :log Version_Is_Up_To_Date )
@@ -265,11 +268,12 @@
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    set /p installer.not.found=Choose an Option from Above:
-    if %installer.not.found%=="" goto sys.error.no.install
-    If %installer.not.found% == 2 goto dts.startup.done
-    If %installer.not.found% == 1 goto git.open.repo
+    choice /C 12 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto git.open.repo
+        if %_erl%==2 goto dts.startup.done
     goto sys.error.no.install
+
 
 :git.open.repo
     if %logging% == 1 ( call :log Opening_Repo )
@@ -373,17 +377,17 @@
     echo [7] Open GitHub-Repo
     echo.
     echo.
-    set /p main.menu=Choose an Option from Above:
-
-    If %main.menu% == 1 goto help
-    If %main.menu% == 2 goto start
-    If %main.menu% == 3 goto cancel
-    If %main.menu% == 4 goto credits
-    If %main.menu% == 5 goto settings
-    If %main.menu% == 6 goto ad.settings
-    If %main.menu% == 7 start "" "https://github.com/PIRANY1/DataSpammer" | cls | goto menu
-    if %main.menu% =="" goto menu
+    choice /C 1234567 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto help
+        if %_erl%==2 goto start
+        if %_erl%==3 goto cancel
+        if %_erl%==4 goto credits
+        if %_erl%==5 goto settings
+        if %_erl%==6 goto ad.settings
+        if %_erl%==7 If %main.menu% == 7 start "" "https://github.com/PIRANY1/DataSpammer" | cls | goto menu
     goto menu
+
 
 :check.lib.git.update
     if %logging% == 1 ( call :log Checking_For_Updates_from_Menu )
@@ -420,12 +424,13 @@
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    set /p help.menu=Choose an Option from Above:
-    if %help.menu%=="" goto help
-    If %help.menu% == 1 goto menu
-    If %help.menu% == 2 goto list.readme.license
-    If %help.menu% == 3 goto cancel
+    choice /C 123 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto menu
+        if %_erl%==2 goto list.readme.license
+        if %_erl%==3 goto cancel
     goto help
+
 
 :list.readme.license
     echo License:
@@ -484,11 +489,11 @@
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    set /p credit.menu=Choose an Option from Above:
-    if %credit.menu% =="" goto credits
-    If %credit.menu% == 1 goto menu
-    If %credit.menu% == 3 goto cancel
-    If %credit.menu% == 2 start "" "https://github.com/PIRANY1/DataSpammer" | cls | goto credits
+    choice /C 123 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto menu
+        if %_erl%==2 goto cancel
+        if %_erl%==3 start "" "https://github.com/PIRANY1/DataSpammer" | cls | goto credits
     goto credits
 
 :settings
@@ -548,17 +553,17 @@
     echo.
     call :sys.lt 1
 
-
-    set /p settings.menu=Choose an Option from Above:
-    if %settings.menu% =="" goto settings
-    If %settings.menu% == 1 goto spam.settings
-    If %settings.menu% == 2 goto activate.dev.options
-    If %settings.menu% == 3 goto settings.version.control
-    If %settings.menu% == 4 goto settings.logging
-    If %settings.menu% == 5 goto restart.script
-    If %settings.menu% == 6 goto advanced.options
-    If %settings.menu% == 7 goto menu
+    choice /C 1234567 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto spam.settings
+        if %_erl%==2 goto activate.dev.options
+        if %_erl%==3 goto settings.version.control
+        if %_erl%==4 goto settings.logging
+        if %_erl%==5 goto restart.script
+        if %_erl%==6 goto advanced.options
+        if %_erl%==7 goto menu
     goto settings
+
 
 :advanced.options
     echo [1] Switch Elevation Method (pswh / sudo / gsudo)
@@ -570,14 +575,15 @@
     echo.
     call :sys.lt 1
     echo [4] Go back
-    set /P experimental.features=Choose an Option from Above
-    If %experimental.features% =="" goto advanced.options
-    If %experimental.features% == 1 goto switch.elevation
-    If %experimental.features% == 2 goto encrypt
-    If %experimental.features% == 3 goto debuglog
-    If %experimental.features% == 4 goto settings
+    choice /C 1234 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto switch.elevation
+        if %_erl%==2 goto encrypt
+        if %_erl%==3 goto debuglog
+        if %_erl%==4 goto settings
     goto advanced.options
 
+    
 
 :encrypt
     if %logging% == 1 ( call :log Encrypting_Script )
@@ -597,6 +603,9 @@
         erase original_dataspammer.bat
         erase temp_hex.txt
         erase temp_prefix.bin
+        Cipher /E dataspammer.bat
+        Cipher /E install.bat
+        cd /d %~dp0
         start powershell -Command "Start-Process 'dataspammer.bat' -Verb runAs"
         erase encrypt.bat
     ) > encrypt.bat
@@ -616,10 +625,13 @@
     echo [3] gsudo (/gerardog/gsudo)
     echo.
     echo. 
-    set /P elevation.choice=Choose an Option from Above:
-    if %elevation.choice%==1 goto switch.pwsh.elevation
-    if %elevation.choice%==2 goto switch.sudo.elevation
-    if %elevation.choice%==3 goto switch.gsudo.elevation
+    choice /C 123 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto switch.pwsh.elevation
+        if %_erl%==2 goto switch.sudo.elevation
+        if %_erl%==2 goto switch.gsudo.elevation
+    goto switch.elevation
+
 
 :switch.sudo.elevation
     for /f "tokens=3" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v "ReleaseId"') do set "releaseid=%%a"
@@ -730,14 +742,15 @@
     echo. 
     call :sys.lt 1
     echo [5] Go back
-    set /P spam.settings=Choose an Option from Above
-    If %spam.settings%=="" goto spam.settings
-    If %spam.settings%== 1 goto settings.default.filename
-    If %spam.settings%== 2 goto settings.default.directory
-    If %spam.settings%== 3 goto settings.default.filecount
-    If %spam.settings%== 4 goto settings.default.domain
-    If %spam.settings%== 5 goto settings
+    choice /C 12345 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto settings.default.filename
+        if %_erl%==2 goto settings.default.directory
+        if %_erl%==3 goto settings.default.filecount
+        if %_erl%==4 goto settings.default.domain
+        if %_erl%==5 goto settings
     goto spam.settings
+
 
 :settings.default.filecount
     if %logging% == 1 ( call :log Chaning_Standart_Filecount )
@@ -777,13 +790,14 @@
     call :sys.lt 1
     echo.
     echo.
-    set /P vs.control=Choose an Option From Above:
-    if %vs.control% =="" goto settings.version.control
-    if %vs.control% == 1 goto dev.force.update
-    if %vs.control% == 2 goto stable.switch.branch
-    if %vs.control% == 3 goto dev.switch.branch  
-    if %vs.control% == 4 goto settings
+    choice /C 1234 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto dev.force.update
+        if %_erl%==2 goto stable.switch.branch
+        if %_erl%==3 goto dev.switch.branch  
+        if %_erl%==4 goto settings
     goto settings.version.control
+
 
 :dev.force.update
     if %logging% == 1 ( call :log Switching_to_stable_branch )
@@ -924,13 +938,14 @@
     call :sys.lt 1
     echo.
     echo.
-    set /P logging.control=Choose an Option From Above:
-    if %logging.control% =="" goto settings.logging
-    if %logging.control% == 1 goto enable.logging
-    if %logging.control% == 2 goto disable.logging
-    if %logging.control% == 3 goto dev.open.log
-    if %logging.control% == 4 goto settings
+    choice /C 1234 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto enable.logging
+        if %_erl%==2 goto disable.logging
+        if %_erl%==3 goto dev.open.log
+        if %_erl%==4 goto settings
     goto settings.logging
+
 
 :enable.logging
     if %logging% == 1 ( goto settings.logging )
@@ -975,13 +990,14 @@
     echo [3] Back
     echo.
     echo.
-    set /p auto.desktop.settings=Choose an Option from Above:
-    
-    if %auto.desktop.settings% =="" goto ad.settings
-    If %auto.desktop.settings% == 1 goto ad.setup
-    If %auto.desktop.settings% == 2 goto ad.remove
-    If %auto.desktop.settings% == 3 goto menu
+
+    choice /C 123 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto ad.setup
+        if %_erl%==2 goto ad.remove
+        if %_erl%==3 goto menu
     goto ad.settings
+
 
     :ad.remove
     echo [1] Delete Autostart
@@ -995,12 +1011,13 @@
     echo [3] Back
     echo.
     echo.
-    set /P ad.remove=Choose an Option from Above
-    if %ad.remove% ==""
-    if %ad.remove% ==1 goto autostart.delete
-    if %ad.remove% ==2 goto desktop.icon.delete  
-    if %ad.remove% ==3 goto ad.settings
+    choice /C 123 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto autostart.delete
+        if %_erl%==2 goto desktop.icon.delete  
+        if %_erl%==3 goto ad.settings
     goto ad.remove
+
 
 :ad.setup
     echo [1] Start Setup for Autostart
@@ -1014,13 +1031,14 @@
     echo [3] Go Back
     @ping -n 1 localhost> nul
     echo.
-    set /p autostart.setup=Choose an Option from Above:
 
-    if %autostart.setup% =="" goto ad.setup
-    If %autostart.setup% == 1 goto autostart.setup.confirmed
-    If %autostart.setup% == 2 goto desktop.icon.setup
-    If %autostart.setup% == 3 goto autostart
+    choice /C 123 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto autostart.setup.confirmed
+        if %_erl%==2 goto desktop.icon.setup
+        if %_erl%==3 goto autostart
     goto ad.setup
+
 
 
 :autostart.delete
@@ -1111,11 +1129,12 @@
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    set /P main.tests=Choose an Option from Above:
-    if %main.tests% == "" goto start.verified
-    if %main.tests% == 1 goto local.spams
-    if %main.tests% == 2 goto internet.spams
+    choice /C 12 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto local.spams
+        if %_erl%==2 goto internet.spams
     goto start.verified
+
 
 
 
@@ -1156,17 +1175,16 @@
     echo Tests in developement: SMTP (mail), IMAP (mail), 
     call :sys.lt 1
     echo.
-    set /p spam.method=Choose an Option from Above:
-
-    if %spam.method% =="" goto internet.spams
-    If %spam.method% == 1 goto ssh.spam
-    If %spam.method% == 2 goto dns.spam
-    If %spam.method% == 3 goto ftp.spam
-    If %spam.method% == 4 goto https.spam
-    If %spam.method% == 5 goto printer.spam
-    If %spam.method% == 6 goto icmp.spam
-    If %spam.method% == 7 goto telnet.spam
-    If %spam.method% == 8 goto start.verified
+    choice /C 12345678 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto ssh.spam
+        if %_erl%==2 goto dns.spam
+        if %_erl%==3 goto ftp.spam
+        if %_erl%==4 goto https.spam
+        if %_erl%==5 goto printer.spam
+        if %_erl%==6 goto icmp.spam
+        if %_erl%==7 goto telnet.spam
+        if %_erl%==8 goto start.verified
     goto internet.spams
 
 :telnet.spam
@@ -1225,14 +1243,15 @@
     echo.
     echo.
     echo.
-    set /P local.spam.menu=Choose an Option from Above:
-    If %local.spam.menu% == "" goto local.spams
-    If %local.spam.menu% == 1 goto normal.text.spam
-    If %local.spam.menu% == 2 goto desktop.icon.spam
-    If %local.spam.menu% == 3 goto startmenu.spam
-    If %local.spam.menu% == 4 goto app.list.spam
-    If %local.spam.menu% == 5 goto start.verified
+    choice /C 12345 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto normal.text.spam
+        if %_erl%==2 goto desktop.icon.spam
+        if %_erl%==3 goto startmenu.spam
+        if %_erl%==4 goto app.list.spam
+        if %_erl%==5 goto start.verified
     goto local.spams
+
 
 :printer.spam
 :: print /D:%printer% %file%
@@ -1406,10 +1425,11 @@
     echo [2] Go Back
     echo.
     echo.
-    set /P app.spam=Choose an Option from Above:
-    if %app.spam%=="" goto app.list.spam
-    If %app.spam% == 1 goto app.list.spam.confirmed
-    If %app.spam% == 2 goto start.verified
+    choice /C 12 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto app.list.spam.confirmed
+        if %_erl%==2 goto start.verified
+    goto app.list.spam
 
 :app.list.spam.confirmed
     net session >nul 2>&1
@@ -1516,10 +1536,11 @@
     echo.
     echo [2] Back
     echo.
-    set /P remotespamchoose=Choose an Option from above:
-    if %remotespamchoose%=="" goto ssh.spam
-    if %remotespamchoose%=="1" goto ssh.spam.info
-    if %remotespamchoose%=="2" goto start.verified
+    choice /C 12 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto ssh.spam.info
+        if %_erl%==2 goto start.verified
+    goto ssh.spam
 
 :ssh.spam.info
     if "%logging%"=="1" ( call :log Listing_Local_IPs )
@@ -1557,10 +1578,10 @@
     echo [2] Linux
     echo.
     echo.
-    set /P linux-win-ssh=Choose an Option from Above:
-    if %linux-win-ssh%=="" goto ssh.start.spam
-    if %linux-win-ssh%=="1" goto spam.ssh.target.win
-    if %linux-win-ssh%=="2" goto spam.ssh.target.lx
+    choice /C 12 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto spam.ssh.target.win
+        if %_erl%==2 goto spam.ssh.target.lx
     goto ssh.start.spam
 
 :spam.ssh.target.win
@@ -1739,12 +1760,11 @@
     call :sys.lt 1
     echo.
     echo.
-    set /p delete.script.menu=Choose an Option from Above
-
-    if %delete.script.menu% =="" goto sys.delete.script
-    If %delete.script.menu% == 1 goto sys.delete.script.check.elevation
-    If %delete.script.menu% == 2 explorer "https://github.com/PIRANY1/DataSpammer" && goto sys.delete.script
-    If %delete.script.menu% == 3 goto cancel
+    choice /C 123 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto sys.delete.script.check.elevation
+        if %_erl%==2 explorer "https://github.com/PIRANY1/DataSpammer" && goto sys.delete.script
+        if %_erl%==3 goto cancel
     goto sys.delete.script
 
 :sys.delete.script.check.elevation
@@ -1936,10 +1956,10 @@
     echo [2] Menu
     echo.
     call :sys.lt 1
-    set /p done=Choose an Option from Above:
-    if %done% =="" goto done
-    If %done% == 1 goto cancel
-    If %done% == 2 goto menu
+    choice /C 12 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto cancel
+        if %_erl%==2 goto menu
     goto done
 
 :dev.options 
@@ -1958,14 +1978,14 @@
     echo [5] Restart the Script (Variables will be kept)
     echo.
     echo [6] Restart the Script (Variables wont be kept)
-    set /P dev.option=Choose an Option From Above.
-    if %devoption% =="" goto dev.options 
-    if %devoption% == 1 goto dev.jump.callsign
-    if %devoption% == 2 goto dev.options
-    if %devoption% == 3 @ECHO ON && goto restart.script
-    if %devoption% == 4 goto dev.custom.var.set 
-    if %devoption% == 5 restart.script.dev
-    if %devoption% == 6 restart.script
+    choice /C 123456 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto dev.jump.callsign
+        if %_erl%==2 goto dev.options
+        if %_erl%==3 @ECHO ON && goto restart.script
+        if %_erl%==4 goto dev.custom.var.set 
+        if %_erl%==5 goto restart.script.dev
+        if %_erl%==6 goto restart.script
     goto dev.options
     
 :dev.jump.callsign
@@ -1973,9 +1993,10 @@
     echo [1] DataSpammer.bat
     echo [2] Install.bat
     echo. 
-    set /P callsign.custom=Choose an Option from Above:
-    if %callsign.custom% == 1 goto dev.jump.callsign.dts
-    if %callsign.custom% == 2 goto dev.jump.callsign.install
+    choice /C 12 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto dev.jump.callsign.dts
+        if %_erl%==2 goto dev.jump.callsign.install
     goto dev.jump.callsign
 
 
@@ -2026,10 +2047,10 @@
     call :sys.lt 1
     echo.
     echo.
-    set /P update.installed.menu=Choose an Option from above
-    if %update.installed.menu%=="" goto sys.new.update.installed
-    if %update.installed.menu% == 1 goto restart.script
-    if %update.installed.menu% == 2 goto cancel
+    choice /C 12 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto restart.script
+        if %_erl%==2 goto cancel
     goto sys.new.update.installed
 
 
@@ -2046,6 +2067,7 @@
     ipconfig > ipconf.txt
     msinfo32 /report %cd%\msinfo.txt
     ipconfig /renew /flushdns
+    driverquery /FO list /v > drivers.txt
     set ZIP_FILE="%script.dir%\debug.log.zip"
     tar -a -cf "%ZIP_FILE%" -C "%SOURCE_DIR%" .
 
@@ -2066,7 +2088,7 @@
     if %_erl%==2 explorer "https://github.com/PIRANY1/DataSpammer/issues"
     if %_erl%==3 goto advanced.options
     goto debug.done
-
+    
     :: Collect Functionalities HERE..
     :: DNS & HTTPS & Basic Filespam 
 :debugtest
