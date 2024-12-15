@@ -235,13 +235,17 @@
     echo @echo off > updater.bat
     echo cd /d %~dp0 >> updater.bat
     echo echo Updating script... >> updater.bat
-    echo curl -sSLo dataspammer.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat >> updater.bat
+    echo erase install.bat
+    echo erase readme.md
+    echo erase license
+    echo erase dataspammer.bat
+    echo wget --tries=3 --timeout=10 -O dataspammer.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat
     echo if %%ERRORLEVEL%% neq 0 ( echo Download failed, aborting update ^&^& pause ^&^& exit ) >> updater.bat
-    echo curl -sSLo install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat >> updater.bat
+    echo wget --tries=3 --timeout=10 -O install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat
     echo if %%ERRORLEVEL%% neq 0 ( echo Download failed, aborting update ^&^& pause ^&^& exit ) >> updater.bat
-    echo curl -sSLo readme.md https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/readme.md >> updater.bat
+    echo wget --tries=3 --timeout=10 -O readme.md https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/readme.md
     echo if %%ERRORLEVEL%% neq 0 ( echo Download failed, aborting update ^&^& pause ^&^& exit ) >> updater.bat
-    echo curl -sSLo license https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/license >> updater.bat
+    echo wget --tries=3 --timeout=10 -O license https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/license
     echo if %%ERRORLEVEL%% neq 0 ( echo Download failed, aborting update ^&^& pause ^&^& exit ) >> updater.bat
     echo set "update-install=1" >> updater.bat
     echo start powershell -Command "Start-Process 'dataspammer.bat' -Verb runAs" >> updater.bat
