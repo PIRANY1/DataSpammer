@@ -33,6 +33,7 @@
     if "%1"=="debug" goto debuglog
     if "%1"=="debugtest" goto debugtest
     if "%1"=="api" goto sys.api
+    if "%1"=="goto" goto dev.goto
     if "%1"=="noelev" @ECHO OFF && cd /d %~dp0 && @color 02 && set "small-install=1" && goto check-files
     if "%update-install%"=="1" ( goto sys.new.update.installed )
 
@@ -174,7 +175,7 @@
 
 
     
-    if "%latest_version%" equ "v4.1" (
+    if "%latest_version%" equ "v4324.1" (
         set "uptodate=up"
     ) else (
         set "uptodate="
@@ -229,30 +230,26 @@
 
 
 :git.update.version
+    cls
+    :: Updated in v4.2
+    :: Old one used seperate file / wget & curl
     if %logging% == 1 ( call :log Creating_Update_Script )
-    :: Reworked in v3.4 / should work
     cd /d %~dp0
-    echo @echo off > updater.bat
-    echo cd /d %~dp0 >> updater.bat
-    echo echo Updating script... >> updater.bat
-    echo erase install.bat
-    echo erase readme.md
-    echo erase license
-    echo erase dataspammer.bat
-    echo wget --tries=3 --timeout=10 -O dataspammer.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat
-    echo if %%ERRORLEVEL%% neq 0 ( echo Download failed, aborting update ^&^& pause ^&^& exit ) >> updater.bat
-    echo wget --tries=3 --timeout=10 -O install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat
-    echo if %%ERRORLEVEL%% neq 0 ( echo Download failed, aborting update ^&^& pause ^&^& exit ) >> updater.bat
-    echo wget --tries=3 --timeout=10 -O readme.md https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/readme.md
-    echo if %%ERRORLEVEL%% neq 0 ( echo Download failed, aborting update ^&^& pause ^&^& exit ) >> updater.bat
-    echo wget --tries=3 --timeout=10 -O license https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/license
-    echo if %%ERRORLEVEL%% neq 0 ( echo Download failed, aborting update ^&^& pause ^&^& exit ) >> updater.bat
-    echo set "update-install=1" >> updater.bat
-    echo start powershell -Command "Start-Process 'dataspammer.bat' -Verb runAs" >> updater.bat
-    echo exit >> updater.bat
-
-    start powershell -Command "Start-Process 'updater.bat' -Verb runAs"
-
+    erase install.bat && erase README.md && erase LICENSE >nul 2>&1
+    mkdir %temp%\dts.update >nul 2>&1
+    echo Updating script... 
+    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat" -OutFile "%temp%\dts.update\%~nx0" >nul 2>&1
+    cls && echo Updating DataSpammer.bat...
+    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat" -OutFile "%temp%\dts.update\install.bat" >nul 2>&1
+    cls && echo Updating Install.bat...
+    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/README.md" -OutFile "%temp%\dts.update\README.md" >nul 2>&1
+    cls && echo Updating Readme...
+    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/LICENSE" -OutFile "%temp%\dts.update\LICENSE" >nul 2>&1
+    cls && echo Updating License...
+    echo Updated successfully.
+    move /y "%temp%\dts.update\*" "%~dp0"
+    cmd.exe -k %~f0
+    goto :EOF
     exit
 
 
@@ -1966,6 +1963,8 @@
     goto done
 
 :dev.options 
+    echo %~nx0 / %~0
+    echo %~dpnx0
     title Developer Options DataSpammer
     :: Rework In Process.
     echo Dev Tools
@@ -1990,7 +1989,10 @@
         if %_erl%==5 goto restart.script.dev
         if %_erl%==6 goto restart.script
     goto dev.options
-    
+
+:dev.goto
+    goto %2
+
 :dev.jump.callsign
     echo In which Script you want go to
     echo [1] DataSpammer.bat
