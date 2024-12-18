@@ -19,7 +19,7 @@
     set DIRNAME=%~dp0
     if "%DIRNAME%"=="" set DIRNAME=.
     mode con: cols=140 lines=40
-    set "current-script-version=v4.1"
+    set "current-script-version=v4.2"
     if "%1"=="h" goto help.startup
     if "%1"=="-h" goto help.startup
     if "%1"=="help" goto help.startup
@@ -33,6 +33,7 @@
     if "%1"=="debug" goto debuglog
     if "%1"=="debugtest" goto debugtest
     if "%1"=="api" goto sys.api
+    if "%1"=="goto" goto dev.goto
     if "%1"=="noelev" @ECHO OFF && cd /d %~dp0 && @color 02 && set "small-install=1" && goto check-files
     if "%update-install%"=="1" ( goto sys.new.update.installed )
 
@@ -174,7 +175,7 @@
 
 
     
-    if "%latest_version%" equ "v4.1" (
+    if "%latest_version%" equ "v4.2" (
         set "uptodate=up"
     ) else (
         set "uptodate="
@@ -229,26 +230,26 @@
 
 
 :git.update.version
+    cls
+    :: Updated in v4.2
+    :: Old one used seperate file / wget & curl
     if %logging% == 1 ( call :log Creating_Update_Script )
-    :: Reworked in v3.4 / should work
     cd /d %~dp0
-    echo @echo off > updater.bat
-    echo cd /d %~dp0 >> updater.bat
-    echo echo Updating script... >> updater.bat
-    echo curl -sSLo dataspammer.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat >> updater.bat
-    echo if %%ERRORLEVEL%% neq 0 ( echo Download failed, aborting update ^&^& pause ^&^& exit ) >> updater.bat
-    echo curl -sSLo install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat >> updater.bat
-    echo if %%ERRORLEVEL%% neq 0 ( echo Download failed, aborting update ^&^& pause ^&^& exit ) >> updater.bat
-    echo curl -sSLo readme.md https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/readme.md >> updater.bat
-    echo if %%ERRORLEVEL%% neq 0 ( echo Download failed, aborting update ^&^& pause ^&^& exit ) >> updater.bat
-    echo curl -sSLo license https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/license >> updater.bat
-    echo if %%ERRORLEVEL%% neq 0 ( echo Download failed, aborting update ^&^& pause ^&^& exit ) >> updater.bat
-    echo set "update-install=1" >> updater.bat
-    echo start powershell -Command "Start-Process 'dataspammer.bat' -Verb runAs" >> updater.bat
-    echo exit >> updater.bat
-
-    start powershell -Command "Start-Process 'updater.bat' -Verb runAs"
-
+    erase install.bat && erase README.md && erase LICENSE >nul 2>&1
+    mkdir %temp%\dts.update >nul 2>&1
+    echo Updating script... 
+    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat" -OutFile "%temp%\dts.update\%~nx0" >nul 2>&1
+    cls && echo Updating DataSpammer.bat...
+    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat" -OutFile "%temp%\dts.update\install.bat" >nul 2>&1
+    cls && echo Updating Install.bat...
+    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/README.md" -OutFile "%temp%\dts.update\README.md" >nul 2>&1
+    cls && echo Updating Readme...
+    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/LICENSE" -OutFile "%temp%\dts.update\LICENSE" >nul 2>&1
+    cls && echo Updating License...
+    echo Updated successfully.
+    move /y "%temp%\dts.update\*" "%~dp0"
+    cmd.exe -k %~f0
+    goto :EOF
     exit
 
 
@@ -319,7 +320,7 @@
     if "%1"=="settings" goto settings
     if %logging% == 1 ( call :log Displaying_Menu )
     if %logging% == 1 ( call :log Startup_Complete )
-    title DataSpammer v4.1
+    title DataSpammer v4.2
     if "%small-install%" == "1" (
         set "settings-lock=Locked. Find Information under [44mHelp[32m"
     ) else (
@@ -338,7 +339,7 @@
 
 
     call :sys.lt 1
-    echo Made by PIRANY                 v4.1
+    echo Made by PIRANY                 v4.2
     call :sys.lt 1
     echo.
     call :sys.lt 1
@@ -1962,6 +1963,8 @@
     goto done
 
 :dev.options 
+    echo %~nx0 / %~0
+    echo %~dpnx0
     title Developer Options DataSpammer
     :: Rework In Process.
     echo Dev Tools
@@ -1986,7 +1989,10 @@
         if %_erl%==5 goto restart.script.dev
         if %_erl%==6 goto restart.script
     goto dev.options
-    
+
+:dev.goto
+    goto %2
+
 :dev.jump.callsign
     echo In which Script you want go to
     echo [1] DataSpammer.bat
@@ -2097,6 +2103,10 @@
     echo %time%
     call :log Tested_Functionality
     type %userprofile%\Documents\DataSpammerLog\Dataspammer.log
+
+    :: Paste Newly Added Functions of your PR here to test them via Git
+    
+
     echo Finished Testing...
     echo Exiting
     goto cancel
