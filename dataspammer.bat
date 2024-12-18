@@ -2101,6 +2101,9 @@
     echo %time%
     call :log Tested_Functionality
     type %userprofile%\Documents\DataSpammerLog\Dataspammer.log
+
+    :: Paste Newly Added Functions of your PR here to test them via Git
+
     echo Finished Testing...
     echo Exiting
     goto cancel
