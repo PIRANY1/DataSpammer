@@ -1206,17 +1206,23 @@
     if %logging% == 1 ( call :log Finished_Telnet_Spam_on_%telnet.target% )
     call :done "The Script Tested the Telnet Server %telnet.target% with %telnet.count% Requests
 
-
+    
 :icmp.spam
-    if "%default-domain%"=="notused" set /P icmp.target=Enter the Target
+    if "%default-domain%"=="notused" set /P icmp.target=Enter the Target:
     if not "%default-domain%"=="notused" set "icmp.target=%default-domain%"
+    
+    set /P icmp.rate=Enter the rate (milliseconds between requests):
     
     echo Press CTRL+C to stop
     @ping -n 3 localhost> nul
-    ping %icmp.target% -f
+    
+    :icmp.loop
+    ping %icmp.target% -n 1 -w %icmp.rate%
+    if %logging% == 1 ( call :log Sending_ICMP_Request_to_%icmp.target% )
+    goto icmp.loop
 
     if %logging% == 1 ( call :log Finished_ICMP_Spam_on_%icmp.target% )
-    call :done "The Script Tested %icmp.target% with %icmp.packet.size% Bytes Packets"
+    call :done "The Script Tested %icmp.target% with %icmp.rate% milliseconds interval"
 
 :local.spams
     echo Choose the Method you want to use:
