@@ -59,6 +59,44 @@
     )
 
 :sys.req.elevation
+    set "secure_dir=%userprofile%\Documents\SecureDataSpammer"
+    if not exist "%secure_dir%\username.hash" goto settings.parse
+    set /p "username=Please enter your Username: "
+    powershell -Command "$password = Read-Host 'Please enter your Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($password))" > %TEMP%\password.tmp
+    set /p password=<%TEMP%\password.tmp
+    del %TEMP%\password.tmp
+
+    echo %username% > %TEMP%\username.txt
+    echo %password% > %TEMP%\password.txt
+    certutil -hashfile %TEMP%\username.txt SHA256 > %TEMP%\username_hash.txt
+    certutil -hashfile %TEMP%\password.txt SHA256 > %TEMP%\password_hash.txt
+
+    for /f "tokens=2 delims=: " %%a in ('findstr /R /C:"^[0-9a-fA-F]" %TEMP%\username_hash.txt') do set "username_hash=%%a"
+    for /f "tokens=2 delims=: " %%a in ('findstr /R /C:"^[0-9a-fA-F]" %TEMP%\password_hash.txt') do set "password_hash=%%a"
+    echo Comparing Hashes...
+    call :sys.lt 1
+    
+    set /p stored_username_hash=<"%secure_dir%\username.hash"
+    set /p stored_password_hash=<"%secure_dir%\password.hash"
+
+    if "%username_hash%"=="%stored_username_hash%" if "%password_hash%"=="%stored_password_hash%" (
+        echo Authentication successful.
+        del %TEMP%\username.txt
+        del %TEMP%\password.txt
+        del %TEMP%\username_hash.txt
+        del %TEMP%\password_hash.txt
+        echo Authentication successful.
+        goto settings.parse
+    ) else (
+        echo Authentication failed.
+        del %TEMP%\username.txt
+        del %TEMP%\password.txt
+        del %TEMP%\username_hash.txt
+        del %TEMP%\password_hash.txt
+        goto sys.req.elevation
+    )
+
+    :settings.parse
     :: Parses Settings
     echo Checking for Data...
     if not exist "settings.conf" goto sys.no.settings
@@ -574,18 +612,71 @@
     call :sys.lt 1
     echo [3] Generate Debug Log
     call :sys.lt 1
+    echo [4] Setup Login
+    call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [4] Go back
+    echo [5] Go back
     choice /C 1234 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto switch.elevation
         if %_erl%==2 goto encrypt
         if %_erl%==3 goto debuglog
-        if %_erl%==4 goto settings
+        if %_erl%==4 goto login.setup
+        if %_erl%==5 goto settings
     goto advanced.options
 
-    
+
+:login.setup
+    echo To use the Login Feature you need to create an Account.
+    echo.
+    echo [1] Create Account
+    call :sys.lt 1
+    echo.
+    call :sys.lt 1
+    echo [2] Discard
+    echo.
+    echo.
+    choice /C 12 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto login.create
+        if %_erl%==2 goto advanced.options
+
+:login.create
+set /p "username=Please enter a Username:"
+powershell -Command "$password = Read-Host 'Please enter a Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($password))" > %TEMP%\password.tmp
+set /p password=<%TEMP%\password.tmp
+del %TEMP%\password.tmp
+
+echo Hasing the Username and Password...
+:: Hash the username and password using certutil
+echo %username% > %TEMP%\username.txt
+echo %password% > %TEMP%\password.txt
+certutil -hashfile %TEMP%\username.txt SHA256 > %TEMP%\username_hash.txt
+certutil -hashfile %TEMP%\password.txt SHA256 > %TEMP%\password_hash.txt
+
+:: Extract the hash values
+for /f "tokens=2 delims=: " %%a in ('findstr /R /C:"^[0-9a-fA-F]" %TEMP%\username_hash.txt') do set "username_hash=%%a"
+for /f "tokens=2 delims=: " %%a in ('findstr /R /C:"^[0-9a-fA-F]" %TEMP%\password_hash.txt') do set "password_hash=%%a"
+
+
+:: Save the hashed values in a secure location
+echo Saving Secure Data...
+set "secure_dir=%userprofile%\Documents\SecureDataSpammer"
+if not exist "%secure_dir%" mkdir "%secure_dir%"
+echo %username_hash% > "%secure_dir%\username.hash"
+echo %password_hash% > "%secure_dir%\password.hash"
+
+:: Clean up temporary files
+del %TEMP%\username.txt
+del %TEMP%\password.txt
+del %TEMP%\username_hash.txt
+del %TEMP%\password_hash.txt
+
+cls
+echo Account created successfully.
+call :sys.lt 1
+goto :restart.script
 
 :encrypt
     if %logging% == 1 ( call :log Encrypting_Script )
