@@ -691,6 +691,7 @@ color 2
     set "verify=%random%"
     powershell -Command "& {Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.Interaction]::InputBox('Please enter Code %verify% to confirm that you want to execute this Option', 'DataSpammer Verify')}" > %TEMP%\out.tmp
     set /p OUT=<%TEMP%\out.tmp
+    if not defined OUT goto failed
     if %verify%==%OUT% (goto success) else (goto failed)
 
 :success

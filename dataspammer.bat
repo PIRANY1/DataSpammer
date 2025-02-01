@@ -5,6 +5,8 @@
 ::    Add Translation
 ::    Fix Logging Date (1838)
 
+::    Fix Empty Var Bypass for Auth
+
 :: Developer Notes:
 :: Define %debug_asist% to bypass echo_off
 :: Define devtools to open useless dev menu (needs improvements)
@@ -1129,10 +1131,15 @@
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    choice /C 12 /M "Choose an Option from Above:"
+    echo [3] Go back
+    call :sys.lt 1
+    echo.
+    call :sys.lt 1
+    choice /C 123 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto local.spams
         if %_erl%==2 goto internet.spams
+        if %_erl%==3 goto menu
     goto start.verified
 
 
@@ -2122,6 +2129,7 @@
     set "verify=%random%"
     powershell -Command "& {Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.Interaction]::InputBox('Please enter Code %verify% to confirm that you want to execute this Option', 'DataSpammer Verify')}" > %TEMP%\out.tmp
     set /p OUT=<%TEMP%\out.tmp
+    if not defined OUT goto failed
     if %verify%==%OUT% (goto success) else (goto failed)
 
 :success
