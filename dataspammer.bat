@@ -529,8 +529,8 @@
     choice /C 123 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto menu
-        if %_erl%==2 goto cancel
-        if %_erl%==3 start "" "https://github.com/PIRANY1/DataSpammer" | cls | goto credits
+        if %_erl%==3 goto cancel
+        if %_erl%==2 start "" "https://github.com/PIRANY1/DataSpammer" | cls | goto credits
     goto credits
 
 :settings
@@ -640,40 +640,40 @@
         if %_erl%==2 goto advanced.options
 
 :login.create
-set /p "username=Please enter a Username:"
-powershell -Command "$password = Read-Host 'Please enter a Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($password))" > %TEMP%\password.tmp
-set /p password=<%TEMP%\password.tmp
-del %TEMP%\password.tmp
-
-echo Hasing the Username and Password...
-:: Hash the username and password using certutil
-echo %username% > %TEMP%\username.txt
-echo %password% > %TEMP%\password.txt
-certutil -hashfile %TEMP%\username.txt SHA256 > %TEMP%\username_hash.txt
-certutil -hashfile %TEMP%\password.txt SHA256 > %TEMP%\password_hash.txt
-
-:: Extract the hash values
-for /f "tokens=2 delims=: " %%a in ('findstr /R /C:"^[0-9a-fA-F]" %TEMP%\username_hash.txt') do set "username_hash=%%a"
-for /f "tokens=2 delims=: " %%a in ('findstr /R /C:"^[0-9a-fA-F]" %TEMP%\password_hash.txt') do set "password_hash=%%a"
-
-
-:: Save the hashed values in a secure location
-echo Saving Secure Data...
-set "secure_dir=%userprofile%\Documents\SecureDataSpammer"
-if not exist "%secure_dir%" mkdir "%secure_dir%"
-echo %username_hash% > "%secure_dir%\username.hash"
-echo %password_hash% > "%secure_dir%\password.hash"
-
-:: Clean up temporary files
-del %TEMP%\username.txt
-del %TEMP%\password.txt
-del %TEMP%\username_hash.txt
-del %TEMP%\password_hash.txt
-
-cls
-echo Account created successfully.
-call :sys.lt 1
-goto :restart.script
+    set /p "username=Please enter a Username:"
+    powershell -Command "$password = Read-Host 'Please enter a Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($password))" > %TEMP%\password.tmp
+    set /p password=<%TEMP%\password.tmp
+    del %TEMP%\password.tmp
+    
+    echo Hasing the Username and Password...
+    :: Hash the username and password using certutil
+    echo %username% > %TEMP%\username.txt
+    echo %password% > %TEMP%\password.txt
+    certutil -hashfile %TEMP%\username.txt SHA256 > %TEMP%\username_hash.txt
+    certutil -hashfile %TEMP%\password.txt SHA256 > %TEMP%\password_hash.txt
+    
+    :: Extract the hash values
+    for /f "tokens=2 delims=: " %%a in ('findstr /R /C:"^[0-9a-fA-F]" %TEMP%\username_hash.txt') do set "username_hash=%%a"
+    for /f "tokens=2 delims=: " %%a in ('findstr /R /C:"^[0-9a-fA-F]" %TEMP%\password_hash.txt') do set "password_hash=%%a"
+    
+    
+    :: Save the hashed values in a secure location
+    echo Saving Secure Data...
+    set "secure_dir=%userprofile%\Documents\SecureDataSpammer"
+    if not exist "%secure_dir%" mkdir "%secure_dir%"
+    echo %username_hash% > "%secure_dir%\username.hash"
+    echo %password_hash% > "%secure_dir%\password.hash"
+    
+    :: Clean up temporary files
+    del %TEMP%\username.txt
+    del %TEMP%\password.txt
+    del %TEMP%\username_hash.txt
+    del %TEMP%\password_hash.txt
+    
+    cls
+    echo Account created successfully.
+    call :sys.lt 1
+    goto :restart.script
 
 :encrypt
     if %logging% == 1 ( call :log Encrypting_Script )
@@ -701,7 +701,7 @@ goto :restart.script
     ) > encrypt.bat
      
     start powershell -Command "Start-Process 'encrypt.bat' -Verb runAs"
-
+    exit /b startedencryption
 
 
 
@@ -1024,7 +1024,11 @@ goto :restart.script
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [4] Go Back
+    echo [4] Clear Log
+    call :sys.lt 1
+    echo.
+    call :sys.lt 1
+    echo [5] Go Back
     call :sys.lt 1
     echo.
     echo.
@@ -1033,7 +1037,8 @@ goto :restart.script
         if %_erl%==1 goto enable.logging
         if %_erl%==2 goto disable.logging
         if %_erl%==3 goto dev.open.log
-        if %_erl%==4 goto settings
+        if %_erl%==4 goto erase %userprofile%\Documents\DataSpammerLog\DataSpammer.log
+        if %_erl%==5 goto settings
     goto settings.logging
 
 
@@ -2070,6 +2075,8 @@ goto :restart.script
     echo [5] Restart the Script (Variables will be kept)
     echo.
     echo [6] Restart the Script (Variables wont be kept)
+    echo.
+    echo [7] Go Back
     choice /C 123456 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto dev.jump.callsign
@@ -2078,6 +2085,7 @@ goto :restart.script
         if %_erl%==4 goto dev.custom.var.set 
         if %_erl%==5 goto restart.script.dev
         if %_erl%==6 goto restart.script
+        if %_erl%==7 goto settings
     goto dev.options
 
 :dev.goto
@@ -2156,6 +2164,7 @@ goto :restart.script
     echo Generating Debug Log
     cd %~dp0
     set SOURCE_DIR="%script.dir%\Debug"
+    if exist "%SOURCE_DIR%" rmdir /s /q "%SOURCE_DIR%"
     mkdir Debug
     if exist "%userprofile%\Documents\SecureDataSpammer" copy "%userprofile%\Documents\SecureDataSpammer\" "%SOURCE_DIR%"
     copy "%userprofile%\Documents\DataSpammerLog\DataSpammer.log" "%SOURCE_DIR%"
