@@ -3,12 +3,11 @@
 ::    Todo: 
 ::    Fix SSH
 ::    Add Translation
-::    Fix Logging Date (1838)
 
 :: Developer Notes:
-:: Define %debug_asist% to bypass echo_off
-:: Define devtools to open useless dev menu (needs improvements)
-:: Dev Tool is in install.bat   :sys.add.developer.tool
+:: Define %debug_assist% to bypass echo_off
+:: Define devtools to open the developer menu (needs improvements)
+:: Developer Tool is in install.bat at :sys.add.developer.tool
 
 
 :!top
@@ -19,7 +18,7 @@
     set DIRNAME=%~dp0
     if "%DIRNAME%"=="" set DIRNAME=.
     mode con: cols=140 lines=40
-    set "current-script-version=v4.2"
+    set "current-script-version=v4.3"
     if "%1"=="h" goto help.startup
     if "%1"=="-h" goto help.startup
     if "%1"=="help" goto help.startup
@@ -46,6 +45,7 @@
 
 
 :top-startup
+    
     set inputFile=settings.conf
     set "firstLine="
     set /p firstLine=<%inputFile%
@@ -97,6 +97,43 @@
     goto check-files
 
 :check-files
+    set "secure_dir=%userprofile%\Documents\SecureDataSpammer"
+    if not exist "%secure_dir%\username.hash" goto file.check
+    set /p "username=Please enter your Username: "
+    powershell -Command "$password = Read-Host 'Please enter your Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($password))" > %TEMP%\password.tmp
+    set /p password=<%TEMP%\password.tmp
+    del %TEMP%\password.tmp
+
+    echo %username% > %TEMP%\username.txt
+    echo %password% > %TEMP%\password.txt
+    certutil -hashfile %TEMP%\username.txt SHA256 > %TEMP%\username_hash.txt
+    certutil -hashfile %TEMP%\password.txt SHA256 > %TEMP%\password_hash.txt
+
+    for /f "tokens=2 delims=: " %%a in ('findstr /R /C:"^[0-9a-fA-F]" %TEMP%\username_hash.txt') do set "username_hash=%%a"
+    for /f "tokens=2 delims=: " %%a in ('findstr /R /C:"^[0-9a-fA-F]" %TEMP%\password_hash.txt') do set "password_hash=%%a"
+    echo Comparing Hashes...
+    call :sys.lt 1
+    
+    set /p stored_username_hash=<"%secure_dir%\username.hash"
+    set /p stored_password_hash=<"%secure_dir%\password.hash"
+
+    if "%username_hash%"=="%stored_username_hash%" if "%password_hash%"=="%stored_password_hash%" (
+        echo Authentication successful.
+        del %TEMP%\username.txt
+        del %TEMP%\password.txt
+        del %TEMP%\username_hash.txt
+        del %TEMP%\password_hash.txt
+        echo Authentication successful.
+        goto file.check
+    ) else (
+        echo Authentication failed.
+        del %TEMP%\username.txt
+        del %TEMP%\password.txt
+        del %TEMP%\username_hash.txt
+        del %TEMP%\password_hash.txt
+        goto check-files
+    )
+    :file.check
     :: Checks if all Files needed for the Script exist
     setlocal enabledelayedexpansion
     @title Starting Up...
@@ -175,7 +212,7 @@
 
 
     
-    if "%latest_version%" equ "v4.2" (
+    if "%latest_version%" equ "v4.3" (
         set "uptodate=up"
     ) else (
         set "uptodate="
@@ -320,7 +357,7 @@
     if "%1"=="settings" goto settings
     if %logging% == 1 ( call :log Displaying_Menu )
     if %logging% == 1 ( call :log Startup_Complete )
-    title DataSpammer v4.2
+    title DataSpammer %current-script-version%
     if "%small-install%" == "1" (
         set "settings-lock=Locked. Find Information under [44mHelp[32m"
     ) else (
@@ -339,7 +376,7 @@
 
 
     call :sys.lt 1
-    echo Made by PIRANY                 v4.2
+    echo Made by PIRANY                 %current-script-version%       Logged in as %username%
     call :sys.lt 1
     echo.
     call :sys.lt 1
@@ -572,18 +609,71 @@
     call :sys.lt 1
     echo [3] Generate Debug Log
     call :sys.lt 1
+    echo [4] Setup Login
+    call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [4] Go back
+    echo [5] Go back
     choice /C 1234 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto switch.elevation
         if %_erl%==2 goto encrypt
         if %_erl%==3 goto debuglog
-        if %_erl%==4 goto settings
+        if %_erl%==4 goto login.setup
+        if %_erl%==5 goto settings
     goto advanced.options
 
-    
+
+:login.setup
+    echo To use the Login Feature you need to create an Account.
+    echo.
+    echo [1] Create Account
+    call :sys.lt 1
+    echo.
+    call :sys.lt 1
+    echo [2] Discard
+    echo.
+    echo.
+    choice /C 12 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto login.create
+        if %_erl%==2 goto advanced.options
+
+:login.create
+set /p "username=Please enter a Username:"
+powershell -Command "$password = Read-Host 'Please enter a Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($password))" > %TEMP%\password.tmp
+set /p password=<%TEMP%\password.tmp
+del %TEMP%\password.tmp
+
+echo Hasing the Username and Password...
+:: Hash the username and password using certutil
+echo %username% > %TEMP%\username.txt
+echo %password% > %TEMP%\password.txt
+certutil -hashfile %TEMP%\username.txt SHA256 > %TEMP%\username_hash.txt
+certutil -hashfile %TEMP%\password.txt SHA256 > %TEMP%\password_hash.txt
+
+:: Extract the hash values
+for /f "tokens=2 delims=: " %%a in ('findstr /R /C:"^[0-9a-fA-F]" %TEMP%\username_hash.txt') do set "username_hash=%%a"
+for /f "tokens=2 delims=: " %%a in ('findstr /R /C:"^[0-9a-fA-F]" %TEMP%\password_hash.txt') do set "password_hash=%%a"
+
+
+:: Save the hashed values in a secure location
+echo Saving Secure Data...
+set "secure_dir=%userprofile%\Documents\SecureDataSpammer"
+if not exist "%secure_dir%" mkdir "%secure_dir%"
+echo %username_hash% > "%secure_dir%\username.hash"
+echo %password_hash% > "%secure_dir%\password.hash"
+
+:: Clean up temporary files
+del %TEMP%\username.txt
+del %TEMP%\password.txt
+del %TEMP%\username_hash.txt
+del %TEMP%\password_hash.txt
+
+cls
+echo Account created successfully.
+call :sys.lt 1
+goto :restart.script
 
 :encrypt
     if %logging% == 1 ( call :log Encrypting_Script )
@@ -1129,10 +1219,15 @@
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    choice /C 12 /M "Choose an Option from Above:"
+    echo [3] Go back
+    call :sys.lt 1
+    echo.
+    call :sys.lt 1
+    choice /C 123 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto local.spams
         if %_erl%==2 goto internet.spams
+        if %_erl%==3 goto menu
     goto start.verified
 
 
@@ -1864,23 +1959,12 @@
     set log.content.clean=%log.content.clean:_= %
     set log.content.clean=%log.content.clean:-= %
 
-    echo %date% %time% %log.content.clean% >> "%folder%\%logfile%"
+
+    for /f "tokens=1-3 delims=:." %%a in ("%time%") do set formatted_time=%%a:%%b:%%c
+    echo %date% %formatted_time% %log.content.clean% >> "%folder%\%logfile%"
     :: exit
     exit /b 0
     
-    :: Fix this Part Sometimes / Content not gets written
-        :: convert time and date to readable format
-        ::setlocal enabledelayedexpansion
-        ::for /f "tokens=1-3 delims=:," %%a in ("%currentTime%") do (
-        ::    set "hours=%%a"
-        ::    set "minutes=%%b"
-        ::    set "seconds=%%c"
-        ::)
-        ::set "seconds=!seconds:~0,2!" 
-        ::set "formattedTime=!hours!:!minutes!:!seconds!"
-        
-        :: Write Log
-        ::echo !currentDate! !formattedTime! %log.content% >> "%folder%\%logfile%"
 
 
 :update_config
@@ -2073,14 +2157,17 @@
     cd %~dp0
     set SOURCE_DIR="%script.dir%\Debug"
     mkdir Debug
-    :: More Content here ::
+    if exist "%userprofile%\Documents\SecureDataSpammer" copy "%userprofile%\Documents\SecureDataSpammer\" "%SOURCE_DIR%"
     copy "%userprofile%\Documents\DataSpammerLog\DataSpammer.log" "%SOURCE_DIR%"
-    ipconfig > ipconf.txt
-    msinfo32 /report %cd%\msinfo.txt
+    ipconfig > "%SOURCE_DIR%\ipconf.txt"
+    msinfo32 /report "%SOURCE_DIR%\msinfo.txt"
     ipconfig /renew /flushdns
-    driverquery /FO list /v > drivers.txt
+    driverquery /FO list /v > "%SOURCE_DIR%\drivers.txt"
+    tasklist /v > "%SOURCE_DIR%\tasklist.txt"
+    systeminfo > "%SOURCE_DIR%\systeminfo.txt"
     set ZIP_FILE="%script.dir%\debug.log.zip"
     tar -a -cf "%ZIP_FILE%" -C "%SOURCE_DIR%" .
+    del /s /q "%SOURCE_DIR%"
 
 :debug.done
     echo Successfully Generated debug.log.zip
@@ -2122,6 +2209,7 @@
     set "verify=%random%"
     powershell -Command "& {Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.Interaction]::InputBox('Please enter Code %verify% to confirm that you want to execute this Option', 'DataSpammer Verify')}" > %TEMP%\out.tmp
     set /p OUT=<%TEMP%\out.tmp
+    if not defined OUT goto failed
     if %verify%==%OUT% (goto success) else (goto failed)
 
 :success

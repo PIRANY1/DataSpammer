@@ -6,7 +6,7 @@ mode con: cols=140 lines=40
 if "%restart-main%" == "1" dataspammer.bat
 @title Script Installer by PIRANY
 set "foldername=DataSpammer"
-set "current-script-version=v4.2"
+set "current-script-version=v4.3"
 cd /d %~dp0
 color 2
 cls  
@@ -146,7 +146,7 @@ color 2
     %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
     %$Echo% "                             |_|                                              |___/                                     
 
-
+    echo Made by PIRANY                 %current-script-version% 
     echo.
     call :sys.lt 1
     echo This Installer will lead you throuh the Process of Installing the DataSpammer Utility.
@@ -691,6 +691,7 @@ color 2
     set "verify=%random%"
     powershell -Command "& {Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.Interaction]::InputBox('Please enter Code %verify% to confirm that you want to execute this Option', 'DataSpammer Verify')}" > %TEMP%\out.tmp
     set /p OUT=<%TEMP%\out.tmp
+    if not defined OUT goto failed
     if %verify%==%OUT% (goto success) else (goto failed)
 
 :success

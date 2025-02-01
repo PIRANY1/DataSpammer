@@ -8,7 +8,7 @@ ICMP, SSH, FTP, DNS, HTTP(S), Printer Spam, Desktop Spam, Folder Spam, Startmenu
 
 ### Other Features
 
-Desktop Shortcut, Autostart, Auto Update, Logging, Elevation via sudo/pwsh/gsudo, Encryption, Debugging
+Desktop Shortcut, Autostart, Auto Update, Logging, Elevation via sudo/pwsh/gsudo, Encryption, Debugging, Secure Authentication
 
 ## Install
 
