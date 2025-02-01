@@ -3,14 +3,11 @@
 ::    Todo: 
 ::    Fix SSH
 ::    Add Translation
-::    Fix Logging Date (1838)
-
-::    Fix Empty Var Bypass for Auth
 
 :: Developer Notes:
-:: Define %debug_asist% to bypass echo_off
-:: Define devtools to open useless dev menu (needs improvements)
-:: Dev Tool is in install.bat   :sys.add.developer.tool
+:: Define %debug_assist% to bypass echo_off
+:: Define devtools to open the developer menu (needs improvements)
+:: Developer Tool is in install.bat at :sys.add.developer.tool
 
 
 :!top
@@ -379,7 +376,7 @@
 
 
     call :sys.lt 1
-    echo Made by PIRANY                 v4.3
+    echo Made by PIRANY                 v4.3       Logged in as %username%
     call :sys.lt 1
     echo.
     call :sys.lt 1
@@ -1962,23 +1959,12 @@ goto :restart.script
     set log.content.clean=%log.content.clean:_= %
     set log.content.clean=%log.content.clean:-= %
 
-    echo %date% %time% %log.content.clean% >> "%folder%\%logfile%"
+
+    for /f "tokens=1-2 delims=:" %%a in ("%time%") do set formatted_time=%%a:%%b:%%c
+    echo %date% %formatted_time% %log.content.clean% >> "%folder%\%logfile%"
     :: exit
     exit /b 0
     
-    :: Fix this Part Sometimes / Content not gets written
-        :: convert time and date to readable format
-        ::setlocal enabledelayedexpansion
-        ::for /f "tokens=1-3 delims=:," %%a in ("%currentTime%") do (
-        ::    set "hours=%%a"
-        ::    set "minutes=%%b"
-        ::    set "seconds=%%c"
-        ::)
-        ::set "seconds=!seconds:~0,2!" 
-        ::set "formattedTime=!hours!:!minutes!:!seconds!"
-        
-        :: Write Log
-        ::echo !currentDate! !formattedTime! %log.content% >> "%folder%\%logfile%"
 
 
 :update_config
