@@ -1960,7 +1960,7 @@ goto :restart.script
     set log.content.clean=%log.content.clean:-= %
 
 
-    for /f "tokens=1-2 delims=:" %%a in ("%time%") do set formatted_time=%%a:%%b:%%c
+    for /f "tokens=1-3 delims=:." %%a in ("%time%") do set formatted_time=%%a:%%b:%%c
     echo %date% %formatted_time% %log.content.clean% >> "%folder%\%logfile%"
     :: exit
     exit /b 0
