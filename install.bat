@@ -146,7 +146,7 @@ color 2
     %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
     %$Echo% "                             |_|                                              |___/                                     
 
-
+    echo Made by PIRANY                 %current-script-version% 
     echo.
     call :sys.lt 1
     echo This Installer will lead you throuh the Process of Installing the DataSpammer Utility.

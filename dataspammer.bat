@@ -45,6 +45,7 @@
 
 
 :top-startup
+    
     set inputFile=settings.conf
     set "firstLine="
     set /p firstLine=<%inputFile%
@@ -357,7 +358,7 @@
     if "%1"=="settings" goto settings
     if %logging% == 1 ( call :log Displaying_Menu )
     if %logging% == 1 ( call :log Startup_Complete )
-    title DataSpammer v4.3
+    title DataSpammer %current-script-version%
     if "%small-install%" == "1" (
         set "settings-lock=Locked. Find Information under [44mHelp[32m"
     ) else (
@@ -376,7 +377,7 @@
 
 
     call :sys.lt 1
-    echo Made by PIRANY                 v4.3       Logged in as %username%
+    echo Made by PIRANY                 %current-script-version%       Logged in as %username%
     call :sys.lt 1
     echo.
     call :sys.lt 1
@@ -2157,14 +2158,17 @@ goto :restart.script
     cd %~dp0
     set SOURCE_DIR="%script.dir%\Debug"
     mkdir Debug
-    :: More Content here ::
+    if exist "%userprofile%\Documents\SecureDataSpammer" copy "%userprofile%\Documents\SecureDataSpammer\" "%SOURCE_DIR%"
     copy "%userprofile%\Documents\DataSpammerLog\DataSpammer.log" "%SOURCE_DIR%"
-    ipconfig > ipconf.txt
-    msinfo32 /report %cd%\msinfo.txt
+    ipconfig > "%SOURCE_DIR%\ipconf.txt"
+    msinfo32 /report "%SOURCE_DIR%\msinfo.txt"
     ipconfig /renew /flushdns
-    driverquery /FO list /v > drivers.txt
+    driverquery /FO list /v > "%SOURCE_DIR%\drivers.txt"
+    tasklist /v > "%SOURCE_DIR%\tasklist.txt"
+    systeminfo > "%SOURCE_DIR%\systeminfo.txt"
     set ZIP_FILE="%script.dir%\debug.log.zip"
     tar -a -cf "%ZIP_FILE%" -C "%SOURCE_DIR%" .
+    del /s /q "%SOURCE_DIR%"
 
 :debug.done
     echo Successfully Generated debug.log.zip
