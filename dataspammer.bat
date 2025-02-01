@@ -57,44 +57,6 @@
     )
 
 :sys.req.elevation
-    set "secure_dir=%userprofile%\Documents\SecureDataSpammer"
-    if not exist "%secure_dir%\username.hash" goto settings.parse
-    set /p "username=Please enter your Username: "
-    powershell -Command "$password = Read-Host 'Please enter your Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($password))" > %TEMP%\password.tmp
-    set /p password=<%TEMP%\password.tmp
-    del %TEMP%\password.tmp
-
-    echo %username% > %TEMP%\username.txt
-    echo %password% > %TEMP%\password.txt
-    certutil -hashfile %TEMP%\username.txt SHA256 > %TEMP%\username_hash.txt
-    certutil -hashfile %TEMP%\password.txt SHA256 > %TEMP%\password_hash.txt
-
-    for /f "tokens=2 delims=: " %%a in ('findstr /R /C:"^[0-9a-fA-F]" %TEMP%\username_hash.txt') do set "username_hash=%%a"
-    for /f "tokens=2 delims=: " %%a in ('findstr /R /C:"^[0-9a-fA-F]" %TEMP%\password_hash.txt') do set "password_hash=%%a"
-    echo Comparing Hashes...
-    call :sys.lt 1
-    
-    set /p stored_username_hash=<"%secure_dir%\username.hash"
-    set /p stored_password_hash=<"%secure_dir%\password.hash"
-
-    if "%username_hash%"=="%stored_username_hash%" if "%password_hash%"=="%stored_password_hash%" (
-        echo Authentication successful.
-        del %TEMP%\username.txt
-        del %TEMP%\password.txt
-        del %TEMP%\username_hash.txt
-        del %TEMP%\password_hash.txt
-        echo Authentication successful.
-        goto settings.parse
-    ) else (
-        echo Authentication failed.
-        del %TEMP%\username.txt
-        del %TEMP%\password.txt
-        del %TEMP%\username_hash.txt
-        del %TEMP%\password_hash.txt
-        goto sys.req.elevation
-    )
-
-    :settings.parse
     :: Parses Settings
     echo Checking for Data...
     if not exist "settings.conf" goto sys.no.settings
@@ -135,6 +97,43 @@
     goto check-files
 
 :check-files
+    set "secure_dir=%userprofile%\Documents\SecureDataSpammer"
+    if not exist "%secure_dir%\username.hash" goto file.check
+    set /p "username=Please enter your Username: "
+    powershell -Command "$password = Read-Host 'Please enter your Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($password))" > %TEMP%\password.tmp
+    set /p password=<%TEMP%\password.tmp
+    del %TEMP%\password.tmp
+
+    echo %username% > %TEMP%\username.txt
+    echo %password% > %TEMP%\password.txt
+    certutil -hashfile %TEMP%\username.txt SHA256 > %TEMP%\username_hash.txt
+    certutil -hashfile %TEMP%\password.txt SHA256 > %TEMP%\password_hash.txt
+
+    for /f "tokens=2 delims=: " %%a in ('findstr /R /C:"^[0-9a-fA-F]" %TEMP%\username_hash.txt') do set "username_hash=%%a"
+    for /f "tokens=2 delims=: " %%a in ('findstr /R /C:"^[0-9a-fA-F]" %TEMP%\password_hash.txt') do set "password_hash=%%a"
+    echo Comparing Hashes...
+    call :sys.lt 1
+    
+    set /p stored_username_hash=<"%secure_dir%\username.hash"
+    set /p stored_password_hash=<"%secure_dir%\password.hash"
+
+    if "%username_hash%"=="%stored_username_hash%" if "%password_hash%"=="%stored_password_hash%" (
+        echo Authentication successful.
+        del %TEMP%\username.txt
+        del %TEMP%\password.txt
+        del %TEMP%\username_hash.txt
+        del %TEMP%\password_hash.txt
+        echo Authentication successful.
+        goto file.check
+    ) else (
+        echo Authentication failed.
+        del %TEMP%\username.txt
+        del %TEMP%\password.txt
+        del %TEMP%\username_hash.txt
+        del %TEMP%\password_hash.txt
+        goto check-files
+    )
+    :file.check
     :: Checks if all Files needed for the Script exist
     setlocal enabledelayedexpansion
     @title Starting Up...
