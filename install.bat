@@ -11,24 +11,24 @@ cd /d %~dp0
 color 2
 cls  
 color 2
-        if "%1"=="go" goto custom.go
-        if "%1"=="-reverse.arg" dataspammer.bat %2
+    if "%1"=="go" goto custom.go
+    if "%1"=="-reverse.arg" dataspammer.bat %2
 
 :open.install.done
     :: Check if Settings Exist
     if exist "settings.conf" (
-        goto sys.installer.execution.finished
+    goto sys.installer.execution.finished
     ) else (
-        goto installer.main.window
+    goto installer.main.window
     )
 :sys.installer.execution.finished
 
     :: Installer Was Executed TLI
     echo The Installer was already executed.
     call :sys.lt 1
-    echo You can either delete The Script from here or you can open the main script
+    echo You can either delete the script from here or you can open the main script
     call :sys.lt 1
-    echo You can install the Script to antother Directory too.
+    echo You can install the script to another directory too.
     call :sys.lt 1
     echo.
     call :sys.lt 1
@@ -36,7 +36,7 @@ color 2
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [2] Delete Script (Script need to run as Administator!)
+    echo [2] Delete Script (Script needs to run as Administrator!)
     call :sys.lt 1
     echo.
     call :sys.lt 1
@@ -57,9 +57,9 @@ color 2
     call :sys.lt 1 
     echo Are you sure about this decision?
     call :sys.lt 1
-    echo If the script is bugged or you want to download the new Version please 
+    echo If the script is bugged or you want to download the new version please 
     call :sys.lt 1
-    echo Visit the GitHub Repo
+    echo visit the GitHub Repo
     call :sys.lt 1
     echo.
     call :sys.lt 1
@@ -67,11 +67,11 @@ color 2
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [2] Open the Github-Repo
+    echo [2] Open the GitHub Repo
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [3] No Please Go back
+    echo [3] No, Please Go back
     call :sys.lt 1
     echo.
     echo.
@@ -97,9 +97,9 @@ color 2
     if %errorLevel% == 0 (goto delete.script.confirmed.2) else (goto sys.verify.execution)
 
 :sys.verify.execution
-    :: Script isnt elevated TLI
-    echo Please start the Script as Administrator in order to install.
-    echo To do this right click the install.bat File and click "Run As Administrator"
+    :: Script isn't elevated TLI
+    echo Please start the script as Administrator in order to install.
+    echo To do this right click the install.bat file and click "Run As Administrator"
     pause
     exit
 
@@ -128,10 +128,10 @@ color 2
     cd /d %startMenuPrograms%
     if exist "Dataspammer.bat" erase "Dataspammer.bat" > nul
     echo 7/7 Files Deleted
-    echo Uninstall Successfull
+    echo Uninstall Successful
 
 :installer.main.window
-    if exist "%temp%\progress.txt" goto standart.install.run.1 
+    if exist "%temp%\progress.txt" goto standard.install.run.1 
     cls
     :: Main install TLI
     SETLOCAL EnableDelayedExpansion
@@ -149,11 +149,11 @@ color 2
     echo Made by PIRANY                 %current-script-version% 
     echo.
     call :sys.lt 1
-    echo This Installer will lead you throuh the Process of Installing the DataSpammer Utility.
+    echo This Installer will lead you through the process of installing the DataSpammer Utility.
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [1] Normal Install  (Recommended, Needs Administrator Priviliges)
+    echo [1] Normal Install  (Recommended, Needs Administrator Privileges)
     call :sys.lt 1
     echo.
     call :sys.lt 1
@@ -166,32 +166,32 @@ color 2
     set /P installer.main=Choose an Option from Above:
     if %installer.main% =="" goto installer.main.window
     if %installer.main% == 2 goto installer.custom.install.directory
-    if %installer.main% == 1 goto standart.install.run
+    if %installer.main% == 1 goto standard.install.run
     goto installer.main.window
 
-:standart.install.run
+:standard.install.run
     call :verify
-    :: Some Pre-Install STuff
+    :: Some Pre-Install Stuff
     set "directory=%ProgramFiles%"
     cd /d "%directory%"
-:standart.install.run.1
+:standard.install.run.1
     setlocal EnableDelayedExpansion
     net session >nul 2>&1
     if %errorLevel% neq 0 (
-        echo. goto.elevate "%temp%\progress.txt" > nul
-        powershell -Command "Start-Process '%~f0' -Verb runAs"
-        exit
+    echo. goto.elevate "%temp%\progress.txt" > nul
+    powershell -Command "Start-Process '%~f0' -Verb runAs"
+    exit
     )
 
-:standart.install.run.2
+:standard.install.run.2
     :: Preset some Variables
     set "startmenushortcut=Not Included"
     set "desktopicon=Not Included"
     set "autostart=Not Included"
-:standart.install.run.3
+:standard.install.run.3
     :: AV Deactivate TLI
-    echo These extra Files get detected as a Virus from some antivirus Programs. 
-    echo A Tutorial on how to temporarily turn off your AV is down below
+    echo These extra files get detected as a virus from some antivirus programs. 
+    echo A tutorial on how to temporarily turn off your AV is down below
     echo.
     call :sys.lt 1
     echo [1] Open Tutorial on how to turn off AV
@@ -209,23 +209,23 @@ color 2
     echo [4] Close the Script
     set /P avturnoff=Choose an Option from above
 
-    if %avturnoff% =="" goto standart.install.run.3
-    if %avturnoff% == 1 start "" "https://www.security.org/antivirus/turn-off/" & cls & goto standart.install.run.3
+    if %avturnoff% =="" goto standard.install.run.3
+    if %avturnoff% == 1 start "" "https://www.security.org/antivirus/turn-off/" & cls & goto standard.install.run.3
     if %avturnoff% == 2 cls & goto installer.main.window
-    if %avturnoff% == 3 cls & goto standart.install.run.4
+    if %avturnoff% == 3 cls & goto standard.install.run.4
     if %avturnoff% == 4 cls & goto cancel
-    goto standart.install.run.3
-:standart.install.run.4
+    goto standard.install.run.3
+:standard.install.run.4
     :: Default Install Options TLI
-    echo The Script will install itself in the Following Directory: %ProgramFiles%
+    echo The script will install itself in the following directory: %ProgramFiles%
     call :sys.lt 1
-    echo For Better Accessibility of the Script you can create for example a Startmenu Shortcut or a Desktop Shortcut
+    echo For better accessibility of the script you can create for example a Startmenu Shortcut or a Desktop Shortcut
     call :sys.lt 1
-    echo Please note that you need to reinstall those if you move the Script into another Folder.
+    echo Please note that you need to reinstall those if you move the script into another folder.
     call :sys.lt 1
-    echo Please Choose the Options you want to install:
+    echo Please choose the options you want to install:
     call :sys.lt 1
-    echo Sometimes they get detected by Antivirus and get deleted.
+    echo Sometimes they get detected by antivirus and get deleted.
     call :sys.lt 1
     echo.
     call :sys.lt 1
@@ -247,32 +247,32 @@ color 2
     call :sys.lt 1
     echo [5] De-select / Cancel Options
     set /P stdprogdrcvar=Choose the Options from Above:
-    if %stdprogdrcvar% =="" goto standart.install.run.4
+    if %stdprogdrcvar% =="" goto standard.install.run.4
     if %stdprogdrcvar% == 1 goto n1varinst
     if %stdprogdrcvar% == 2 goto n2varinst
     if %stdprogdrcvar% == 3 goto n3varinst
     if %stdprogdrcvar% == 4 goto installer.updater.installation.confirm
-    if %stdprogdrcvar% == 5 goto standart.install.run
-    goto standart.install.run
+    if %stdprogdrcvar% == 5 goto standard.install.run
+    goto standard.install.run
 
 
 :n1varinst
     cls
     set "startmenushortcut=Included"
     set "startmenushortcut1=1"
-    goto standart.install.run.4
+    goto standard.install.run.4
 
 :n2varinst
     cls
     set "desktopicon=Included"
     set "desktopic1=1"
-    goto standart.install.run.4
+    goto standard.install.run.4
 
 :n3varinst
     cls
     set "autostart=Included"
     set "autostart1=1"
-    goto standart.install.run.4
+    goto standard.install.run.4
 
 
 :installer.custom.install.directory
@@ -280,11 +280,11 @@ color 2
     set "small-install=1"
     :: Script Install Location
     call :sys.lt 1
-    echo Please specify the Directory where the Script should be installed.
+    echo Please specify the directory where the script should be installed.
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo It can be any Directory as long as you have write/read access to it.
+    echo It can be any directory as long as you have write/read access to it.
     call :sys.lt 1
     set /p directory=Type Your Directory Here: 
     :: Installer Confirmation Dialog
@@ -301,7 +301,7 @@ color 2
     cd /d DataSpammer
     echo small-install > settings.conf
     cd /d %~dp0
-    echo Do you want to copy the README into the Script Folder too or should it be deleted?
+    echo Do you want to copy the README into the script folder too or should it be deleted?
     choice /C DC /M "Press D If you want to Delete README and C to Copy it into the Script folder"
     set _erl=%errorlevel%
     if %_erl%==D erase README.md > nul
@@ -315,8 +315,8 @@ color 2
     :: Updater Install TLI
     echo.
     call :sys.lt 1
-    echo Do you want the Script to automaticcaly scan for Updates on every start?
-    echo This will be fully automaticly.
+    echo Do you want the script to automatically scan for updates on every start?
+    echo This will be fully automatic.
     call :sys.lt 1
     echo [1] Yes
     call :sys.lt 1
@@ -326,7 +326,7 @@ color 2
     echo.
     call :sys.lt 1
     echo.
-    set /p install.updater=Choose an Option from Above:
+    set /p install.updater=Choose an option from above:
     if %install.updater% =="" goto installer.updater.installation.confirm
     If %install.updater% == 1 set "gitinsyn=1"
     If %install.updater% == 2 goto installer.start.copy
@@ -380,9 +380,9 @@ color 2
     set "elevation=pwsh"
     (
         echo :: DataSpammer configuration
-        echo :: Standart Filename
+        echo :: Standard Filename
         echo default_filename=%default.filename%
-        echo :: Standart Directory
+        echo :: Standard Directory
         echo default_directory=%default.directory%
         echo :: Check for Updates
         echo update=%update%
@@ -408,7 +408,7 @@ color 2
 
 
 :installer.common.drc.switch
-    :: Write Settings.conf with Update
+    :: Write settings.conf with Update
     setlocal enabledelayedexpansion
     cd /d "%directory9%"
     set "stdfile=notused"
@@ -422,9 +422,9 @@ color 2
     
     (
         echo :: DataSpammer configuration
-        echo :: Standart Filename
+        echo :: Standard Filename
         echo default_filename=%stdfile%
-        echo :: Standart Directory
+        echo :: Standard Directory
         echo default_directory=%stdrcch%
         echo :: Check for Updates
         echo update=%update%
@@ -472,7 +472,7 @@ color 2
     if defined autostart (goto script.win.start.setup) else (goto additional.links.installed)
 :script.win.start.setup
     :: Autostart Installer
-    echo The Setup for Autostart is now starting...
+    echo The setup for Autostart is now starting...
     cd /d C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
     (
     echo @echo off
@@ -485,15 +485,15 @@ color 2
 :additional.links.installed
     :: Display a Finish Message
     echo Done!
-    echo You might need to restart your Device in order for all changes to apply.
+    echo You might need to restart your device in order for all changes to apply.
     pause 
-	goto additionals.ask.window
+    goto additionals.ask.window
 
 
 
 :additionals.ask.window
     :: TLI for Readme and LICENSE
-    echo Dow you want to delete the LICENSE and README files?
+    echo Do you want to delete the LICENSE and README files?
     call :sys.lt 1
     echo.
     echo [1] List content of README
@@ -515,7 +515,7 @@ color 2
     echo.
     call :sys.lt 1
     echo.
-    set /p RL.menu=Select an Answer from above
+    set /p RL.menu=Select an answer from above
     if %RL.menu% =="" goto additionals.ask.window
     If %RL.menu% == 1 goto list.content.LC
     If %RL.menu% == 2 goto list.content.RD
@@ -603,12 +603,12 @@ color 2
 :log
     :: call scheme is:
     :: if %logging% == 1 ( call :log Opened_verify_tab )
-    :: _ and - are getting Replaced by Space    
+    :: _ and - are getting replaced by space    
 
     set "log.content=%1"
     set "logfile=DataSpammer.log"
     
-    :: Check Folder Structure
+    :: Check folder structure
     set "folder=%userprofile%\Documents\DataSpammerLog"
     if not exist "%folder%" (
         mkdir "%folder%"
@@ -618,36 +618,22 @@ color 2
     set log.content.clean=%log.content.clean:_= %
     set log.content.clean=%log.content.clean:-= %
 
-    echo %date% %time% %log.content.clean% >> "%folder%\%logfile%"
+    for /f "tokens=1-3 delims=:." %%a in ("%time%") do set formatted_time=%%a:%%b:%%c
+    echo %date% %formatted_time% %log.content.clean% >> "%folder%\%logfile%"
     :: exit
     exit /b 0
-    
-    :: NEED TO FIX THIS PART / Content not gets written
-        :: convert time and date to readable format
-        ::setlocal enabledelayedexpansion
-        ::for /f "tokens=1-3 delims=:," %%a in ("%currentTime%") do (
-        ::    set "hours=%%a"
-        ::    set "minutes=%%b"
-        ::    set "seconds=%%c"
-        ::)
-        ::set "seconds=!seconds:~0,2!" 
-        ::set "formattedTime=!hours!:!minutes!:!seconds!"
-        
-        :: Write Log
-        ::echo !currentDate! !formattedTime! %log.content% >> "%folder%\%logfile%"
 
 :update_config
-    :: Example for Interactive Change
-    :: call :update_config "default-filename" "Type in the Filename you want to use." ""
+    :: Example for interactive change
+    :: call :update_config "default-filename" "Type in the filename you want to use." ""
     
-    :: Example for Automated Change
+    :: Example for automated change
     :: call :update_config "logging" "" "1"
     
-
     :: call :update_config "1" "2" "3"
     :: Parameter 1: Value (logging etc.)
-    :: Parameter 2: User Choice (interactive prompt, empty for automated)
-    :: Parameter 3: New Value (leave empty for user input)
+    :: Parameter 2: User choice (interactive prompt, empty for automated)
+    :: Parameter 3: New value (leave empty for user input)
     
     setlocal enabledelayedexpansion
     cd /d %~dp0
@@ -689,24 +675,23 @@ color 2
 
 :verify
     set "verify=%random%"
-    powershell -Command "& {Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.Interaction]::InputBox('Please enter Code %verify% to confirm that you want to execute this Option', 'DataSpammer Verify')}" > %TEMP%\out.tmp
+    powershell -Command "& {Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.Interaction]::InputBox('Please enter code %verify% to confirm that you want to execute this option', 'DataSpammer Verify')}" > %TEMP%\out.tmp
     set /p OUT=<%TEMP%\out.tmp
     if not defined OUT goto failed
     if %verify%==%OUT% (goto success) else (goto failed)
 
 :success
-    set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('Sucess', 'DataSpammer Verify');}"
+    set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('Success', 'DataSpammer Verify');}"
     powershell -Command %msgBoxArgs%
     exit /b
 
 :failed
-    set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('You have entered the wrong Code. Please try again', 'DataSpammer Verify');}"
+    set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('You have entered the wrong code. Please try again', 'DataSpammer Verify');}"
     powershell -Command %msgBoxArgs%
     goto verify
 
 :restart.script
     cd /d %~dp0
     install.bat
-
 
 exit /b 0
