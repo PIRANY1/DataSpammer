@@ -29,5 +29,3 @@ jobs:
         run: |
           cd DataSpammer
           cmd.exe /c ${{ github.workspace }}\DataSpammer\dataspammer.bat debugtest
-          set "username=GitHub Test"
-          cmd.exe /c ${{ github.workspace }}\DataSpammer\dataspammer.bat faststart
