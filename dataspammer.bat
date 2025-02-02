@@ -20,7 +20,7 @@
     set DIRNAME=%~dp0
     if "%DIRNAME%"=="" set DIRNAME=.
     mode con: cols=140 lines=40
-    set "current-script-version=v4.3"
+    set "current-script-version=v4.4"
     if "%1"=="h" goto help.startup
     if "%1"=="-h" goto help.startup
     if "%1"=="help" goto help.startup
@@ -214,7 +214,7 @@
 
 
     
-    if "%latest_version%" equ "v4.3" (
+    if "%latest_version%" equ "v4.4" (
         set "uptodate=up"
     ) else (
         set "uptodate="
@@ -929,7 +929,7 @@
     cls && echo Updating Readme...
     powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/LICENSE" -OutFile "%temp%\dts.update\LICENSE" >nul 2>&1
     cls && echo Updating License...
-    
+
     :: Encrypt new Files, when current Version is already encrypted
     if not exist "%userprofile%\Documents\SecureDataSpammer\token.hash" goto move.new.files
     echo Encrypting newly downloaded Files...
