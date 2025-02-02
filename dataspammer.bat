@@ -3,6 +3,8 @@
 ::    Todo: 
 ::    Fix SSH
 ::    Add Translation
+::    Fix Creation of C:\Program
+
 
 :: Developer Notes:
 :: Define %debug_assist% to bypass echo_off
@@ -376,7 +378,7 @@
 
 
     call :sys.lt 1
-    echo Made by PIRANY                 %current-script-version%       Logged in as %username%
+    echo Made by PIRANY                 %current-script-version%                 Logged in as %username%
     call :sys.lt 1
     echo.
     call :sys.lt 1
@@ -890,68 +892,74 @@
 
 
 :dev.force.update
-    if %logging% == 1 ( call :log Switching_to_stable_branch )
+    cls
+    :: Updated in v4.2
+    :: Old one used seperate file / wget & curl
+    if %logging% == 1 ( call :log Forcing_Update )
     cd /d %~dp0
-    echo @echo off > updater.bat
-    echo cd /d %~dp0 >> updater.bat
-    echo echo Updating script... >> updater.bat
-    echo curl -sSLo dataspammer.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat >> updater.bat
-    echo if %%ERRORLEVEL%% neq 0 ( echo Download failed, aborting update ^&^& pause ^&^& exit ) >> updater.bat
-    echo curl -sSLo install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat >> updater.bat
-    echo if %%ERRORLEVEL%% neq 0 ( echo Download failed, aborting update ^&^& pause ^&^& exit ) >> updater.bat
-    echo curl -sSLo readme.md https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/readme.md >> updater.bat
-    echo if %%ERRORLEVEL%% neq 0 ( echo Download failed, aborting update ^&^& pause ^&^& exit ) >> updater.bat
-    echo curl -sSLo license https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/license >> updater.bat
-    echo if %%ERRORLEVEL%% neq 0 ( echo Download failed, aborting update ^&^& pause ^&^& exit ) >> updater.bat
-    echo set "update-install=1" >> updater.bat
-    echo start powershell -Command "Start-Process 'dataspammer.bat' -Verb runAs" >> updater.bat
-    echo exit >> updater.bat
-
-    start powershell -Command "Start-Process 'updater.bat' -Verb runAs"
+    erase install.bat && erase README.md && erase LICENSE >nul 2>&1
+    mkdir %temp%\dts.update >nul 2>&1
+    echo Updating script... 
+    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat" -OutFile "%temp%\dts.update\%~nx0" >nul 2>&1
+    cls && echo Updating DataSpammer.bat...
+    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat" -OutFile "%temp%\dts.update\install.bat" >nul 2>&1
+    cls && echo Updating Install.bat...
+    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/README.md" -OutFile "%temp%\dts.update\README.md" >nul 2>&1
+    cls && echo Updating Readme...
+    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/LICENSE" -OutFile "%temp%\dts.update\LICENSE" >nul 2>&1
+    cls && echo Updating License...
+    echo Updated successfully.
+    move /y "%temp%\dts.update\*" "%~dp0"
+    cmd.exe -k %~f0
+    goto :EOF
     exit
 
 
-
 :dev.switch.branch
+    cls
+    :: Updated in v4.2
+    :: Old one used seperate file / wget & curl
     if %logging% == 1 ( call :log Switching_to_Dev_Branch )
     cd /d %~dp0
-    echo @echo off > updater.bat
-    echo cd /d %~dp0 >> updater.bat
-    echo echo Updating script... >> updater.bat
-    echo curl -sSLo dataspammer.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/dataspammer.bat >> updater.bat
-    echo if %%ERRORLEVEL%% neq 0 ( echo Download failed, aborting update ^&^& pause ^&^& exit ) >> updater.bat
-    echo curl -sSLo install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/install.bat >> updater.bat
-    echo if %%ERRORLEVEL%% neq 0 ( echo Download failed, aborting update ^&^& pause ^&^& exit ) >> updater.bat
-    echo curl -sSLo readme.md https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/readme.md >> updater.bat
-    echo if %%ERRORLEVEL%% neq 0 ( echo Download failed, aborting update ^&^& pause ^&^& exit ) >> updater.bat
-    echo curl -sSLo license https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/license >> updater.bat
-    echo if %%ERRORLEVEL%% neq 0 ( echo Download failed, aborting update ^&^& pause ^&^& exit ) >> updater.bat
-    echo set "update-install=1" >> updater.bat
-    echo start powershell -Command "Start-Process 'dataspammer.bat' -Verb runAs" >> updater.bat
-    echo exit >> updater.bat
+    erase install.bat && erase README.md && erase LICENSE >nul 2>&1
+    mkdir %temp%\dts.update >nul 2>&1
+    echo Updating script... 
+    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/dataspammer.bat" -OutFile "%temp%\dts.update\%~nx0" >nul 2>&1
+    cls && echo Updating DataSpammer.bat...
+    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/install.bat" -OutFile "%temp%\dts.update\install.bat" >nul 2>&1
+    cls && echo Updating Install.bat...
+    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/README.md" -OutFile "%temp%\dts.update\README.md" >nul 2>&1
+    cls && echo Updating Readme...
+    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/LICENSE" -OutFile "%temp%\dts.update\LICENSE" >nul 2>&1
+    cls && echo Updating License...
+    echo Updated successfully.
+    move /y "%temp%\dts.update\*" "%~dp0"
+    cmd.exe -k %~f0
+    goto :EOF
+    exit
 
-    start powershell -Command "Start-Process 'updater.bat' -Verb runAs"
-    exit /b
 
 :stable.switch.branch
+    cls
+    :: Updated in v4.2
+    :: Old one used seperate file / wget & curl
     if %logging% == 1 ( call :log Switching_to_stable_branch )
     cd /d %~dp0
-    echo @echo off > updater.bat
-    echo cd /d %~dp0 >> updater.bat
-    echo echo Updating script... >> updater.bat
-    echo curl -sSLo dataspammer.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat >> updater.bat
-    echo if %%ERRORLEVEL%% neq 0 ( echo Download failed, aborting update ^&^& pause ^&^& exit ) >> updater.bat
-    echo curl -sSLo install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat >> updater.bat
-    echo if %%ERRORLEVEL%% neq 0 ( echo Download failed, aborting update ^&^& pause ^&^& exit ) >> updater.bat
-    echo curl -sSLo readme.md https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/readme.md >> updater.bat
-    echo if %%ERRORLEVEL%% neq 0 ( echo Download failed, aborting update ^&^& pause ^&^& exit ) >> updater.bat
-    echo curl -sSLo license https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/license >> updater.bat
-    echo if %%ERRORLEVEL%% neq 0 ( echo Download failed, aborting update ^&^& pause ^&^& exit ) >> updater.bat
-    echo set "update-install=1" >> updater.bat
-    echo start powershell -Command "Start-Process 'dataspammer.bat' -Verb runAs" >> updater.bat
-    echo exit >> updater.bat
-
-    start powershell -Command "Start-Process 'updater.bat' -Verb runAs"
+    erase install.bat && erase README.md && erase LICENSE >nul 2>&1
+    mkdir %temp%\dts.update >nul 2>&1
+    echo Updating script... 
+    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat" -OutFile "%temp%\dts.update\%~nx0" >nul 2>&1
+    cls && echo Updating DataSpammer.bat...
+    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat" -OutFile "%temp%\dts.update\install.bat" >nul 2>&1
+    cls && echo Updating Install.bat...
+    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/README.md" -OutFile "%temp%\dts.update\README.md" >nul 2>&1
+    cls && echo Updating Readme...
+    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/LICENSE" -OutFile "%temp%\dts.update\LICENSE" >nul 2>&1
+    cls && echo Updating License...
+    echo Updated successfully.
+    move /y "%temp%\dts.update\*" "%~dp0"
+    cmd.exe -k %~f0
+    goto :EOF
     exit
 
 
