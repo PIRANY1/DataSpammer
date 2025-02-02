@@ -4,7 +4,7 @@
 
 ### Stress-Test Features
 
-ICMP, SSH, FTP, DNS, HTTP(S), Printer Spam, Desktop Spam, Folder Spam, Startmenu Spam, Applist Spam
+ICMP, SSH, FTP, DNS, HTTP(S), Printer Spam, Desktop Spam, Folder Spam, Start Menu Spam, App List Spam
 
 ### Other Features
 
@@ -12,61 +12,47 @@ Desktop Shortcut, Autostart, Auto Update, Logging, Elevation via sudo/pwsh/gsudo
 
 ## Install
 
-Use on of the Methods below or download the [Latest Version](https://github.com/PIRANY1/DataSpammer/releases/latest)
+Use one of the methods below or download the [Latest Version](https://github.com/PIRANY1/DataSpammer/releases/latest)
 
-### One-Line-Install
+### One-Line Install
 
 ``` cmd
-
 curl -sSLo install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat && install.bat
-
 ```
 
 ### Git
 
 ``` batch
-
 git clone https://github.com/PIRANY1/DataSpammer.git
 cd DataSpammer
 install.bat
-
 ```
 
-### Github CLI
+### GitHub CLI
 
 ``` batch
-
 gh repo clone PIRANY1/DataSpammer
 cd DataSpammer
 install.bat
-
 ```
-
-## Todo
-
-<details>
-    <summary>Click To Open.</summary>
-    Fix SSH
-    Add Translation
-    Merge In One Script?
-</details>
 
 ## Known Bugs
 
-Files sometimes get corrupted after update
+Updater doesn't work 100% reliably.
 
 ## Encrypt
-Files in Release Tab are Encryption to prevent Anti Virus detection when writing in Program Files Folder.
-When you are downloading the Files elsewhere you can Encrypt them later on.
+
+Files in the Release tab are encrypted to prevent anti-virus detection when writing in the Program Files folder.
+When you are downloading the files elsewhere, you can encrypt them later on.
 
 ## About
 
-I created this Script to learn more about Batch and how cmd.exe operates.
+I created this script to learn more about Batch and how cmd.exe operates.
 
-Good Ressource:
+Good Resource:
 
 [A detailed overview of CMD Commands](https://ss64.com/nt/)
 
 ## Reporting a Bug
 
-If you encountered a Bug please create an [Issue](https://github.com/PIRANY1/DataSpammer/issues)
+If you encountered a bug, please create an [Issue](https://github.com/PIRANY1/DataSpammer/issues)

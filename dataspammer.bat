@@ -4,7 +4,9 @@
 ::    Fix SSH
 ::    Add Translation
 ::    Fix Creation of C:\Program
-
+::    Fix ignoring of wrong password
+::    Fix Updater
+::    Fix exit after clear log
 
 :: Developer Notes:
 :: Define %debug_assist% to bypass echo_off
@@ -1121,7 +1123,7 @@
         if %_erl%==1 goto enable.logging
         if %_erl%==2 goto disable.logging
         if %_erl%==3 goto dev.open.log
-        if %_erl%==4 goto erase %userprofile%\Documents\DataSpammerLog\DataSpammer.log
+        if %_erl%==4 goto erase %userprofile%\Documents\DataSpammerLog\DataSpammer.log && goto restart.script
         if %_erl%==5 goto settings
     goto settings.logging
 
