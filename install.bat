@@ -41,12 +41,11 @@ color 2
     echo.
     call :sys.lt 1
     echo [3] Reinstall Script
-    set /p installer.executed.menu=Choose an Option from above
-    
-    if %installer.executed.menu%=="" goto sys.installer.execution.finished
-    If %installer.executed.menu% == 1 dataspammer.bat
-    If %installer.executed.menu% == 2 goto delete.script.confirmation.window
-    If %installer.executed.menu% == 3 goto installer.main.window
+    choice /C 123 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto dataspammer.bat
+        if %_erl%==2 goto delete.script.confirmation.window
+        if %_erl%==3 goto installer.main.window
     goto sys.installer.execution.finished
 
 :delete.script.confirmation.window
@@ -75,12 +74,11 @@ color 2
     call :sys.lt 1
     echo.
     echo.
-    set /p delete.script.menu=Choose an Option from Above
-
-    if %delete.script.menu%=="" goto delete.script.confirmation.window
-    If %delete.script.menu% == 1 goto delete.script.verify
-    If %delete.script.menu% == 2 start "" "https://github.com/PIRANY1/DataSpammer" && goto delete.script.confirmation.window
-    If %delete.script.menu% == 3 goto open.install.done
+    choice /C 123 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto delete.script.verify
+        if %_erl%==2 start "" "https://github.com/PIRANY1/DataSpammer" && goto delete.script.confirmation.window
+        if %_erl%==3 goto open.install.done
     goto delete.script.confirmation.window
 
 
@@ -163,10 +161,10 @@ color 2
     echo.
     echo.
     call :sys.lt 1
-    set /P installer.main=Choose an Option from Above:
-    if %installer.main% =="" goto installer.main.window
-    if %installer.main% == 2 goto installer.custom.install.directory
-    if %installer.main% == 1 goto standard.install.run
+    choice /C 12 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto standard.install.run
+        if %_erl%==2 installer.custom.install.directory
     goto installer.main.window
 
 :standard.install.run
@@ -207,14 +205,16 @@ color 2
     echo.
     call :sys.lt 1
     echo [4] Close the Script
-    set /P avturnoff=Choose an Option from above
-
-    if %avturnoff% =="" goto standard.install.run.3
-    if %avturnoff% == 1 start "" "https://www.security.org/antivirus/turn-off/" & cls & goto standard.install.run.3
-    if %avturnoff% == 2 cls & goto installer.main.window
-    if %avturnoff% == 3 cls & goto standard.install.run.4
-    if %avturnoff% == 4 cls & goto cancel
+    echo.
+    echo.
+    choice /C 1234 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 start "" "https://www.security.org/antivirus/turn-off/" & cls & goto standard.install.run.3
+        if %_erl%==2 cls & goto installer.main.window
+        if %_erl%==3 cls & goto standard.install.run.4
+        if %_erl%==4 cls & goto cancel
     goto standard.install.run.3
+
 :standard.install.run.4
     :: Default Install Options TLI
     echo The script will install itself in the following directory: %ProgramFiles%
@@ -246,13 +246,15 @@ color 2
     echo.
     call :sys.lt 1
     echo [5] De-select / Cancel Options
-    set /P stdprogdrcvar=Choose the Options from Above:
-    if %stdprogdrcvar% =="" goto standard.install.run.4
-    if %stdprogdrcvar% == 1 goto n1varinst
-    if %stdprogdrcvar% == 2 goto n2varinst
-    if %stdprogdrcvar% == 3 goto n3varinst
-    if %stdprogdrcvar% == 4 goto installer.updater.installation.confirm
-    if %stdprogdrcvar% == 5 goto standard.install.run
+    echo.
+    echo.
+    choice /C 12345 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto n1varinst
+        if %_erl%==2 goto n2varinst
+        if %_erl%==3 goto n3varinst
+        if %_erl%==4 goto installer.updater.installation.confirm
+        if %_erl%==5 goto standard.install.run
     goto standard.install.run
 
 
@@ -326,10 +328,11 @@ color 2
     echo.
     call :sys.lt 1
     echo.
-    set /p install.updater=Choose an option from above:
-    if %install.updater% =="" goto installer.updater.installation.confirm
-    If %install.updater% == 1 set "gitinsyn=1"
-    If %install.updater% == 2 goto installer.start.copy
+    choice /C 12 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto set "gitinsyn=1"
+        if %_erl%==2 goto installer.start.copy
+
 
 :installer.start.copy
     :: Main install part
@@ -515,14 +518,14 @@ color 2
     echo.
     call :sys.lt 1
     echo.
-    set /p RL.menu=Select an answer from above
-    if %RL.menu% =="" goto additionals.ask.window
-    If %RL.menu% == 1 goto list.content.LC
-    If %RL.menu% == 2 goto list.content.RD
-    If %RL.menu% == 3 goto delete.license
-    If %RL.menu% == 4 goto delete.readme
-    If %RL.menu% == 5 goto copy.rl.to.script
-    If %RL.menu% == 6 goto sys.main.installer.done
+    choice /C 123456 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto list.content.LC
+        if %_erl%==2 goto list.content.RD
+        if %_erl%==3 goto delete.license
+        if %_erl%==4 goto delete.readme
+        if %_erl%==5 goto copy.rl.to.script
+        if %_erl%==6 goto sys.main.installer.done
     goto additionals.ask.window
 
 :copy.rl.to.script
@@ -569,6 +572,48 @@ color 2
     goto additionals.ask.window
 
 :sys.main.installer.done
+    echo Do you want to encrypt the script?
+    echo This can bypass Antivirus Detection and improve the security of the script.
+    echo.
+    echo [1] Yes
+    echo.
+    echo [2] No
+        choice /C 12 /M "1/2:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto encrypt.script
+        if %_erl%==2 goto finish.installation
+
+    :encrypt.script
+    echo Encrypting...
+    cd /d %~dp0 
+    echo %random% > "%userprofile%\Documents\SecureDataSpammer\token.hash"
+    (
+        @echo off
+        cd /d %~dp0
+        echo FF FE 0D 0A 63 6C 73 0D 0A > "%directory9%\temp_hex.txt"
+        certutil -f -decodehex "%directory9%\temp_hex.txt" "%directory9%\temp_prefix.bin"
+        move "%directory9%\dataspammer.bat" "%directory9%\original_dataspammer.bat"
+        copy /b "%directory9%\temp_prefix.bin" + "%directory9%\original_dataspammer.bat" "%directory9%\dataspammer.bat"
+        move "%directory9%\install.bat" "%directory9%\original_install.bat"
+        copy /b "%directory9%\temp_prefix.bin" + "%directory9%\original_install.bat" "%directory9%\install.bat"
+        erase "%directory9%\original_install.bat"
+        erase "%directory9%\original_dataspammer.bat"
+        erase "%directory9%\temp_hex.txt"
+        erase "%directory9%\temp_prefix.bin"
+        Cipher /E "%directory9%\dataspammer.bat"
+        Cipher /E "%directory9%\install.bat"
+        cd /d %~dp0
+        erase install.bat > nul
+        cd /d "%directory9%"
+        dataspammer.bat
+        erase encrypt.bat
+    ) > encrypt.bat
+     
+    start powershell -Command "Start-Process 'encrypt.bat' -Verb runAs"
+    exit /b startedencryption
+
+
+    :finish.installation
     :: Cleanup install directory and finish the installation
     echo Finishing Installation....
     cd /d %~dp0

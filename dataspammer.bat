@@ -286,10 +286,30 @@
     powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/LICENSE" -OutFile "%temp%\dts.update\LICENSE" >nul 2>&1
     cls && echo Updating License...
     echo Updated successfully.
+
+    :: Encrypt new Files, when current Version is already encrypted
+    if not exist "%userprofile%\Documents\SecureDataSpammer\token.hash" goto move.new.files
+    echo Encrypting newly downloaded Files...
+    echo FF FE 0D 0A 63 6C 73 0D 0A >  "%temp%\dts.update\temp_hex.txt"
+    certutil -f -decodehex "%temp%\dts.update\temp_hex.txt" "%temp%\dts.update\temp_prefix.bin"
+    move "%temp%\dts.update\dataspammer.bat" "%temp%\dts.update\original_dataspammer.bat"
+    copy /b "%temp%\dts.update\temp_prefix.bin" + "%temp%\dts.update\original_dataspammer.bat" "%temp%\dts.update\dataspammer.bat"
+    move "%temp%\dts.update\install.bat" "%temp%\dts.update\original_install.bat"
+    copy /b "%temp%\dts.update\temp_prefix.bin" + "%temp%\dts.update\original_install.bat" "%temp%\dts.update\install.bat"
+    erase "%temp%\dts.update\original_install.bat"
+    erase "%temp%\dts.update\original_dataspammer.bat"
+    erase "%temp%\dts.update\temp_hex.txt"
+    erase "%temp%\dts.update\temp_prefix.bin"
+    Cipher /E "%temp%\dts.update\dataspammer.bat"
+    Cipher /E "%temp%\dts.update\install.bat"
+
+    :move.new.files
     move /y "%temp%\dts.update\*" "%~dp0"
     cmd.exe -k %~f0
     goto :EOF
     exit
+
+
 
 
 :sys.error.no.install
@@ -682,6 +702,7 @@
     echo Encrypting...
     call :sys.lt 1
     cd /d %~dp0 
+    echo %random% > "%userprofile%\Documents\SecureDataSpammer\token.hash"
     (
         @echo off
         cd /d %~dp0
@@ -908,11 +929,29 @@
     cls && echo Updating Readme...
     powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/LICENSE" -OutFile "%temp%\dts.update\LICENSE" >nul 2>&1
     cls && echo Updating License...
-    echo Updated successfully.
+    
+    :: Encrypt new Files, when current Version is already encrypted
+    if not exist "%userprofile%\Documents\SecureDataSpammer\token.hash" goto move.new.files
+    echo Encrypting newly downloaded Files...
+    echo FF FE 0D 0A 63 6C 73 0D 0A >  "%temp%\dts.update\temp_hex.txt"
+    certutil -f -decodehex "%temp%\dts.update\temp_hex.txt" "%temp%\dts.update\temp_prefix.bin"
+    move "%temp%\dts.update\dataspammer.bat" "%temp%\dts.update\original_dataspammer.bat"
+    copy /b "%temp%\dts.update\temp_prefix.bin" + "%temp%\dts.update\original_dataspammer.bat" "%temp%\dts.update\dataspammer.bat"
+    move "%temp%\dts.update\install.bat" "%temp%\dts.update\original_install.bat"
+    copy /b "%temp%\dts.update\temp_prefix.bin" + "%temp%\dts.update\original_install.bat" "%temp%\dts.update\install.bat"
+    erase "%temp%\dts.update\original_install.bat"
+    erase "%temp%\dts.update\original_dataspammer.bat"
+    erase "%temp%\dts.update\temp_hex.txt"
+    erase "%temp%\dts.update\temp_prefix.bin"
+    Cipher /E "%temp%\dts.update\dataspammer.bat"
+    Cipher /E "%temp%\dts.update\install.bat"
+
+    :move.new.files
     move /y "%temp%\dts.update\*" "%~dp0"
     cmd.exe -k %~f0
     goto :EOF
     exit
+
 
 
 :dev.switch.branch
@@ -933,10 +972,29 @@
     powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/LICENSE" -OutFile "%temp%\dts.update\LICENSE" >nul 2>&1
     cls && echo Updating License...
     echo Updated successfully.
+
+    :: Encrypt new Files, when current Version is already encrypted
+    if not exist "%userprofile%\Documents\SecureDataSpammer\token.hash" goto move.new.files
+    echo Encrypting newly downloaded Files...
+    echo FF FE 0D 0A 63 6C 73 0D 0A >  "%temp%\dts.update\temp_hex.txt"
+    certutil -f -decodehex "%temp%\dts.update\temp_hex.txt" "%temp%\dts.update\temp_prefix.bin"
+    move "%temp%\dts.update\dataspammer.bat" "%temp%\dts.update\original_dataspammer.bat"
+    copy /b "%temp%\dts.update\temp_prefix.bin" + "%temp%\dts.update\original_dataspammer.bat" "%temp%\dts.update\dataspammer.bat"
+    move "%temp%\dts.update\install.bat" "%temp%\dts.update\original_install.bat"
+    copy /b "%temp%\dts.update\temp_prefix.bin" + "%temp%\dts.update\original_install.bat" "%temp%\dts.update\install.bat"
+    erase "%temp%\dts.update\original_install.bat"
+    erase "%temp%\dts.update\original_dataspammer.bat"
+    erase "%temp%\dts.update\temp_hex.txt"
+    erase "%temp%\dts.update\temp_prefix.bin"
+    Cipher /E "%temp%\dts.update\dataspammer.bat"
+    Cipher /E "%temp%\dts.update\install.bat"
+
+    :move.new.files
     move /y "%temp%\dts.update\*" "%~dp0"
     cmd.exe -k %~f0
     goto :EOF
     exit
+
 
 
 :stable.switch.branch
@@ -957,6 +1015,24 @@
     powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/LICENSE" -OutFile "%temp%\dts.update\LICENSE" >nul 2>&1
     cls && echo Updating License...
     echo Updated successfully.
+
+    :: Encrypt new Files, when current Version is already encrypted
+    if not exist "%userprofile%\Documents\SecureDataSpammer\token.hash" goto move.new.files
+    echo Encrypting newly downloaded Files...
+    echo FF FE 0D 0A 63 6C 73 0D 0A >  "%temp%\dts.update\temp_hex.txt"
+    certutil -f -decodehex "%temp%\dts.update\temp_hex.txt" "%temp%\dts.update\temp_prefix.bin"
+    move "%temp%\dts.update\dataspammer.bat" "%temp%\dts.update\original_dataspammer.bat"
+    copy /b "%temp%\dts.update\temp_prefix.bin" + "%temp%\dts.update\original_dataspammer.bat" "%temp%\dts.update\dataspammer.bat"
+    move "%temp%\dts.update\install.bat" "%temp%\dts.update\original_install.bat"
+    copy /b "%temp%\dts.update\temp_prefix.bin" + "%temp%\dts.update\original_install.bat" "%temp%\dts.update\install.bat"
+    erase "%temp%\dts.update\original_install.bat"
+    erase "%temp%\dts.update\original_dataspammer.bat"
+    erase "%temp%\dts.update\temp_hex.txt"
+    erase "%temp%\dts.update\temp_prefix.bin"
+    Cipher /E "%temp%\dts.update\dataspammer.bat"
+    Cipher /E "%temp%\dts.update\install.bat"
+
+    :move.new.files
     move /y "%temp%\dts.update\*" "%~dp0"
     cmd.exe -k %~f0
     goto :EOF
