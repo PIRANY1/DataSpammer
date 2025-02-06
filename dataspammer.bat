@@ -4,9 +4,7 @@
 ::    Fix SSH
 ::    Add Translation
 ::    Fix Creation of C:\Program
-::    Fix ignoring of wrong password
 ::    Fix Updater
-::    Fix exit after clear log
 ::    Encrypt settings w. openssl / encrypt / cipher / 
 ::    Add Background Error Catching
 ::    Delete Debug Folder after .tar is created UI 
@@ -681,11 +679,11 @@
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [2] Discard
+    echo [2] Change Login   
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [3] Discard
+    echo [3] Delete Login
     call :sys.lt 1
     echo.
     call :sys.lt 1
@@ -696,10 +694,30 @@
         set _erl=%errorlevel%
         if %_erl%==1 goto login.create
         if %_erl%==2 goto login.change
-        if %_erl%==2 goto login.delete
-        if %_erl%==2 goto advanced.options
+        if %_erl%==3 goto login.delete
+        if %_erl%==4 goto advanced.options
+
+:login.change
+    echo Changing Login...
+    set "secure_dir=%userprofile%\Documents\SecureDataSpammer"
+    rmdir /s /q "%secure_dir%"
+    del "%secure_dir%\username.hash"
+    del "%secure_dir%\password.hash"
+    goto login.create
+
+:login.delete
+    echo Deleting Account...
+    set "secure_dir=%userprofile%\Documents\SecureDataSpammer"
+    rmdir /s /q "%secure_dir%"
+    del "%secure_dir%\username.hash"
+    del "%secure_dir%\password.hash"
+    echo Account deleted successfully.
+    call :sys.lt 1
+    goto :restart.script
 
 :login.create
+    set "secure_dir=%userprofile%\Documents\SecureDataSpammer"
+    if exist %secure_dir% echo Account already exists. && call :sys.lt 1 && goto login.setup
     set /p "username=Please enter a Username:"
     powershell -Command "$password = Read-Host 'Please enter a Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($password))" > %TEMP%\password.tmp
     set /p password=<%TEMP%\password.tmp
@@ -719,7 +737,6 @@
     
     :: Save the hashed values in a secure location
     echo Saving Secure Data...
-    set "secure_dir=%userprofile%\Documents\SecureDataSpammer"
     if not exist "%secure_dir%" mkdir "%secure_dir%"
     echo %username_hash% > "%secure_dir%\username.hash"
     echo %password_hash% > "%secure_dir%\password.hash"
@@ -1159,7 +1176,7 @@
         if %_erl%==1 goto enable.logging
         if %_erl%==2 goto disable.logging
         if %_erl%==3 goto dev.open.log
-        if %_erl%==4 goto erase %userprofile%\Documents\DataSpammerLog\DataSpammer.log && goto restart.script
+        if %_erl%==4 erase %userprofile%\Documents\DataSpammerLog\DataSpammer.log && echo Log Cleared. && pause && goto settings.logging
         if %_erl%==5 goto settings
     goto settings.logging
 
