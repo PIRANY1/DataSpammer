@@ -7,6 +7,10 @@
 ::    Fix ignoring of wrong password
 ::    Fix Updater
 ::    Fix exit after clear log
+::    Encrypt settings w. openssl / encrypt / cipher / 
+::    Add Background Error Catching
+::    Delete Debug Folder after .tar is created UI 
+
 
 :: Developer Notes:
 :: Define %debug_assist% to bypass echo_off
@@ -101,40 +105,61 @@
     goto check-files
 
 :check-files
+    del %TEMP%\username.txt > nul
+    del %TEMP%\password.txt > nul
+    del %TEMP%\username_hash.txt > nul
+    del %TEMP%\password_hash.txt > nul
     set "secure_dir=%userprofile%\Documents\SecureDataSpammer"
     if not exist "%secure_dir%\username.hash" goto file.check
-    set /p "username=Please enter your Username: "
+    set /p "username.script=Please enter your Username: "
     powershell -Command "$password = Read-Host 'Please enter your Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($password))" > %TEMP%\password.tmp
     set /p password=<%TEMP%\password.tmp
     del %TEMP%\password.tmp
 
-    echo %username% > %TEMP%\username.txt
+    echo %username.script% > %TEMP%\username.txt
     echo %password% > %TEMP%\password.txt
     certutil -hashfile %TEMP%\username.txt SHA256 > %TEMP%\username_hash.txt
     certutil -hashfile %TEMP%\password.txt SHA256 > %TEMP%\password_hash.txt
 
-    for /f "tokens=2 delims=: " %%a in ('findstr /R /C:"^[0-9a-fA-F]" %TEMP%\username_hash.txt') do set "username_hash=%%a"
-    for /f "tokens=2 delims=: " %%a in ('findstr /R /C:"^[0-9a-fA-F]" %TEMP%\password_hash.txt') do set "password_hash=%%a"
+    for /f "delims=" %%a in ('powershell -Command "(Get-Content '%TEMP%\username_hash.txt' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "username_hash=%%a"
+    for /f "delims=" %%a in ('powershell -Command "(Get-Content '%TEMP%\password_hash.txt' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "password_hash=%%a"
+    
+
     echo Comparing Hashes...
     call :sys.lt 1
     
     set /p stored_username_hash=<"%secure_dir%\username.hash"
     set /p stored_password_hash=<"%secure_dir%\password.hash"
 
-    if "%username_hash%"=="%stored_username_hash%" if "%password_hash%"=="%stored_password_hash%" (
-        echo Authentication successful.
-        del %TEMP%\username.txt
-        del %TEMP%\password.txt
-        del %TEMP%\username_hash.txt
-        del %TEMP%\password_hash.txt
-        echo Authentication successful.
-        goto file.check
+    echo Calc US: "%username_hash%"  Stored US: "%stored_username_hash%"
+    echo Calc PW: "%password_hash%"  Stored PW: "%stored_password_hash%"
+    if /i "%username_hash%"=="%stored_username_hash%" (
+        echo Username Matches
+        if /i "%password_hash%"=="%stored_password_hash%" (
+            echo Password Matches
+            del %TEMP%\username.txt > nul
+            del %TEMP%\password.txt > nul
+            del %TEMP%\username_hash.txt > nul
+            del %TEMP%\password_hash.txt > nul
+            goto file.check
+        ) else (
+            echo Authentication failed. Password does not match.
+            del %TEMP%\username.txt > nul
+            del %TEMP%\password.txt > nul
+            del %TEMP%\username_hash.txt > nul
+            del %TEMP%\password_hash.txt > nul
+            echo Credentials do not match!
+            call :sys.lt 2
+            goto check-files
+        )
     ) else (
-        echo Authentication failed.
-        del %TEMP%\username.txt
-        del %TEMP%\password.txt
-        del %TEMP%\username_hash.txt
-        del %TEMP%\password_hash.txt
+        echo Authentication failed. Username does not match.
+        del %TEMP%\username.txt > nul
+        del %TEMP%\password.txt > nul
+        del %TEMP%\username_hash.txt > nul
+        del %TEMP%\password_hash.txt > nul
+        echo Credentials do not match!
+        call :sys.lt 2
         goto check-files
     )
     :file.check
@@ -376,6 +401,7 @@
     SETLOCAL DisableDelayedExpansion
 
 :menu
+    if not defined %username.script% set "username.script= "
     if exist updater.bat erase updater.bat
     if exist encrypt.bat erase encrypt.bat
     if "%1"=="settings" goto settings
@@ -400,7 +426,7 @@
 
 
     call :sys.lt 1
-    echo Made by PIRANY                 %current-script-version%                 Logged in as %username%
+    echo Made by PIRANY                 %current-script-version%                 Logged in as %username.script%
     call :sys.lt 1
     echo.
     call :sys.lt 1
@@ -633,7 +659,7 @@
     call :sys.lt 1
     echo [3] Generate Debug Log
     call :sys.lt 1
-    echo [4] Setup Login
+    echo [4] Account
     call :sys.lt 1
     echo.
     call :sys.lt 1
@@ -656,11 +682,21 @@
     echo.
     call :sys.lt 1
     echo [2] Discard
+    call :sys.lt 1
+    echo.
+    call :sys.lt 1
+    echo [3] Discard
+    call :sys.lt 1
+    echo.
+    call :sys.lt 1
+    echo [4] Discard
     echo.
     echo.
     choice /C 12 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto login.create
+        if %_erl%==2 goto login.change
+        if %_erl%==2 goto login.delete
         if %_erl%==2 goto advanced.options
 
 :login.create
@@ -669,16 +705,16 @@
     set /p password=<%TEMP%\password.tmp
     del %TEMP%\password.tmp
     
-    echo Hasing the Username and Password...
+    echo Hashing the Username and Password...
     :: Hash the username and password using certutil
-    echo %username% > %TEMP%\username.txt
+    echo %username.script% > %TEMP%\username.txt
     echo %password% > %TEMP%\password.txt
     certutil -hashfile %TEMP%\username.txt SHA256 > %TEMP%\username_hash.txt
     certutil -hashfile %TEMP%\password.txt SHA256 > %TEMP%\password_hash.txt
     
     :: Extract the hash values
-    for /f "tokens=2 delims=: " %%a in ('findstr /R /C:"^[0-9a-fA-F]" %TEMP%\username_hash.txt') do set "username_hash=%%a"
-    for /f "tokens=2 delims=: " %%a in ('findstr /R /C:"^[0-9a-fA-F]" %TEMP%\password_hash.txt') do set "password_hash=%%a"
+    for /f "delims=" %%a in ('powershell -Command "(Get-Content '%TEMP%\username_hash.txt' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "username_hash=%%a"
+    for /f "delims=" %%a in ('powershell -Command "(Get-Content '%TEMP%\password_hash.txt' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "password_hash=%%a"
     
     
     :: Save the hashed values in a secure location
