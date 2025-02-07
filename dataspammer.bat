@@ -39,6 +39,7 @@
     if "%1"=="debugtest" goto debugtest
     if "%1"=="api" goto sys.api
     if "%1"=="goto" goto dev.goto
+    if "%1"=="monitor" goto monitor
     if "%1"=="noelev" @ECHO OFF && cd /d %~dp0 && @color 02 && set "small-install=1" && goto check-files
     if "%update-install%"=="1" ( goto sys.new.update.installed )
 
@@ -65,6 +66,9 @@
 :sys.req.elevation
     :: Parses Settings
     echo Checking for Data...
+
+    :: Start the Monitor Socket
+    :: start /min cmd.exe /k ""%~f0" monitor"
     if not exist "settings.conf" goto sys.no.settings
     echo Extracting Settings...
     set "config_file=settings.conf"
@@ -108,13 +112,17 @@
     del %TEMP%\username_hash.txt > nul
     del %TEMP%\password_hash.txt > nul
     set "secure_dir=%userprofile%\Documents\SecureDataSpammer"
+
+
     if not exist "%secure_dir%\username.hash" goto file.check
-    set /p "username.script=Please enter your Username: "
+
+    cls
+    set /p "username=Please enter your Username: "
     powershell -Command "$password = Read-Host 'Please enter your Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($password))" > %TEMP%\password.tmp
     set /p password=<%TEMP%\password.tmp
     del %TEMP%\password.tmp
 
-    echo %username.script% > %TEMP%\username.txt
+    echo %username% > %TEMP%\username.txt
     echo %password% > %TEMP%\password.txt
     certutil -hashfile %TEMP%\username.txt SHA256 > %TEMP%\username_hash.txt
     certutil -hashfile %TEMP%\password.txt SHA256 > %TEMP%\password_hash.txt
@@ -124,16 +132,21 @@
     
 
     echo Comparing Hashes...
-    call :sys.lt 1
     
     set /p stored_username_hash=<"%secure_dir%\username.hash"
     set /p stored_password_hash=<"%secure_dir%\password.hash"
 
-    echo Calc US: "%username_hash%"  Stored US: "%stored_username_hash%"
-    echo Calc PW: "%password_hash%"  Stored PW: "%stored_password_hash%"
-    if /i "%username_hash%"=="%stored_username_hash%" (
+    :: echo Calc US: "%username_hash%"  Stored US: "%stored_username_hash%"
+    :: echo Calc PW: "%password_hash%"  Stored PW: "%stored_password_hash%"
+    
+    set "username_hash=%username_hash: =%"
+    set "stored_username_hash=%stored_username_hash: =%"
+    set "password_hash=%password_hash: =%"
+    set "stored_password_hash=%stored_password_hash: =%"
+
+    if "%username_hash%" EQU "%stored_username_hash%" (
         echo Username Matches
-        if /i "%password_hash%"=="%stored_password_hash%" (
+        if "%password_hash%" EQU "%stored_password_hash%" (
             echo Password Matches
             del %TEMP%\username.txt > nul
             del %TEMP%\password.txt > nul
@@ -147,7 +160,7 @@
             del %TEMP%\username_hash.txt > nul
             del %TEMP%\password_hash.txt > nul
             echo Credentials do not match!
-            call :sys.lt 2
+            pause
             goto check-files
         )
     ) else (
@@ -157,9 +170,10 @@
         del %TEMP%\username_hash.txt > nul
         del %TEMP%\password_hash.txt > nul
         echo Credentials do not match!
-        call :sys.lt 2
+        pause
         goto check-files
     )
+    
     :file.check
     :: Checks if all Files needed for the Script exist
     setlocal enabledelayedexpansion
@@ -170,6 +184,10 @@
     if %logging% == 1 ( call :log . )
     if %logging% == 1 ( call :log . )
     if %logging% == 1 ( call :log DataSpammer_Started )
+
+    :: Establish Socket Connection
+    call :send_message Started.DataSpammer
+    call :send_message Established.Socket.Connection
 
     echo Checking for Files...
     if not exist "install.bat" (goto sys.error.no.install) else (goto settings.extract.update)
@@ -262,7 +280,7 @@
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo Please consider downloading the new Version. 
+    echo Please consider installing the new Version. 
     call :sys.lt 1
     echo The Version you are currently using is %current-script-version%
     call :sys.lt 1call :sys.lt 1 
@@ -399,11 +417,10 @@
     SETLOCAL DisableDelayedExpansion
 
 :menu
-    if not defined %username.script% set "username.script= "
-    if exist updater.bat erase updater.bat
     if exist encrypt.bat erase encrypt.bat
     if "%1"=="settings" goto settings
     if %logging% == 1 ( call :log Displaying_Menu )
+    call :send_message Displaying.Menu
     if %logging% == 1 ( call :log Startup_Complete )
     title DataSpammer %current-script-version%
     if "%small-install%" == "1" (
@@ -424,7 +441,7 @@
 
 
     call :sys.lt 1
-    echo Made by PIRANY                 %current-script-version%                 Logged in as %username.script%
+    echo Made by PIRANY                 %current-script-version%                 Logged in as %username%
     call :sys.lt 1
     echo.
     call :sys.lt 1
@@ -690,7 +707,7 @@
     echo [4] Discard
     echo.
     echo.
-    choice /C 12 /M "Choose an Option from Above:"
+    choice /C 1234 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto login.create
         if %_erl%==2 goto login.change
@@ -718,14 +735,15 @@
 :login.create
     set "secure_dir=%userprofile%\Documents\SecureDataSpammer"
     if exist %secure_dir% echo Account already exists. && call :sys.lt 1 && goto login.setup
-    set /p "username=Please enter a Username:"
+    set /p "username=Please enter a Username: "
+
     powershell -Command "$password = Read-Host 'Please enter a Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($password))" > %TEMP%\password.tmp
     set /p password=<%TEMP%\password.tmp
     del %TEMP%\password.tmp
     
     echo Hashing the Username and Password...
     :: Hash the username and password using certutil
-    echo %username.script% > %TEMP%\username.txt
+    echo %username% > %TEMP%\username.txt
     echo %password% > %TEMP%\password.txt
     certutil -hashfile %TEMP%\username.txt SHA256 > %TEMP%\username_hash.txt
     certutil -hashfile %TEMP%\password.txt SHA256 > %TEMP%\password_hash.txt
@@ -1945,11 +1963,13 @@
     echo.
     echo    debug Generate Debug Log
     echo.
+    echo    monitor Opens the Monitor Socket
+    echo.
     echo.
 
     exit /b 1464
 
-    :: Whitout the UD stuff
+
 :fast.git.update
     set "current-script-version=v3.6"
     set "owner=PIRANY1"
@@ -2056,6 +2076,8 @@
 
 :restart.script
     if %logging% == 1 ( call :log Restarting_Script )
+    call :send_message Script.is.restarting.
+    call :send_message Waiting.for.Connection.to.be.Reestablished
     cd %~dp0
     dataspammer.bat
     exit restarted.script
@@ -2344,12 +2366,57 @@
     call :log Tested_Functionality
     type %userprofile%\Documents\DataSpammerLog\Dataspammer.log
 
-    :: Paste Newly Added Functions of your PR here to test them via Git
+    :: Paste Newly Added Functions of your PR here to test them via GitHub Actions
+    :: Example1: call :dns.spam
+    :: Example2: Paste a modified Function here if manual input is required
     
 
     echo Finished Testing...
     echo Exiting
     goto cancel
+
+
+
+:: When Monitor is called, it will spectate the Script and give details about the current state
+:monitor
+    @echo off
+    setlocal EnableDelayedExpansion
+    cls
+    echo Opened Monitor Socket.
+    echo Waiting for Startup to Finish...
+    title Monitoring DataSpammer.bat
+
+    :fullloop
+
+        for /f "tokens=1-3 delims=:." %%a in ("%time%") do set formatted_time=%%a:%%b:%%c
+
+        :: Check if a Message is available
+        if exist "%TEMP%\socket.message" (
+            set /p message.monitor=<"%TEMP%\socket.message"
+            del "%TEMP%\socket.message"
+            echo %formatted_time%: %message.monitor%
+        )
+
+
+        tasklist /FI "IMAGENAME eq cmd.exe" /V | findstr "DataSpammer" >nul
+        if %ERRORLEVEL% NEQ 0 (
+            echo DataSpammer.bat Exited at !formatted_time!
+            timeout /t 5 >nul
+            exit /b 0
+        )
+
+
+    goto fullloop
+
+
+:send_message
+    :: Send a Message to Monitor Socket
+    set "socket.location=%TEMP%\socket.message"
+    set "message=%1"
+    echo %message% > "%socket.location%"
+    exit /b
+
+
 
 :sys.verify.execution
     if %logging% == 1 ( call :log Opened_verify_tab )
@@ -2373,6 +2440,7 @@
     set EXIT_CODE=%ERRORLEVEL%
     if %EXIT_CODE% equ 0 set EXIT_CODE=1
     if "%OS%"=="Windows_NT" endlocal
+    call :send_message close
     exit /b %EXIT_CODE%
 
 
