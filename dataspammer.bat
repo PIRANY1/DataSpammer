@@ -18,6 +18,7 @@
 
 :!top
     cd %~dp0
+    title Startup - DataSpammer
     set "script.dir=%cd%"
     @if "%debug_assist%"=="" @echo off
     if "%OS%"=="Windows_NT" setlocal
@@ -2072,6 +2073,7 @@
     echo The Explorer Windows with the Script will open in 5 Seconds
     timeout 5
     explorer %~dp0
+    echo. > %temp%\DataSpammerClose.txt
     exit 0
 
 :restart.script
@@ -2382,11 +2384,31 @@
     @echo off
     setlocal EnableDelayedExpansion
     cls
+    del "%temp%\DataSpammerCrashed.txt" > nul
+    del "%temp%\DataSpammerClose.txt" > nul
     echo Opened Monitor Socket.
     echo Waiting for Startup to Finish...
     title Monitoring DataSpammer.bat
 
+    set "psScript=%temp%\dts-monitor.ps1"
+    echo $stopFile = "$env:temp\DataSpammerClose.txt" > "%psScript%"
+    echo $stoppedFile = "$env:temp\DataSpammerCrashed.txt" >> "%psScript%"
+    echo while ($true) { >> "%psScript%"
+    echo     if (Test-Path $stopFile) { >> "%psScript%"
+    echo         break >> "%psScript%"
+    echo     } >> "%psScript%"
+    echo     $process = Get-Process cmd -ErrorAction SilentlyContinue ^| Where-Object { $_.MainWindowTitle -like "*DataSpammer*" } >> "%psScript%"
+    echo     if (-not $process) { >> "%psScript%"
+    echo         "DataSpammer-Process Crashed at $(Get-Date)" ^| Out-File -FilePath $stoppedFile >> "%psScript%"
+    echo         break >> "%psScript%"
+    echo     } >> "%psScript%"
+    echo     Start-Sleep -Seconds 0.5 >> "%psScript%"
+    echo } >> "%psScript%"
+
+    start powershell.exe -ExecutionPolicy Bypass -File "%psScript%"
+
     :fullloop
+    :: For controlled exits use echo. > %temp%\DataSpammerClose.txt
 
         for /f "tokens=1-3 delims=:." %%a in ("%time%") do set formatted_time=%%a:%%b:%%c
 
@@ -2397,15 +2419,20 @@
             echo %formatted_time%: %message.monitor%
         )
 
-
-        tasklist /FI "IMAGENAME eq cmd.exe" /V | findstr "DataSpammer" >nul
-        if %ERRORLEVEL% NEQ 0 (
-            echo DataSpammer.bat Exited at !formatted_time!
+        if exist "%temp%\DataSpammerCrashed.txt" (
+            del "%temp%\DataSpammerCrashed.txt"
+            echo DataSpammer.bat Crashed at !formatted_time!
+            timeout /t 5 >nul
+            exit /b 0
+        )
+        if exist "%temp%\DataSpammerClose.txt" (
+            del "%temp%\DataSpammerClose.txt"
+            echo DataSpammer.bat was Closed at !formatted_time!
             timeout /t 5 >nul
             exit /b 0
         )
 
-
+    call :sys.lt 1
     goto fullloop
 
 
@@ -2440,7 +2467,7 @@
     set EXIT_CODE=%ERRORLEVEL%
     if %EXIT_CODE% equ 0 set EXIT_CODE=1
     if "%OS%"=="Windows_NT" endlocal
-    call :send_message close
+    echo. > %temp%\DataSpammerClose.txt
     exit /b %EXIT_CODE%
 
 
