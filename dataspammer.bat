@@ -3,12 +3,9 @@
 ::    Todo: 
 ::    Fix SSH
 ::    Add Translation
-::    Fix Creation of C:\Program
+::    Fix Creation of C:\Program - Not Confirmed
 ::    Fix Updater
-::    Encrypt settings w. openssl / encrypt / cipher / 
-::    Add Background Error Catching
-::    Delete Debug Folder after .tar is created UI 
-
+::    Encrypt settings w. openssl / encrypt / cipher / - Add De/Encrypt with Password Hash / AES Decrypt
 
 :: Developer Notes:
 :: Define %debug_assist% to bypass echo_off
@@ -25,7 +22,7 @@
     set DIRNAME=%~dp0
     if "%DIRNAME%"=="" set DIRNAME=.
     mode con: cols=140 lines=40
-    set "current-script-version=v4.4"
+    set "current-script-version=v4.5"
     set "powershell.short=powershell.exe -ExecutionPolicy Bypass -NoProfile"
     if "%1"=="h" goto help.startup
     if "%1"=="-h" goto help.startup
@@ -266,7 +263,7 @@
 
 
     
-    if "%latest_version%" equ "v4.4" (
+    if "%latest_version%" equ "v4.5" (
         set "uptodate=up"
     ) else (
         set "uptodate="
