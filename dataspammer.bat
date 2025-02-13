@@ -26,6 +26,7 @@
     if "%DIRNAME%"=="" set DIRNAME=.
     mode con: cols=140 lines=40
     set "current-script-version=v4.4"
+    set "powershell.short=powershell.exe -ExecutionPolicy Bypass -NoProfile"
     if "%1"=="h" goto help.startup
     if "%1"=="-h" goto help.startup
     if "%1"=="help" goto help.startup
@@ -68,8 +69,6 @@
     :: Parses Settings
     echo Checking for Data...
 
-    :: Start the Monitor Socket
-    :: start /min cmd.exe /k ""%~f0" monitor"
     if not exist "settings.conf" goto sys.no.settings
     echo Extracting Settings...
     set "config_file=settings.conf"
@@ -81,7 +80,7 @@
     if %errorLevel% neq 0 (
         if "%elevation%"=="sudo" goto sudo.elevation
         if "%elevation%"=="gsudo" goto gsudo.elevation
-        powershell -Command "Start-Process '%~f0' -Verb runAs"
+        %powershell.short% -Command "Start-Process '%~f0' -Verb runAs"
         exit
     )
     cd /d %~dp0
@@ -108,6 +107,15 @@
     goto check-files
 
 :check-files
+    :: Get the Process ID of the current Script - Needed for Monitor
+    %powershell.short% -Command "(Get-CimInstance Win32_Process -Filter \"ProcessId=$PID\").ParentProcessId" > "%temp%\parent_pid.txt"
+    set /p PID=<"%temp%\parent_pid.txt"
+    del "%temp%\parent_pid.txt"
+    echo Got PID: %PID%
+    
+    :: Start the Monitor Socket - Leave her to avoid multiple Instances
+    start /min cmd.exe /k ""%~f0" monitor %PID%"
+
     del %TEMP%\username.txt > nul
     del %TEMP%\password.txt > nul
     del %TEMP%\username_hash.txt > nul
@@ -119,7 +127,7 @@
 
     cls
     set /p "username=Please enter your Username: "
-    powershell -Command "$password = Read-Host 'Please enter your Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($password))" > %TEMP%\password.tmp
+    %powershell.short% -Command "$password = Read-Host 'Please enter your Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($password))" > %TEMP%\password.tmp
     set /p password=<%TEMP%\password.tmp
     del %TEMP%\password.tmp
 
@@ -128,8 +136,8 @@
     certutil -hashfile %TEMP%\username.txt SHA256 > %TEMP%\username_hash.txt
     certutil -hashfile %TEMP%\password.txt SHA256 > %TEMP%\password_hash.txt
 
-    for /f "delims=" %%a in ('powershell -Command "(Get-Content '%TEMP%\username_hash.txt' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "username_hash=%%a"
-    for /f "delims=" %%a in ('powershell -Command "(Get-Content '%TEMP%\password_hash.txt' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "password_hash=%%a"
+    for /f "delims=" %%a in ('%powershell.short% -Command "(Get-Content '%TEMP%\username_hash.txt' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "username_hash=%%a"
+    for /f "delims=" %%a in ('%powershell.short% -Command "(Get-Content '%TEMP%\password_hash.txt' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "password_hash=%%a"
     
 
     echo Comparing Hashes...
@@ -321,13 +329,13 @@
     erase install.bat && erase README.md && erase LICENSE >nul 2>&1
     mkdir %temp%\dts.update >nul 2>&1
     echo Updating script... 
-    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat" -OutFile "%temp%\dts.update\%~nx0" >nul 2>&1
+    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat" -OutFile "%temp%\dts.update\%~nx0" >nul 2>&1
     cls && echo Updating DataSpammer.bat...
-    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat" -OutFile "%temp%\dts.update\install.bat" >nul 2>&1
+    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat" -OutFile "%temp%\dts.update\install.bat" >nul 2>&1
     cls && echo Updating Install.bat...
-    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/README.md" -OutFile "%temp%\dts.update\README.md" >nul 2>&1
+    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/README.md" -OutFile "%temp%\dts.update\README.md" >nul 2>&1
     cls && echo Updating Readme...
-    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/LICENSE" -OutFile "%temp%\dts.update\LICENSE" >nul 2>&1
+    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/LICENSE" -OutFile "%temp%\dts.update\LICENSE" >nul 2>&1
     cls && echo Updating License...
     echo Updated successfully.
 
@@ -411,7 +419,7 @@
 :sys.enable.ascii.tweak
     if %logging% == 1 ( call :log Sending_Notification )
     if %logging% == 1 ( call :log Enabling_ASCII_without_CHCP )
-    powershell -Command "& {Add-Type -AssemblyName System.Windows.Forms; Add-Type -AssemblyName System.Drawing; $notify = New-Object System.Windows.Forms.NotifyIcon; $notify.Icon = [System.Drawing.SystemIcons]::Information; $notify.Visible = $true; $notify.ShowBalloonTip(0, 'DataSpammer', 'Started DataSpammer', [System.Windows.Forms.ToolTipIcon]::None)}"
+    %powershell.short% -Command "& {Add-Type -AssemblyName System.Windows.Forms; Add-Type -AssemblyName System.Drawing; $notify = New-Object System.Windows.Forms.NotifyIcon; $notify.Icon = [System.Drawing.SystemIcons]::Information; $notify.Visible = $true; $notify.ShowBalloonTip(0, 'DataSpammer', 'Started DataSpammer', [System.Windows.Forms.ToolTipIcon]::None)}"
     :: Allows ASCII stuff without Codepage Settings (i use both to be sure)
     SETLOCAL EnableDelayedExpansion
     SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
@@ -738,7 +746,7 @@
     if exist %secure_dir% echo Account already exists. && call :sys.lt 1 && goto login.setup
     set /p "username=Please enter a Username: "
 
-    powershell -Command "$password = Read-Host 'Please enter a Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($password))" > %TEMP%\password.tmp
+    %powershell.short% -Command "$password = Read-Host 'Please enter a Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($password))" > %TEMP%\password.tmp
     set /p password=<%TEMP%\password.tmp
     del %TEMP%\password.tmp
     
@@ -750,8 +758,8 @@
     certutil -hashfile %TEMP%\password.txt SHA256 > %TEMP%\password_hash.txt
     
     :: Extract the hash values
-    for /f "delims=" %%a in ('powershell -Command "(Get-Content '%TEMP%\username_hash.txt' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "username_hash=%%a"
-    for /f "delims=" %%a in ('powershell -Command "(Get-Content '%TEMP%\password_hash.txt' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "password_hash=%%a"
+    for /f "delims=" %%a in ('%powershell.short% -Command "(Get-Content '%TEMP%\username_hash.txt' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "username_hash=%%a"
+    for /f "delims=" %%a in ('%powershell.short% -Command "(Get-Content '%TEMP%\password_hash.txt' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "password_hash=%%a"
     
     
     :: Save the hashed values in a secure location
@@ -793,11 +801,11 @@
         Cipher /E dataspammer.bat
         Cipher /E install.bat
         cd /d %~dp0
-        start powershell -Command "Start-Process 'dataspammer.bat' -Verb runAs"
+        start %powershell.short% -Command "Start-Process 'dataspammer.bat' -Verb runAs"
         erase encrypt.bat
     ) > encrypt.bat
      
-    start powershell -Command "Start-Process 'encrypt.bat' -Verb runAs"
+    start %powershell.short% -Command "Start-Process 'encrypt.bat' -Verb runAs"
     exit /b startedencryption
 
 
@@ -995,13 +1003,13 @@
     erase install.bat && erase README.md && erase LICENSE >nul 2>&1
     mkdir %temp%\dts.update >nul 2>&1
     echo Updating script... 
-    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat" -OutFile "%temp%\dts.update\%~nx0" >nul 2>&1
+    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat" -OutFile "%temp%\dts.update\%~nx0" >nul 2>&1
     cls && echo Updating DataSpammer.bat...
-    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat" -OutFile "%temp%\dts.update\install.bat" >nul 2>&1
+    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat" -OutFile "%temp%\dts.update\install.bat" >nul 2>&1
     cls && echo Updating Install.bat...
-    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/README.md" -OutFile "%temp%\dts.update\README.md" >nul 2>&1
+    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/README.md" -OutFile "%temp%\dts.update\README.md" >nul 2>&1
     cls && echo Updating Readme...
-    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/LICENSE" -OutFile "%temp%\dts.update\LICENSE" >nul 2>&1
+    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/LICENSE" -OutFile "%temp%\dts.update\LICENSE" >nul 2>&1
     cls && echo Updating License...
 
     :: Encrypt new Files, when current Version is already encrypted
@@ -1037,13 +1045,13 @@
     erase install.bat && erase README.md && erase LICENSE >nul 2>&1
     mkdir %temp%\dts.update >nul 2>&1
     echo Updating script... 
-    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/dataspammer.bat" -OutFile "%temp%\dts.update\%~nx0" >nul 2>&1
+    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/dataspammer.bat" -OutFile "%temp%\dts.update\%~nx0" >nul 2>&1
     cls && echo Updating DataSpammer.bat...
-    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/install.bat" -OutFile "%temp%\dts.update\install.bat" >nul 2>&1
+    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/install.bat" -OutFile "%temp%\dts.update\install.bat" >nul 2>&1
     cls && echo Updating Install.bat...
-    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/README.md" -OutFile "%temp%\dts.update\README.md" >nul 2>&1
+    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/README.md" -OutFile "%temp%\dts.update\README.md" >nul 2>&1
     cls && echo Updating Readme...
-    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/LICENSE" -OutFile "%temp%\dts.update\LICENSE" >nul 2>&1
+    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/LICENSE" -OutFile "%temp%\dts.update\LICENSE" >nul 2>&1
     cls && echo Updating License...
     echo Updated successfully.
 
@@ -1080,13 +1088,13 @@
     erase install.bat && erase README.md && erase LICENSE >nul 2>&1
     mkdir %temp%\dts.update >nul 2>&1
     echo Updating script... 
-    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat" -OutFile "%temp%\dts.update\%~nx0" >nul 2>&1
+    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat" -OutFile "%temp%\dts.update\%~nx0" >nul 2>&1
     cls && echo Updating DataSpammer.bat...
-    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat" -OutFile "%temp%\dts.update\install.bat" >nul 2>&1
+    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat" -OutFile "%temp%\dts.update\install.bat" >nul 2>&1
     cls && echo Updating Install.bat...
-    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/README.md" -OutFile "%temp%\dts.update\README.md" >nul 2>&1
+    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/README.md" -OutFile "%temp%\dts.update\README.md" >nul 2>&1
     cls && echo Updating Readme...
-    powershell iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/LICENSE" -OutFile "%temp%\dts.update\LICENSE" >nul 2>&1
+    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/LICENSE" -OutFile "%temp%\dts.update\LICENSE" >nul 2>&1
     cls && echo Updating License...
     echo Updated successfully.
 
@@ -1700,7 +1708,7 @@
     if %errorLevel% neq 0 (
         echo Restarting Program as Elevated. Go here again manually.
         @ping -n 3 localhost> nul
-        powershell -Command "Start-Process '%~f0' -Verb runAs"
+        %powershell.short% -Command "Start-Process '%~f0' -Verb runAs"
         exit
     )
 
@@ -1766,7 +1774,7 @@
     if %errorLevel% neq 0 (
         echo Restarting Program as Elevated. Go here again manually.
         @ping -n 2 localhost> nul
-        powershell -Command "Start-Process '%~f0' -Verb runAs"
+        %powershell.short% -Command "Start-Process '%~f0' -Verb runAs"
         exit
     )
     set "directory1=%ProgramData%\Microsoft\Windows\Start Menu\Programs"
@@ -2347,15 +2355,18 @@
     echo.
     echo [2] Open GitHub Repository
     echo. 
-    echo [3] Go Back
+    echo [3] Delete Debug Files and Go Back
+    echo. 
+    echo [4] Go Back
     echo.
     echo.
     set /P debuglog=Choose an Option from Above
-    choice /C 123 /M "Choose an Option from Above:"
+    choice /C 1234 /M "Choose an Option from Above:"
     set _erl=%errorlevel%
     if %_erl%==1 echo %ZIP_FILE% | clip && cls && echo Copied debug.log.zip to your Clipboard && pause
     if %_erl%==2 explorer "https://github.com/PIRANY1/DataSpammer/issues"
-    if %_erl%==3 goto advanced.options
+    if %_erl%==3 rmdir /s /q "%SOURCE_DIR%" && goto advanced.options
+    if %_erl%==4 goto advanced.options
     goto debug.done
     
     :: Collect Functionalities HERE..
@@ -2389,23 +2400,33 @@
     echo Opened Monitor Socket.
     echo Waiting for Startup to Finish...
     title Monitoring DataSpammer.bat
+    :: Parse PID from Main Process
+    set "PID.DTS=%2"
+    echo PID: %PID.DTS%
+    set "batScript=%temp%\dts-monitor.bat"
+    erase "%batScript%"
 
-    set "psScript=%temp%\dts-monitor.ps1"
-    echo $stopFile = "$env:temp\DataSpammerClose.txt" > "%psScript%"
-    echo $stoppedFile = "$env:temp\DataSpammerCrashed.txt" >> "%psScript%"
-    echo while ($true) { >> "%psScript%"
-    echo     if (Test-Path $stopFile) { >> "%psScript%"
-    echo         break >> "%psScript%"
-    echo     } >> "%psScript%"
-    echo     $process = Get-Process cmd -ErrorAction SilentlyContinue ^| Where-Object { $_.MainWindowTitle -like "*DataSpammer*" } >> "%psScript%"
-    echo     if (-not $process) { >> "%psScript%"
-    echo         "DataSpammer-Process Crashed at $(Get-Date)" ^| Out-File -FilePath $stoppedFile >> "%psScript%"
-    echo         break >> "%psScript%"
-    echo     } >> "%psScript%"
-    echo     Start-Sleep -Seconds 0.5 >> "%psScript%"
-    echo } >> "%psScript%"
+    (
+        echo @echo off
+        echo setlocal
+        echo Monitoring DataSpammer.bat with PID %PID.DTS%
+        echo :check_process
+        echo tasklist /FI "PID eq %PID.DTS%" ^| findstr /R /C:" %PIDToCheck% " ^>nul
+        echo if errorlevel 1 ^(
+        echo    echo DataSpammmer with PID %PID.DTS% crashed at %%date%% %%time%% ^> "%%temp%%\DataSpammerCrashed.txt"
+        echo    echo DataSpammmer with PID %PID.DTS% crashed at %%date%% %%time%%
+        echo    exit /b 0
+        echo ^)
+        echo timeout /t 1 ^>nul
+        echo goto check_process
+    ) > "%batScript%"
 
-    start powershell.exe -ExecutionPolicy Bypass -File "%psScript%"
+    start /b "" "%batScript%"
+
+    
+
+    :: start "" %powershell.short% -ExecutionPolicy Bypass -Command "& {param([int]$pid) while ($true) {try {Get-Process -Id $pid -ErrorAction Stop} catch {"DataSpammer-Process Crashed at $(Get-Date)" | Out-File -FilePath $env:temp\DataSpammerCrashed.txt; break} Start-Sleep -Seconds 0.5}} -pid %PID%"
+
 
     :fullloop
     :: For controlled exits use echo. > %temp%\DataSpammerClose.txt
@@ -2448,19 +2469,19 @@
 :sys.verify.execution
     if %logging% == 1 ( call :log Opened_verify_tab )
     set "verify=%random%"
-    powershell -Command "& {Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.Interaction]::InputBox('Please enter Code %verify% to confirm that you want to execute this Option', 'DataSpammer Verify')}" > %TEMP%\out.tmp
+    %powershell.short% -Command "& {Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.Interaction]::InputBox('Please enter Code %verify% to confirm that you want to execute this Option', 'DataSpammer Verify')}" > %TEMP%\out.tmp
     set /p OUT=<%TEMP%\out.tmp
     if not defined OUT goto failed
     if %verify%==%OUT% (goto success) else (goto failed)
 
 :success
     set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('Sucess', 'DataSpammer Verify');}"
-    powershell -Command %msgBoxArgs%
+    %powershell.short% -Command %msgBoxArgs%
     exit /b
 
 :failed
     set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('You have entered the wrong Code. Please try again', 'DataSpammer Verify');}"
-    powershell -Command %msgBoxArgs%
+    %powershell.short% -Command %msgBoxArgs%
     goto sys.verify.execution
 
 :cancel 
