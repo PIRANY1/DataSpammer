@@ -1,11 +1,12 @@
 :: Use only under MIT License
 :: Use only under License
 ::    Todo: 
-::    Fix SSH
-::    Add Translation
+::    Rework SSH
 ::    Fix Creation of C:\Program - Not Confirmed
-::    Fix Updater
-::    Encrypt settings w. openssl / encrypt / cipher / - Add De/Encrypt with Password Hash / AES Decrypt
+::    Fix Updater - Clueless After 3 Gazillion Updates
+
+
+
 
 :: Developer Notes:
 :: Define %debug_assist% to bypass echo_off
@@ -22,7 +23,7 @@
     set DIRNAME=%~dp0
     if "%DIRNAME%"=="" set DIRNAME=.
     mode con: cols=140 lines=40
-    set "current-script-version=v4.5"
+    set "current-script-version=v4.6"
     set "powershell.short=powershell.exe -ExecutionPolicy Bypass -NoProfile"
     if "%1"=="h" goto help.startup
     if "%1"=="-h" goto help.startup
@@ -111,16 +112,17 @@
     echo Got PID: %PID%
     
     :: Start the Monitor Socket - Leave her to avoid multiple Instances
-    start /min cmd.exe /k ""%~f0" monitor %PID%"
+    if %monitoring%==1 start /min cmd.exe /k ""%~f0" monitor %PID%"
+
+    if not exist "%secure_dir%\username.hash" goto file.check
+    
+:login.input
 
     del %TEMP%\username.txt > nul
     del %TEMP%\password.txt > nul
     del %TEMP%\username_hash.txt > nul
     del %TEMP%\password_hash.txt > nul
     set "secure_dir=%userprofile%\Documents\SecureDataSpammer"
-
-
-    if not exist "%secure_dir%\username.hash" goto file.check
 
     cls
     set /p "username=Please enter your Username: "
@@ -167,7 +169,7 @@
             del %TEMP%\password_hash.txt > nul
             echo Credentials do not match!
             pause
-            goto check-files
+            goto login.input
         )
     ) else (
         echo Authentication failed. Username does not match.
@@ -177,7 +179,7 @@
         del %TEMP%\password_hash.txt > nul
         echo Credentials do not match!
         pause
-        goto check-files
+        goto login.input
     )
     
     :file.check
@@ -263,7 +265,7 @@
 
 
     
-    if "%latest_version%" equ "v4.5" (
+    if "%latest_version%" equ "v4.6" (
         set "uptodate=up"
     ) else (
         set "uptodate="
@@ -334,6 +336,7 @@
     cls && echo Updating Readme...
     %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/LICENSE" -OutFile "%temp%\dts.update\LICENSE" >nul 2>&1
     cls && echo Updating License...
+    :call :sys.lt 5
     echo Updated successfully.
 
     :: Encrypt new Files, when current Version is already encrypted
@@ -682,18 +685,56 @@
     call :sys.lt 1
     echo [4] Account
     call :sys.lt 1
+    echo [5] Monitor
+    call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [5] Go back
-    choice /C 1234 /M "Choose an Option from Above:"
+    echo [6] Go back
+    choice /C 123456 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto switch.elevation
         if %_erl%==2 goto encrypt
         if %_erl%==3 goto debuglog
         if %_erl%==4 goto login.setup
-        if %_erl%==5 goto settings
+        if %_erl%==5 goto monitor.settings
+        if %_erl%==6 goto settings
     goto advanced.options
 
+
+if %monitoring%==1 set "monitoring-status=Enabled"
+if %monitoring%==0 set "monitoring-status=Disabled"
+:monitor.settings
+    echo -----------------------
+    echo Monitor Socket Settings
+    echo -----------------------
+
+    echo.
+    echo Monitoring is currently %monitoring-status%
+    echo.
+    echo [1] Enable Monitor Socket
+    call :sys.lt 1
+    echo [2] Disable Monitor Socket
+    call :sys.lt 1
+    echo [3] Go back
+    echo.
+    choice /C 123 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto monitor.enable
+        if %_erl%==2 goto monitor.disable
+        if %_erl%==3 goto advanced.options
+    goto monitor.settings
+
+:monitor.enable
+    call :update_config "monitoring" "" "1"
+    echo Monitor Socket Enabled
+    call :sys.lt 3
+    goto monitor.settings
+
+:monitor.disable
+    call :update_config "monitoring" "" "0"
+    echo Monitor Socket Disabled
+    call :sys.lt 3
+    goto monitor.settings
 
 :login.setup
     echo To use the Login Feature you need to create an Account.
@@ -797,6 +838,7 @@
         erase temp_prefix.bin
         Cipher /E dataspammer.bat
         Cipher /E install.bat
+        Cipher /E settings.conf
         cd /d %~dp0
         start %powershell.short% -Command "Start-Process 'dataspammer.bat' -Verb runAs"
         erase encrypt.bat

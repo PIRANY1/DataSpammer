@@ -6,7 +6,7 @@ mode con: cols=140 lines=40
 if "%restart-main%" == "1" dataspammer.bat
 @title Script Installer by PIRANY
 set "foldername=DataSpammer"
-set "current-script-version=v4.5"
+set "current-script-version=v4.6"
 cd /d %~dp0
 color 2
 cls  
@@ -376,11 +376,12 @@ color 2
     set "default.filename=notused"
     set "default.directory=notused"
     set "update=0"
-    set "logging=0"
+    set "logging=1"
     set "dev.mode=0"
     set "default-filecount=notused"
     set "default-domain=notused"
     set "elevation=pwsh"
+    set "monitoring=0"
     (
         echo :: DataSpammer configuration
         echo :: Standard Filename
@@ -397,8 +398,10 @@ color 2
         echo default-filecount=%default-filecount%
         echo :: Default Domain
         echo default-domain=%default-domain%
-        echo :: Elevation Method used (pwsh / sudo)
+        echo :: Elevation Method used (pwsh / sudo / gsudo)
         echo elevation=%elevation%
+        echo :: Change Monitoring Socket
+        echo monitoring=%monitoring%
     ) > settings.conf
     
 
