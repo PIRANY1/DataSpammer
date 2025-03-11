@@ -1,7 +1,6 @@
 :: Use only under MIT License
 :: Use only under License
 ::    Todo: 
-::    Rework SSH - Check if Commands get executed & Add Key Support
 ::    Fix Creation of C:\Program - Not Confirmed
 ::    Fix Updater - Clueless After 3 Gazillion Updates
 ::    Fix Verify Bypass - Not Confirmed
