@@ -3,6 +3,7 @@
 ::    Todo: 
 ::    Fix Updater - Clueless After 3 Gazillion Updates - Added -UseBasicParsing to iwr
 ::    Add PR Presets, Docs etc.
+::    Add Auto Adjust Window / better sizing for all TLIs
 
 :: Developer Notes:
 :: Define %debug_assist% to bypass echo_off
@@ -21,6 +22,7 @@
     mode con: cols=140 lines=40
     set "current-script-version=v4.7"
     set "powershell.short=powershell.exe -ExecutionPolicy Bypass -NoProfile"
+    if "%1"=="" goto normal.start
     if "%1"=="h" goto help.startup
     if "%1"=="-h" goto help.startup
     if "%1"=="help" goto help.startup
@@ -30,7 +32,6 @@
     if "%1"=="update" goto fast.git.update
     if "%1"=="update.script" call :update.script %2
     if "%1"=="remove" goto sys.delete.script
-    if "%1"=="" goto normal.start
     if "%1"=="cli" goto sys.cli
     if "%1"=="debug" goto debuglog
     if "%1"=="debugtest" goto debugtest

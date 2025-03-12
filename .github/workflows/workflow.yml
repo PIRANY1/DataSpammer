@@ -1,9 +1,6 @@
 name: Dataspammer Functionality Test
 
-on:
-  pull_request:
-    branches:
-      - main
+on: [push, pull_request]
 
 jobs:
   Debug-Test:
@@ -29,3 +26,14 @@ jobs:
         run: |
           cd DataSpammer
           cmd.exe /c ${{ github.workspace }}\DataSpammer\dataspammer.bat debugtest
+
+      - name: Run DataSpammer and Capture Output
+        shell: pwsh
+        run: |
+          $output = cmd /c DataSpammer.bat noelev
+          if ($output -match "Got PID: .+") {
+            Write-Host "Test passed!"
+          } else {
+            Write-Error "Test failed!"
+            exit 1
+          }
