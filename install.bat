@@ -6,7 +6,7 @@ mode con: cols=140 lines=40
 if "%restart-main%" == "1" dataspammer.bat
 @title Script Installer by PIRANY
 set "foldername=DataSpammer"
-set "current-script-version=v4.6"
+set "current-script-version=v4.7"
 cd /d %~dp0
 color 2
 cls  
