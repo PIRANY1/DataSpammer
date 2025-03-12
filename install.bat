@@ -6,7 +6,7 @@ mode con: cols=140 lines=40
 if "%restart-main%" == "1" dataspammer.bat
 @title Script Installer by PIRANY
 set "foldername=DataSpammer"
-set "current-script-version=v4.6"
+set "current-script-version=v5"
 cd /d %~dp0
 color 2
 cls  
@@ -170,7 +170,7 @@ color 2
 :standard.install.run
     call :verify
     :: Some Pre-Install Stuff
-    set "directory=%ProgramFiles%"
+    set "directory=%ProgramW6432%"
     cd /d "%directory%"
 :standard.install.run.1
     setlocal EnableDelayedExpansion
@@ -217,7 +217,7 @@ color 2
 
 :standard.install.run.4
     :: Default Install Options TLI
-    echo The script will install itself in the following directory: %ProgramFiles%
+    echo The script will install itself in the following directory: %ProgramW6432%
     call :sys.lt 1
     echo For better accessibility of the script you can create for example a Startmenu Shortcut or a Desktop Shortcut
     call :sys.lt 1
