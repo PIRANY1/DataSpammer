@@ -2,8 +2,8 @@
 :: Use only under License
 ::    Todo: 
 ::    Fix Creation of C:\Program - Not Confirmed
-::    Fix Updater - Clueless After 3 Gazillion Updates
-::    Fix Verify Bypass - Not Confirmed
+::    Fix Updater - Clueless After 3 Gazillion Updates - Added -UseBasicParsing to iwr
+::    Use Call for Updater
 
 
 :: Developer Notes:
@@ -326,13 +326,13 @@
     erase install.bat && erase README.md && erase LICENSE >nul 2>&1
     mkdir %temp%\dts.update >nul 2>&1
     echo Updating script... 
-    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat" -OutFile "%temp%\dts.update\%~nx0" >nul 2>&1
+    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat" -UseBasicParsing -OutFile "%temp%\dts.update\%~nx0" >nul 2>&1
     cls && echo Updating DataSpammer.bat...
-    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat" -OutFile "%temp%\dts.update\install.bat" >nul 2>&1
+    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat" -UseBasicParsing -OutFile "%temp%\dts.update\install.bat" >nul 2>&1
     cls && echo Updating Install.bat...
-    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/README.md" -OutFile "%temp%\dts.update\README.md" >nul 2>&1
+    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/README.md" -UseBasicParsing -OutFile "%temp%\dts.update\README.md" >nul 2>&1
     cls && echo Updating Readme...
-    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/LICENSE" -OutFile "%temp%\dts.update\LICENSE" >nul 2>&1
+    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/LICENSE" -UseBasicParsing -OutFile "%temp%\dts.update\LICENSE" >nul 2>&1
     cls && echo Updating License...
     :call :sys.lt 5
     echo Updated successfully.
@@ -1040,13 +1040,13 @@ if %monitoring%==0 set "monitoring-status=Disabled"
     erase install.bat && erase README.md && erase LICENSE >nul 2>&1
     mkdir %temp%\dts.update >nul 2>&1
     echo Updating script... 
-    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat" -OutFile "%temp%\dts.update\%~nx0" >nul 2>&1
+    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat" -UseBasicParsing -OutFile "%temp%\dts.update\%~nx0" >nul 2>&1
     cls && echo Updating DataSpammer.bat...
-    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat" -OutFile "%temp%\dts.update\install.bat" >nul 2>&1
+    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat" -UseBasicParsing -OutFile "%temp%\dts.update\install.bat" >nul 2>&1
     cls && echo Updating Install.bat...
-    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/README.md" -OutFile "%temp%\dts.update\README.md" >nul 2>&1
+    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/README.md" -UseBasicParsing -OutFile "%temp%\dts.update\README.md" >nul 2>&1
     cls && echo Updating Readme...
-    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/LICENSE" -OutFile "%temp%\dts.update\LICENSE" >nul 2>&1
+    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/LICENSE" -UseBasicParsing -OutFile "%temp%\dts.update\LICENSE" >nul 2>&1
     cls && echo Updating License...
 
     :: Encrypt new Files, when current Version is already encrypted
@@ -1082,13 +1082,13 @@ if %monitoring%==0 set "monitoring-status=Disabled"
     erase install.bat && erase README.md && erase LICENSE >nul 2>&1
     mkdir %temp%\dts.update >nul 2>&1
     echo Updating script... 
-    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/dataspammer.bat" -OutFile "%temp%\dts.update\%~nx0" >nul 2>&1
+    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/dataspammer.bat" -UseBasicParsing -OutFile "%temp%\dts.update\%~nx0" >nul 2>&1
     cls && echo Updating DataSpammer.bat...
-    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/install.bat" -OutFile "%temp%\dts.update\install.bat" >nul 2>&1
+    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/install.bat" -UseBasicParsing -OutFile "%temp%\dts.update\install.bat" >nul 2>&1
     cls && echo Updating Install.bat...
-    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/README.md" -OutFile "%temp%\dts.update\README.md" >nul 2>&1
+    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/README.md" -UseBasicParsing -OutFile "%temp%\dts.update\README.md" >nul 2>&1
     cls && echo Updating Readme...
-    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/LICENSE" -OutFile "%temp%\dts.update\LICENSE" >nul 2>&1
+    %powershell.short% iwr "https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/LICENSE" -UseBasicParsing -OutFile "%temp%\dts.update\LICENSE" >nul 2>&1
     cls && echo Updating License...
     echo Updated successfully.
 
@@ -2556,6 +2556,7 @@ setlocal enabledelayedexpansion
     set "verify=%random%"
     %powershell.short% -Command "& {Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.Interaction]::InputBox('Please enter Code %verify% to confirm that you want to execute this Option', 'DataSpammer Verify')}" > %TEMP%\out.tmp
     set /p OUT=<%TEMP%\out.tmp
+    :: Fix Empty Input Bypass
     if not defined OUT goto failed
     if %verify%==%OUT% (goto success) else (goto failed)
 
