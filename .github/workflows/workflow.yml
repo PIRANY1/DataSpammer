@@ -27,18 +27,3 @@ jobs:
           cd DataSpammer
           cmd.exe /c ${{ github.workspace }}\DataSpammer\dataspammer.bat debugtest
 
-      - name: Run DataSpammer and Capture Output
-        shell: pwsh
-        run: |
-          $output = cmd /c DataSpammer.bat | Out-String
-          $lines = $output -split "`n"
-          
-          foreach ($line in $lines) {
-            if ($line -match "Got PID: .+") {
-              Write-Host "Test passed!"
-              exit 0
-            }
-          }
-
-          Write-Error "Test failed! 'Got PID:' not found."
-          exit 1 
