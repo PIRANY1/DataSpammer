@@ -30,7 +30,7 @@ jobs:
       - name: Run DataSpammer and Capture Output
         shell: pwsh
         run: |
-          $output = cmd /c DataSpammer.bat noelev
+          $output = cmd /c ${{ github.workspace }}\DataSpammer\dataspammer.bat noelev
           if ($output -match "Got PID: .+") {
             Write-Host "Test passed!"
           } else {

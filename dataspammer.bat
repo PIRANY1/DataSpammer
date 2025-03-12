@@ -20,7 +20,7 @@
     set DIRNAME=%~dp0
     if "%DIRNAME%"=="" set DIRNAME=.
     mode con: cols=140 lines=40
-    set "current-script-version=v4.7"
+    set "current-script-version=v5"
     set "powershell.short=powershell.exe -ExecutionPolicy Bypass -NoProfile"
     if "%1"=="" goto normal.start
     if "%1"=="h" goto help.startup
@@ -263,7 +263,7 @@
 
 
     
-    if "%latest_version%" equ "v4.7" (
+    if "%latest_version%" equ "v5" (
         set "uptodate=up"
     ) else (
         set "uptodate="
