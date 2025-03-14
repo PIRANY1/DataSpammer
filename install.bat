@@ -168,7 +168,8 @@ color 2
     goto installer.main.window
 
 :standard.install.run
-    call :verify
+    :: Disabled cuz its annoying
+    :: call :verify
     :: Some Pre-Install Stuff
     set "directory=%ProgramW6432%"
     cd /d "%directory%"
@@ -188,8 +189,7 @@ color 2
     set "autostart=Not Included"
 :standard.install.run.3
     :: AV Deactivate TLI
-    echo These extra files get detected as a virus from some antivirus programs. 
-    echo A tutorial on how to temporarily turn off your AV is down below
+    echo Some Files may get flagged by some Antivirus Software.
     echo.
     call :sys.lt 1
     echo [1] Open Tutorial on how to turn off AV
@@ -254,7 +254,7 @@ color 2
         if %_erl%==2 goto n2varinst
         if %_erl%==3 goto n3varinst
         if %_erl%==4 goto installer.updater.installation.confirm
-        if %_erl%==5 goto standard.install.run
+        if %_erl%==5 goto standard.install.run.2
     goto standard.install.run
 
 
@@ -330,7 +330,7 @@ color 2
     echo.
     choice /C 12 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 goto set "gitinsyn=1"
+        if %_erl%==1 set "gitinsyn=1"
         if %_erl%==2 goto installer.start.copy
 
 

@@ -2,8 +2,9 @@
 :: Use only under License
 ::    Todo: 
 ::    Fix Updater - Clueless After 3 Gazillion Updates - Added -UseBasicParsing to iwr
-::    Add PR Presets, Docs etc.
+::    Add more Docs
 ::    Add Auto Adjust Window / better sizing for all TLIs
+::    Improve Uninstaller - Include Registry etc.
 
 :: Developer Notes:
 :: Define %debug_assist% to bypass echo_off
@@ -62,7 +63,7 @@
     )
 
 :sys.req.elevation
-    :: Parses Settings
+    :: Parse Settings
     echo Checking for Data...
 
     if not exist "settings.conf" goto sys.no.settings
