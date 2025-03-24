@@ -1,4 +1,3 @@
-:: Use only under MIT License
 :: Use only under License
 ::    Todo: 
 ::    Fix Updater - Clueless After 3 Gazillion Updates - Added -UseBasicParsing to iwr
