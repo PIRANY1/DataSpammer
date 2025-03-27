@@ -1,32 +1,41 @@
 :: Use only under License
+:: Contribute under https://github.com/PIRANY1/DataSpammer
+:: Version v6
+:: Last edited on 24.03.2025 by PIRANY
+
+:: Developer Notes
+:: Define %debug_assist% to bypass echo_off
+:: Define devtools to open the developer menu
+:: Developer Tool is in install.bat at :sys.add.developer.tool
+
 ::    Todo: 
 ::    Fix Updater - Clueless After 3 Gazillion Updates - Added -UseBasicParsing to iwr
 ::    Add more Docs
 ::    Add Auto Adjust Window / better sizing for all TLIs
 ::    Improve Uninstaller - Include Registry etc.
+::    Improve Developer Tool
+::    Improve Window Sizing
+::    Check all Var Names
+::    Add Debug List
+::    Improve Monitor Message Drop
+::    Add Skip Security Question + Always use Custom Directory Yes/No
 
-:: Developer Notes:
-:: Define %debug_assist% to bypass echo_off
-:: Define devtools to open the developer menu (needs improvements)
-:: Developer Tool is in install.bat at :sys.add.developer.tool
-
-
-:!top
-    cd %~dp0
-    title Startup - DataSpammer
-    set "script.dir=%cd%"
-    @if "%debug_assist%"=="" @echo off
+:top
+    cd /d %~dp0
+    @color 02
+    @title DataSpammer
+    setlocal enabledelayedexpansion
+    set "exec-dir=%cd%"
+    @if "debug_assist"="" @echo off
+    :: Improve NT Compatabilty
     if "%OS%"=="Windows_NT" setlocal
     set DIRNAME=%~dp0
     if "%DIRNAME%"=="" set DIRNAME=.
     mode con: cols=140 lines=40
-    set "current-script-version=v5"
+    set "current-script-version=v6"
+    :: Improve Powershell Speed
     set "powershell.short=powershell.exe -ExecutionPolicy Bypass -NoProfile"
-    if "%1"=="" goto normal.start
-    if "%1"=="h" goto help.startup
-    if "%1"=="-h" goto help.startup
-    if "%1"=="help" goto help.startup
-    if "%1"=="-help" goto help.startup
+    if "%1"=="" goto startup
     if "%1"=="--help" goto help.startup
     if "%1"=="faststart" goto sys.enable.ascii.tweak
     if "%1"=="update" goto fast.git.update
@@ -38,40 +47,29 @@
     if "%1"=="api" goto sys.api
     if "%1"=="goto" goto dev.goto
     if "%1"=="monitor" goto monitor
-    if "%1"=="noelev" @ECHO OFF && cd /d %~dp0 && @color 02 && set "small-install=1" && goto check-files
+    if "%1"=="noelev" set "small-install=1" && goto pid.check
     if "%update-install%"=="1" ( goto sys.new.update.installed )
-
-
-
-:normal.start
-    @color 02
-    cd /d %~dp0
     if not defined devtools (goto top-startup) else (gotod open.dev.settings)
 
+:startup
+    title DataSpammer - Starting
 
-:top-startup
-    
-    set inputFile=settings.conf
+    :: Check install Type
     set "firstLine="
-    set /p firstLine=<%inputFile%
-    if "%firstLine%"=="small-install" (
-        set "small-install=1" 
-        set "small-install=1" && goto sys.enable.ascii.tweak
-    ) else (
-        goto sys.req.elevation
-    )
+    set /p firstLine=<settings.conf
+    if "%firstLine%"=="small-install" ( set "small-install=1" && goto sys.enable.ascii.tweak )
 
-:sys.req.elevation
+:sys.elevate
     :: Parse Settings
-    echo Checking for Data...
+    echo Parsing Settings...
 
     if not exist "settings.conf" goto sys.no.settings
-    echo Extracting Settings...
     set "config_file=settings.conf"
     for /f "usebackq tokens=1,2 delims==" %%a in (`findstr /v "^::" "%config_file%"`) do (
         set "%%a=%%b"
     )
 
+    :: Start the Elevation Request
     net session >nul 2>&1
     if %errorLevel% neq 0 (
         if "%elevation%"=="sudo" goto sudo.elevation
@@ -80,8 +78,8 @@
         exit
     )
     cd /d %~dp0
-    goto check-files
-    
+    goto pid.check
+
 :sudo.elevation
     net session >nul 2>&1
     if %errorLevel% neq 0 ( 
@@ -90,7 +88,7 @@
         exit
     )
     cd /d %~dp0
-    goto check-files
+    goto pid.check
 
 :gsudo.elevation
     net session >nul 2>&1
@@ -100,27 +98,28 @@
         exit
     )
     cd /d %~dp0
-    goto check-files
+    goto pid.check
 
-:check-files
+:pid.check
     :: Get the Process ID of the current Script - Needed for Monitor
     %powershell.short% -Command "(Get-CimInstance Win32_Process -Filter \"ProcessId=$PID\").ParentProcessId" > "%temp%\parent_pid.txt"
     set /p PID=<"%temp%\parent_pid.txt"
     del "%temp%\parent_pid.txt"
     echo Got PID: %PID%
     
-    :: Start the Monitor Socket - Leave her to avoid multiple Instances
+    :: Start the Monitor Socket - Moved here to avoid multiple Instances
     if %monitoring%==1 start /min cmd.exe /k ""%~f0" monitor %PID%"
 
-    if not exist "%secure_dir%\username.hash" goto file.check
-    
-:login.input
+    :: Check if Login is Setup
+    set "secure_dir=%userprofile%\Documents\SecureDataSpammer"
+    if not exist "%secure_dir%\username.hash" goto file.check    
 
+:login.input
+    title DataSpammer - Login
     del %TEMP%\username.txt > nul
     del %TEMP%\password.txt > nul
     del %TEMP%\username_hash.txt > nul
     del %TEMP%\password_hash.txt > nul
-    set "secure_dir=%userprofile%\Documents\SecureDataSpammer"
 
     cls
     set /p "username=Please enter your Username: "
@@ -136,14 +135,12 @@
     for /f "delims=" %%a in ('%powershell.short% -Command "(Get-Content '%TEMP%\username_hash.txt' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "username_hash=%%a"
     for /f "delims=" %%a in ('%powershell.short% -Command "(Get-Content '%TEMP%\password_hash.txt' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "password_hash=%%a"
     
-
     echo Comparing Hashes...
-    
     set /p stored_username_hash=<"%secure_dir%\username.hash"
     set /p stored_password_hash=<"%secure_dir%\password.hash"
 
-    :: echo Calc US: "%username_hash%"  Stored US: "%stored_username_hash%"
-    :: echo Calc PW: "%password_hash%"  Stored PW: "%stored_password_hash%"
+    :: echo Calc Username: "%username_hash%"  Stored Username: "%stored_username_hash%"
+    :: echo Calc Password: "%password_hash%"  Stored Password: "%stored_password_hash%"
     
     set "username_hash=%username_hash: =%"
     set "stored_username_hash=%stored_username_hash: =%"
@@ -178,45 +175,46 @@
         echo Credentials do not match!
         pause
         goto login.input
+    )    
+
+:file.check
+    :: Check Files
+    title DataSpammer - Starting
+    :: Improve Log Readability
+    for /l %%i in (1,1,10) do (
+        if %logging% == 1 ( call :log . )
     )
-    
-    :file.check
-    :: Checks if all Files needed for the Script exist
-    setlocal enabledelayedexpansion
-    @title Starting Up...
-    :: Makes Log More Readable after Script restart
-    if %logging% == 1 ( call :log . )
-    if %logging% == 1 ( call :log . )
-    if %logging% == 1 ( call :log . )
-    if %logging% == 1 ( call :log . )
-    if %logging% == 1 ( call :log DataSpammer_Started )
 
     :: Establish Socket Connection
     call :send_message Started.DataSpammer
     call :send_message Established.Socket.Connection
-
-    echo Checking for Files...
+    if %logging% == 1 ( call :log Established_Socket_Connection )
+    
     if not exist "install.bat" (goto sys.error.no.install) else (goto settings.extract.update)
 
 :sys.no.settings
-    if %logging% == 1 ( call :log Settings-Not-Found )
-    :: TLI when Settings arent found
+    :: Check for Install Reg Key
+    reg query "HKCU\Software\DataSpammer" /v Installed >nul 2>&1
+    if %errorlevel% neq 0 (
+        echo Installation was not executed. 
+        echo Opening installer...
+        call :sys.lt 4
+        cd /d %~dp0
+        install.bat
+    )
+    if %logging% == 1 ( call :log Settings_Not_Found )
     cls
     echo The File "settings.conf" doesnt exist. 
-    call :sys.lt 1
-    echo Theres a high Chance that the Installer didnt run yet.
-    call :sys.lt 1
-    echo Please consider rerunning the installer to make sure the script can run accurately.
     call :sys.lt 1
     echo Do you want to reinstall the Script or do you want to open the Script anyways?
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [1] Open the Installer
+    echo [1] Reinstall Script
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [2] Open the Script anyways 
+    echo [2] Open anyways (Some Features may not work)
     call :sys.lt 1
     choice /C 12 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
@@ -233,8 +231,8 @@
 
 
 :settings.extract.update
-    if %logging% == 1 ( call :log Checking_Settings_for_Update_Command )
-    if "%logging%"=="1" call :gitcall.sys
+    if "%logging%"=="1" ( call :log Checking_Settings_for_Update_Command )
+    call :gitcall.sys
     goto dts.startup.done
 
 :gitcall.sys
@@ -246,23 +244,16 @@
 :git.version.check
     if %logging% == 1 ( call :log Curling_Github_API )
     echo Checking for Updates...
-    set "owner=PIRANY1"
-    set "repo=DataSpammer"
-    set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
-    echo Getting Latest Release Info from API...
+    set "api_url=https://api.github.com/repos/PIRANY1/DataSpammer/releases/latest"
     curl -s %api_url% > apianswer.txt
     echo Got Release Info...
-    echo Awaiting Response...
-    echo Recieved API Response...
     echo Extracting Data...
-    @ping -n 2 localhost> nul
+    @ping -n 1 localhost> nul
     for /f "tokens=2 delims=:, " %%a in ('findstr /R /C:"\"tag_name\"" apianswer.txt') do (
         set "latest_version=%%a"
     )
     set "latest_version=%latest_version:"=%"
 
-
-    
     if "%latest_version%" equ "v5" (
         set "uptodate=up"
     ) else (
@@ -286,8 +277,6 @@
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo Please consider installing the new Version. 
-    call :sys.lt 1
     echo The Version you are currently using is %current-script-version%
     call :sys.lt 1call :sys.lt 1 
     echo The newest Version avaiable is %latest_version%
@@ -307,9 +296,6 @@
         if %_erl%==2 exit /b
     goto git.version.outdated
 
-
-
-
 :git.version.clean
     if %logging% == 1 ( call :log Version_Is_Up_To_Date )
     echo The Version you are currently using is the newest one (%latest_version%)
@@ -317,18 +303,13 @@
     exit /b
 
 
-
-
-
-
 :sys.error.no.install
     if %logging% == 1 ( call :log Install_Bat_Doesnt_Exist )
-    :: TLI When the Installer doesnt exist
-    echo The "Install.bat" doesnt exist. Some Features may not work.
+    echo The Installer doesnt exist. Some Features may not work.
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [1] Open GitHub for Versions.
+    echo [1] Open GitHub
     call :sys.lt 1
     echo.
     call :sys.lt 1
@@ -344,14 +325,12 @@
 
 
 :git.open.repo
-    if %logging% == 1 ( call :log Opening_Repo )
-    :: Open Repo
+    if %logging% == 1 ( call :log Opening_GH-Repo )
     start "" "https://github.com/PIRANY1/DataSpammer"
     goto sys.error.no.install
 
 :sys.open.installer
     if %logging% == 1 ( call :log Opening_Installer )
-    :: Opens the Installer
     cd /d %~dp0
     install.bat
     if %errorlevel% equ 0 (cls | echo Installer is running....) else (echo There was an Error. Please open the install.bat File manually.)
@@ -363,13 +342,14 @@
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
+
 :dts.startup.done
-    if %logging% == 1 ( call :log Script_Was_Opened_From_Installer )
-    :: If the Script got opened from installer?
+    title DataSpammer - Idle
 
 :check-dev-options
    if %logging% == 1 ( call :log Checking_If_Developer_Mode_Is_Turned_On )
    cd /d %~dp0
+   if "%developermode%"=="1" echo Developer Mode is enabled.
    if "%developermode%"=="1" (set "dev-mode=1") else (set "dev-mode=0")
    if not defined devtools (goto sys.enable.ascii.tweak) else (goto dtd)
 
@@ -377,12 +357,13 @@
     if %logging% == 1 ( call :log Sending_Notification )
     if %logging% == 1 ( call :log Enabling_ASCII_without_CHCP )
     %powershell.short% -Command "& {Add-Type -AssemblyName System.Windows.Forms; Add-Type -AssemblyName System.Drawing; $notify = New-Object System.Windows.Forms.NotifyIcon; $notify.Icon = [System.Drawing.SystemIcons]::Information; $notify.Visible = $true; $notify.ShowBalloonTip(0, 'DataSpammer', 'Started DataSpammer', [System.Windows.Forms.ToolTipIcon]::None)}"
-    :: Allows ASCII stuff without Codepage Settings (i use both to be sure)
+    :: Allows ASCII stuff without Codepage Settings - Not My Work - Credits to ?
     SETLOCAL EnableDelayedExpansion
     SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
     SETLOCAL DisableDelayedExpansion
 
 :menu
+    for /f "tokens=2 delims=[]" %%v in ('ver') do set CMD_VERSION=%%v
     if exist encrypt.bat erase encrypt.bat
     if "%1"=="settings" goto settings
     if %logging% == 1 ( call :log Displaying_Menu )
@@ -394,7 +375,6 @@
     ) else (
         set "settings-lock=Settings"
     )
-    :: Main Menu TLI
 
     cls
     %$Echo% "   ____        _        ____                                           
@@ -407,169 +387,49 @@
 
 
     call :sys.lt 1
-    echo Made by PIRANY                 %current-script-version%                 Logged in as %username%
+    echo Made by PIRANY - %current-script-version% - Logged in as %username% - Batch - CMD Version %CMD_VERSION%
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [1] Help
-    echo.
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    echo [2] Start
+    echo [1] Start
     echo.
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [3] Cancel
-    echo.
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    echo [4] Credits/Contact
-    echo.
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    echo [5] %settings-lock%
+    echo [2] %settings-lock%
     color 02
     echo.
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [6] Autostart/Desktop Icon
+    echo [3] Autostart/Desktop Icon
     echo.
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [7] Open GitHub-Repo
+    echo [4] Open GitHub-Repo
+    echo.
+    call :sys.lt 1
+    echo.
+    call :sys.lt 1
+    echo [5] Cancel
     echo.
     echo.
     choice /C 1234567 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 goto help
-        if %_erl%==2 goto start
-        if %_erl%==3 goto cancel
-        if %_erl%==4 goto credits
-        if %_erl%==5 goto settings
-        if %_erl%==6 goto ad.settings
-        if %_erl%==7 If %main.menu% == 7 start "" "https://github.com/PIRANY1/DataSpammer" | cls | goto menu
+        if %_erl%==1 goto start
+        if %_erl%==2 goto settings
+        if %_erl%==3 goto ad.settings
+        if %_erl%==4 If %main.menu% == 7 start "" "https://github.com/PIRANY1/DataSpammer" | cls | goto menu
+        if %_erl%==5 goto cancel
     goto menu
 
-
-:check.lib.git.update
-    if %logging% == 1 ( call :log Checking_For_Updates_from_Menu )
-    goto :normal.start
-
-:help
-    :: TLI for Infos
-    cls
-    echo.
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    echo No liability for any Damages on your Software.
-    call :sys.lt 1
-    echo If you want to use this Script on a Server you have to be able to write something in the Folder you want to use.
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    echo When youre on a Small Install you cant access the "Locked." Tab because it needs different Variables in the settings.conf file. 
-    call :sys.lt 1
-    echo To use the Settings you need to reinstall the Script. Simply open the Github Repo via the Main Page and choose one of the download Options.
-    call :sys.lt 1
-    echo. 
-    call :sys.lt 1
-    echo [1] Go back
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    echo [2] Exit
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    echo [3] Exit
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    choice /C 123 /M "Choose an Option from Above:"
-        set _erl=%errorlevel%
-        if %_erl%==1 goto menu
-        if %_erl%==2 goto list.readme.license
-        if %_erl%==3 goto cancel
-    goto help
-
-
-:list.readme.license
-    echo License:
-    :: List the Content of LICENSE
-    set "liscensefad=%~dp0\LICENSE"
-    
-    if exist "%liscensefad%" (
-        for /f "tokens=*" %%a in (%liscensefad%) do (
-            echo %%a
-        )
-    ) else (
-        goto list.content.RD
-    )
-    goto list.content.RD
-
-:list.content.RD
-    :: List the Content of readme
-    set "liscensefad1=%~dp0\README.md"
-    
-    if exist "%liscensefad1%" (
-        for /f "tokens=*" %%a in (%liscensefad1%) do (
-            echo %%a
-        )
-    )
-    pause
-    goto help
-    
-
-
-:credits
-    :: TLI Code for Credits
-    cls 
-    echo.
-    call :sys.lt 1
-    echo. 
-    call :sys.lt 1
-    echo This Script is made by PIRANY for Educational Use only.
-    call :sys.lt 1
-    echo The whole Code is made by PIRANY  
-    call :sys.lt 1
-    echo If you found any Bugs/Glitches or have a Problem With this software please Create a Issue on the Github-Repo
-    call :sys.lt 1
-    echo. 
-    call :sys.lt 1
-    echo. 
-    call :sys.lt 1
-    echo [1] Go back
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    echo [2] Open the Github-Repo
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    echo [3] Exit
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    choice /C 123 /M "Choose an Option from Above:"
-        set _erl=%errorlevel%
-        if %_erl%==1 goto menu
-        if %_erl%==3 goto cancel
-        if %_erl%==2 start "" "https://github.com/PIRANY1/DataSpammer" | cls | goto credits
-    goto credits
 
 :settings
     if %logging% == 1 ( call :log Opened_Settings_%dev-mode%_dev_mode)
     color
     if %dev-mode% == 1 set "settings-dev-display=Activated"
     if %dev-mode% == 0 set "settings-dev-display=Not Activated"
-    :: TLI for Settings - Add Skip Security Question + Always use Custom Directory Yes/No
     cls 
     echo ========
     echo Settings

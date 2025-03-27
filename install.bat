@@ -339,6 +339,7 @@ color 2
     set "directory9=%directory%\%foldername%"
     mkdir "%directory9%" 
  
+
     cd /d %~dp0
     erase readme.md > nul   
     erase license > nul
@@ -489,6 +490,8 @@ color 2
     echo Added Autostart Shortcut!
     goto additional.links.installed
 :additional.links.installed
+    :: Add Registry Key
+    reg add "HKCU\Software\DataSpammer" /v Installed /t REG_DWORD /d 1 /f
     :: Display a Finish Message
     echo Done!
     echo You might need to restart your device in order for all changes to apply.
