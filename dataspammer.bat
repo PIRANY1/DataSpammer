@@ -19,6 +19,8 @@
 ::    Add Debug List
 ::    Improve Monitor Message Drop
 ::    Add Skip Security Question + Always use Custom Directory Yes/No
+::    Improve PR Scan
+
 
 :top
     cd /d %~dp0
@@ -122,12 +124,12 @@
     del %TEMP%\password_hash.txt > nul
 
     cls
-    set /p "username=Please enter your Username: "
+    set /p "username.script=Please enter your Username: "
     %powershell.short% -Command "$password = Read-Host 'Please enter your Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($password))" > %TEMP%\password.tmp
     set /p password=<%TEMP%\password.tmp
     del %TEMP%\password.tmp
 
-    echo %username% > %TEMP%\username.txt
+    echo %username.script% > %TEMP%\username.txt
     echo %password% > %TEMP%\password.txt
     certutil -hashfile %TEMP%\username.txt SHA256 > %TEMP%\username_hash.txt
     certutil -hashfile %TEMP%\password.txt SHA256 > %TEMP%\password_hash.txt
@@ -369,6 +371,7 @@
     if %logging% == 1 ( call :log Displaying_Menu )
     call :send_message Displaying.Menu
     if %logging% == 1 ( call :log Startup_Complete )
+    if not defined username.script set "username.script=%username%"
     title DataSpammer %current-script-version%
     if "%small-install%" == "1" (
         set "settings-lock=Locked. Find Information under [44mHelp[32m"
@@ -376,6 +379,7 @@
         set "settings-lock=Settings"
     )
 
+    
     cls
     %$Echo% "   ____        _        ____                                           
     %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __
@@ -387,7 +391,7 @@
 
 
     call :sys.lt 1
-    echo Made by PIRANY - %current-script-version% - Logged in as %username% - Batch - CMD Version %CMD_VERSION%
+    echo Made by PIRANY - %current-script-version% - Logged in as %username.script% - Batch - CMD Version %CMD_VERSION%
     call :sys.lt 1
     echo.
     call :sys.lt 1
@@ -456,7 +460,7 @@
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [4] Logging
+    echo [4] Account
     call :sys.lt 1
     echo. 
     call :sys.lt 1
@@ -486,7 +490,7 @@
         if %_erl%==1 goto spam.settings
         if %_erl%==2 goto activate.dev.options
         if %_erl%==3 goto settings.version.control
-        if %_erl%==4 goto settings.logging
+        if %_erl%==4 goto login.setup
         if %_erl%==5 goto restart.script
         if %_erl%==6 goto advanced.options
         if %_erl%==7 goto menu
@@ -500,7 +504,7 @@
     call :sys.lt 1
     echo [3] Generate Debug Log
     call :sys.lt 1
-    echo [4] Account
+    echo [4] Logging
     call :sys.lt 1
     echo [5] Monitor
     call :sys.lt 1
@@ -512,15 +516,16 @@
         if %_erl%==1 goto switch.elevation
         if %_erl%==2 goto encrypt
         if %_erl%==3 goto debuglog
-        if %_erl%==4 goto login.setup
+        if %_erl%==4 goto settings.logging
         if %_erl%==5 goto monitor.settings
         if %_erl%==6 goto settings
     goto advanced.options
 
 
-if %monitoring%==1 set "monitoring-status=Enabled"
-if %monitoring%==0 set "monitoring-status=Disabled"
+
 :monitor.settings
+    if %monitoring%==1 set "monitoring-status=Enabled"
+    if %monitoring%==0 set "monitoring-status=Disabled"
     echo -----------------------
     echo Monitor Socket Settings
     echo -----------------------
@@ -543,18 +548,19 @@ if %monitoring%==0 set "monitoring-status=Disabled"
 
 :monitor.enable
     call :update_config "monitoring" "" "1"
-    echo Monitor Socket Enabled
-    call :sys.lt 3
+    echo Monitor Socket Enabled.
+    call :sys.lt 2
     goto monitor.settings
 
 :monitor.disable
     call :update_config "monitoring" "" "0"
-    echo Monitor Socket Disabled
-    call :sys.lt 3
+    echo Monitor Socket Disabled.
+    call :sys.lt 2
     goto monitor.settings
 
 :login.setup
-    echo To use the Login Feature you need to create an Account.
+    cls
+    echo Logged in as %username.script%
     echo.
     echo [1] Create Account
     call :sys.lt 1
@@ -589,12 +595,14 @@ if %monitoring%==0 set "monitoring-status=Disabled"
 :login.delete
     echo Deleting Account...
     set "secure_dir=%userprofile%\Documents\SecureDataSpammer"
-    rmdir /s /q "%secure_dir%"
+    echo Deleting Hashed Files...
     del "%secure_dir%\username.hash"
     del "%secure_dir%\password.hash"
+    rmdir /s /q "%secure_dir%"
     echo Account deleted successfully.
+    echo Restarting Script...
     call :sys.lt 1
-    goto :restart.script
+    goto restart.script
 
 :login.create
     set "secure_dir=%userprofile%\Documents\SecureDataSpammer"
@@ -639,6 +647,7 @@ if %monitoring%==0 set "monitoring-status=Disabled"
     echo Encrypting...
     call :sys.lt 1
     cd /d %~dp0 
+    :: Version Update checks for this File
     echo %random% > "%userprofile%\Documents\SecureDataSpammer\token.hash"
     (
         @echo off
@@ -667,7 +676,11 @@ if %monitoring%==0 set "monitoring-status=Disabled"
 
 
 :switch.elevation
-    echo What do you want to elevate Dataspammer.bat
+    echo Choose an Elevation method.
+    echo. 
+    echo Powershell is the default and recommended option.
+    echo Sudo requires Windows 24H2 or higher and must be manually enabled.
+    echo Gsudo is a third-party tool and must be installed manually.
     echo.
     echo [1] Powershell
     echo.
@@ -685,10 +698,17 @@ if %monitoring%==0 set "monitoring-status=Disabled"
 
 
 :switch.sudo.elevation
-    for /f "tokens=3" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v "ReleaseId"') do set "releaseid=%%a"
+    :: Powershell Elevation is more reliable
+    :: Windows will support sudo, starting in 24H2
+    :: Check for Windows Version 24H2 or higher > where SUDO > start via sudo
+
+    :: https://github.com/microsoft/sudo
+    :: https://github.com/microsoft/sudo/blob/main/scripts/sudo.ps1
+    :: Query Registry for Windows Version
+    for /f "tokens=3" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v "ReleaseId"') do set "release-id=%%a"
     for /f "tokens=3" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v "CurrentBuild"') do set "build=%%a"
     
-    :: Version: %releaseid%
+    :: Version: %release-id%
     :: Build-Number: %build%
     set /a min_build=25900
     if %build% geq %min_build% (
@@ -730,49 +750,6 @@ if %monitoring%==0 set "monitoring-status=Disabled"
     @ping -n 2 localhost> nul
     goto restart.script
 
-
-:sudo.implementation
-    :: Works, but PWSH is more reliable
-    :: Windows will support sudo, starting in 24H2
-    :: Check for Windows Version 24H2 or higher > where SUDO > start via sudo
-
-    :: https://github.com/microsoft/sudo
-    :: https://github.com/microsoft/sudo/blob/main/scripts/sudo.ps1
-
-    :: Read Version from Registry
-    for /f "tokens=3" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v "ReleaseId"') do set "releaseid=%%a"
-    for /f "tokens=3" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v "CurrentBuild"') do set "build=%%a"
-    
-    :: Version: %releaseid%
-    :: Build-Number: %build%
-    set /a min_build=25900
-    if %build% geq %min_build% (
-        :: Is 24H2 or higher
-        set "sudo=1"
-        goto where.sudo
-    ) else (
-        :: is lower than 24H2
-        set "sudo=0"
-        goto top-startup
-    )
-    
-:where.sudo
-    :: Check if sudo is defined in Path
-    for /f "delims=" %%a in ('where sudo') do (
-        set "where_output=%%a"
-    )
-    if defined where_output (
-        goto sudo.parse
-    ) else (
-        set "sudo=0"
-    )
-
-:: Execute PWSH Elev
-:: goto elevated
-
-:sudo.parse
-:: elevate via sudo
-:: goto elevated
 
 
 :spam.settings
@@ -1965,6 +1942,7 @@ setlocal enabledelayedexpansion
     )
 
     if !logging!==1 ( call :log Changing_%key% )
+    echo Restart Script to apply changes. 
     cls
     endlocal
     goto :eof
