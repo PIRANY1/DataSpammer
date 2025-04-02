@@ -1,7 +1,7 @@
 :: Use only under License
 :: Contribute under https://github.com/PIRANY1/DataSpammer
 :: Version v6
-:: Last edited on 24.03.2025 by PIRANY
+:: Last edited on 02.04.2025 by PIRANY
 
 :: Developer Notes
 :: Define %debug_assist% to bypass echo_off
@@ -20,6 +20,8 @@
 ::    Improve Monitor Message Drop
 ::    Add Skip Security Question + Always use Custom Directory Yes/No
 ::    Improve PR Scan
+::    Improve Developer Menu
+::    Document all API Calls version
 
 
 :top
@@ -28,7 +30,7 @@
     @title DataSpammer
     setlocal enabledelayedexpansion
     set "exec-dir=%cd%"
-    @if "debug_assist"="" @echo off
+    if "debug_assist"="" @echo off
     :: Improve NT Compatabilty
     if "%OS%"=="Windows_NT" setlocal
     set DIRNAME=%~dp0
@@ -38,6 +40,7 @@
     :: Improve Powershell Speed
     set "powershell.short=powershell.exe -ExecutionPolicy Bypass -NoProfile"
     if "%1"=="" goto startup
+    if "%1"=="version" goto version
     if "%1"=="--help" goto help.startup
     if "%1"=="faststart" goto sys.enable.ascii.tweak
     if "%1"=="update" goto fast.git.update
@@ -51,7 +54,7 @@
     if "%1"=="monitor" goto monitor
     if "%1"=="noelev" set "small-install=1" && goto pid.check
     if "%update-install%"=="1" ( goto sys.new.update.installed )
-    if not defined devtools (goto top-startup) else (gotod open.dev.settings)
+    if not defined devtools (goto top-startup) else (gotod dev.options)
 
 :startup
     title DataSpammer - Starting
@@ -780,12 +783,12 @@
     goto spam.settings
 
 
+
 :settings.default.filecount
     if %logging% == 1 ( call :log Chaning_Standart_Filecount )
     cls 
     set /p df.filecount=Enter the Default Filecount:
     call :update_config "default-filecount" "" "%df.filecount%"
-    echo Restarting Script...
     @ping -n 2 localhost > nul
     goto restart.script
 
@@ -794,7 +797,6 @@
     cls 
     set /p df.domain=Enter the Default Domain:
     call :update_config "default-domain" "" "%df.domain%"
-    echo Restarting Script...
     @ping -n 2 localhost > nul
     goto restart.script
 
@@ -820,30 +822,24 @@
     echo.
     choice /C 1234 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 goto call :update.script stable && exit /b
-        if %_erl%==2 goto call :update.script stable && exit /b
-        if %_erl%==3 goto call :update.script beta && exit /b
+        if %_erl%==1 call :update.script stable && exit /b
+        if %_erl%==2 call :update.script stable && exit /b
+        if %_erl%==3 call :update.script beta && exit /b
         if %_erl%==4 goto settings
     goto settings.version.control
-
-
-
-
 
 
 :activate.dev.options   
     if %dev-mode% == 1 goto open.dev.settings
     echo Do you want to activate the Developer Options?
-    echo Developer Options include Debugging, Logging and some extra Menus
-    echo This can lead to some instabilty!
-        choice /C YN /M "Yes/No"
+    echo Developer Options include some advanced features like logging etc.
+    echo These Features are experimental & can be unstable.
+    echo.
+    choice /C YN /M "Yes/No"
         set _erl=%errorlevel%
         if %_erl%==Y goto write-dev-options
         if %_erl%==N goto settings
-    
-:open.dev.settings
-    if %logging% == 1 ( call :log opening_dev_settings )
-    goto dev.options
+   
     
 :write-dev-options
     if %logging% == 1 ( call :log Activating_Dev_Options )
@@ -854,25 +850,19 @@
     @ping -n 2 localhost> nul
     goto restart.script
 
+
+
 :settings.default.filename
-    :: Write Standart Filename to File
+    if %logging% == 1 ( call :log Chaning_Default_Filename )
     cls 
     call :update_config "default-filename" "Type in the Filename you want to use:" ""
-    echo Restarting Script...
-    if %logging% == 1 ( call :log Changing_Standart_FileName )
     @ping -n 2 localhost > nul
     goto restart.script
 
-
-
 :settings.default.directory
-    if %logging% == 1 ( call :log Chaning_Standart_Directory )
-    :: Standart Spam Directory Check
+    if %logging% == 1 ( call :log Changing_Standart_Directory )
     cls 
-    set /p directory0=Type Your Directory Here:
-    call :update_config "default_directory" "" "%directory0%"
-    echo Restarting Script...
-    if %logging% == 1 ( call :log Changing_Default_Directory )
+    call :update_config "default_directory" "Type Your Directory Here:" ""
     @ping -n 2 localhost > nul
     goto restart.script
 
@@ -1734,6 +1724,8 @@ setlocal enabledelayedexpansion
     echo.
     echo    update.script [ stable / beta ] Force Update the Script
     echo.
+    echo    version Show Version
+    echo.
     echo.
 
     exit /b 1464
@@ -1942,7 +1934,7 @@ setlocal enabledelayedexpansion
     )
 
     if !logging!==1 ( call :log Changing_%key% )
-    echo Restart Script to apply changes. 
+    echo Restarting...
     cls
     endlocal
     goto :eof
@@ -2060,9 +2052,11 @@ setlocal enabledelayedexpansion
     if not defined %logging% call :update_config "logging" "" "1"
     if not defined %default_directory% call :update_config "default_directory" "" "notused"
     if not defined %elevation% call :update_config "elevation" "" "pwsh"
+    if not defined %update% call :update_config "update" "" "1"
     echo Updating Settings...
     call :sys.lt 1    
     goto sys.settings.patched
+
 
 
 :sys.settings.patched
@@ -2273,6 +2267,22 @@ setlocal enabledelayedexpansion
     goto :EOF
 
 
+:version
+    cd %temp%
+    set "api_url=https://api.github.com/repos/PIRANY1/DataSpammer/releases/latest"
+    curl -s %api_url% > apianswer.txt
+    for /f "tokens=2 delims=:, " %%a in ('findstr /R /C:"\"tag_name\"" apianswer.txt') do (
+        set "latest_version=%%a"
+    )
+    set "latest_version=%latest_version:"=%"
+    del apianswer.txt
+
+
+    echo DataSpammer Script
+    echo Version v6 (Beta)
+    echo Newest Stable Release: %latest_version%
+    echo. 
+    exit /b
 
 
 :sys.verify.execution
