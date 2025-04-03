@@ -22,7 +22,9 @@
 ::    Improve PR Scan
 ::    Improve Developer Menu
 ::    Document all API Calls version
-
+::    Add SMTP & IMAP 
+::    Add TCP/UDP
+::    Add DTS.lock
 
 :top
     cd /d %~dp0
@@ -868,13 +870,8 @@
 
 :settings.logging
     if %logging% == 1 ( call :log Opened_Logging_Settings )
-    color 02
     cls
-    if %logging% == 1 (
-        set "settings.logging=Activated"
-    ) else (
-        set "settings.logging=Disabled"
-    )
+    if %logging% == 1 ( set "settings.logging=Activated" ) else ( set "settings.logging=Disabled" )
     echo Logging is currently: %settings.logging%
     echo.
     call :sys.lt 1
@@ -886,7 +883,7 @@
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [3] Open Latest Log
+    echo [3] Open Log
     call :sys.lt 1
     echo.
     call :sys.lt 1
@@ -902,8 +899,8 @@
         set _erl=%errorlevel%
         if %_erl%==1 goto enable.logging
         if %_erl%==2 goto disable.logging
-        if %_erl%==3 goto dev.open.log
-        if %_erl%==4 erase %userprofile%\Documents\DataSpammerLog\DataSpammer.log && echo Log Cleared. && pause && goto settings.logging
+        if %_erl%==3 cls && echo Opening Log... && notepad %userprofile%\Documents\DataSpammerLog\DataSpammer.log && pause && goto settings.logging
+        if %_erl%==4 cls && erase %userprofile%\Documents\DataSpammerLog\DataSpammer.log && echo Log Cleared. && pause && goto settings.logging
         if %_erl%==5 goto settings
     goto settings.logging
 
@@ -911,27 +908,19 @@
 :enable.logging
     if %logging% == 1 ( goto settings.logging )
     call :update_config "logging" "" "1"
-    echo Enabled Logging. Restarting Script...
-    @ping -n 2 localhost > nul
+    echo Enabled Logging.
+    @ping -n 1 localhost > nul
     goto restart.script
-
-:dev.open.log
-    echo Opening Log...
-    notepad %userprofile%\Documents\DataSpammerLog\DataSpammer.log
-    pause
-    goto settings.logging
 
 :disable.logging
     if %logging% == 0 ( goto settings.logging )
     if %logging% == 1 ( call :log Disabling_Logging )
     call :update_config "logging" "" "0"
-    echo Disabled Logging. Restarting Script...
-    @ping -n 2 localhost> nul
+    echo Disabled Logging.
+    @ping -n 1 localhost> nul
     goto restart.script
 
 :ad.settings
-    :: Autostart TLI
-    echo.
     cls
     echo.
     echo =================================
@@ -945,7 +934,7 @@
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [2] Delete Autostart
+    echo [2] Uninstall
     echo.
     call :sys.lt 1
     echo [3] Back
@@ -960,7 +949,8 @@
     goto ad.settings
 
 
-    :ad.remove
+:ad.remove
+    cls
     echo [1] Delete Autostart
     echo.
     call :sys.lt 1
@@ -981,6 +971,7 @@
 
 
 :ad.setup
+    cls
     echo [1] Start Setup for Autostart
     @ping -n 1 localhost> nul
     echo.
@@ -1005,29 +996,23 @@
 :autostart.delete
     net session >nul 2>&1
     if %errorLevel% NEQ 0 goto sys.script.administrator
-    call :sys.lt 1
     cd /d C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
     del autostart.bat
     echo Autostart Link Removed.
-    echo Restarting Script...
-    call :sys.lt 2
-    goto restart.script
+    goto menu
 
 :autostart.setup.confirmed
     net session >nul 2>&1
     if %errorLevel% NEQ 0 goto sys.script.administrator
-    call :sys.lt 1
     cd /d C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
     set "varlinkauto=%~dp0"
     (
-    echo @echo off
-    echo cd /d %varlinkauto%
-    dataspammer.bat
+        echo @echo off
+        echo cd /d %varlinkauto%
+        dataspammer.bat
     ) > autostart.bat
     echo Autostart Link Added.
-    echo Restarting Script...
-    call :sys.lt 2
-    goto restart.script
+    goto menu
 
 :desktop.icon.setup
     net session >nul 2>&1
@@ -1035,14 +1020,12 @@
     cd /d %userprofile%\Desktop
     set "varlinkauto=%~dp0"
     (
-    echo @echo off
-    echo cd /d %varlinkauto%
-    dataspammer.bat
+        echo @echo off
+        echo cd /d %varlinkauto%
+        dataspammer.bat
     ) > DataSpammer.bat
     echo Added Desktop Icon
-    echo Restarting Script...
-    call :sys.lt 2
-    goto restart.script
+    goto menu
 
 :desktop.icon.delete                                                                                                    
     net session >nul 2>&1
@@ -1050,20 +1033,7 @@
     cd %userprofile%\Desktop
     del DataSpammer.bat
     echo Successfully Deleted Desktop Icon.
-    echo Removed Desktop Icon
-    echo Restarting Script...
-    call :sys.lt 2
-    goto restart.script
-
-
-:autostart.settings.page
-    echo.
-    call :sys.lt 1
-    echo If you have moved the Directory please Delete the Autostart and Then Set it up new
-    call :sys.lt 1
-    pause
-    goto autostart.desktop.settings
-
+    goto menu
 
 
 ::
@@ -1074,19 +1044,18 @@
 ::
 
 
-
-
 :start
     if %logging% == 1 ( call :log Opened_Start )
     call :sys.verify.execution
     if %logging% == 1 ( call :log Start_Verified )
     cls
+
 :start.verified
-    echo [1] Local Test
+    echo [1] Local Machine
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [2] Protocol Test
+    echo [2] Internet ( LAN / WAN)
     call :sys.lt 1
     echo.
     call :sys.lt 1
@@ -1100,9 +1069,6 @@
         if %_erl%==2 goto internet.spams
         if %_erl%==3 goto menu
     goto start.verified
-
-
-
 
 
 :internet.spams
@@ -1130,7 +1096,7 @@
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [7] Telnet (Older SSH)
+    echo [7] Telnet
     call :sys.lt 1
     echo.
     call :sys.lt 1
@@ -1226,8 +1192,8 @@
 
 
 :printer.spam
-:: print /D:%printer% %file%
-:: set printer="\\NetworkPrinter\PrinterName"
+    :: print /D:%printer% %file%
+    :: set printer="\\NetworkPrinter\PrinterName"
     if "%default-filecount%"=="notused" set /P printer.count=How many Files should be printed
     if not "%default-filecount%"=="notused" set "printer.count=default-domain"
 
@@ -1265,7 +1231,6 @@
         curl -s -o NUL -w "Status: %{http_code}\n" !url!
     )
 
-:https.done
     if %logging% == 1 ( call :log Finished_HTTPS_Spam:%requests%_Requests_on_%url% )
     call :done "The Script Created %requests% to %url%"
 
@@ -1316,7 +1281,6 @@
     call :done "The Script Created %request_count% for %domain% on %domain_server%"
 
     
-
 
 :ftp.spam
     cls

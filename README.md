@@ -52,7 +52,3 @@ I created this script to learn more about Batch and how cmd.exe operates.
 Good Resource:
 
 [A detailed overview of CMD Commands](https://ss64.com/nt/)
-
-## Reporting a Bug
-
-If you encountered a bug, please create an [Issue](https://github.com/PIRANY1/DataSpammer/issues)
