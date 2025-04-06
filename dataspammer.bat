@@ -1284,17 +1284,15 @@
 
 :ftp.spam
     cls
-    echo This Function spams any FTP-Server with Files.
-    echo.
     set /P ftpserver=Enter a Domain or IP:
-    set /P username=Enter the Username
-    set /P password=Enter the Password
+    set /P username=Enter the Username:
+    set /P password=Enter the Password:
     set /P remoteDir=Enter the Directory (leave empty if unsure):
 
     if "%default-filename%"=="notused" set /P filename=Enter the Filename:
     if not "%default-filename%"=="notused" set "filename=%default-filename%"
 
-    set /P content=Enter the File-Content:
+    set /P content=Enter the File Content:
 
     if "%default-filecount%"=="notused" set /P filecount=How many Files should be created:
     if not "%default-filecount%"=="notused" set "filecount=%default-filecount%"
@@ -1310,7 +1308,7 @@
         set /a w+=1
     )
     
-    :: Creates FTP Commands and writes them
+    :: Create FTP Command File 
     set ftpCommands=ftpcmd.txt
     echo open %ftpserver% > %ftpCommands%
     echo %username% >> %ftpCommands%
@@ -1318,9 +1316,7 @@
     echo binary >> %ftpCommands%
     echo cd %remoteDir% >> %ftpCommands%
     
-    echo Creating Commands...
-    
-    :: Writes multiple Files in Command List
+    :: Write Filenames in Command File
     set /a x=1
     for /l %%i in (1,1,%filecount%) do (
         setlocal enabledelayedexpansion
@@ -1330,10 +1326,13 @@
         endlocal
     )
     
+    :: Finish Command File & Execute on Host
     echo bye >> %ftpCommands%
+    cls && echo Establishing FTP Connection to %ftpserver%...
     ftp -n -s:%ftpCommands%
-    del %ftpCommands%
     
+    :: Remove Files on local Machine
+    del %ftpCommands%   
     set /a y=1
     cd %tmp%
     for /l %%i in (1,1,%filecount%) do (
@@ -1341,7 +1340,6 @@
         set /a y+=1
     )
     
-:ftp.done    
     if %logging% == 1 ( call :log Finished_FTP_Spam:_%filecount% )
     call :done "The Script Created %filecount% Files on the FTP Server: %ftpserver%"
 
@@ -1349,12 +1347,7 @@
 
 :app.list.spam
     cls
-    echo This Function will spam the Applist under "Settings > Apps > Installed Apps" with Items of your choice
-    echo You can customise the Following Things:
-    echo App Name
-    echo App Version
-    echo App Path
-    echo Publisher
+    echo This Function will spam the Applist under "Settings > Apps > Installed Apps" with Entrys of your choice.
     echo.
     echo [1] Continue
     echo.
@@ -1388,10 +1381,14 @@
     echo.
     set /P app.spam.filecount=How many Entrys should be created:
     
-    if %app.spam.name% == random set "app.spam.name=%random%"
-    if %app.spam.app.version% == random set "app.spam.app.version=%random%"
+    for /f %%R in ('call :generate_random all 15') do set "random1=%%R"
+    for /f %%R in ('call :generate_random all 15') do set "random2=%%R"
+    for /f %%R in ('call :generate_random all 15') do set "random3=%%R"
+
+    if %app.spam.name% == random set "app.spam.name=%random1%"
+    if %app.spam.app.version% == random set "app.spam.app.version=%random2%"
     if %app.spam.path% == random set "app.spam.path=%~f0"
-    if %app.spam.publisher% == random set "app.spam.publisher=%random%"
+    if %app.spam.publisher% == random set "app.spam.publisher=%random3%"
     if %app.spam.name% == default set "app.spam.name=DataSpammer"
     if %app.spam.app.version% == default set "app.spam.app.version=%current-script-version%"
     if %app.spam.path% == default set "app.spam.path=%~f0"
@@ -1419,9 +1416,10 @@
     call :done "The Script Created %x% Entrys."
 
 
-:startmenu.spam
-    echo How many Files should be created?
-    set /P filecount=Type a Number here:
+
+
+:startmenu.spam-
+    set /P filecount=How many Files should be created?:
     echo Only for Local User or For All Users?
     echo All Users requires Admin Privileges.
     choice /C AL /M "(A)ll / (L)ocal"
@@ -1510,7 +1508,7 @@ setlocal enabledelayedexpansion
 
     if "%ssh.regen%"=="1" (
         echo Regenerating SSH keys on target...
-        rem Generate New Keys
+        :: Generate New Keys
         if defined ssh-key (
             ssh -i "%ssh-key%" %ssh-name%@%ssh-ip% "del /Q C:\Users\%ssh-name%\.ssh\* && ssh-keygen -t rsa -b 4096 -f C:\Users\%ssh-name%\.ssh\id_rsa -N \"\" && type C:\Users\%ssh-name%\.ssh\id_rsa" > new_ssh_key.txt
         ) else (
@@ -1523,7 +1521,7 @@ setlocal enabledelayedexpansion
         echo New SSH private key generated and saved to new_ssh_key.txt:
         type new_ssh_key.txt 
         type new_ssh_key.txt | clip
-        rem Update the ssh-key variable to use the new key for the following connection
+        :: Update the ssh-key variable to use the new key for the following connection
         set "ssh-key=new_ssh_key.txt"
     )
 
@@ -1549,7 +1547,7 @@ setlocal enabledelayedexpansion
     if defined logging call :log Spamming_Linux_SSH_Target 
     if "%ssh.regen%"=="1" (
         echo Regenerating SSH keys on target...
-        rem Generate New Keys
+        :: Generate New Keys
         if defined ssh-key (
             ssh -i "%ssh-key%" %ssh-name%@%ssh-ip% "rm -f ~/.ssh/id_rsa ~/.ssh/id_rsa.pub && ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -N \"\" && cat ~/.ssh/id_rsa" > new_ssh_key.txt
         ) else (
@@ -1562,7 +1560,7 @@ setlocal enabledelayedexpansion
         echo New SSH private key generated and saved to new_ssh_key.txt:
         type new_ssh_key.txt
         type new_ssh_key.txt | clip
-        rem Update the ssh-key variable to use the new key for subsequent connections
+        :: Update the ssh-key variable to use the new key for subsequent connections
         set "ssh-key=new_ssh_key.txt"
     )
 
@@ -2246,6 +2244,108 @@ setlocal enabledelayedexpansion
     echo Version v6 (Beta)
     echo Newest Stable Release: %latest_version%
     echo. 
+    exit /b
+
+
+    :: Function description:
+    :: %1: type (numbers, letters, all)
+    :: %2: number of characters to generate
+    :: Example: 
+    :: call :generate_random all 40
+    :: Output: Random string: fjELw0oV2nA.nDgx4Jk1vNal,2sMS8tSYhDYAP9-
+:generate_random
+    set "type=%~1"
+    set "length=%~2"
+
+    :: Define allowed characters based on type
+    if /I "%type%"=="numbers" (
+        set "chars=0123456789"
+    ) else if /I "%type%"=="letters" (
+        set "chars=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+    ) else if /I "%type%"=="all" (
+        set "chars=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz:,.-;!?"
+    ) else (
+        echo Unknown type: %type%
+        goto :eof
+    )
+
+    :: Use PowerShell for fast random string generation:
+    for /f "usebackq delims=" %%a in (
+        `%powershell.short% -NoProfile -Command "$chars='!chars!'; $len=%length%; (-join (1..$len | ForEach-Object { $chars[(Get-Random -Minimum 0 -Maximum $chars.Length)] }))"`
+    ) do (
+        set "random_gen=%%a"
+    )
+    goto :eof
+
+
+:: -------------------------------------------------------------------
+:: Function Usage Example: TimeDifference
+::
+:: Description:
+::   Calculates the absolute time difference between two given timestamps
+::   in the format HH:MM:SS,CC (%time% format).
+::
+:: Arguments:
+::   %1 - Start time (e.g. "21:32:22,32")
+::   %2 - End time   (e.g. "21:50:22,32")
+::
+:: Example call:
+::   call :TimeDifference "21:32:22,32" "21:50:22,32" > tmp_time.txt
+::
+:: Output:
+::   The result (duration in MM:SS:CC format) will be written to the file "tmp_time.txt".
+::   It can be loaded into a variable like this:
+::       set /p diff.full=<tmp_time.txt
+::       del tmp_time.txt
+::
+:: Example Output:
+::   Diff : 18:00:00
+::
+:: Note:
+::   This function uses only standard batch features and works even
+::   when times cross over a minute/hour, but not midnight.
+:: -------------------------------------------------------------------
+
+:TimeDifference
+
+    :: Parse time1
+    set "time1=%~1"
+    set "H1=%time1:~0,2%"
+    set "M1=%time1:~3,2%"
+    set "S1=%time1:~6,2%"
+    set "C1=%time1:~9,2%"
+
+    :: Parse time2
+    set "time2=%~2"
+    set "H2=%time2:~0,2%"
+    set "M2=%time2:~3,2%"
+    set "S2=%time2:~6,2%"
+    set "C2=%time2:~9,2%"
+
+    :: Convert to centiseconds
+    set /a total1 = (1%H1% %% 100)*360000 + (1%M1% %% 100)*6000 + (1%S1% %% 100)*100 + (1%C1% %% 100)
+    set /a total2 = (1%H2% %% 100)*360000 + (1%M2% %% 100)*6000 + (1%S2% %% 100)*100 + (1%C2% %% 100)
+
+    :: Difference
+    if !total2! GEQ !total1! (
+        set /a diff = total2 - total1
+    ) else (
+        set /a diff = total1 - total2
+    )
+
+    :: Breakdown
+    set /a diffMin = diff / 6000
+    set /a remainder = diff %% 6000
+    set /a diffSec = remainder / 100
+    set /a diffCent = remainder %% 100
+
+    :: Format 2-digit
+    if !diffMin! LSS 10 set "diffMin=0!diffMin!"
+    if !diffSec! LSS 10 set "diffSec=0!diffSec!"
+    if !diffCent! LSS 10 set "diffCent=0!diffCent!"
+
+    :: Output
+    echo !diffMin!:!diffSec!:!diffCent!
     exit /b
 
 
