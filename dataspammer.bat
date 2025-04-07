@@ -1,6 +1,6 @@
 :: Use only under License
 :: Contribute under https://github.com/PIRANY1/DataSpammer
-:: Version v6
+:: Version v6 - NIGHTLY
 :: Last edited on 07.04.2025 by PIRANY
 
 :: Developer Notes
@@ -10,27 +10,18 @@
 
 ::    Todo: 
 ::    Fix Updater - Clueless After 3 Gazillion Updates - Added -UseBasicParsing to iwr
-::    Add more Docs
-::    Add Auto Adjust Window / better sizing for all TLIs
-::    Improve Uninstaller - Include Registry etc.
-::    Improve Developer Tool
-::    Improve Window Sizing
-::    Check all Var Names
-::    Add Debug List
-::    Improve Monitor Message Drop
+
 ::    Add Skip Security Question + Always use Custom Directory Yes/No
-::    Improve PR Scan
-::    Improve Developer Menu
-::    Document all API Calls version
-::    Add SMTP & IMAP 
-::    Add TCP/UDP
-::    Add DTS.lock
-::    Migrate Dev Tool in main.bat
-::    Add TLS/SSL
-::    Add DOS / PWSH Mode
-::    Improve CLI & API
-::    Improve Delete
+::    Improve Window Sizing & Improve Uninstaller - Include Registry etc.
+::    Improve PR Scan & Developer Menu & CLI & API & Documentation & Monitor Message Drop
+::    Improve Developer Tool - Migrate Dev Tool in main.bat - Add :sign list - Add all function test
+
+::    Add TLS/SSL, TCP/UDP, SMTP & IMAP 
+::    Add no Powershell Mode
 ::    Validate Important Functions & check Monitor
+
+::    Secure Hashes
+::    Improve Monitor Message Drop
 
 :top
     cd /d %~dp0
@@ -113,13 +104,30 @@
     cd /d %~dp0
     goto pid.check
 
+
 :pid.check
-    :: Get the Process ID of the current Script - Needed for Monitor
+    :: Get the Parent Process ID of the current script - Needed for Monitor
     %powershell.short% -Command "(Get-CimInstance Win32_Process -Filter \"ProcessId=$PID\").ParentProcessId" > "%temp%\parent_pid.txt"
     set /p PID=<"%temp%\parent_pid.txt"
     del "%temp%\parent_pid.txt"
     echo Got PID: %PID%
-    
+
+    :: Lock Check - Check if the Script is already running or if it crashed etc. 
+    :: Check for existing dataspammer.lock
+    if exist "%~dp0\dataspammer.lock" (
+        set /p pid=<"%~dp0\dataspammer.lock"
+        tasklist /FI "PID eq %pid%" | findstr /i "%pid%" >nul
+        if %errorlevel%==0 (
+            echo DataSpammer is already running under PID %pid%.
+        ) else (
+            echo DataSpammer may have crashed or was closed. Deleting lock file...
+            echo Be aware that some tasks may not have finished properly.
+            del "%~dp0\dataspammer.lock"
+        )
+    ) else (
+        echo %PID% > "%~dp0\dataspammer.lock"
+    )
+
     :: Start the Monitor Socket - Moved here to avoid multiple Instances
     if %monitoring%==1 start /min cmd.exe /k ""%~f0" monitor %PID%"
 
@@ -431,6 +439,7 @@
     echo.
     echo.
     choice /C 1234567 /M "Choose an Option from Above:"
+        title DataSpammer
         set _erl=%errorlevel%
         if %_erl%==1 goto start
         if %_erl%==2 goto settings
