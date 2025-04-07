@@ -1,7 +1,7 @@
 :: Use only under License
 :: Contribute under https://github.com/PIRANY1/DataSpammer
 :: Version v6
-:: Last edited on 02.04.2025 by PIRANY
+:: Last edited on 07.04.2025 by PIRANY
 
 :: Developer Notes
 :: Define %debug_assist% to bypass echo_off
@@ -25,6 +25,12 @@
 ::    Add SMTP & IMAP 
 ::    Add TCP/UDP
 ::    Add DTS.lock
+::    Migrate Dev Tool in main.bat
+::    Add TLS/SSL
+::    Add DOS / PWSH Mode
+::    Improve CLI & API
+::    Improve Delete
+::    Validate Important Functions & check Monitor
 
 :top
     cd /d %~dp0
@@ -33,7 +39,7 @@
     setlocal enabledelayedexpansion
     set "exec-dir=%cd%"
     if "debug_assist"="" @echo off
-    :: Improve NT Compatabilty
+    :: Improve NT Compatabilty - Credits to Gradlew.bat Compiler
     if "%OS%"=="Windows_NT" setlocal
     set DIRNAME=%~dp0
     if "%DIRNAME%"=="" set DIRNAME=.
@@ -261,7 +267,7 @@
     )
     set "latest_version=%latest_version:"=%"
 
-    if "%latest_version%" equ "v5" (
+    if "%latest_version%" equ "v6" (
         set "uptodate=up"
     ) else (
         set "uptodate="
@@ -1319,11 +1325,9 @@
     :: Write Filenames in Command File
     set /a x=1
     for /l %%i in (1,1,%filecount%) do (
-        setlocal enabledelayedexpansion
         set localFile=%filename%!x!.txt
         echo put !localFile! >> %ftpCommands%
         set /a x+=1
-        endlocal
     )
     
     :: Finish Command File & Execute on Host
@@ -1416,8 +1420,6 @@
     call :done "The Script Created %x% Entrys."
 
 
-
-
 :startmenu.spam-
     set /P filecount=How many Files should be created?:
     echo Only for Local User or For All Users?
@@ -1428,18 +1430,18 @@
     if %_erl%==L goto spam.local.user.startmenu
     
 :spam.local.user.startmenu
-    set "directory1=%AppData%\Microsoft\Windows\Start Menu\Programs"
+    set "directory.startmenu=%AppData%\Microsoft\Windows\Start Menu\Programs"
     if %default-filename% equ notused (goto startmenu.custom.name) else (goto startmenu.start)
 
 :spam.all.user.startmenu
     net session >nul 2>&1
     if %errorLevel% neq 0 (
-        echo Restarting Program as Elevated. Go here again manually.
+        echo Restarting Program with elevated Privileges. Go here again manually.
         @ping -n 2 localhost> nul
         %powershell.short% -Command "Start-Process '%~f0' -Verb runAs"
         exit
     )
-    set "directory1=%ProgramData%\Microsoft\Windows\Start Menu\Programs"
+    set "directory.startmenu=%ProgramData%\Microsoft\Windows\Start Menu\Programs"
     if %default-filename% equ notused (goto startmenu.custom.name) else (goto startmenu.start)
     
 :startmenu.custom.name
@@ -1448,8 +1450,8 @@
     set /p default-filename=Type in the Filename you want to use:
 
 :startmenu.start
-    cd %directory1%
-    goto spam.ready.to.start
+    cd %directory.startmenu%
+    goto spam.normal.top
 
 :ssh.spam
     if "%logging%"=="1" ( call :log Opened_SSH_Spam )
@@ -1459,8 +1461,12 @@
     @ping -n 1 localhost > nul
     echo.
     echo.
-    :: Listing IPs from ARP Table
-    arp -a 
+    :: Use nmap to find local IPs
+    for /f "delims=" %%a in ('where nmap') do (
+        set "where_output=%%a"
+    )
+    if defined ( echo Scanning Local Subnet for IPs (takes ca. 10secs) && where_output nmap -sn 192.168.1.0/24 ) else ( echo Listing ARP Cache IPs && arp -a )
+    
     echo.
     echo.
     echo.
@@ -1610,7 +1616,6 @@ setlocal enabledelayedexpansion
         set /a x+=1
     )
 
-:done2
     if %logging% == 1 ( call :log Finished_Spamming_Files:_%deskspamlimitedvar% )
     call :done "The Script Created %deskspamlimitedvar% Files."
 
@@ -1652,68 +1657,73 @@ setlocal enabledelayedexpansion
 
 
 
-    :: Display Help Dialog
 :help.startup
     echo.
     echo.
     echo Dataspammer: 
     echo    Script to stress-test various Protocols or Systems
-    echo    Made for educational Purposes only.
+    echo    For educational purposes only.
     echo.
     echo Usage dataspammer [Argument]
     echo       dataspammer.bat [Argument]
     echo.
     echo Parameters: 
-    echo    help Show this Help Dialog
+    echo    help    Show this Help Dialog
     echo.
-    echo    update Check for Updates and exit afterwards
+    echo    update  Check for Updates and exit afterwards
     echo.
-    echo    faststart Start the Script without checking for Anything 
+    echo    faststart   Start the Script without checking for Anything 
     echo.
-    echo    remove Remove the Script and its components from your System
+    echo    remove  Remove the Script and its components from your System
     echo.
-    echo    start Directly start a Spam Method
+    echo    start   Directly start a Spam Method
     echo.
-    echo    api Call the Scripts API and get a Plain-Text response (currently in Alpha)
+    echo    api     Call the Scripts API and get a Plain-Text response (currently in Alpha)
     echo.
-    echo    cli Use the Scripts CLI Interface (currently in Alpha)
+    echo    cli     Use the Scripts CLI Interface (currently in Alpha)
     echo.
-    echo    noelev Start the Script without Administrator
+    echo    noelev  Start the Script without Administrator
     echo.
-    echo    debug Generate Debug Log
+    echo    debug   Generate Debug Log
     echo.
-    echo    monitor Opens the Monitor Socket
+    echo    monitor     Opens the Monitor Socket
     echo.
-    echo    update.script [ stable / beta ] Force Update the Script
+    echo    update.script [ stable / beta ]     Force Update the Script
     echo.
-    echo    version Show Version
+    echo    version     Show Version
     echo.
     echo.
 
-    exit /b 1464
+    exit /b 0
 
 
 :fast.git.update
-    set "current-script-version=v3.6"
-    set "owner=PIRANY1"
-    set "repo=DataSpammer"
-    set "api_url=https://api.github.com/repos/%owner%/%repo%/releases/latest"
-    echo Fetching Data...
+
+
+:git.version.check
     cd %temp%
+    echo Checking for Updates...
+    set "api_url=https://api.github.com/repos/PIRANY1/DataSpammer/releases/latest"
     curl -s %api_url% > apianswer.txt
+    @ping -n 1 localhost> nul
     for /f "tokens=2 delims=:, " %%a in ('findstr /R /C:"\"tag_name\"" apianswer.txt') do (
         set "latest_version=%%a"
     )
     set "latest_version=%latest_version:"=%"
 
-    if "%latest_version%" equ "%current-script-version%" (
+    if "%latest_version%" equ "v6" (
+        set "uptodate=up"
+    ) else (
+        set "uptodate="
+    )
+
+    if "%1"=="up" (
         echo The Script is up-to-date [Version:%latest_version%]
     ) else (
         echo Your Script is outdated [Newest Version: %latest_version% Script Version:%current-script-version%]
     )
-    del apianswer.txt
-    cd /d %~dp0
     exit /b 0
+
 
 :custom.go
    if %logging% == 1 ( call :log Opened_Custom_GOTO ) 
@@ -1723,15 +1733,9 @@ setlocal enabledelayedexpansion
 
 
 :sys.delete.script
-    if %logging% == 1 ( call :log Opened_Delete_Script )
-    :: Delete Script TLI
     echo. 
     call :sys.lt 1
-    echo You are about to delete the whole script.
-    call :sys.lt 1 
-    echo Are you sure about this decision?
-    call :sys.lt 1
-    echo If the script is bugged or you want to download the new Version please Visit the GitHub Repo
+    echo You are about to delete the whole script. Are you sure?
     call :sys.lt 1
     echo.
     call :sys.lt 1
@@ -1761,50 +1765,37 @@ setlocal enabledelayedexpansion
     if %errorLevel% == 0 (goto sys.delete.script.confirmed) else (goto sys.script.administrator)
    
 :sys.delete.script.confirmed
-    if %logging% == 1 ( call :log Deleting_Script )
-    :: Delete Script 
+    :: Delete Script
     if exist "%~dp0\LICENSE" del "%~dp0\LICENSE"
-    echo 1/7 Files Deleted
-    call :sys.lt 1
     if exist "%~dp0\README.md" del "%~dp0\README.md"
-    echo 2/7 Files Deleted
-    call :sys.lt 1
-    if exist "%~dp0\dataspammer.bat" del "%~dp0\dataspammer.bat"
-    echo 3/7 Files Deleted
-    call :sys.lt 1
     if exist "%~dp0\install.bat" del "%~dp0\install.bat"
-    echo 4/7 Files Deleted
     cd /d C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
     if exist "autostart.bat" del "autostart.bat"
-    echo 5/7 Files Deleted
-    call :sys.lt 1
     cd /d %userprofile%\Desktop
     if exist "Dataspammer.bat" del "Dataspammer.bat"
-    echo 6/7 Files Deleted
-    call :sys.lt 1
-    set "startMenuPrograms=%ProgramData%\Microsoft\Windows\Start Menu\Programs"
-    cd /d %startMenuPrograms%
+    cd /d "%ProgramData%\Microsoft\Windows\Start Menu\Programs"
     if exist "Dataspammer.bat" del "Dataspammer.bat"
-    echo 7/7 Files Deleted
-    echo Uninstall Successfull
+    if exist "%userprofile%\Documents\DataSpammerLog\" del /S /Q "%userprofile%\Documents\DataSpammerLog"
+    if exist "%userprofile%\Documents\SecureDataSpammer\" del /S /Q "%userprofile%\Documents\SecureDataSpammer"
+    if exist "%~dp0\dataspammer.bat" del "%~dp0\dataspammer.bat"
+    echo Uninstall Successfulled
     
 :sys.script.administrator
-    :: Script isnt elevated TLI
     echo Please start the Script as Administrator in order to install.
     echo To do this right click the Dataspammer File and click "Run As Administrator"
-    echo The Explorer Windows with the Script will open in 5 Seconds
-    timeout 5
+    call :sys.lt 2
     explorer %~dp0
     echo. > %temp%\DataSpammerClose.txt
     exit 0
 
 :restart.script
     if %logging% == 1 ( call :log Restarting_Script )
-    call :send_message Script.is.restarting.
-    call :send_message Waiting.for.Connection.to.be.Reestablished
+    call :send_message Script.is.restarting
+    call :send_message Terminating %PID%
+    echo. > %temp%\DataSpammerClose.txt
     cd %~dp0
     dataspammer.bat
-    exit restarted.script
+    exit 0
 
 :sys.cli
     if %logging% == 1 ( call :log Opened_CLI )
@@ -1821,19 +1812,36 @@ setlocal enabledelayedexpansion
 
 :sys.api
     echo This Feature is in Active Developement!
+    call :sys.lt 10
     exit /b api.dev.active
-
-
 
 :sys.lt
     set "dur=%1"
     @ping -n %dur% localhost> nul
     exit /b 0
 
+
+:sys.lt
+    if /i "%2"=="count" (
+        set /a counter=%1
+        :countdown
+        if !counter! GEQ 0 (
+            echo Time left: !counter!
+            :: Wait 500ms
+            ping -n 1 -w 500 127.0.0.1 >nul
+            set /a counter-=1
+            goto countdown
+        )
+    ) else (
+        set "dur=%1"
+        ping -n %dur% localhost >nul
+    )
+    exit /b 0
+
 :log
     :: call scheme is:
     :: if %logging% == 1 ( call :log Opened_verify_tab )
-    :: _ and - are getting Replaced by Space    
+    :: In the Logfile _ and - are replaced with Spaces
 
     set "log.content=%1"
     set "logfile=DataSpammer.log"
@@ -1851,7 +1859,6 @@ setlocal enabledelayedexpansion
 
     for /f "tokens=1-3 delims=:." %%a in ("%time%") do set formatted_time=%%a:%%b:%%c
     echo %date% %formatted_time% %log.content.clean% >> "%folder%\%logfile%"
-    :: exit
     exit /b 0
     
 
@@ -1867,7 +1874,6 @@ setlocal enabledelayedexpansion
     :: Parameter 2: User Choice (interactive prompt, empty for automated)
     :: Parameter 3: New Value (leave empty for user input)
     
-    setlocal enabledelayedexpansion
     cd /d %~dp0
     
     set "key=%~1"
@@ -1898,7 +1904,6 @@ setlocal enabledelayedexpansion
     if !logging!==1 ( call :log Changing_%key% )
     echo Restarting...
     cls
-    endlocal
     goto :eof
     
 
@@ -1942,11 +1947,17 @@ setlocal enabledelayedexpansion
         if %_erl%==2 goto menu
     goto done
 
-:dev.options 
+:dev.options
+    :: Rework In Process. 
+    call :win.version.check
+    echo %OSEdition%
+    echo Type: %OSType%
+    echo Version: %OSVersion%
+    echo Build: %OSBuild%
     echo %~nx0 / %~0
     echo %~dpnx0
-    title Developer Options DataSpammer
-    :: Rework In Process.
+    echo PID: %PID%
+    title Developer Options - DataSpammer
     echo Dev Tools
     echo.
     echo [1] Goto Specific Call Sign
@@ -2006,7 +2017,6 @@ setlocal enabledelayedexpansion
     for /f "usebackq tokens=1,2 delims==" %%a in (`findstr /v "^::" "%config_file%"`) do (
         set "%%a=%%b"
     )
-
     if not defined %default_filename% call :update_config "default_filename" "" "notused"
     if not defined %default-domain% call :update_config "default-domain" "" "notused"
     if not defined %default-filecount% call :update_config "default-filecount" "" "notused"
@@ -2022,7 +2032,6 @@ setlocal enabledelayedexpansion
 
 
 :sys.settings.patched
-    :: Update Installed TLI
     echo Update was Successful!
     call :sys.lt 1
     echo Updated to %latest_version%
@@ -2041,11 +2050,9 @@ setlocal enabledelayedexpansion
         set _erl=%errorlevel%
         if %_erl%==1 goto restart.script
         if %_erl%==2 goto cancel
-    goto sys.new.update.installed
+    goto sys.settings.patched
 
 
-
-:: Maybe add Option to add New Directory
 
 :debuglog
     echo Generating Debug Log
@@ -2088,18 +2095,31 @@ setlocal enabledelayedexpansion
     
     :: Collect Functionalities HERE..
     :: DNS & HTTPS & Basic Filespam 
+    :: Run all :signs & functions & check for updates
 :debugtest
     echo Running Debug Test...
+    set "starttime=%time%"
     echo %time%
     call :sys.lt 10
     echo %time%
+    set "endtime=%time%"
+    call :TimeDifference "%starttime%" "%endtime%" > tmp_time.txt
+
+    call :win.version.check
+    echo %OSEdition%
+    echo Type: %OSType%
+    echo Version: %OSVersion%
+    echo Build: %OSBuild%
+    call :generate_random all 400
+    set /p diff.full=<tmp_time.txt
+    del tmp_time.txt
+
     call :log Tested_Functionality
     type %userprofile%\Documents\DataSpammerLog\Dataspammer.log
-
     :: Paste Newly Added Functions of your PR here to test them via GitHub Actions
     :: Example1: call :dns.spam
     :: Example2: Paste a modified Function here if manual input is required
-    
+
 
     echo Finished Testing...
     echo Exiting
@@ -2108,6 +2128,8 @@ setlocal enabledelayedexpansion
 
 
 :: When Monitor is called, it will spectate the Script and give details about the current state
+:: Monitor is still Experimental & may cause problems
+
 :monitor
     @echo off
     setlocal EnableDelayedExpansion
@@ -2141,7 +2163,8 @@ setlocal enabledelayedexpansion
     start /b "" "%batScript%"
 
     
-
+    :: Start a PowerShell process to monitor the DataSpammer.bat process
+    :: Needs to be tested
     :: start "" %powershell.short% -ExecutionPolicy Bypass -Command "& {param([int]$pid) while ($true) {try {Get-Process -Id $pid -ErrorAction Stop} catch {"DataSpammer-Process Crashed at $(Get-Date)" | Out-File -FilePath $env:temp\DataSpammerCrashed.txt; break} Start-Sleep -Seconds 0.5}} -pid %PID%"
 
 
@@ -2184,7 +2207,7 @@ setlocal enabledelayedexpansion
 
 :update.script
     cls
-    :: Updated in v4.2
+    :: Updated in v5
     :: Old one used seperate file / wget & curl
     if %logging% == 1 ( call :log Creating_Update_Script )
 
@@ -2349,7 +2372,34 @@ setlocal enabledelayedexpansion
     exit /b
 
 
+:win.version.check
+    Set UseExpresssion=Reg Query "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v "ProductName"
+    for /F "tokens=*" %%X IN ('%UseExpresssion%') do Set OSEdition=%%X
+    Set OSEdition=%OSEdition:*REG_SZ    =%
+    If Defined ProgramFiles(x86) (Set OSType=x64) Else (Set OSType=x86)
+    Set UseExpresssion=Reg Query "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v "ReleaseId"
+    for /F "tokens=*" %%X IN ('%UseExpresssion%') do Set OSVersion=%%X
+    Set OSVersion=%OSVersion:*REG_SZ    =%
+    If %OSVersion% LSS 2009 GoTo BuildNo
+    Set UseExpresssion=Reg Query "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v "DisplayVersion"
+    for /F "tokens=*" %%X IN ('%UseExpresssion%') do Set OSVersion=%%X
+    Set OSVersion=%OSVersion:*REG_SZ    =%
+    :BuildNo
+    Set UseExpresssion=Ver
+    for /F "tokens=*" %%X IN ('%UseExpresssion%') do Set OSBuild=%%X
+    Set OSBuild=%OSBuild:*10.0.=%
+    Set OSBuild=%OSBuild:~0,-1%
+    
+    :: %OSEdition%
+    :: Type: %OSType%
+    :: Version: %OSVersion%
+    :: Build: %OSBuild%
+    goto :EOF
+
+
+
 :sys.verify.execution
+    :: Check for Human Input by asking for random Int Input
     if %logging% == 1 ( call :log Opened_verify_tab )
     set "verify=%random%"
     %powershell.short% -Command "& {Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.Interaction]::InputBox('Please enter Code %verify% to confirm that you want to execute this Option', 'DataSpammer Verify')}" > %TEMP%\out.tmp
@@ -2368,7 +2418,10 @@ setlocal enabledelayedexpansion
     %powershell.short% -Command %msgBoxArgs%
     goto sys.verify.execution
 
+
+
 :cancel 
+    :: Exit Script, compatible with NT
     set EXIT_CODE=%ERRORLEVEL%
     if %EXIT_CODE% equ 0 set EXIT_CODE=1
     if "%OS%"=="Windows_NT" endlocal
