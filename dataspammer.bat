@@ -21,6 +21,7 @@
 ::    Add File Encryption & Decryption Func - Various Methods e.g AES256, RSA, etc. - As Spam & as Func
 ::    Improve Monitor Message Drop
 ::    Add Encryption to all features
+::    Add ms diff
 
 :top
     cd /d %~dp0
@@ -2125,6 +2126,9 @@ setlocal enabledelayedexpansion
     echo %time%
     set "endtime=%time%"
     call :TimeDifference "%starttime%" "%endtime%" > tmp_time.txt
+    set /p diff.full=<tmp_time.txt
+    del tmp_time.txt
+    echo Time Diff %diff.full%
 
     call :win.version.check
     echo %OSEdition%
@@ -2132,8 +2136,6 @@ setlocal enabledelayedexpansion
     echo Version: %OSVersion%
     echo Build: %OSBuild%
     call :generate_random all 400
-    set /p diff.full=<tmp_time.txt
-    del tmp_time.txt
 
     call :log Tested_Functionality
     type %userprofile%\Documents\DataSpammerLog\Dataspammer.log
