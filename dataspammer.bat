@@ -4,7 +4,6 @@
 :: Last edited on 07.04.2025 by PIRANY
 
 :: Developer Notes
-:: Define %debug_assist% to bypass echo_off
 :: Define devtools to open the developer menu
 :: Developer Tool is in install.bat at :sys.add.developer.tool
 
@@ -21,14 +20,15 @@
 
 ::    Add File Encryption & Decryption Func - Various Methods e.g AES256, RSA, etc. - As Spam & as Func
 ::    Improve Monitor Message Drop
+::    Add Encryption to all features
 
 :top
     cd /d %~dp0
     @color 02
     @title DataSpammer
+    @echo off
     setlocal enabledelayedexpansion
     set "exec-dir=%cd%"
-    if "debug_assist"="" @echo off
     :: Improve NT Compatabilty - Credits to Gradlew.bat Compiler
     if "%OS%"=="Windows_NT" setlocal
     set DIRNAME=%~dp0

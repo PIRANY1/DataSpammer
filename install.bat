@@ -1,4 +1,9 @@
-@if "%debug_assist%"=="" @echo off
+:: Use only under License
+:: Contribute under https://github.com/PIRANY1/DataSpammer
+:: Version v6 - NIGHTLY
+:: Last edited on 07.04.2025 by PIRANY
+
+@echo off
 if "%OS%"=="Windows_NT" setlocal
 set DIRNAME=%~dp0
 if "%DIRNAME%"=="" set DIRNAME=.
@@ -6,7 +11,7 @@ mode con: cols=140 lines=40
 if "%restart-main%" == "1" dataspammer.bat
 @title Script Installer by PIRANY
 set "foldername=DataSpammer"
-set "current-script-version=v5"
+set "current-script-version=v6"
 cd /d %~dp0
 color 2
 cls  
