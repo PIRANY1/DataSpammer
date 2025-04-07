@@ -12,15 +12,14 @@
 ::    Fix Updater - Clueless After 3 Gazillion Updates - Added -UseBasicParsing to iwr
 
 ::    Add Skip Security Question + Always use Custom Directory Yes/No
-::    Improve Window Sizing & Improve Uninstaller - Include Registry etc.
+::    Improve Window Sizing
 ::    Improve PR Scan & Developer Menu & CLI & API & Documentation & Monitor Message Drop
 ::    Improve Developer Tool - Migrate Dev Tool in main.bat - Add :sign list - Add all function test
 
-::    Add TLS/SSL, TCP/UDP, SMTP & IMAP 
-::    Add no Powershell Mode
+::    Add TLS/SSL, TCP/UDP, SMTP & IMAP Support
 ::    Validate Important Functions & check Monitor
 
-::    Secure Hashes
+::    Add File Encryption & Decryption Func - Various Methods e.g AES256, RSA, etc. - As Spam & as Func
 ::    Improve Monitor Message Drop
 
 :top
@@ -528,9 +527,11 @@
     call :sys.lt 1
     echo [5] Monitor
     call :sys.lt 1
+    echo [6] Uninstall
+    call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [6] Go back
+    echo [7] Go back
     choice /C 123456 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto switch.elevation
@@ -538,7 +539,8 @@
         if %_erl%==3 goto debuglog
         if %_erl%==4 goto settings.logging
         if %_erl%==5 goto monitor.settings
-        if %_erl%==6 goto settings
+        if %_erl%==6 goto goto sys.delete.script
+        if %_erl%==7 goto settings
     goto advanced.options
 
 
@@ -626,6 +628,7 @@
 
 :login.create
     set "secure_dir=%userprofile%\Documents\SecureDataSpammer"
+    Cipher /E "%userprofile%\Documents\SecureDataSpammer"
     if exist %secure_dir% echo Account already exists. && call :sys.lt 1 && goto login.setup
     set /p "username=Please enter a Username: "
 
@@ -651,6 +654,9 @@
     echo %username_hash% > "%secure_dir%\username.hash"
     echo %password_hash% > "%secure_dir%\password.hash"
     
+    Cipher /E "%secure_dir%\username.hash"
+    Cipher /E "%secure_dir%\password.hash"
+
     :: Clean up temporary files
     del %TEMP%\username.txt
     del %TEMP%\password.txt
@@ -669,6 +675,8 @@
     cd /d %~dp0 
     :: Version Update checks for this File
     echo %random% > "%userprofile%\Documents\SecureDataSpammer\token.hash"
+    Cipher /E "%userprofile%\Documents\SecureDataSpammer\token.hash"
+
     (
         @echo off
         cd /d %~dp0
@@ -1787,6 +1795,10 @@ setlocal enabledelayedexpansion
     if exist "%userprofile%\Documents\DataSpammerLog\" del /S /Q "%userprofile%\Documents\DataSpammerLog"
     if exist "%userprofile%\Documents\SecureDataSpammer\" del /S /Q "%userprofile%\Documents\SecureDataSpammer"
     if exist "%~dp0\dataspammer.bat" del "%~dp0\dataspammer.bat"
+    reg query "HKCU\Software\DataSpammer" /v Installed >nul 2>&1
+    if not %errorlevel% neq 0 (
+        reg delete "HKCU\Software\DataSpammer" /f
+    )
     echo Uninstall Successfulled
     
 :sys.script.administrator
