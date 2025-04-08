@@ -21,11 +21,10 @@
 ::    Add File Encryption & Decryption Func - Various Methods e.g AES256, RSA, etc. - As Spam & as Func
 ::    Improve Monitor Message Drop
 ::    Add Encryption to all features
-::    Add Change Color
+::    Verify Change Color
 
 :top
     cd /d %~dp0
-    @color 02
     @title DataSpammer
     @echo off
     setlocal enabledelayedexpansion
@@ -71,6 +70,11 @@
     set "config_file=settings.conf"
     for /f "usebackq tokens=1,2 delims==" %%a in (`findstr /v "^::" "%config_file%"`) do (
         set "%%a=%%b"
+    )
+    if defined %color% (
+        color %color%
+    ) else (
+        color 02
     )
 
     :: Start the Elevation Request
@@ -528,11 +532,13 @@
     call :sys.lt 1
     echo [5] Monitor
     call :sys.lt 1
-    echo [6] Uninstall
+    echo [6] Change Color
+    call :sys.lt 1
+    echo [7] Uninstall
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [7] Go back
+    echo [8] Go back
     choice /C 123456 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto switch.elevation
@@ -540,10 +546,28 @@
         if %_erl%==3 goto debuglog
         if %_erl%==4 goto settings.logging
         if %_erl%==5 goto monitor.settings
-        if %_erl%==6 goto goto sys.delete.script
-        if %_erl%==7 goto settings
+        if %_erl%==6 goto change.color
+        if %_erl%==7 goto sys.delete.script
+        if %_erl%==8 goto settings
     goto advanced.options
 
+
+:change.color
+    echo.
+    echo Currently Using Color: %color%
+    echo.
+    echo Color 02 <- Black Background & Green Text
+    echo 0 = Black       8 = Gray
+    echo 1 = Blue        9 = Light Blue
+    echo 2 = Green       A = Light Green
+    echo 3 = Cyan        B = Light Cyan
+    echo 4 = Red         C = Light Red
+    echo 5 = Purple      D = Light Purple
+    echo 6 = Yellow      E = Light Yellow
+    echo 7 = Light Gray  F = White
+    echo.
+    set /p color.var=Please enter the Color Combination:
+    call :update_config "color" "" "%color.var%"
 
 
 :monitor.settings
@@ -2070,6 +2094,7 @@ setlocal enabledelayedexpansion
     if not defined %default_directory% call :update_config "default_directory" "" "notused"
     if not defined %elevation% call :update_config "elevation" "" "pwsh"
     if not defined %update% call :update_config "update" "" "1"
+    if not defined %update% call :update_config "color" "" "02"    
     echo Updating Settings...
     call :sys.lt 1    
     goto sys.settings.patched

@@ -408,6 +408,8 @@ color 2
         echo elevation=%elevation%
         echo :: Change Monitoring Socket
         echo monitoring=%monitoring%
+        echo :: Change Color Default 02
+        echo color=02
     ) > settings.conf
     
 
@@ -450,6 +452,8 @@ color 2
         echo default-domain=%default-domain%
         echo :: Elevation Method used (pwsh / sudo)
         echo elevation=%elevation%
+        echo :: Change Color Default 02
+        echo color=02
     ) > settings.conf
     
     cd /d %~dp0
