@@ -5,15 +5,15 @@
 
 :: Developer Notes
 :: Define devtools to open the developer menu
-:: Developer Tool is in install.bat at :sys.add.developer.tool
+:: Developer Tool is at dev.options
 
 ::    Todo: 
 ::    Fix Updater - Clueless After 3 Gazillion Updates - Added -UseBasicParsing to iwr
 
 ::    Add Skip Security Question + Always use Custom Directory Yes/No
 ::    Improve Window Sizing
-::    Improve PR Scan & Developer Menu & CLI & API & Documentation & Monitor Message Drop
-::    Improve Developer Tool - Migrate Dev Tool in main.bat - Add :sign list - Add all function test
+::    Improve Developer Menu & CLI & API & Documentation
+::    Improve Developer Tool
 
 ::    Add TLS/SSL, TCP/UDP, SMTP & IMAP Support
 ::    Validate Important Functions & check Monitor
@@ -21,7 +21,7 @@
 ::    Add File Encryption & Decryption Func - Various Methods e.g AES256, RSA, etc. - As Spam & as Func
 ::    Improve Monitor Message Drop
 ::    Add Encryption to all features
-::    Add ms diff
+::    Add Change Color
 
 :top
     cd /d %~dp0
@@ -1837,10 +1837,6 @@ setlocal enabledelayedexpansion
     call :sys.lt 10
     exit /b api.dev.active
 
-:sys.lt
-    set "dur=%1"
-    @ping -n %dur% localhost> nul
-    exit /b 0
 
 
 :sys.lt
@@ -1852,6 +1848,7 @@ setlocal enabledelayedexpansion
             :: Wait 500ms
             ping -n 1 -w 500 127.0.0.1 >nul
             set /a counter-=1
+            cls
             goto countdown
         )
     ) else (
@@ -1994,7 +1991,9 @@ setlocal enabledelayedexpansion
     echo.
     echo [6] Restart the Script (Variables wont be kept)
     echo.
-    echo [7] Go Back
+    echo [7] List all :signs
+    echo.
+    echo [8] Go Back
     choice /C 123456 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto dev.jump.callsign
@@ -2003,8 +2002,32 @@ setlocal enabledelayedexpansion
         if %_erl%==4 goto dev.custom.var.set 
         if %_erl%==5 goto restart.script.dev
         if %_erl%==6 goto restart.script
-        if %_erl%==7 goto settings
+        if %_erl%==7 goto list.vars
+        if %_erl%==8 goto settings
     goto dev.options
+
+:list.vars
+    cd "%~dp0"
+    echo ---------------
+    echo DataSpammer.bat
+    echo ---------------
+
+    for /f "tokens=1 delims=:" %%a in ('findstr /r "^:" "dataspammer.bat"') do (
+        echo %%a
+    )
+    pause
+
+    echo -----------
+    echo Install.bat
+    echo -----------
+
+    for /f "tokens=1 delims=:" %%a in ('findstr /r "^:" "install.bat"') do (
+        echo %%a
+    )
+    pause
+    goto dev.options
+
+
 
 :dev.goto
     goto %2
@@ -2119,41 +2142,66 @@ setlocal enabledelayedexpansion
     :: DNS & HTTPS & Basic Filespam 
     :: Run all :signs & functions & check for updates
 :debugtest
+    cd "%~dp0"
+    :: resync time
+    net start w32time
+    w32tm /resync 
+
+    :: Start Debug Test
     echo Running Debug Test...
     set "starttime=%time%"
     echo %time%
     call :sys.lt 10
     echo %time%
     set "endtime=%time%"
+    :: Calc Time Diff
     call :TimeDifference "%starttime%" "%endtime%" > tmp_time.txt
     set /p diff.full=<tmp_time.txt
     del tmp_time.txt
     echo Time Diff %diff.full%
 
+    :: Calc time Diff in ms
+    call :TimeDiffInMs "%starttime%" "%endtime%"
+    echo Time difference: %timeDiffMs%ms
+
+    :: Check Win Version
     call :win.version.check
     echo %OSEdition%
     echo Type: %OSType%
     echo Version: %OSVersion%
     echo Build: %OSBuild%
-    call :generate_random all 400
+    call :generate_random all 40
+    
+    :: Test Write Config
+    echo. > "%~dp0\settings.conf"
+    call :update_config "default-filename" "" "%random%"
+    type "%~dp0\settings.conf"
 
+    call :version
+    
+    call :sys.lt 5
+    call :sys.lt 5 count
+
+    :: Test Logging
     call :log Tested_Functionality
     type %userprofile%\Documents\DataSpammerLog\Dataspammer.log
     :: Paste Newly Added Functions of your PR here to test them via GitHub Actions
     :: Example1: call :dns.spam
     :: Example2: Paste a modified Function here if manual input is required
 
+    
 
+
+    :: Only Uncomment if Updater was changed
+    :: call :update.script stable
     echo Finished Testing...
     echo Exiting
     goto cancel
 
 
-
-:: When Monitor is called, it will spectate the Script and give details about the current state
-:: Monitor is still Experimental & may cause problems
-
 :monitor
+    :: When Monitor is invoked, it observes the script and provides details about its current state.
+    :: Monitor is still Experimental & may cause problems
     @echo off
     setlocal EnableDelayedExpansion
     cls
@@ -2232,6 +2280,7 @@ setlocal enabledelayedexpansion
     cls
     :: Updated in v5
     :: Old one used seperate file / wget & curl
+    :: Usage: call :update.script [stable / beta]
     if %logging% == 1 ( call :log Creating_Update_Script )
 
     if "%1"==stable set "update_url=https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/"
@@ -2293,12 +2342,12 @@ setlocal enabledelayedexpansion
     exit /b
 
 
-    :: Function description:
-    :: %1: type (numbers, letters, all)
-    :: %2: number of characters to generate
-    :: Example: 
-    :: call :generate_random all 40
-    :: Output: Random string: fjELw0oV2nA.nDgx4Jk1vNal,2sMS8tSYhDYAP9-
+:: Function description:
+:: %1: type (numbers, letters, all)
+:: %2: number of characters to generate
+:: Example: 
+:: call :generate_random all 40
+:: Output: Random string: fjELw0oV2nA.nDgx4Jk1vNal,2sMS8tSYhDYAP9-
 :generate_random
     set "type=%~1"
     set "length=%~2"
@@ -2322,7 +2371,6 @@ setlocal enabledelayedexpansion
         set "random_gen=%%a"
     )
     goto :eof
-
 
 :: -------------------------------------------------------------------
 :: Function Usage Example: TimeDifference
@@ -2392,6 +2440,43 @@ setlocal enabledelayedexpansion
 
     :: Output
     echo !diffMin!:!diffSec!:!diffCent!
+    exit /b
+
+:: -------------------------------------------------------------------
+:: Calculates the difference in milliseconds between two time strings.
+:: Input needs to be in the specified Format (or from %time%)
+:: Arguments:
+::   %1 - Start time (e.g. "21:32:22,32")
+::   %2 - End time   (e.g. "21:50:22,32")
+:: Output:
+::   Sets the variable 'timeDiffMs' to the difference in milliseconds.
+::
+:: Example: 
+:: call :TimeDiffInMs "21:32:22,32" "21:50:22,32"
+:: echo Time difference: %timeDiffMs% ms
+:: goto :eof
+:: -------------------------------------------------------------------
+
+    :TimeDiffInMs
+    set "start=%~1"
+    set "end=%~2"
+
+    :: Replace , with . to standardize
+    set "start=%start:,=.%"
+    set "end=%end:,=.%"
+
+    :: Parse start time
+    for /f "tokens=1-4 delims=:." %%a in ("%start%") do (
+        set /a "startMs = (((%%a*60 + %%b)*60 + %%c)*1000 + %%d)"
+    )
+
+    :: Parse end time
+    for /f "tokens=1-4 delims=:." %%a in ("%end%") do (
+        set /a "endMs = (((%%a*60 + %%b)*60 + %%c)*1000 + %%d)"
+    )
+
+    :: Calculate difference
+    set /a "timeDiffMs = endMs - startMs"
     exit /b
 
 

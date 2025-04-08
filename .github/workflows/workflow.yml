@@ -26,4 +26,13 @@ jobs:
         run: |
           cd DataSpammer
           cmd.exe /c ${{ github.workspace }}\DataSpammer\dataspammer.bat debugtest
+          
+      - name: Run DataSpammer.bat Startup
+        run: |
+          cd DataSpammer
+          cmd.exe /c ${{ github.workspace }}\DataSpammer\dataspammer.bat noelev
 
+      - name: Run Install.bat Startup
+        run: |
+          cd DataSpammer
+          cmd.exe /c ${{ github.workspace }}\DataSpammer\install.bat
