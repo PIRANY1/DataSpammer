@@ -1,142 +1,42 @@
 :: Use only under License
 :: Contribute under https://github.com/PIRANY1/DataSpammer
 :: Version v6 - NIGHTLY
-:: Last edited on 07.04.2025 by PIRANY
+:: Last edited on 09.04.2025 by PIRANY
 
-@echo off
-if "%OS%"=="Windows_NT" setlocal
-set DIRNAME=%~dp0
-if "%DIRNAME%"=="" set DIRNAME=.
-mode con: cols=140 lines=40
-if "%restart-main%" == "1" dataspammer.bat
-@title Script Installer by PIRANY
-set "foldername=DataSpammer"
-set "current-script-version=v6"
-cd /d %~dp0
-color 2
-cls  
-color 2
-    if "%1"=="go" goto custom.go
-    if "%1"=="-reverse.arg" dataspammer.bat %2
+:: Improve Progress.txt
 
-:open.install.done
-    :: Check if Settings Exist
-    if exist "settings.conf" (
-    goto sys.installer.execution.finished
-    ) else (
-    goto installer.main.window
-    )
-:sys.installer.execution.finished
-
-    :: Installer Was Executed TLI
-    echo The Installer was already executed.
-    call :sys.lt 1
-    echo You can either delete the script from here or you can open the main script
-    call :sys.lt 1
-    echo You can install the script to another directory too.
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    echo [1] Open the Main Script
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    echo [2] Delete Script (Script needs to run as Administrator!)
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    echo [3] Reinstall Script
-    choice /C 123 /M "Choose an Option from Above:"
-        set _erl=%errorlevel%
-        if %_erl%==1 goto dataspammer.bat
-        if %_erl%==2 goto delete.script.confirmation.window
-        if %_erl%==3 goto installer.main.window
-    goto sys.installer.execution.finished
-
-:delete.script.confirmation.window
-    :: Delete Script TLI
-    echo. 
-    call :sys.lt 1
-    echo You are about to delete the whole script.
-    call :sys.lt 1 
-    echo Are you sure about this decision?
-    call :sys.lt 1
-    echo If the script is bugged or you want to download the new version please 
-    call :sys.lt 1
-    echo visit the GitHub Repo
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    echo [1] Yes, Delete the Whole Script
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    echo [2] Open the GitHub Repo
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    echo [3] No, Please Go back
-    call :sys.lt 1
-    echo.
-    echo.
-    choice /C 123 /M "Choose an Option from Above:"
-        set _erl=%errorlevel%
-        if %_erl%==1 goto delete.script.verify
-        if %_erl%==2 start "" "https://github.com/PIRANY1/DataSpammer" && goto delete.script.confirmation.window
-        if %_erl%==3 goto open.install.done
-    goto delete.script.confirmation.window
-
-
-:open.settings.dts
-    :: Open Settings in Main Script
+    @echo off
     cd /d %~dp0
-    dataspammer.bat settings
+    @color 02
+    @title DataSpammer - Install
+    :: Improve NT Compatability
+    if "%OS%"=="Windows_NT" setlocal
+    set DIRNAME=%~dp0
+    if "%DIRNAME%"=="" set DIRNAME=.
 
-:delete.script.verify
-    call :verify
-    :: Check if Script is elevated
-    setlocal enableextensions ENABLEDELAYEDEXPANSION 
-    net session >nul 2>&1
-    if %errorLevel% == 0 (goto delete.script.confirmed.2) else (goto sys.verify.execution)
+    :: Window Sizing
+    mode con: cols=140 lines=40
 
-:sys.verify.execution
-    :: Script isn't elevated TLI
-    echo Please start the script as Administrator in order to install.
-    echo To do this right click the install.bat file and click "Run As Administrator"
-    pause
-    exit
-
-:delete.script.confirmed.2
-    :: Delete Script 
-    if exist "%~dp0\LICENSE" erase "%~dp0\LICENSE" > nul
-    echo 1/7 Files Deleted
-    call :sys.lt 1
-    if exist "%~dp0\README.md" erase "%~dp0\README.md" > nul
-    echo 2/7 Files Deleted
-    call :sys.lt 1
-    if exist "%~dp0\dataspammer.bat" erase "%~dp0\dataspammer.bat" > nul
-    echo 3/7 Files Deleted
-    call :sys.lt 1
-    if exist "%~dp0\install.bat" erase "%~dp0\install.bat" > nul
-    echo 4/7 Files Deleted
-    cd /d C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
-    if exist "autostart.bat" erase "autostart.bat" > nul
-    echo 5/7 Files Deleted
-    call :sys.lt 1
-    cd /d %userprofile%\Desktop
-    if exist "Dataspammer.bat" erase "Dataspammer.bat" > nul
-    echo 6/7 Files Deleted
-    call :sys.lt 1
-    set "startMenuPrograms=%ProgramData%\Microsoft\Windows\Start Menu\Programs"
-    cd /d %startMenuPrograms%
-    if exist "Dataspammer.bat" erase "Dataspammer.bat" > nul
-    echo 7/7 Files Deleted
-    echo Uninstall Successful
+    :: Preset Vars
+    set "foldername=DataSpammer"
+    set "current-script-version=v6"
+    
+    :: Dev Tool
+    if "%1"=="go" goto custom.go
+    
+    :: Check if Settings Exist
+    reg query "HKCU\Software\DataSpammer" /v Installed >nul 2>&1
+    if %errorlevel% neq 0 (
+        echo The Installer was already executed.
+        echo Opening DataSpammer.bat...
+        call :sys.lt 3
+        "%~dp0\dataspammer.bat"
+    )
 
 :installer.main.window
     if exist "%temp%\progress.txt" goto standard.install.run.1 
-    cls
-    :: Main install TLI
+
+    :: Allows ASCII stuff without Codepage Settings - Not My Work - Credits to ?
     SETLOCAL EnableDelayedExpansion
     SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
     SETLOCAL DisableDelayedExpansion
@@ -149,7 +49,7 @@ color 2
     %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
     %$Echo% "                             |_|                                              |___/                                     
 
-    echo Made by PIRANY                 %current-script-version% 
+    echo Made by PIRANY - %current-script-version% - Batch
     echo.
     call :sys.lt 1
     echo This Installer will lead you through the process of installing the DataSpammer Utility.
@@ -178,6 +78,7 @@ color 2
     :: Some Pre-Install Stuff
     set "directory=%ProgramW6432%"
     cd /d "%directory%"
+    
 :standard.install.run.1
     setlocal EnableDelayedExpansion
     net session >nul 2>&1
@@ -408,8 +309,10 @@ color 2
         echo elevation=%elevation%
         echo :: Change Monitoring Socket
         echo monitoring=%monitoring%
-        echo :: Change Color Default 02
+        echo :: Change Color - Default 02 (CMD Coloring)
         echo color=02
+        echo :: Skip Security Question
+        echo skip-sec=0
     ) > settings.conf
     
 
@@ -452,8 +355,10 @@ color 2
         echo default-domain=%default-domain%
         echo :: Elevation Method used (pwsh / sudo)
         echo elevation=%elevation%
-        echo :: Change Color Default 02
+        echo :: Change Color - Default 02 (CMD Coloring)
         echo color=02
+        echo :: Skip Security Question
+        echo skip-sec=0
     ) > settings.conf
     
     cd /d %~dp0
@@ -732,6 +637,13 @@ color 2
     set "dur=%1"
     @ping -n %dur% localhost> nul
     exit /b 0
+
+:sys.verify.execution
+    :: Script isn't elevated TLI
+    echo Please start the script as Administrator in order to install.
+    echo To do this right click the install.bat file and click "Run As Administrator"
+    pause
+    exit
 
 :verify
     set "verify=%random%"

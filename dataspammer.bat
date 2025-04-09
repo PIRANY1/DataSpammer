@@ -1,31 +1,36 @@
 :: Use only under License
 :: Contribute under https://github.com/PIRANY1/DataSpammer
 :: Version v6 - NIGHTLY
-:: Last edited on 07.04.2025 by PIRANY
+:: Last edited on 09.04.2025 by PIRANY
 
 :: Developer Notes
 :: Define devtools to open the developer menu
 :: Developer Tool is at dev.options
 
-::    Todo: 
-::    Fix Updater - Clueless After 3 Gazillion Updates - Added -UseBasicParsing to iwr
+:: Todo: 
+:: No ETA: Merge DataSpammer & install.bat
 
-::    Add Skip Security Question + Always use Custom Directory Yes/No
-::    Improve Window Sizing
-::    Improve Developer Menu & CLI & API & Documentation
-::    Improve Developer Tool
+::    Low Priority
 
-::    Add TLS/SSL, TCP/UDP, SMTP & IMAP Support
-::    Validate Important Functions & check Monitor
+::      Fix Updater - Clueless After 3 Gazillion Updates - Added -UseBasicParsing to iwr
+::      Improve Developer Menu 
+::      Retire CLI & API
+::      Improve DataSpammer.lock - PID is kept
 
-::    Add File Encryption & Decryption Func - Various Methods e.g AES256, RSA, etc. - As Spam & as Func
-::    Improve Monitor Message Drop
-::    Add Encryption to all features
-::    Verify Change Color
+::    Mid Priority
+
+::      Add TLS/SSL, TCP/UDP, SMTP & IMAP Support
+::      Add File Encryption & Decryption Func - Various Methods e.g AES256, RSA, etc. - As Spam & as Func
+
+::    High Priority
+
+::      Improve Monitor Message Drop?
+::      Validate Important Functions & check Monitor
+
 
 :top
     cd /d %~dp0
-    @title DataSpammer
+    @title DataSpammer - Initiating
     @echo off
     setlocal enabledelayedexpansion
     set "exec-dir=%cd%"
@@ -71,11 +76,14 @@
     for /f "usebackq tokens=1,2 delims==" %%a in (`findstr /v "^::" "%config_file%"`) do (
         set "%%a=%%b"
     )
-    if defined %color% (
+
+    :: Apply Color from Settings
+    if defined color (
         color %color%
     ) else (
         color 02
     )
+
 
     :: Start the Elevation Request
     net session >nul 2>&1
@@ -123,10 +131,13 @@
         tasklist /FI "PID eq %pid%" | findstr /i "%pid%" >nul
         if %errorlevel%==0 (
             echo DataSpammer is already running under PID %pid%.
+            call :sys.lt 2
+            del "%~dp0\dataspammer.lock"
         ) else (
             echo DataSpammer may have crashed or was closed. Deleting lock file...
             echo Be aware that some tasks may not have finished properly.
             del "%~dp0\dataspammer.lock"
+            call :sys.lt 3
         )
     ) else (
         echo %PID% > "%~dp0\dataspammer.lock"
@@ -556,7 +567,7 @@
     echo.
     echo Currently Using Color: %color%
     echo.
-    echo Color 02 <- Black Background & Green Text
+    echo Color 02 = Black Background & Green Text
     echo 0 = Black       8 = Gray
     echo 1 = Blue        9 = Light Blue
     echo 2 = Green       A = Light Green
@@ -2082,6 +2093,7 @@ setlocal enabledelayedexpansion
 
 
 :sys.new.update.installed
+    :: Init New Vars with Content
     set "config_file=settings.conf"
     for /f "usebackq tokens=1,2 delims==" %%a in (`findstr /v "^::" "%config_file%"`) do (
         set "%%a=%%b"
@@ -2095,6 +2107,7 @@ setlocal enabledelayedexpansion
     if not defined %elevation% call :update_config "elevation" "" "pwsh"
     if not defined %update% call :update_config "update" "" "1"
     if not defined %update% call :update_config "color" "" "02"    
+    if not defined %skip-sec% call :update_config "skip-sec" "" "0"
     echo Updating Settings...
     call :sys.lt 1    
     goto sys.settings.patched
@@ -2534,6 +2547,7 @@ setlocal enabledelayedexpansion
 :sys.verify.execution
     :: Check for Human Input by asking for random Int Input
     if %logging% == 1 ( call :log Opened_verify_tab )
+    if "%skip-sec%"==1 ( exit /b 0)
     set "verify=%random%"
     %powershell.short% -Command "& {Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.Interaction]::InputBox('Please enter Code %verify% to confirm that you want to execute this Option', 'DataSpammer Verify')}" > %TEMP%\out.tmp
     set /p OUT=<%TEMP%\out.tmp
