@@ -8,7 +8,7 @@
 :: Developer Tool is at dev.options
 
 :: Todo: 
-:: No ETA: Merge DataSpammer & install.bat
+:: No ETA: Merge DataSpammer & install.bat / change small-install
 
 ::    Low Priority
 
@@ -23,6 +23,9 @@
 ::      Add File Encryption & Decryption Func - Various Methods e.g AES256, RSA, etc. - As Spam & as Func
 ::      Add Install.bat Progress Saving
 ::      Check all Choice Num
+::      Implement Wait Count
+::      Check all Menus
+::      Verify Rework Code
 
 ::    High Priority
 
@@ -54,8 +57,6 @@
     if "%1"=="cli" goto sys.cli
     if "%1"=="debug" goto debuglog
     if "%1"=="debugtest" goto debugtest
-    if "%1"=="api" goto sys.api
-    if "%1"=="goto" goto dev.goto
     if "%1"=="monitor" goto monitor
     if "%1"=="noelev" set "small-install=1" && goto pid.check
     if "%update-install%"=="1" ( goto sys.new.update.installed )
@@ -1165,8 +1166,6 @@
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo Tests in developement: SMTP (mail), IMAP (mail), 
-    call :sys.lt 1
     echo.
     choice /C 12345678 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
@@ -1865,12 +1864,6 @@
     %cmd%
     goto sys.cli.input
 
-:sys.api
-    echo This Feature is in Active Developement!
-    call :sys.lt 10
-    exit /b api.dev.active
-
-
 
 :sys.lt
     if /i "%2"=="count" (
@@ -2010,6 +2003,8 @@
     echo %~dpnx0
     echo PID: %PID%
     title Developer Options - DataSpammer
+
+    echo ALL FEATURES DISABLED CURRENTLY!
     echo Dev Tools
     echo.
     echo [1] Goto Specific Call Sign
@@ -2059,33 +2054,6 @@
     )
     pause
     goto dev.options
-
-
-
-:dev.goto
-    goto %2
-
-:dev.jump.callsign
-    echo In which Script you want go to
-    echo [1] DataSpammer.bat
-    echo [2] Install.bat
-    echo. 
-    choice /C 12 /M "Choose an Option from Above:"
-        set _erl=%errorlevel%
-        if %_erl%==1 goto dev.jump.callsign.dts
-        if %_erl%==2 goto dev.jump.callsign.install
-    goto dev.jump.callsign
-
-
-:dev.jump.callsign.dts
-    set /P jump-to-call-sign=Enter a Call Sign:
-    goto %jump-to-call-sign%
-
-
-:dev.jump.callsign.install
-    cd /d %~dp0
-    set /P jump-to-call-sign=Enter a Call Sign:
-    install.bat go %jump-to-call-sign%
 
 
 

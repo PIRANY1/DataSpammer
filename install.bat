@@ -3,13 +3,14 @@
 :: Version v6 - NIGHTLY
 :: Last edited on 09.04.2025 by PIRANY
 
-:: Improve Progress.txt
-
     @echo off
     cd /d %~dp0
     @color 02
     @title DataSpammer - Install
     
+    :: Improve Powershell Speed
+    set "powershell.short=powershell.exe -ExecutionPolicy Bypass -NoProfile"
+
     :: Improve NT Compatability
     if "%OS%"=="Windows_NT" setlocal
     set DIRNAME=%~dp0
@@ -71,8 +72,29 @@
     choice /C 12 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto standard.install.run
-        if %_erl%==2 installer.custom.install.directory
+        if %_erl%==2 goto installer.custom.install.directory
     goto installer.main.window
+
+:installer.custom.install.directory
+    :: Small Install
+    set /p directory=Please specify the directory where the Script should be installed: 
+    echo Installing Script...
+    cd /d "%directory%"
+    mkdir DataSpammer
+
+    cd /d %~dp0
+    xcopy dataspammer.bat "%directory%\DataSpammer\"
+    erase dataspammer.bat > nul
+    erase README.md > nul
+    erase LICENSE > nul
+
+    cd /d DataSpammer
+    echo small-install > settings.conf
+
+    echo Installation Done.
+    cd /d "%directory%\DataSpammer\"
+    erase "%~dp0\install.bat" > nul
+    dataspammer.bat
 
 :standard.install.run
     :: Some Pre-Install Stuff
@@ -81,7 +103,7 @@
     net session >nul 2>&1
     if %errorLevel% neq 0 (
     echo. goto.elevate "%temp%\progress.txt" > nul
-    powershell -Command "Start-Process '%~f0' -Verb runAs"
+    %powershell.short% -Command "Start-Process '%~f0' -Verb runAs"
     exit
     )
 
@@ -143,87 +165,43 @@
     echo.
     choice /C 12345 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 cls & goto n1varinst
-        if %_erl%==2 cls & goto n2varinst
-        if %_erl%==3 cls & goto n3varinst
+        if %_erl%==1 cls && set "startmenushortcut=Included" && set "startmenushortcut1=1" && goto standard.install.run.4
+        if %_erl%==2 cls && set "desktopicon=Included" && set "desktopic1=1" && goto standard.install.run.4
+        if %_erl%==3 cls && set "autostart=Included" && set "autostart1=1" && goto standard.install.run.4
         if %_erl%==4 goto installer.start.copy
         if %_erl%==5 goto standard.install.run.2
     goto standard.install.run
 
 
-:n1varinst
-    set "startmenushortcut=Included"
-    set "startmenushortcut1=1"
-    goto standard.install.run.4
-
-:n2varinst
-    set "desktopicon=Included"
-    set "desktopic1=1"
-    goto standard.install.run.4
-
-:n3varinst
-    set "autostart=Included"
-    set "autostart1=1"
-    goto standard.install.run.4
-
-
-:installer.custom.install.directory
-    set "small-install=1"
-    call :sys.lt 1
-    echo Please specify the directory where the script should be installed.
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    set /p directory=Type Your Directory Here: 
-
-    echo Installing Script...
-    cd /d %~dp0
-    mkdir DataSpammer
-    set "install-directory=%cd%"
-    xcopy dataspammer.bat "%install-directory%\DataSpammer"
-    erase dataspammer.bat > nul
-    cd /d DataSpammer
-    echo small-install > settings.conf
-    cd /d %~dp0
-    erase README.md > nul
-    erase LICENSE > nul
-    
-    echo Installation Done.
-    cd /d DataSpammer 
-    erase %install-directory%\install.bat > nul
-    dataspammer.bat
-
-
 :installer.start.copy
-    set "gitinsyn=1"
-    :: Main install part
-    set "directory9=%directory%\%foldername%"
+    set "directory9=%directory%\DataSpammer"
     mkdir "%directory9%" 
  
     cd /d %~dp0
-    erase readme.md > nul   
-    erase license > nul
-    curl -sSLo license https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/license > nul
-    curl -sSLo readme.md https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/readme.md > nul
-    erase dataspammer.bat > nul 
+
+    move dataspammer.bat "%directory9%\" >nul
+    move install.bat "%directory9%\" >nul
+    move README.md "%directory9%\" >nul
+    move LICENSE "%directory9%\" >nul
+
     cd /d "%directory9%"
-    curl -sSLo dataspammer.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat > nul
-    curl -sSLo install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat > nul
+    :: Download new Files if one line was used to install
+    set "update_url=https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/"
+    if not exist dataspammer.bat ( %powershell.short% iwr "%update_url%dataspammer.bat" -UseBasicParsing -OutFile "%directory9%\dataspammer.bat" >nul 2>&1 ) 
+    if not exist install.bat ( %powershell.short% iwr "%update_url%install.bat" -UseBasicParsing -OutFile "%directory9%\install.bat" >nul 2>&1 )
+    if not exist README.md( %powershell.short% iwr "%update_url%README.md" -UseBasicParsing -OutFile "%directory9%\README.md" >nul 2>&1 )
+    if not exist LICENSE( %powershell.short% iwr "%update_url%main/LICENSE" -UseBasicParsing -OutFile "%directory9%\LICENSE" >nul 2>&1 ) 
 
     :: Add Script to Registry / AppList
-    set "app.name=DataSpammer"
-    set "app.version=%current-script-version%"
-    set "app.path=%directory9%"
-    set "app.publisher=PIRANY1"
-
-    set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\%app.name%"
+    set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
     if defined ProgramFiles(x86) (
-        set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\%app.name%"
+        set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
     )
-    reg add "%RegPath%" /v "DisplayName" /d "%app.name%%x%" /f
-    reg add "%RegPath%" /v "DisplayVersion" /d "%app.version%" /f
-    reg add "%RegPath%" /v "InstallLocation" /d "%app.path%" /f
-    reg add "%RegPath%" /v "Publisher" /d "%app.publisher%" /f
+
+    reg add "%RegPath%" /v "DisplayName" /d "DataSpammer" /f
+    reg add "%RegPath%" /v "DisplayVersion" /d "%current-script-version%" /f
+    reg add "%RegPath%" /v "InstallLocation" /d "%directory9%" /f
+    reg add "%RegPath%" /v "Publisher" /d "PIRANY1" /f
     reg add "%RegPath%" /v "UninstallString" /d "%directory9%\dataspammer.bat remove" /f
 
     :: Create settings.conf
@@ -253,18 +231,14 @@
         echo :: Skip Security Question
         echo skip-sec=0
     ) > settings.conf
-    
-    echo Created Settings.conf
-    if not defined startmenushortcut1 (goto desktop.icon.install.check)
 
+    if not defined startmenushortcut1 (goto desktop.icon.install.check)
 :start.menu.icon.setup
     cd /d "%ProgramData%\Microsoft\Windows\Start Menu\Programs"
     (
-    echo @echo off
     echo cd /d "%directory9%"
     echo dataspammer.bat
     ) > DataSpammer.bat
-    echo Added Startmenu Shortcut
 
 :desktop.icon.install.check
     if not defined desktopic (goto script.win.start.check)
@@ -272,56 +246,23 @@
 :desktop.icon.install
     cd /d %userprofile%\Desktop
     (
-    echo @echo off
     echo cd /d "%directory9%"
     echo dataspammer.bat %1 %2 %3 %4 %5
     ) > DataSpammer.bat
-    echo Added Desktop Shortcut
 
 :script.win.start.check
     if not defined autostart (goto additional.links.installed)
     
 :script.win.start.setup
-    echo The setup for Autostart is now starting...
     cd /d C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
     (
-    echo @echo off
     echo cd /d "%directory9%"
     echo dataspammer.bat
     ) > autostart.bat
-    cd /d %~dp0
-    echo Added Autostart Shortcut!
 
 :additional.links.installed
     :: Add Registry Key - Remember Installed Status
     reg add "HKCU\Software\DataSpammer" /v Installed /t REG_DWORD /d 1 /f
-
-:additionals.ask.window
-    if exist "%~dp0\LICENSE" ( erase "%~dp0\LICENSE" > nul )
-    if not exist "%~dp0\README.md" ( goto additionals.ask.window )
-    echo Do you want to delete the LICENSE and README files?
-    call :sys.lt 1
-    echo.
-    echo [1] List content of README
-    call :sys.lt 1
-    echo.
-    echo [2] Delete README
-    call :sys.lt 1
-    echo.
-    echo [3] Copy in Script Folder
-    call :sys.lt 1
-    echo.
-    echo [4] Done/Skip
-    echo.
-    call :sys.lt 1
-    echo.
-    choice /C 1234 /M "Choose an Option from Above:"
-        set _erl=%errorlevel%
-        if %_erl%==1 for /f "tokens=*" %%a in (%liscensefad1%) do ( echo %%a ) && pause && goto additionals.ask.window
-        if %_erl%==2 if exist "%~dp0\README.md" ( erase "%~dp0\README.md" > nul ) && goto sys.main.installer.done
-        if %_erl%==3 if exist "%~dp0\README.md" ( xcopy "%~dp0\README.md" "%directory%\%foldername%\%current-script-version%" > nul ) && if exist "%~dp0\README.md" ( erase %~dp0\README.md > nul ) && goto sys.main.installer.done
-        if %_erl%==4 goto sys.main.installer.done
-    goto additionals.ask.window
 
 :sys.main.installer.done
     echo Do you want to encrypt the Script Files?
@@ -350,7 +291,6 @@
         set "where_output=%%a"
     )  
     if not defined where_output goto finish.installation
-    echo Encrypting...
     cd /d %~dp0 
     echo %random% > "%userprofile%\Documents\SecureDataSpammer\token.hash"
     (
@@ -375,39 +315,22 @@
         erase encrypt.bat
     ) > encrypt.bat
      
-    start powershell -Command "Start-Process 'encrypt.bat' -Verb runAs"
+    start %powershell.short% -Command "Start-Process 'encrypt.bat' -Verb runAs"
     exit /b startedencryption
 
 
 :finish.installation
     echo Finishing Installation....
-    cd /d %~dp0
-    erase install.bat > nul
-    cd /d "%directory9%"
-    dataspammer.bat
+    call :sys.lt 3
+    erase "%~dp0\install.bat" > nul
+    "%directory9%\dataspammer.bat"
 
 :cancel
     echo The installer is now closing....
-    @ping -n 2 localhost> nul
     set EXIT_CODE=%ERRORLEVEL%
     if %EXIT_CODE% equ 0 set EXIT_CODE=1
     if "%OS%"=="Windows_NT" endlocal
     exit /b %EXIT_CODE%
-
-
-:custom.go
-   if %logging% == 1 ( call :log Opened_Custom_GOTO ) 
-   if "%1"=="go" goto custom.go
-   set "custom.goto.location=%2"
-   goto %custom.goto.location%
-
-
-:save.progress 
-    set "input=%1"
-    cd %temp%
-    erase progress.txt
-    echo %input% > progress.txt
-    exit /b 0
 
 
 :log
@@ -482,28 +405,22 @@
     @ping -n %dur% localhost> nul
     exit /b 0
 
-:sys.verify.execution
-    :: Script isn't elevated TLI
-    echo Please start the script as Administrator in order to install.
-    echo To do this right click the install.bat file and click "Run As Administrator"
-    pause
-    exit
 
 :verify
     set "verify=%random%"
-    powershell -Command "& {Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.Interaction]::InputBox('Please enter code %verify% to confirm that you want to execute this option', 'DataSpammer Verify')}" > %TEMP%\out.tmp
+    %powershell.short% -Command "& {Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.Interaction]::InputBox('Please enter code %verify% to confirm that you want to execute this option', 'DataSpammer Verify')}" > %TEMP%\out.tmp
     set /p OUT=<%TEMP%\out.tmp
     if not defined OUT goto failed
     if %verify%==%OUT% (goto success) else (goto failed)
 
 :success
     set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('Success', 'DataSpammer Verify');}"
-    powershell -Command %msgBoxArgs%
+    %powershell.short% -Command %msgBoxArgs%
     exit /b
 
 :failed
     set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('You have entered the wrong code. Please try again', 'DataSpammer Verify');}"
-    powershell -Command %msgBoxArgs%
+    %powershell.short% -Command %msgBoxArgs%
     goto verify
 
 :restart.script
