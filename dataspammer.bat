@@ -21,6 +21,8 @@
 
 ::      Add TLS/SSL, TCP/UDP, SMTP & IMAP Support
 ::      Add File Encryption & Decryption Func - Various Methods e.g AES256, RSA, etc. - As Spam & as Func
+::      Add Install.bat Progress Saving
+::      Check all Choice Num
 
 ::    High Priority
 
@@ -1284,7 +1286,6 @@
     if "%default-filecount%"=="notused" set /P requests=How many requests should be made:
     if not "%default-filecount%"=="notused" set "requests=default-domain"
 
-    setlocal enabledelayedexpansion
     for /L %%i in (1,1,%requests%) do (
         echo Sending Request %%i of %requests% to %url%
         curl -s -o NUL -w "Status: %{http_code}\n" !url!
@@ -1295,7 +1296,6 @@
 
 
 :dns.spam
-    setlocal enabledelayedexpansion
     
     echo DNS-Spam is useful if you have a local DNS Server running (PiHole, Adguard etc.)
     set /P domain_server=Enter the DNS-Server IP (leave empty for default):
@@ -1518,7 +1518,7 @@
     for /f "delims=" %%a in ('where nmap') do (
         set "where_output=%%a"
     )
-    if defined ( echo Scanning Local Subnet for IPs (takes ca. 10secs) && where_output nmap -sn 192.168.1.0/24 ) else ( echo Listing ARP Cache IPs && arp -a )
+    if defined where_output ( echo Scanning Local Subnet for IPs (takes ca. 10secs) && where_output nmap -sn 192.168.1.0/24 ) else ( echo Listing ARP Cache IPs && arp -a )
     
     echo.
     echo.
@@ -1531,7 +1531,6 @@
     cls
 
 :ssh.hijack
-setlocal enabledelayedexpansion
     echo Should the SSH-Keys be regenerated?
     echo This will prohibit anyone with the Old Keys from Accessing the Target
     echo.
@@ -1547,7 +1546,6 @@ setlocal enabledelayedexpansion
     goto ssh.hijack
 
 :ssh.start.spam
-setlocal enabledelayedexpansion
     echo Is the SSH Host running Windows or Linux?
     echo.
     echo [1] Windows
@@ -2241,7 +2239,6 @@ setlocal enabledelayedexpansion
     :: When Monitor is invoked, it observes the script and provides details about its current state.
     :: Monitor is still Experimental & may cause problems
     @echo off
-    setlocal EnableDelayedExpansion
     cls
     del "%temp%\DataSpammerCrashed.txt" > nul
     del "%temp%\DataSpammerClose.txt" > nul
@@ -2339,6 +2336,10 @@ setlocal enabledelayedexpansion
     call :sys.lt 2
     echo Updated successfully.
 
+    for /f "delims=" %%a in ('where certutil') do (
+        set "where_output=%%a"
+    )  
+    if not defined where_output goto :move.new.files
     :: Encrypt new Files, when current Version is already encrypted
     if not exist "%userprofile%\Documents\SecureDataSpammer\token.hash" goto move.new.files
     echo Encrypting newly downloaded Files...

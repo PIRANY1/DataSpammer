@@ -9,11 +9,13 @@
     cd /d %~dp0
     @color 02
     @title DataSpammer - Install
+    
     :: Improve NT Compatability
     if "%OS%"=="Windows_NT" setlocal
     set DIRNAME=%~dp0
     if "%DIRNAME%"=="" set DIRNAME=.
 
+    setlocal ENABLEDELAYEDEXPANSION
     :: Window Sizing
     mode con: cols=140 lines=40
 
@@ -34,7 +36,7 @@
     )
 
 :installer.main.window
-    if exist "%temp%\progress.txt" goto standard.install.run.1 
+    if exist "%temp%\progress.txt" goto standard.install.run
 
     :: Allows ASCII stuff without Codepage Settings - Not My Work - Credits to ?
     SETLOCAL EnableDelayedExpansion
@@ -73,14 +75,9 @@
     goto installer.main.window
 
 :standard.install.run
-    :: Disabled cuz its annoying
-    :: call :verify
     :: Some Pre-Install Stuff
     set "directory=%ProgramW6432%"
     cd /d "%directory%"
-    
-:standard.install.run.1
-    setlocal EnableDelayedExpansion
     net session >nul 2>&1
     if %errorLevel% neq 0 (
     echo. goto.elevate "%temp%\progress.txt" > nul
@@ -89,24 +86,23 @@
     )
 
 :standard.install.run.2
-    :: Preset some Variables
     set "startmenushortcut=Not Included"
     set "desktopicon=Not Included"
     set "autostart=Not Included"
+
 :standard.install.run.3
-    :: AV Deactivate TLI
     echo Some Files may get flagged by some Antivirus Software.
     echo.
     call :sys.lt 1
-    echo [1] Open Tutorial on how to turn off AV
+    echo [1] Continue
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [2] Go back
+    echo [2] Open Link to Disable Antivirus
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [3] My AV is turned off!
+    echo [3] Go Back
     call :sys.lt 1
     echo.
     call :sys.lt 1
@@ -115,23 +111,14 @@
     echo.
     choice /C 1234 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 start "" "https://www.security.org/antivirus/turn-off/" & cls & goto standard.install.run.3
-        if %_erl%==2 cls & goto installer.main.window
-        if %_erl%==3 cls & goto standard.install.run.4
+        if %_erl%==1 cls & goto standard.install.run.4
+        if %_erl%==2 start "" "https://www.security.org/antivirus/turn-off/" & cls 
+        if %_erl%==3 cls & goto installer.main.window
         if %_erl%==4 cls & goto cancel
     goto standard.install.run.3
 
 :standard.install.run.4
-    :: Default Install Options TLI
     echo The script will install itself in the following directory: %ProgramW6432%
-    call :sys.lt 1
-    echo For better accessibility of the script you can create for example a Startmenu Shortcut or a Desktop Shortcut
-    call :sys.lt 1
-    echo Please note that you need to reinstall those if you move the script into another folder.
-    call :sys.lt 1
-    echo Please choose the options you want to install:
-    call :sys.lt 1
-    echo Sometimes they get detected by antivirus and get deleted.
     call :sys.lt 1
     echo.
     call :sys.lt 1
@@ -156,50 +143,39 @@
     echo.
     choice /C 12345 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 goto n1varinst
-        if %_erl%==2 goto n2varinst
-        if %_erl%==3 goto n3varinst
-        if %_erl%==4 goto installer.updater.installation.confirm
+        if %_erl%==1 cls & goto n1varinst
+        if %_erl%==2 cls & goto n2varinst
+        if %_erl%==3 cls & goto n3varinst
+        if %_erl%==4 goto installer.start.copy
         if %_erl%==5 goto standard.install.run.2
     goto standard.install.run
 
 
 :n1varinst
-    cls
     set "startmenushortcut=Included"
     set "startmenushortcut1=1"
     goto standard.install.run.4
 
 :n2varinst
-    cls
     set "desktopicon=Included"
     set "desktopic1=1"
     goto standard.install.run.4
 
 :n3varinst
-    cls
     set "autostart=Included"
     set "autostart1=1"
     goto standard.install.run.4
 
 
 :installer.custom.install.directory
-    call :verify
     set "small-install=1"
-    :: Script Install Location
     call :sys.lt 1
     echo Please specify the directory where the script should be installed.
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo It can be any directory as long as you have write/read access to it.
-    call :sys.lt 1
     set /p directory=Type Your Directory Here: 
-    :: Installer Confirmation Dialog
-    call :verify
 
-
-:small.installer
     echo Installing Script...
     cd /d %~dp0
     mkdir DataSpammer
@@ -209,43 +185,21 @@
     cd /d DataSpammer
     echo small-install > settings.conf
     cd /d %~dp0
-    echo Do you want to copy the README into the script folder too or should it be deleted?
-    choice /C DC /M "Press D If you want to Delete README and C to Copy it into the Script folder"
-    set _erl=%errorlevel%
-    if %_erl%==D erase README.md > nul
-    if %_erl%==C xcopy "README.md" "%install-directory%\DataSpammer"
+    erase README.md > nul
+    erase LICENSE > nul
+    
     echo Installation Done.
     cd /d DataSpammer 
     erase %install-directory%\install.bat > nul
     dataspammer.bat
 
-:installer.updater.installation.confirm
-    :: Updater Install TLI
-    echo.
-    call :sys.lt 1
-    echo Do you want the script to automatically scan for updates on every start?
-    echo This will be fully automatic.
-    call :sys.lt 1
-    echo [1] Yes
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    echo [2] No
-    echo.
-    call :sys.lt 1
-    echo.
-    choice /C 12 /M "Choose an Option from Above:"
-        set _erl=%errorlevel%
-        if %_erl%==1 set "gitinsyn=1"
-        if %_erl%==2 goto installer.start.copy
-
 
 :installer.start.copy
+    set "gitinsyn=1"
     :: Main install part
     set "directory9=%directory%\%foldername%"
     mkdir "%directory9%" 
  
-
     cd /d %~dp0
     erase readme.md > nul   
     erase license > nul
@@ -272,238 +226,130 @@
     reg add "%RegPath%" /v "Publisher" /d "%app.publisher%" /f
     reg add "%RegPath%" /v "UninstallString" /d "%directory9%\dataspammer.bat remove" /f
 
-
-    
-
-:installer.start.settings
     :: Create settings.conf
-    setlocal enabledelayedexpansion
-    
     cd /d "%directory9%"
-    set "default.filename=notused"
-    set "default.directory=notused"
-    set "update=0"
-    set "logging=1"
-    set "dev.mode=0"
-    set "default-filecount=notused"
-    set "default-domain=notused"
-    set "elevation=pwsh"
-    set "monitoring=0"
     (
         echo :: DataSpammer configuration
         echo :: Standard Filename
-        echo default_filename=%default.filename%
+        echo default_filename=notused
         echo :: Standard Directory
-        echo default_directory=%default.directory%
+        echo default_directory=notused
         echo :: Check for Updates
-        echo update=%update%
+        echo update=1
         echo :: Logging is on by default
-        echo logging=%logging%
+        echo logging=1
         echo :: Developer Mode
-        echo developermode=%dev.mode%
+        echo developermode=0
         echo :: Default Filecount
-        echo default-filecount=%default-filecount%
+        echo default-filecount=notused
         echo :: Default Domain
-        echo default-domain=%default-domain%
+        echo default-domain=notused
         echo :: Elevation Method used (pwsh / sudo / gsudo)
-        echo elevation=%elevation%
+        echo elevation=pwsh
         echo :: Change Monitoring Socket
-        echo monitoring=%monitoring%
+        echo monitoring=0
         echo :: Change Color - Default 02 (CMD Coloring)
         echo color=02
         echo :: Skip Security Question
         echo skip-sec=0
     ) > settings.conf
     
+    echo Created Settings.conf
+    if not defined startmenushortcut1 (goto desktop.icon.install.check)
 
-:check.if.updater.install
-    if defined gitinsyn (
-        goto installer.common.drc.switch
-    ) else (
-        goto additionals.ask.window
-    )
-
-
-:installer.common.drc.switch
-    :: Write settings.conf with Update
-    setlocal enabledelayedexpansion
-    cd /d "%directory9%"
-    set "stdfile=notused"
-    set "stdrcch=notused"
-    set "update=1"
-    set "logging=1"
-    set "dev.mode=0"
-    set "default-filecount=notused"
-    set "default-domain=notused"
-    set "elevation=pwsh"
-    
-    (
-        echo :: DataSpammer configuration
-        echo :: Standard Filename
-        echo default_filename=%stdfile%
-        echo :: Standard Directory
-        echo default_directory=%stdrcch%
-        echo :: Check for Updates
-        echo update=%update%
-        echo :: Logging is on by default
-        echo logging=%logging%
-        echo :: Developer Mode
-        echo developermode=%dev.mode%
-        echo :: Default Filecount
-        echo default-filecount=%default-filecount%
-        echo :: Default Domain
-        echo default-domain=%default-domain%
-        echo :: Elevation Method used (pwsh / sudo)
-        echo elevation=%elevation%
-        echo :: Change Color - Default 02 (CMD Coloring)
-        echo color=02
-        echo :: Skip Security Question
-        echo skip-sec=0
-    ) > settings.conf
-    
-    cd /d %~dp0
-    goto install.additional.links
-    
-
-:install.additional.links
-    cd /d "%directory9%"
-    set varlinkauto=%cd%
-    if defined startmenushortcut1 (goto start.menu.icon.setup) else (goto desktop.icon.install.check)
 :start.menu.icon.setup
-    :: Install Startmenu
     cd /d "%ProgramData%\Microsoft\Windows\Start Menu\Programs"
     (
     echo @echo off
-    echo cd /d %varlinkauto%
+    echo cd /d "%directory9%"
     echo dataspammer.bat
     ) > DataSpammer.bat
     echo Added Startmenu Shortcut
+
 :desktop.icon.install.check
-    if defined desktopic (goto desktop.icon.install) else (goto script.win.start.check)
+    if not defined desktopic (goto script.win.start.check)
+
 :desktop.icon.install
-    :: Desktop-IC Installer
     cd /d %userprofile%\Desktop
     (
     echo @echo off
-    echo cd /d %varlinkauto%
+    echo cd /d "%directory9%"
     echo dataspammer.bat %1 %2 %3 %4 %5
     ) > DataSpammer.bat
-    echo Added Desktop Shortcut                                                                                              
+    echo Added Desktop Shortcut
+
 :script.win.start.check
-    if defined autostart (goto script.win.start.setup) else (goto additional.links.installed)
+    if not defined autostart (goto additional.links.installed)
+    
 :script.win.start.setup
-    :: Autostart Installer
     echo The setup for Autostart is now starting...
     cd /d C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
     (
     echo @echo off
-    echo cd /d %varlinkauto%
+    echo cd /d "%directory9%"
     echo dataspammer.bat
     ) > autostart.bat
     cd /d %~dp0
     echo Added Autostart Shortcut!
-    goto additional.links.installed
+
 :additional.links.installed
-    :: Add Registry Key
+    :: Add Registry Key - Remember Installed Status
     reg add "HKCU\Software\DataSpammer" /v Installed /t REG_DWORD /d 1 /f
-    :: Display a Finish Message
-    echo Done!
-    echo You might need to restart your device in order for all changes to apply.
-    pause 
-    goto additionals.ask.window
-
-
 
 :additionals.ask.window
-    :: TLI for Readme and LICENSE
+    if exist "%~dp0\LICENSE" ( erase "%~dp0\LICENSE" > nul )
+    if not exist "%~dp0\README.md" ( goto additionals.ask.window )
     echo Do you want to delete the LICENSE and README files?
     call :sys.lt 1
     echo.
     echo [1] List content of README
     call :sys.lt 1
     echo.
-    echo [2] List content of LICENSE
+    echo [2] Delete README
     call :sys.lt 1
     echo.
-    echo [3] Delete LICENSE
+    echo [3] Copy in Script Folder
     call :sys.lt 1
     echo.
-    echo [4] Delete README
-    call :sys.lt 1
-    echo.
-    echo [5] Copy in Script Folder
-    call :sys.lt 1
-    echo.
-    echo [6] Done/Skip
+    echo [4] Done/Skip
     echo.
     call :sys.lt 1
     echo.
-    choice /C 123456 /M "Choose an Option from Above:"
+    choice /C 1234 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 goto list.content.LC
-        if %_erl%==2 goto list.content.RD
-        if %_erl%==3 goto delete.license
-        if %_erl%==4 goto delete.readme
-        if %_erl%==5 goto copy.rl.to.script
-        if %_erl%==6 goto sys.main.installer.done
-    goto additionals.ask.window
-
-:copy.rl.to.script
-    :: RL refers to Readme License
-    :: Copy readme and license to install directory
-    if exist "%~dp0\LICENSE" xcopy "%~dp0\LICENSE" "%directory%\%foldername%\%current-script-version%" > nul
-    if exist "%~dp0\README.md" xcopy "%~dp0\README.md" "%directory%\%foldername%\%current-script-version%" > nul  
-    erase %~dp0\LICENSE > nul
-    erase %~dp0\README.md > nul
-    goto sys.main.installer.done
-
-:list.content.LC
-    :: List the Content of LICENSE
-    set "liscensefad=%~dp0\LICENSE"
-    
-    if exist "%liscensefad%" (
-        for /f "tokens=*" %%a in (%liscensefad%) do (
-            echo %%a
-        )
-    )
-    pause
-    goto additionals.ask.window
-
-:list.content.RD
-    :: List the Content of readme
-    set "liscensefad1=%~dp0\README.md"
-    
-    if exist "%liscensefad1%" (
-        for /f "tokens=*" %%a in (%liscensefad1%) do (
-            echo %%a
-        )
-    )
-    pause
-    goto additionals.ask.window
-
-:delete.license
-    :: delete the license
-    if exist "%~dp0\LICENSE" ( erase "%~dp0\LICENSE" > nul )
-    goto additionals.ask.window
-
-:delete.readme
-    :: Delete readme 
-    if exist "%~dp0\README.md" ( erase "%~dp0\README.md" > nul )
+        if %_erl%==1 for /f "tokens=*" %%a in (%liscensefad1%) do ( echo %%a ) && pause && goto additionals.ask.window
+        if %_erl%==2 if exist "%~dp0\README.md" ( erase "%~dp0\README.md" > nul ) && goto sys.main.installer.done
+        if %_erl%==3 if exist "%~dp0\README.md" ( xcopy "%~dp0\README.md" "%directory%\%foldername%\%current-script-version%" > nul ) && if exist "%~dp0\README.md" ( erase %~dp0\README.md > nul ) && goto sys.main.installer.done
+        if %_erl%==4 goto sys.main.installer.done
     goto additionals.ask.window
 
 :sys.main.installer.done
-    echo Do you want to encrypt the script?
-    echo This can bypass Antivirus Detection and improve the security of the script.
+    echo Do you want to encrypt the Script Files?
+    call :sys.lt 1
+    echo This can bypass Antivirus Detections.
+    call :sys.lt 1
     echo.
+    call :sys.lt 1
     echo [1] Yes
+    call :sys.lt 1
     echo.
+    call :sys.lt 1
     echo [2] No
-        choice /C 12 /M "1/2:"
+    call :sys.lt 1
+    echo.
+    call :sys.lt 1
+    echo.
+    choice /C 12 /M "1/2:"
         set _erl=%errorlevel%
         if %_erl%==1 goto encrypt.script
         if %_erl%==2 goto finish.installation
 
-    :encrypt.script
+
+:encrypt.script
+    for /f "delims=" %%a in ('where certutil') do (
+        set "where_output=%%a"
+    )  
+    if not defined where_output goto finish.installation
     echo Encrypting...
     cd /d %~dp0 
     echo %random% > "%userprofile%\Documents\SecureDataSpammer\token.hash"
@@ -533,8 +379,7 @@
     exit /b startedencryption
 
 
-    :finish.installation
-    :: Cleanup install directory and finish the installation
+:finish.installation
     echo Finishing Installation....
     cd /d %~dp0
     erase install.bat > nul
@@ -600,7 +445,6 @@
     :: Parameter 2: User choice (interactive prompt, empty for automated)
     :: Parameter 3: New value (leave empty for user input)
     
-    setlocal enabledelayedexpansion
     cd /d %~dp0
     
     set "key=%~1"
