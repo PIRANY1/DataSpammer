@@ -1,7 +1,9 @@
 :: Use only under License
 :: Contribute under https://github.com/PIRANY1/DataSpammer
 :: Version v6 - NIGHTLY
-:: Last edited on 09.04.2025 by PIRANY
+:: Last edited on 11.04.2025 by PIRANY
+
+:: >nul 2>&1
 
 :: Developer Notes
 :: Define devtools to open the developer menu
@@ -28,9 +30,10 @@
 ::      Verify Rework Code
 
 ::    High Priority
-
-::      Improve Monitor Message Drop?
 ::      Validate Important Functions & check Monitor
+::      Add "" & cd /d everywhere
+::      Check goto goto & goto call
+::      Add Startargument
 
 
 :top
@@ -48,19 +51,20 @@
     :: Improve Powershell Speed
     set "powershell.short=powershell.exe -ExecutionPolicy Bypass -NoProfile"
     if "%1"=="" goto startup
-    if "%1"=="version" goto version
-    if "%1"=="--help" goto help.startup
-    if "%1"=="faststart" goto sys.enable.ascii.tweak
-    if "%1"=="update" goto fast.git.update
-    if "%1"=="update.script" call :update.script %2
-    if "%1"=="remove" goto sys.delete.script
-    if "%1"=="cli" goto sys.cli
-    if "%1"=="debug" goto debuglog
-    if "%1"=="debugtest" goto debugtest
-    if "%1"=="monitor" goto monitor
-    if "%1"=="noelev" set "small-install=1" && goto pid.check
+    if "%1"=="version" title DataSpammer && goto version
+    if "%1"=="--help" title DataSpammer && goto help.startup
+    if "%1"=="help" title DataSpammer && goto help.startup
+    if "%1"=="faststart" title DataSpammer && goto sys.enable.ascii.tweak
+    if "%1"=="update" title DataSpammer && goto fast.git.update
+    if "%1"=="update.script" title DataSpammer && call :update.script %2 && exit
+    if "%1"=="remove" title DataSpammer && goto sys.delete.script
+    if "%1"=="debug" title DataSpammer && goto debuglog
+    if "%1"=="debugtest" title DataSpammer && goto debugtest
+    if "%1"=="monitor" title DataSpammer && goto monitor
+    if "%1"=="start" title DataSpammer && goto start.verified
+    if "%1"=="noelev" title DataSpammer && set "small-install=1" && goto pid.check
     if "%update-install%"=="1" ( goto sys.new.update.installed )
-    if not defined devtools (goto top-startup) else (gotod dev.options)
+    if not defined devtools (goto startup) else (goto dev.options)
 
 :startup
     title DataSpammer - Starting
@@ -190,35 +194,36 @@
         echo Username Matches
         if "%password_hash%" EQU "%stored_password_hash%" (
             echo Password Matches
-            del %TEMP%\username.txt > nul
-            del %TEMP%\password.txt > nul
-            del %TEMP%\username_hash.txt > nul
-            del %TEMP%\password_hash.txt > nul
+            del "%TEMP%\username.txt" > nul
+            del "%TEMP%\password.txt" > nul
+            del "%TEMP%\username_hash.txt" > nul
+            del "%TEMP%\password_hash.txt" > nul
             goto file.check
         ) else (
             echo Authentication failed. Password does not match.
-            del %TEMP%\username.txt > nul
-            del %TEMP%\password.txt > nul
-            del %TEMP%\username_hash.txt > nul
-            del %TEMP%\password_hash.txt > nul
+            del "%TEMP%\username.txt" > nul
+            del "%TEMP%\password.txt" > nul
+            del "%TEMP%\username_hash.txt" > nul
+            del "%TEMP%\password_hash.txt" > nul
             echo Credentials do not match!
             pause
             goto login.input
         )
     ) else (
         echo Authentication failed. Username does not match.
-        del %TEMP%\username.txt > nul
-        del %TEMP%\password.txt > nul
-        del %TEMP%\username_hash.txt > nul
-        del %TEMP%\password_hash.txt > nul
+        del "%TEMP%\username.txt" > nul
+        del "%TEMP%\password.txt" > nul
+        del "%TEMP%\username_hash.txt" > nul
+        del "%TEMP%\password_hash.txt" > nul
         echo Credentials do not match!
         pause
         goto login.input
     )    
 
+
 :file.check
     :: Check Files
-    title DataSpammer - Starting
+    title DataSpammer
     :: Improve Log Readability
     for /l %%i in (1,1,10) do (
         if %logging% == 1 ( call :log . )
@@ -228,19 +233,9 @@
     call :send_message Started.DataSpammer
     call :send_message Established.Socket.Connection
     if %logging% == 1 ( call :log Established_Socket_Connection )
-    
     if not exist "install.bat" (goto sys.error.no.install) else (goto settings.extract.update)
 
 :sys.no.settings
-    :: Check for Install Reg Key
-    reg query "HKCU\Software\DataSpammer" /v Installed >nul 2>&1
-    if %errorlevel% neq 0 (
-        echo Installation was not executed. 
-        echo Opening installer...
-        call :sys.lt 4
-        cd /d %~dp0
-        install.bat
-    )
     if %logging% == 1 ( call :log Settings_Not_Found )
     cls
     echo The File "settings.conf" doesnt exist. 
@@ -270,6 +265,15 @@
 
 
 :settings.extract.update
+    :: Check for Install Reg Key
+    reg query "HKCU\Software\DataSpammer" /v Installed >nul 2>&1
+    if %errorlevel% neq 0 (
+        echo Installation was not executed. 
+        echo Opening installer...
+        call :sys.lt 4
+        cd /d %~dp0
+        install.bat
+    )
     if "%logging%"=="1" ( call :log Checking_Settings_for_Update_Command )
     call :gitcall.sys
     goto dts.startup.done
@@ -287,7 +291,7 @@
     curl -s %api_url% > apianswer.txt
     echo Got Release Info...
     echo Extracting Data...
-    @ping -n 1 localhost> nul
+    call :sys.lt 2
     for /f "tokens=2 delims=:, " %%a in ('findstr /R /C:"\"tag_name\"" apianswer.txt') do (
         set "latest_version=%%a"
     )
@@ -331,7 +335,7 @@
     call :sys.lt 1
     choice /C 12 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 call :update.script stable && exit /b
+        if %_erl%==1 call :update.script stable && exit
         if %_erl%==2 exit /b
     goto git.version.outdated
 
@@ -389,17 +393,17 @@
    if %logging% == 1 ( call :log Checking_If_Developer_Mode_Is_Turned_On )
    cd /d %~dp0
    if "%developermode%"=="1" echo Developer Mode is enabled.
-   if "%developermode%"=="1" (set "dev-mode=1") else (set "dev-mode=0")
-   if not defined devtools (goto sys.enable.ascii.tweak) else (goto dtd)
+   if "%developermode%"=="1" ( set "dev-mode=1" ) else ( set "dev-mode=0" )
+   if not defined devtools ( goto sys.enable.ascii.tweak ) else ( goto dtd )
 
 :sys.enable.ascii.tweak
     if %logging% == 1 ( call :log Sending_Notification )
     if %logging% == 1 ( call :log Enabling_ASCII_without_CHCP )
     %powershell.short% -Command "& {Add-Type -AssemblyName System.Windows.Forms; Add-Type -AssemblyName System.Drawing; $notify = New-Object System.Windows.Forms.NotifyIcon; $notify.Icon = [System.Drawing.SystemIcons]::Information; $notify.Visible = $true; $notify.ShowBalloonTip(0, 'DataSpammer', 'Started DataSpammer', [System.Windows.Forms.ToolTipIcon]::None)}"
+    
     :: Allows ASCII stuff without Codepage Settings - Not My Work - Credits to ?
-    SETLOCAL EnableDelayedExpansion
+    :: Properly Escape Symbols like | ! & ^ > < etc.
     SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
-    SETLOCAL DisableDelayedExpansion
 
 :menu
     for /f "tokens=2 delims=[]" %%v in ('ver') do set CMD_VERSION=%%v
@@ -553,7 +557,7 @@
     echo.
     call :sys.lt 1
     echo [8] Go back
-    choice /C 123456 /M "Choose an Option from Above:"
+    choice /C 12345678 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto switch.elevation
         if %_erl%==2 goto encrypt
@@ -795,26 +799,26 @@
     if %logging% == 1 ( call :log Chaning_Elevation_to_sudo )
     call :update_config "elevation" "" "sudo"
     echo Switched to Sudo.
-    @ping -n 2 localhost> nul
+    call :sys.lt 2
     goto restart.script
 
 
 :switch.pwsh.elevation
     echo Switching to Powershell Elevation...
-    @ping -n 2 localhost> nul
+    call :sys.lt 2
     if %logging% == 1 ( call :log Chaning_Elevation_to_pwsh )
     call :update_config "elevation" "" "pwsh"
     echo Switched to Powershell.
-    @ping -n 2 localhost> nul
+    call :sys.lt 2
     goto restart.script
 
 :switch.gsudo.elevation
     echo Switching to GSUDO Elevation...
-    @ping -n 2 localhost> nul
+    call :sys.lt 2
     if %logging% == 1 ( call :log Chaning_Elevation_to_gsudo )
     call :update_config "elevation" "" "gsudo"
     echo Switched to GSudo.
-    @ping -n 2 localhost> nul
+    call :sys.lt 2
     goto restart.script
 
 
@@ -836,32 +840,25 @@
     call :sys.lt 1
     echo. 
     call :sys.lt 1
-    echo [5] Go back
+    echo [5] Skip Security Question
+    call :sys.lt 1
+    echo. 
+    call :sys.lt 1
+    echo [6] Go back
     choice /C 12345 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 goto settings.default.filename
-        if %_erl%==2 goto settings.default.directory
-        if %_erl%==3 goto settings.default.filecount
-        if %_erl%==4 goto settings.default.domain
-        if %_erl%==5 goto settings
+        if %_erl%==1 if %logging% == 1 ( call :log Chaning_Default_Filename ) && call :update_config "default-filename" "Type in the Filename you want to use:" "" && goto restart.script
+        if %_erl%==2 if %logging% == 1 ( call :log Changing_Standart_Directory ) && call :update_config "default_directory" "Type Your Directory Here:" "" && goto restart.script
+        if %_erl%==3 if %logging% == 1 ( call :log Chaning_Standart_Filecount ) && call :update_config "default-filecount" "Enter the Default Filecount:" "" && goto restart.script
+        if %_erl%==4 if %logging% == 1 ( call :log Chaning_Standart_Domain ) && call :update_config "default-domain" "Enter the Default Domain:" "" && goto restart.script
+        if %_erl%==5 goto settings.skip.sec
+        if %_erl%==6 goto settings
     goto spam.settings
 
-
-
-:settings.default.filecount
-    if %logging% == 1 ( call :log Chaning_Standart_Filecount )
-    cls 
-    set /p df.filecount=Enter the Default Filecount:
-    call :update_config "default-filecount" "" "%df.filecount%"
-    @ping -n 2 localhost > nul
-    goto restart.script
-
-:settings.default.domain
-    if %logging% == 1 ( call :log Chaning_Standart_Domain )
-    cls 
-    set /p df.domain=Enter the Default Domain:
-    call :update_config "default-domain" "" "%df.domain%"
-    @ping -n 2 localhost > nul
+:settings.skip.sec
+    if %logging% == 1 ( call :log Chaning_Skip_security_question )
+    if %skip-sec% == 1 ( set "settings.skip-sec=0" ) else ( set "settings.skip-sec=1" )
+    call :update_config "skip-sec" "" "%settings.skip-sec%"
     goto restart.script
 
 :settings.version.control
@@ -886,9 +883,9 @@
     echo.
     choice /C 1234 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 call :update.script stable && exit /b
-        if %_erl%==2 call :update.script stable && exit /b
-        if %_erl%==3 call :update.script beta && exit /b
+        if %_erl%==1 call :update.script stable && exit
+        if %_erl%==2 call :update.script stable && exit
+        if %_erl%==3 call :update.script beta && exit
         if %_erl%==4 goto settings
     goto settings.version.control
 
@@ -911,24 +908,9 @@
     call :update_config "developermode" "" "1"
     echo Developer Options have been activated!
     echo Script will now restart
-    @ping -n 2 localhost> nul
+    call :sys.lt 2
     goto restart.script
 
-
-
-:settings.default.filename
-    if %logging% == 1 ( call :log Chaning_Default_Filename )
-    cls 
-    call :update_config "default-filename" "Type in the Filename you want to use:" ""
-    @ping -n 2 localhost > nul
-    goto restart.script
-
-:settings.default.directory
-    if %logging% == 1 ( call :log Changing_Standart_Directory )
-    cls 
-    call :update_config "default_directory" "Type Your Directory Here:" ""
-    @ping -n 2 localhost > nul
-    goto restart.script
 
 :settings.logging
     if %logging% == 1 ( call :log Opened_Logging_Settings )
@@ -971,7 +953,7 @@
     if %logging% == 1 ( goto settings.logging )
     call :update_config "logging" "" "1"
     echo Enabled Logging.
-    @ping -n 1 localhost > nul
+    call :sys.lt 2
     goto restart.script
 
 :disable.logging
@@ -979,7 +961,7 @@
     if %logging% == 1 ( call :log Disabling_Logging )
     call :update_config "logging" "" "0"
     echo Disabled Logging.
-    @ping -n 1 localhost> nul
+    call :sys.lt 2
     goto restart.script
 
 :ad.settings
@@ -1035,15 +1017,15 @@
 :ad.setup
     cls
     echo [1] Start Setup for Autostart
-    @ping -n 1 localhost> nul
+    call :sys.lt 2
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 2
     echo [2] Start Setup for Desktop Icon
-    @ping -n 1 localhost> nul
+    call :sys.lt 2
     echo.
-    @ping -n 1 localhost> nul
+    call :sys.lt 2
     echo [3] Go Back
-    @ping -n 1 localhost> nul
+    call :sys.lt 2
     echo.
 
     choice /C 123 /M "Choose an Option from Above:"
@@ -1206,7 +1188,7 @@
     set /P icmp.rate=Enter the rate (milliseconds between requests):
     
     echo Press CTRL+C to stop
-    @ping -n 3 localhost> nul
+    call :sys.lt 3
     
     :icmp.loop
     ping %icmp.target% -n 1 -w %icmp.rate%
@@ -1279,6 +1261,7 @@
 
 
 :https.spam
+    setlocal EnableDelayedExpansion
     echo Spam a HTTP/HTTPS Server with Requests
     if "%default-domain%"=="notused" set /P url=Enter a Domain or an IP:
     if not "%default-domain%"=="notused" set "url=default-domain"
@@ -1295,7 +1278,7 @@
 
 
 :dns.spam
-    
+    setlocal EnableDelayedExpansion    
     echo DNS-Spam is useful if you have a local DNS Server running (PiHole, Adguard etc.)
     set /P domain_server=Enter the DNS-Server IP (leave empty for default):
     if "%default-domain%"=="notused" set /P domain=Enter the Domain:
@@ -1375,6 +1358,7 @@
     echo cd %remoteDir% >> %ftpCommands%
     
     :: Write Filenames in Command File
+    setlocal EnableDelayedExpansion    
     set /a x=1
     for /l %%i in (1,1,%filecount%) do (
         set localFile=%filename%!x!.txt
@@ -1420,7 +1404,7 @@
     net session >nul 2>&1
     if %errorLevel% neq 0 (
         echo Restarting Program as Elevated. Go here again manually.
-        @ping -n 3 localhost> nul
+        call :sys.lt 3
         %powershell.short% -Command "Start-Process '%~f0' -Verb runAs"
         exit
     )
@@ -1489,7 +1473,7 @@
     net session >nul 2>&1
     if %errorLevel% neq 0 (
         echo Restarting Program with elevated Privileges. Go here again manually.
-        @ping -n 2 localhost> nul
+        call :sys.lt 2
         %powershell.short% -Command "Start-Process '%~f0' -Verb runAs"
         exit
     )
@@ -1510,7 +1494,7 @@
     if "%logging%"=="1" ( call :log Listing_Local_IPs )
     
     echo Enter the IP or the Hostename of the Device
-    @ping -n 1 localhost > nul
+    call :sys.lt 2
     echo.
     echo.
     :: Use nmap to find local IPs
@@ -1560,6 +1544,7 @@
 
 
 :spam.ssh.target.win
+    setlocal EnableDelayedExpansion
     if defined logging call :log Spamming_Windows_SSH_Target
 
     if "%ssh.regen%"=="1" (
@@ -1600,6 +1585,7 @@
 
 
 :spam.ssh.target.lx
+    setlocal EnableDelayedExpansion
     if defined logging call :log Spamming_Linux_SSH_Target 
     if "%ssh.regen%"=="1" (
         echo Regenerating SSH keys on target...
@@ -1656,7 +1642,7 @@
 
     cls
     echo Starting.....
-    @ping -n 2 localhost> nul
+    call :sys.lt 2
     cd /d %userprofile%\Desktop
     set /a x=1
 
@@ -1707,55 +1693,13 @@
 
 
 
-:help.startup
-    echo.
-    echo.
-    echo Dataspammer: 
-    echo    Script to stress-test various Protocols or Systems
-    echo    For educational purposes only.
-    echo.
-    echo Usage dataspammer [Argument]
-    echo       dataspammer.bat [Argument]
-    echo.
-    echo Parameters: 
-    echo    help    Show this Help Dialog
-    echo.
-    echo    update  Check for Updates and exit afterwards
-    echo.
-    echo    faststart   Start the Script without checking for Anything 
-    echo.
-    echo    remove  Remove the Script and its components from your System
-    echo.
-    echo    start   Directly start a Spam Method
-    echo.
-    echo    api     Call the Scripts API and get a Plain-Text response (currently in Alpha)
-    echo.
-    echo    cli     Use the Scripts CLI Interface (currently in Alpha)
-    echo.
-    echo    noelev  Start the Script without Administrator
-    echo.
-    echo    debug   Generate Debug Log
-    echo.
-    echo    monitor     Opens the Monitor Socket
-    echo.
-    echo    update.script [ stable / beta ]     Force Update the Script
-    echo.
-    echo    version     Show Version
-    echo.
-    echo.
-
-    exit /b 0
-
 
 :fast.git.update
-
-
-:git.version.check
     cd %temp%
     echo Checking for Updates...
     set "api_url=https://api.github.com/repos/PIRANY1/DataSpammer/releases/latest"
     curl -s %api_url% > apianswer.txt
-    @ping -n 1 localhost> nul
+    call :sys.lt 2
     for /f "tokens=2 delims=:, " %%a in ('findstr /R /C:"\"tag_name\"" apianswer.txt') do (
         set "latest_version=%%a"
     )
@@ -1851,21 +1795,280 @@
     dataspammer.bat
     exit 0
 
-:sys.cli
-    if %logging% == 1 ( call :log Opened_CLI )
+
+:monitor
+    :: When Monitor is invoked, it observes the script and provides details about its current state.
+    :: Monitor is still Experimental & may cause problems
     @echo off
-    for /f %%A in ('"prompt $H &echo on &for %%B in (1) do rem"') do set BS=%%A
-    echo Type 'help' to get an overview of commands
-    :sys.cli.input
+    setlocal EnableDelayedExpansion
+    cls
+    del "%temp%\DataSpammerCrashed.txt" > nul
+    del "%temp%\DataSpammerClose.txt" > nul
+    echo Opened Monitor Socket.
+    echo Waiting for Startup to Finish...
+    title Monitoring DataSpammer.bat
+    :: Parse PID from Main Process
+    set "PID.DTS=%2"
+    echo PID: %PID.DTS%
+    set "batScript=%temp%\dts-monitor.bat"
+    erase "%batScript%"
+
+    (
+        echo @echo off
+        echo setlocal
+        echo Monitoring DataSpammer.bat with PID %PID.DTS%
+        echo :check_process
+        echo tasklist /FI "PID eq %PID.DTS%" ^| findstr /R /C:" %PIDToCheck% " ^>nul
+        echo if errorlevel 1 ^(
+        echo    echo DataSpammmer with PID %PID.DTS% crashed at %%date%% %%time%% ^> "%%temp%%\DataSpammerCrashed.txt"
+        echo    echo DataSpammmer with PID %PID.DTS% crashed at %%date%% %%time%%
+        echo    exit /b 0
+        echo ^)
+        echo timeout /t 1 ^>nul
+        echo goto check_process
+    ) > "%batScript%"
+
+    start /b "" "%batScript%"
+
+    
+    :: Start a PowerShell process to monitor the DataSpammer.bat process
+    :: Needs to be tested
+    :: start "" %powershell.short% -ExecutionPolicy Bypass -Command "& {param([int]$pid) while ($true) {try {Get-Process -Id $pid -ErrorAction Stop} catch {"DataSpammer-Process Crashed at $(Get-Date)" | Out-File -FilePath $env:temp\DataSpammerCrashed.txt; break} Start-Sleep -Seconds 0.5}} -pid %PID%"
+
+
+    :fullloop
+    :: For controlled exits use echo. > %temp%\DataSpammerClose.txt
+
+        for /f "tokens=1-3 delims=:." %%a in ("%time%") do set formatted_time=%%a:%%b:%%c
+
+        :: Check if a Message is available
+        if exist "%TEMP%\socket.message" (
+            set /p message.monitor=<"%TEMP%\socket.message"
+            del "%TEMP%\socket.message"
+            echo %formatted_time%: %message.monitor%
+        )
+
+        if exist "%temp%\DataSpammerCrashed.txt" (
+            del "%temp%\DataSpammerCrashed.txt"
+            echo DataSpammer.bat Crashed at !formatted_time!
+            timeout /t 5 >nul
+            exit /b 0
+        )
+        if exist "%temp%\DataSpammerClose.txt" (
+            del "%temp%\DataSpammerClose.txt"
+            echo DataSpammer.bat was Closed at !formatted_time!
+            timeout /t 5 >nul
+            exit /b 0
+        )
+
+    call :sys.lt 1
+    goto fullloop
+
+:dev.options
+    :: Rework In Process. 
+    call :win.version.check
+    echo %OSEdition%
+    echo Type: %OSType%
+    echo Version: %OSVersion%
+    echo Build: %OSBuild%
+    echo %~nx0 / %~0
+    echo %~dpnx0
+    echo PID: %PID%
+    title Developer Options - DataSpammer
+
+    echo ALL FEATURES DISABLED CURRENTLY!
+    echo Dev Tools
     echo.
-    echo  [97m???[0m([92m%username%[0m@[95m%computername%[0m)-[[91m%cd%[0m] - [[94m%time% %date%[0m]
-    set /p cmd=".%BS% [97m???>[0m "
+    echo [1] Goto Specific Call Sign
     echo.
-    %cmd%
-    goto sys.cli.input
+    echo [2] -
+    echo.
+    echo [3] @ECHO ON
+    echo.
+    echo [4] Set a Variable 
+    echo.
+    echo [5] Restart the Script (Variables will be kept)
+    echo.
+    echo [6] Restart the Script (Variables wont be kept)
+    echo.
+    echo [7] List all :signs
+    echo.
+    echo [8] Go Back
+    choice /C 123456 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto dev.jump.callsign
+        if %_erl%==2 goto dev.options
+        if %_erl%==3 @ECHO ON && goto restart.script
+        if %_erl%==4 goto dev.custom.var.set 
+        if %_erl%==5 goto restart.script.dev
+        if %_erl%==6 goto restart.script
+        if %_erl%==7 call :list.vars
+        if %_erl%==8 goto settings
+    goto dev.options
+
+
+
+
+
+:sys.new.update.installed
+    :: Init New Vars with Content
+    set "config_file=settings.conf"
+    for /f "usebackq tokens=1,2 delims==" %%a in (`findstr /v "^::" "%config_file%"`) do (
+        set "%%a=%%b"
+    )
+    if not defined %default_filename% call :update_config "default_filename" "" "notused"
+    if not defined %default-domain% call :update_config "default-domain" "" "notused"
+    if not defined %default-filecount% call :update_config "default-filecount" "" "notused"
+    if not defined %developermode% call :update_config "developermode" "" "0"
+    if not defined %logging% call :update_config "logging" "" "1"
+    if not defined %default_directory% call :update_config "default_directory" "" "notused"
+    if not defined %elevation% call :update_config "elevation" "" "pwsh"
+    if not defined %update% call :update_config "update" "" "1"
+    if not defined %update% call :update_config "color" "" "02"    
+    if not defined %skip-sec% call :update_config "skip-sec" "" "0"
+    echo Updating Settings...
+    call :sys.lt 1    
+    goto sys.settings.patched
+
+
+
+
+:sys.settings.patched
+    echo Update was Successful!
+    call :sys.lt 1
+    echo Updated to %latest_version%
+    call :sys.lt 1
+    echo.
+    call :sys.lt 1
+    echo [1] Open Script
+    call :sys.lt 1
+    echo.
+    call :sys.lt 1
+    echo [2] Exit
+    call :sys.lt 1
+    echo.
+    echo.
+    choice /C 12 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto restart.script
+        if %_erl%==2 goto cancel
+    goto sys.settings.patched
+
+
+
+
+:debuglog
+    echo Generating Debug Log
+    cd %~dp0
+    set SOURCE_DIR="%script.dir%\Debug"
+    if exist "%SOURCE_DIR%" rmdir /s /q "%SOURCE_DIR%"
+    mkdir Debug
+    if exist "%userprofile%\Documents\SecureDataSpammer" copy "%userprofile%\Documents\SecureDataSpammer\" "%SOURCE_DIR%"
+    copy "%userprofile%\Documents\DataSpammerLog\DataSpammer.log" "%SOURCE_DIR%"
+    ipconfig > "%SOURCE_DIR%\ipconf.txt"
+    msinfo32 /report "%SOURCE_DIR%\msinfo.txt"
+    ipconfig /renew /flushdns
+    driverquery /FO list /v > "%SOURCE_DIR%\drivers.txt"
+    tasklist /v > "%SOURCE_DIR%\tasklist.txt"
+    systeminfo > "%SOURCE_DIR%\systeminfo.txt"
+    set ZIP_FILE="%script.dir%\debug.log.zip"
+    tar -a -cf "%ZIP_FILE%" -C "%SOURCE_DIR%" .
+    del /s /q "%SOURCE_DIR%"
+
+
+:debug.done
+    echo Successfully Generated debug.log.zip
+    echo. 
+    echo [1] Copy to Clipboard
+    echo.
+    echo [2] Open GitHub Repository
+    echo. 
+    echo [3] Delete Debug Files and Go Back
+    echo. 
+    echo [4] Go Back
+    echo.
+    echo.
+    set /P debuglog=Choose an Option from Above
+    choice /C 1234 /M "Choose an Option from Above:"
+    set _erl=%errorlevel%
+    if %_erl%==1 echo %ZIP_FILE% | clip && cls && echo Copied debug.log.zip to your Clipboard && pause
+    if %_erl%==2 explorer "https://github.com/PIRANY1/DataSpammer/issues"
+    if %_erl%==3 rmdir /s /q "%SOURCE_DIR%" && goto advanced.options
+    if %_erl%==4 goto advanced.options
+    goto debug.done
+    
+    :: Collect Functionalities HERE..
+    :: DNS & HTTPS & Basic Filespam 
+    :: Run all :signs & functions & check for updates
+
+:debugtest
+    cd "%~dp0"
+    :: resync time
+    net start w32time
+    w32tm /resync 
+
+    :: Start Debug Test
+    echo Running Debug Test...
+    set "starttime=%time%"
+    echo %time%
+    call :sys.lt 10
+    echo %time%
+    set "endtime=%time%"
+    :: Calc Time Diff
+    call :TimeDifference "%starttime%" "%endtime%" > tmp_time.txt
+    set /p diff.full=<tmp_time.txt
+    del tmp_time.txt
+    echo Time Diff %diff.full%
+
+    :: Calc time Diff in ms
+    call :TimeDiffInMs "%starttime%" "%endtime%"
+    echo Time difference: %timeDiffMs%ms
+
+    :: Check Win Version
+    call :win.version.check
+    echo %OSEdition%
+    echo Type: %OSType%
+    echo Version: %OSVersion%
+    echo Build: %OSBuild%
+    call :generate_random all 40
+    
+    :: Test Write Config
+    echo. > "%~dp0\settings.conf"
+    call :update_config "default-filename" "" "%random%"
+    type "%~dp0\settings.conf"
+
+    call :version
+    
+    call :sys.lt 5
+    call :sys.lt 5 count
+
+    :: Test Logging
+    call :log Tested_Functionality
+    type %userprofile%\Documents\DataSpammerLog\Dataspammer.log
+    :: Paste Newly Added Functions of your PR here to test them via GitHub Actions
+    :: Example1: call :dns.spam
+    :: Example2: Paste a modified Function here if manual input is required
+
+    
+
+    :: Only Uncomment if Updater was changed
+    :: call :update.script stable
+    echo Finished Testing...
+    echo Exiting
+    goto cancel
+
+
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+:: ------------------------------------------------- Functions --------------------------------------------------------------------------------------
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 :sys.lt
+    setlocal EnableDelayedExpansion
     if /i "%2"=="count" (
         set /a counter=%1
         :countdown
@@ -1885,10 +2088,11 @@
 
 :log
     :: call scheme is:
-    :: if %logging% == 1 ( call :log Opened_verify_tab )
+    :: call :log Opened_verify_tab
     :: In the Logfile _ and - are replaced with Spaces
 
     set "log.content=%1"
+    if defined monitoring call :send_message "%log.content%"
     set "logfile=DataSpammer.log"
     
     :: Check Folder Structure
@@ -1909,6 +2113,7 @@
 
 
 :update_config
+    setlocal EnableDelayedExpansion
     :: Example for Interactive Change
     :: call :update_config "default-filename" "Type in the Filename you want to use." ""
     
@@ -1992,48 +2197,6 @@
         if %_erl%==2 goto menu
     goto done
 
-:dev.options
-    :: Rework In Process. 
-    call :win.version.check
-    echo %OSEdition%
-    echo Type: %OSType%
-    echo Version: %OSVersion%
-    echo Build: %OSBuild%
-    echo %~nx0 / %~0
-    echo %~dpnx0
-    echo PID: %PID%
-    title Developer Options - DataSpammer
-
-    echo ALL FEATURES DISABLED CURRENTLY!
-    echo Dev Tools
-    echo.
-    echo [1] Goto Specific Call Sign
-    echo.
-    echo [2] -
-    echo.
-    echo [3] @ECHO ON
-    echo.
-    echo [4] Set a Variable 
-    echo.
-    echo [5] Restart the Script (Variables will be kept)
-    echo.
-    echo [6] Restart the Script (Variables wont be kept)
-    echo.
-    echo [7] List all :signs
-    echo.
-    echo [8] Go Back
-    choice /C 123456 /M "Choose an Option from Above:"
-        set _erl=%errorlevel%
-        if %_erl%==1 goto dev.jump.callsign
-        if %_erl%==2 goto dev.options
-        if %_erl%==3 @ECHO ON && goto restart.script
-        if %_erl%==4 goto dev.custom.var.set 
-        if %_erl%==5 goto restart.script.dev
-        if %_erl%==6 goto restart.script
-        if %_erl%==7 goto list.vars
-        if %_erl%==8 goto settings
-    goto dev.options
-
 :list.vars
     cd "%~dp0"
     echo ---------------
@@ -2056,232 +2219,55 @@
     goto dev.options
 
 
-
-
-:sys.new.update.installed
-    :: Init New Vars with Content
-    set "config_file=settings.conf"
-    for /f "usebackq tokens=1,2 delims==" %%a in (`findstr /v "^::" "%config_file%"`) do (
-        set "%%a=%%b"
-    )
-    if not defined %default_filename% call :update_config "default_filename" "" "notused"
-    if not defined %default-domain% call :update_config "default-domain" "" "notused"
-    if not defined %default-filecount% call :update_config "default-filecount" "" "notused"
-    if not defined %developermode% call :update_config "developermode" "" "0"
-    if not defined %logging% call :update_config "logging" "" "1"
-    if not defined %default_directory% call :update_config "default_directory" "" "notused"
-    if not defined %elevation% call :update_config "elevation" "" "pwsh"
-    if not defined %update% call :update_config "update" "" "1"
-    if not defined %update% call :update_config "color" "" "02"    
-    if not defined %skip-sec% call :update_config "skip-sec" "" "0"
-    echo Updating Settings...
-    call :sys.lt 1    
-    goto sys.settings.patched
-
-
-
-:sys.settings.patched
-    echo Update was Successful!
-    call :sys.lt 1
-    echo Updated to %latest_version%
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    echo [1] Open Script
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    echo [2] Exit
-    call :sys.lt 1
-    echo.
-    echo.
-    choice /C 12 /M "Choose an Option from Above:"
-        set _erl=%errorlevel%
-        if %_erl%==1 goto restart.script
-        if %_erl%==2 goto cancel
-    goto sys.settings.patched
-
-
-
-:debuglog
-    echo Generating Debug Log
-    cd %~dp0
-    set SOURCE_DIR="%script.dir%\Debug"
-    if exist "%SOURCE_DIR%" rmdir /s /q "%SOURCE_DIR%"
-    mkdir Debug
-    if exist "%userprofile%\Documents\SecureDataSpammer" copy "%userprofile%\Documents\SecureDataSpammer\" "%SOURCE_DIR%"
-    copy "%userprofile%\Documents\DataSpammerLog\DataSpammer.log" "%SOURCE_DIR%"
-    ipconfig > "%SOURCE_DIR%\ipconf.txt"
-    msinfo32 /report "%SOURCE_DIR%\msinfo.txt"
-    ipconfig /renew /flushdns
-    driverquery /FO list /v > "%SOURCE_DIR%\drivers.txt"
-    tasklist /v > "%SOURCE_DIR%\tasklist.txt"
-    systeminfo > "%SOURCE_DIR%\systeminfo.txt"
-    set ZIP_FILE="%script.dir%\debug.log.zip"
-    tar -a -cf "%ZIP_FILE%" -C "%SOURCE_DIR%" .
-    del /s /q "%SOURCE_DIR%"
-
-:debug.done
-    echo Successfully Generated debug.log.zip
-    echo. 
-    echo [1] Copy to Clipboard
-    echo.
-    echo [2] Open GitHub Repository
-    echo. 
-    echo [3] Delete Debug Files and Go Back
-    echo. 
-    echo [4] Go Back
-    echo.
-    echo.
-    set /P debuglog=Choose an Option from Above
-    choice /C 1234 /M "Choose an Option from Above:"
-    set _erl=%errorlevel%
-    if %_erl%==1 echo %ZIP_FILE% | clip && cls && echo Copied debug.log.zip to your Clipboard && pause
-    if %_erl%==2 explorer "https://github.com/PIRANY1/DataSpammer/issues"
-    if %_erl%==3 rmdir /s /q "%SOURCE_DIR%" && goto advanced.options
-    if %_erl%==4 goto advanced.options
-    goto debug.done
-    
-    :: Collect Functionalities HERE..
-    :: DNS & HTTPS & Basic Filespam 
-    :: Run all :signs & functions & check for updates
-:debugtest
-    cd "%~dp0"
-    :: resync time
-    net start w32time
-    w32tm /resync 
-
-    :: Start Debug Test
-    echo Running Debug Test...
-    set "starttime=%time%"
-    echo %time%
-    call :sys.lt 10
-    echo %time%
-    set "endtime=%time%"
-    :: Calc Time Diff
-    call :TimeDifference "%starttime%" "%endtime%" > tmp_time.txt
-    set /p diff.full=<tmp_time.txt
-    del tmp_time.txt
-    echo Time Diff %diff.full%
-
-    :: Calc time Diff in ms
-    call :TimeDiffInMs "%starttime%" "%endtime%"
-    echo Time difference: %timeDiffMs%ms
-
-    :: Check Win Version
-    call :win.version.check
-    echo %OSEdition%
-    echo Type: %OSType%
-    echo Version: %OSVersion%
-    echo Build: %OSBuild%
-    call :generate_random all 40
-    
-    :: Test Write Config
-    echo. > "%~dp0\settings.conf"
-    call :update_config "default-filename" "" "%random%"
-    type "%~dp0\settings.conf"
-
-    call :version
-    
-    call :sys.lt 5
-    call :sys.lt 5 count
-
-    :: Test Logging
-    call :log Tested_Functionality
-    type %userprofile%\Documents\DataSpammerLog\Dataspammer.log
-    :: Paste Newly Added Functions of your PR here to test them via GitHub Actions
-    :: Example1: call :dns.spam
-    :: Example2: Paste a modified Function here if manual input is required
-
-    
-
-
-    :: Only Uncomment if Updater was changed
-    :: call :update.script stable
-    echo Finished Testing...
-    echo Exiting
-    goto cancel
-
-
-:monitor
-    :: When Monitor is invoked, it observes the script and provides details about its current state.
-    :: Monitor is still Experimental & may cause problems
-    @echo off
-    cls
-    del "%temp%\DataSpammerCrashed.txt" > nul
-    del "%temp%\DataSpammerClose.txt" > nul
-    echo Opened Monitor Socket.
-    echo Waiting for Startup to Finish...
-    title Monitoring DataSpammer.bat
-    :: Parse PID from Main Process
-    set "PID.DTS=%2"
-    echo PID: %PID.DTS%
-    set "batScript=%temp%\dts-monitor.bat"
-    erase "%batScript%"
-
-    (
-        echo @echo off
-        echo setlocal
-        echo Monitoring DataSpammer.bat with PID %PID.DTS%
-        echo :check_process
-        echo tasklist /FI "PID eq %PID.DTS%" ^| findstr /R /C:" %PIDToCheck% " ^>nul
-        echo if errorlevel 1 ^(
-        echo    echo DataSpammmer with PID %PID.DTS% crashed at %%date%% %%time%% ^> "%%temp%%\DataSpammerCrashed.txt"
-        echo    echo DataSpammmer with PID %PID.DTS% crashed at %%date%% %%time%%
-        echo    exit /b 0
-        echo ^)
-        echo timeout /t 1 ^>nul
-        echo goto check_process
-    ) > "%batScript%"
-
-    start /b "" "%batScript%"
-
-    
-    :: Start a PowerShell process to monitor the DataSpammer.bat process
-    :: Needs to be tested
-    :: start "" %powershell.short% -ExecutionPolicy Bypass -Command "& {param([int]$pid) while ($true) {try {Get-Process -Id $pid -ErrorAction Stop} catch {"DataSpammer-Process Crashed at $(Get-Date)" | Out-File -FilePath $env:temp\DataSpammerCrashed.txt; break} Start-Sleep -Seconds 0.5}} -pid %PID%"
-
-
-    :fullloop
-    :: For controlled exits use echo. > %temp%\DataSpammerClose.txt
-
-        for /f "tokens=1-3 delims=:." %%a in ("%time%") do set formatted_time=%%a:%%b:%%c
-
-        :: Check if a Message is available
-        if exist "%TEMP%\socket.message" (
-            set /p message.monitor=<"%TEMP%\socket.message"
-            del "%TEMP%\socket.message"
-            echo %formatted_time%: %message.monitor%
-        )
-
-        if exist "%temp%\DataSpammerCrashed.txt" (
-            del "%temp%\DataSpammerCrashed.txt"
-            echo DataSpammer.bat Crashed at !formatted_time!
-            timeout /t 5 >nul
-            exit /b 0
-        )
-        if exist "%temp%\DataSpammerClose.txt" (
-            del "%temp%\DataSpammerClose.txt"
-            echo DataSpammer.bat was Closed at !formatted_time!
-            timeout /t 5 >nul
-            exit /b 0
-        )
-
-    call :sys.lt 1
-    goto fullloop
-
-
 :send_message
     :: Send a Message to Monitor Socket
+    if "%monitoring%" NEQ "1" exit /b monitoroff
     set "socket.location=%TEMP%\socket.message"
     set "message=%1"
     echo %message% > "%socket.location%"
     exit /b
 
+:help.startup
+    echo.
+    echo.
+    echo Dataspammer: 
+    echo    Script to stress-test various Protocols or Systems
+    echo    For educational purposes only.
+    echo.
+    echo Usage dataspammer [Argument]
+    echo       dataspammer.bat [Argument]
+    echo.
+    echo Parameters: 
+    echo    help    Show this Help Dialog
+    echo.
+    echo    update  Check for Updates and exit afterwards
+    echo.
+    echo    faststart   Start the Script without checking for Anything 
+    echo.
+    echo    remove  Remove the Script and its components from your System
+    echo.
+    echo    start   Directly start a Spam Method
+    echo.
+    echo    noelev  Start the Script without Administrator
+    echo.
+    echo    debug   Generate Debug Log (Requires Admin / UAC)
+    echo.
+    echo    monitor     Opens the Monitor Socket
+    echo.
+    echo    update.script [ stable / beta ]     Force Update the Script
+    echo.
+    echo    version     Show Version
+    echo.
+    echo    debugtest       Verify Functionality
+    echo.
+    echo.
+
+    exit /b 0
+    if "%1"=="debugtest" title DataSpammer && goto debugtest
 
 :update.script
     cls
-    :: Updated in v5
+    :: Updated in v6
     :: Old one used seperate file / wget & curl
     :: Usage: call :update.script [stable / beta]
     if %logging% == 1 ( call :log Creating_Update_Script )
@@ -2326,7 +2312,7 @@
 
     :move.new.files
     move /y "%temp%\dts.update\*" "%~dp0"
-    cmd.exe -k %~f0
+    cmd.exe -k "%~dp0\dataspammer.bat"
     exit 
     goto :EOF
 
@@ -2356,6 +2342,7 @@
 :: call :generate_random all 40
 :: Output: Random string: fjELw0oV2nA.nDgx4Jk1vNal,2sMS8tSYhDYAP9-
 :generate_random
+    setlocal EnableDelayedExpansion
     set "type=%~1"
     set "length=%~2"
 
@@ -2408,7 +2395,7 @@
 :: -------------------------------------------------------------------
 
 :TimeDifference
-
+    setlocal EnableDelayedExpansion
     :: Parse time1
     set "time1=%~1"
     set "H1=%time1:~0,2%"
@@ -2491,7 +2478,7 @@
     Set UseExpresssion=Reg Query "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v "ProductName"
     for /F "tokens=*" %%X IN ('%UseExpresssion%') do Set OSEdition=%%X
     Set OSEdition=%OSEdition:*REG_SZ    =%
-    If Defined ProgramFiles(x86) (Set OSType=x64) Else (Set OSType=x86)
+    If Defined ProgramFiles(x86) ( Set OSType=x64 ) Else ( Set OSType=x86 )
     Set UseExpresssion=Reg Query "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v "ReleaseId"
     for /F "tokens=*" %%X IN ('%UseExpresssion%') do Set OSVersion=%%X
     Set OSVersion=%OSVersion:*REG_SZ    =%
