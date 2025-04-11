@@ -4,7 +4,7 @@
 :: Last edited on 09.04.2025 by PIRANY
 
     @echo off
-    cd /d %~dp0
+    cd /d "%~dp0"
     @color 02
     @title DataSpammer - Install
     
@@ -13,7 +13,7 @@
 
     :: Improve NT Compatability
     if "%OS%"=="Windows_NT" setlocal
-    set DIRNAME=%~dp0
+    set "DIRNAME=%~dp0"
     if "%DIRNAME%"=="" set DIRNAME=.
 
     setlocal ENABLEDELAYEDEXPANSION
@@ -82,7 +82,7 @@
     cd /d "%directory%"
     mkdir DataSpammer
 
-    cd /d %~dp0
+    cd /d "%~dp0"
     xcopy dataspammer.bat "%directory%\DataSpammer\"
     erase dataspammer.bat > nul
     erase README.md > nul
@@ -177,7 +177,7 @@
     set "directory9=%directory%\DataSpammer"
     mkdir "%directory9%" 
  
-    cd /d %~dp0
+    cd /d "%~dp0"
 
     move dataspammer.bat "%directory9%\" >nul
     move install.bat "%directory9%\" >nul
@@ -244,7 +244,7 @@
     if not defined desktopic (goto script.win.start.check)
 
 :desktop.icon.install
-    cd /d %userprofile%\Desktop
+    cd /d "%userprofile%\Desktop"
     (
     echo cd /d "%directory9%"
     echo dataspammer.bat %1 %2 %3 %4 %5
@@ -254,7 +254,7 @@
     if not defined autostart (goto additional.links.installed)
     
 :script.win.start.setup
-    cd /d C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
+    cd /d C":\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup"
     (
     echo cd /d "%directory9%"
     echo dataspammer.bat
@@ -284,6 +284,7 @@
         set _erl=%errorlevel%
         if %_erl%==1 goto encrypt.script
         if %_erl%==2 goto finish.installation
+    goto sys.main.installer.done
 
 
 :encrypt.script
@@ -291,11 +292,11 @@
         set "where_output=%%a"
     )  
     if not defined where_output goto finish.installation
-    cd /d %~dp0 
+    cd /d "%~dp0 "
     echo %random% > "%userprofile%\Documents\SecureDataSpammer\token.hash"
     (
         @echo off
-        cd /d %~dp0
+        cd /d "%~dp0"
         echo FF FE 0D 0A 63 6C 73 0D 0A > "%directory9%\temp_hex.txt"
         certutil -f -decodehex "%directory9%\temp_hex.txt" "%directory9%\temp_prefix.bin"
         move "%directory9%\dataspammer.bat" "%directory9%\original_dataspammer.bat"
@@ -308,7 +309,7 @@
         erase "%directory9%\temp_prefix.bin"
         Cipher /E "%directory9%\dataspammer.bat"
         Cipher /E "%directory9%\install.bat"
-        cd /d %~dp0
+        cd /d "%~dp0"
         erase install.bat > nul
         cd /d "%directory9%"
         dataspammer.bat
@@ -368,7 +369,7 @@
     :: Parameter 2: User choice (interactive prompt, empty for automated)
     :: Parameter 3: New value (leave empty for user input)
     
-    cd /d %~dp0
+    cd /d "%~dp0"
     
     set "key=%~1"
     set "prompt=%~2"
@@ -424,7 +425,7 @@
     goto verify
 
 :restart.script
-    cd /d %~dp0
+    cd /d "%~dp0"
     install.bat
 
 exit /b 0

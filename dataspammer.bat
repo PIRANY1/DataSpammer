@@ -24,27 +24,21 @@
 ::      Add TLS/SSL, TCP/UDP, SMTP & IMAP Support
 ::      Add File Encryption & Decryption Func - Various Methods e.g AES256, RSA, etc. - As Spam & as Func
 ::      Add Install.bat Progress Saving
-::      Check all Choice Num
-::      Implement Wait Count
 ::      Check all Menus
 ::      Verify Rework Code
 
 ::    High Priority
 ::      Validate Important Functions & check Monitor
-::      Add "" & cd /d everywhere
-::      Check goto goto & goto call
-::      Add Startargument
-
 
 :top
-    cd /d %~dp0
+    cd /d "%~dp0"
     @title DataSpammer - Initiating
     @echo off
     setlocal enabledelayedexpansion
     set "exec-dir=%cd%"
     :: Improve NT Compatabilty - Credits to Gradlew.bat Compiler
     if "%OS%"=="Windows_NT" setlocal
-    set DIRNAME=%~dp0
+    set "DIRNAME=%~dp0"
     if "%DIRNAME%"=="" set DIRNAME=.
     mode con: cols=140 lines=40
     set "current-script-version=v6"
@@ -100,7 +94,7 @@
         %powershell.short% -Command "Start-Process '%~f0' -Verb runAs"
         exit
     )
-    cd /d %~dp0
+    cd /d "%~dp0"
     goto pid.check
 
 :sudo.elevation
@@ -110,7 +104,7 @@
         %SUDO_PATH% cmd.exe -k %~f0
         exit
     )
-    cd /d %~dp0
+    cd /d "%~dp0"
     goto pid.check
 
 :gsudo.elevation
@@ -120,7 +114,7 @@
         %GSUDO_PATH% cmd.exe -k %~f0
         exit
     )
-    cd /d %~dp0
+    cd /d "%~dp0"
     goto pid.check
 
 
@@ -271,7 +265,7 @@
         echo Installation was not executed. 
         echo Opening installer...
         call :sys.lt 4
-        cd /d %~dp0
+        cd /d "%~dp0"
         install.bat
     )
     if "%logging%"=="1" ( call :log Checking_Settings_for_Update_Command )
@@ -374,7 +368,7 @@
 
 :sys.open.installer
     if %logging% == 1 ( call :log Opening_Installer )
-    cd /d %~dp0
+    cd /d "%~dp0"
     install.bat
     if %errorlevel% equ 0 (cls | echo Installer is running....) else (echo There was an Error. Please open the install.bat File manually.)
 
@@ -391,7 +385,7 @@
 
 :check-dev-options
    if %logging% == 1 ( call :log Checking_If_Developer_Mode_Is_Turned_On )
-   cd /d %~dp0
+   cd /d "%~dp0"
    if "%developermode%"=="1" echo Developer Mode is enabled.
    if "%developermode%"=="1" ( set "dev-mode=1" ) else ( set "dev-mode=0" )
    if not defined devtools ( goto sys.enable.ascii.tweak ) else ( goto dtd )
@@ -402,7 +396,7 @@
     %powershell.short% -Command "& {Add-Type -AssemblyName System.Windows.Forms; Add-Type -AssemblyName System.Drawing; $notify = New-Object System.Windows.Forms.NotifyIcon; $notify.Icon = [System.Drawing.SystemIcons]::Information; $notify.Visible = $true; $notify.ShowBalloonTip(0, 'DataSpammer', 'Started DataSpammer', [System.Windows.Forms.ToolTipIcon]::None)}"
     
     :: Allows ASCII stuff without Codepage Settings - Not My Work - Credits to ?
-    :: Properly Escape Symbols like | ! & ^ > < etc.
+    :: Properly Escape Symbols like | ! & ^ > < etc. when using echo (%$Echo% " Text)
     SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
 
 :menu
@@ -460,13 +454,13 @@
     echo [5] Cancel
     echo.
     echo.
-    choice /C 1234567 /M "Choose an Option from Above:"
+    choice /C 12345 /M "Choose an Option from Above:"
         title DataSpammer
         set _erl=%errorlevel%
         if %_erl%==1 goto start
         if %_erl%==2 goto settings
         if %_erl%==3 goto ad.settings
-        if %_erl%==4 If %main.menu% == 7 start "" "https://github.com/PIRANY1/DataSpammer" | cls | goto menu
+        if %_erl%==4 explorer https://github.com/PIRANY1/DataSpammer && cls && goto menu
         if %_erl%==5 goto cancel
     goto menu
 
@@ -648,7 +642,8 @@
         if %_erl%==2 goto login.change
         if %_erl%==3 goto login.delete
         if %_erl%==4 goto advanced.options
-
+    goto login.setup
+    
 :login.change
     echo Changing Login...
     set "secure_dir=%userprofile%\Documents\SecureDataSpammer"
@@ -715,14 +710,14 @@
     if %logging% == 1 ( call :log Encrypting_Script )
     echo Encrypting...
     call :sys.lt 1
-    cd /d %~dp0 
+    cd /d "%~dp0 "
     :: Version Update checks for this File
     echo %random% > "%userprofile%\Documents\SecureDataSpammer\token.hash"
     Cipher /E "%userprofile%\Documents\SecureDataSpammer\token.hash"
 
     (
         @echo off
-        cd /d %~dp0
+        cd /d "%~dp0"
         echo FF FE 0D 0A 63 6C 73 0D 0A > temp_hex.txt
         certutil -f -decodehex temp_hex.txt temp_prefix.bin
         move dataspammer.bat original_dataspammer.bat
@@ -736,7 +731,7 @@
         Cipher /E dataspammer.bat
         Cipher /E install.bat
         Cipher /E settings.conf
-        cd /d %~dp0
+        cd /d "%~dp0"
         start %powershell.short% -Command "Start-Process 'dataspammer.bat' -Verb runAs"
         erase encrypt.bat
     ) > encrypt.bat
@@ -845,7 +840,7 @@
     echo. 
     call :sys.lt 1
     echo [6] Go back
-    choice /C 12345 /M "Choose an Option from Above:"
+    choice /C 123456 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 if %logging% == 1 ( call :log Chaning_Default_Filename ) && call :update_config "default-filename" "Type in the Filename you want to use:" "" && goto restart.script
         if %_erl%==2 if %logging% == 1 ( call :log Changing_Standart_Directory ) && call :update_config "default_directory" "Type Your Directory Here:" "" && goto restart.script
@@ -900,11 +895,11 @@
         set _erl=%errorlevel%
         if %_erl%==Y goto write-dev-options
         if %_erl%==N goto settings
-   
+    goto activate.dev.options   
     
 :write-dev-options
     if %logging% == 1 ( call :log Activating_Dev_Options )
-    cd /d %~dp0
+    cd /d "%~dp0"
     call :update_config "developermode" "" "1"
     echo Developer Options have been activated!
     echo Script will now restart
@@ -939,7 +934,7 @@
     call :sys.lt 1
     echo.
     echo.
-    choice /C 1234 /M "Choose an Option from Above:"
+    choice /C 12345 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto enable.logging
         if %_erl%==2 goto disable.logging
@@ -1040,7 +1035,7 @@
 :autostart.delete
     net session >nul 2>&1
     if %errorLevel% NEQ 0 goto sys.script.administrator
-    cd /d C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
+    cd /d "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup"
     del autostart.bat
     echo Autostart Link Removed.
     goto menu
@@ -1048,11 +1043,10 @@
 :autostart.setup.confirmed
     net session >nul 2>&1
     if %errorLevel% NEQ 0 goto sys.script.administrator
-    cd /d C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
-    set "varlinkauto=%~dp0"
+    cd /d "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup"
     (
         echo @echo off
-        echo cd /d %varlinkauto%
+        echo cd /d "%~dp0"
         dataspammer.bat
     ) > autostart.bat
     echo Autostart Link Added.
@@ -1061,11 +1055,10 @@
 :desktop.icon.setup
     net session >nul 2>&1
     if %errorLevel% NEQ 0 goto sys.script.administrator
-    cd /d %userprofile%\Desktop
-    set "varlinkauto=%~dp0"
+    cd /d "%userprofile%\Desktop"
     (
         echo @echo off
-        echo cd /d %varlinkauto%
+        echo cd /d "%~dp0"
         dataspammer.bat
     ) > DataSpammer.bat
     echo Added Desktop Icon
@@ -1074,7 +1067,7 @@
 :desktop.icon.delete                                                                                                    
     net session >nul 2>&1
     if %errorLevel% NEQ 0 goto sys.script.administrator
-    cd %userprofile%\Desktop
+    cd /d "%userprofile%\Desktop"
     del DataSpammer.bat
     echo Successfully Deleted Desktop Icon.
     goto menu
@@ -1247,7 +1240,7 @@
     set /P printer-device=Choose a Device (full name):
 
     set /P printer.content=Enter the Content:
-    cd /d %~dp0
+    cd /d "%~dp0"
     echo %printer.content% > %print.filename%.txt
 
     for /L %%i in (1,1,%printer.count%) do (
@@ -1343,7 +1336,7 @@
     :: Creates Files on local Machine
     echo Creating Files...
     set /a w=1
-    cd %tmp%
+    cd /d "%temp%"
     for /l %%i in (1,1,%filecount%) do (
         echo %content% >> %filename%%x%.txt
         set /a w+=1
@@ -1374,7 +1367,7 @@
     :: Remove Files on local Machine
     del %ftpCommands%   
     set /a y=1
-    cd %tmp%
+    cd /d "%temp%"
     for /l %%i in (1,1,%filecount%) do (
         erase %filename%%x%.txt
         set /a y+=1
@@ -1456,15 +1449,16 @@
     call :done "The Script Created %x% Entrys."
 
 
-:startmenu.spam-
+:startmenu.spam
     set /P filecount=How many Files should be created?:
     echo Only for Local User or For All Users?
     echo All Users requires Admin Privileges.
     choice /C AL /M "(A)ll / (L)ocal"
     set _erl=%errorlevel%
-    if %_erl%==A goto spam.all.user.startmenu
-    if %_erl%==L goto spam.local.user.startmenu
-    
+        if %_erl%==A goto spam.all.user.startmenu
+        if %_erl%==L goto spam.local.user.startmenu
+    goto startmenu.spam
+
 :spam.local.user.startmenu
     set "directory.startmenu=%AppData%\Microsoft\Windows\Start Menu\Programs"
     if %default-filename% equ notused (goto startmenu.custom.name) else (goto startmenu.start)
@@ -1486,7 +1480,7 @@
     set /p default-filename=Type in the Filename you want to use:
 
 :startmenu.start
-    cd %directory.startmenu%
+    cd /d "%directory.startmenu%"
     goto spam.normal.top
 
 :ssh.spam
@@ -1643,7 +1637,7 @@
     cls
     echo Starting.....
     call :sys.lt 2
-    cd /d %userprofile%\Desktop
+    cd /d "%userprofile%\Desktop"
     set /a x=1
 
     for /L %%i in (1,1,%desk.filecount%) do (
@@ -1658,7 +1652,7 @@
 
 :normal.text.spam
     if %logging% == 1 ( call :log Opened_Normal_Spam )
-    if not "%default_directory%"=="notused" cd /d %default_directory% && goto spam.directory.set
+    if not "%default_directory%"=="notused" cd /d "%default_directory%" && goto spam.directory.set
     set /p %default_directory%=Type Your Directory Here:
 
     if exist %default_directory% (
@@ -1680,7 +1674,7 @@
     
 :spam.normal.top
     set /a x=1
-    cd /d %default_directory%
+    cd /d "%default_directory%"
 
     for /L %%i in (1,1,%filecount%) do (
         echo Creating File %default-filename%%x%.txt
@@ -1695,7 +1689,7 @@
 
 
 :fast.git.update
-    cd %temp%
+    cd /d "%temp%"
     echo Checking for Updates...
     set "api_url=https://api.github.com/repos/PIRANY1/DataSpammer/releases/latest"
     curl -s %api_url% > apianswer.txt
@@ -1763,9 +1757,9 @@
     if exist "%~dp0\LICENSE" del "%~dp0\LICENSE"
     if exist "%~dp0\README.md" del "%~dp0\README.md"
     if exist "%~dp0\install.bat" del "%~dp0\install.bat"
-    cd /d C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
+    cd /d "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup"
     if exist "autostart.bat" del "autostart.bat"
-    cd /d %userprofile%\Desktop
+    cd /d "%userprofile%\Desktop"
     if exist "Dataspammer.bat" del "Dataspammer.bat"
     cd /d "%ProgramData%\Microsoft\Windows\Start Menu\Programs"
     if exist "Dataspammer.bat" del "Dataspammer.bat"
@@ -1782,7 +1776,7 @@
     echo Please start the Script as Administrator in order to install.
     echo To do this right click the Dataspammer File and click "Run As Administrator"
     call :sys.lt 2
-    explorer %~dp0
+    explorer "%~dp0"
     echo. > %temp%\DataSpammerClose.txt
     exit 0
 
@@ -1791,7 +1785,7 @@
     call :send_message Script.is.restarting
     call :send_message Terminating %PID%
     echo. > %temp%\DataSpammerClose.txt
-    cd %~dp0
+    cd /d "%~dp0"
     dataspammer.bat
     exit 0
 
@@ -1894,7 +1888,7 @@
     echo [7] List all :signs
     echo.
     echo [8] Go Back
-    choice /C 123456 /M "Choose an Option from Above:"
+    choice /C 12345678 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto dev.jump.callsign
         if %_erl%==2 goto dev.options
@@ -1959,7 +1953,7 @@
 
 :debuglog
     echo Generating Debug Log
-    cd %~dp0
+    cd /d "%~dp0"
     set SOURCE_DIR="%script.dir%\Debug"
     if exist "%SOURCE_DIR%" rmdir /s /q "%SOURCE_DIR%"
     mkdir Debug
@@ -2002,7 +1996,7 @@
     :: Run all :signs & functions & check for updates
 
 :debugtest
-    cd "%~dp0"
+    cd /d "%~dp0"
     :: resync time
     net start w32time
     w32tm /resync 
@@ -2011,7 +2005,7 @@
     echo Running Debug Test...
     set "starttime=%time%"
     echo %time%
-    call :sys.lt 10
+    call :sys.lt 10 count
     echo %time%
     set "endtime=%time%"
     :: Calc Time Diff
@@ -2124,7 +2118,7 @@
     :: Parameter 2: User Choice (interactive prompt, empty for automated)
     :: Parameter 3: New Value (leave empty for user input)
     
-    cd /d %~dp0
+    cd /d "%~dp0"
     
     set "key=%~1"
     set "prompt=%~2"
@@ -2275,7 +2269,7 @@
     if "%1"==stable set "update_url=https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/"
     if "%1"==beta set "update_url=https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/"
 
-    cd /d %~dp0
+    cd /d "%~dp0"
     erase install.bat && erase README.md && erase LICENSE >nul 2>&1
     mkdir %temp%\dts.update >nul 2>&1
     echo Updating script... 
@@ -2318,7 +2312,7 @@
 
 
 :version
-    cd %temp%
+    cd "%temp%"
     set "api_url=https://api.github.com/repos/PIRANY1/DataSpammer/releases/latest"
     curl -s %api_url% > apianswer.txt
     for /f "tokens=2 delims=:, " %%a in ('findstr /R /C:"\"tag_name\"" apianswer.txt') do (
