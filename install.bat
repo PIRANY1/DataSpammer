@@ -1,13 +1,15 @@
 :: Use only under License
 :: Contribute under https://github.com/PIRANY1/DataSpammer
 :: Version v6 - NIGHTLY
-:: Last edited on 09.04.2025 by PIRANY
+:: Last edited on 12.04.2025 by PIRANY
+:: >nul 2>&1
 
     @echo off
     cd /d "%~dp0"
     @color 02
     @title DataSpammer - Install
-    
+    @setlocal ENABLEDELAYEDEXPANSION 
+
     :: Improve Powershell Speed
     set "powershell.short=powershell.exe -ExecutionPolicy Bypass -NoProfile"
 
@@ -16,16 +18,10 @@
     set "DIRNAME=%~dp0"
     if "%DIRNAME%"=="" set DIRNAME=.
 
-    setlocal ENABLEDELAYEDEXPANSION
     :: Window Sizing
     mode con: cols=140 lines=40
 
-    :: Preset Vars
-    set "foldername=DataSpammer"
     set "current-script-version=v6"
-    
-    :: Dev Tool
-    if "%1"=="go" goto custom.go
     
     :: Check if Settings Exist
     reg query "HKCU\Software\DataSpammer" /v Installed >nul 2>&1
@@ -36,9 +32,13 @@
         "%~dp0\dataspammer.bat"
     )
 
-:installer.main.window
-    if exist "%temp%\progress.txt" goto standard.install.run
+    if exist "%temp%\progress.txt" (
+        set /p progress.content=<%temp%\progress.txt
+        goto %progress.content%
+        erase "%temp%\progress.txt" >nul 2>&1
+    )
 
+:installer.main.window
     :: Allows ASCII stuff without Codepage Settings - Not My Work - Credits to ?
     SETLOCAL EnableDelayedExpansion
     SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
@@ -97,6 +97,7 @@
     dataspammer.bat
 
 :standard.install.run
+    echo standard.install.run > "%temp%\progress.txt"
     :: Some Pre-Install Stuff
     set "directory=%ProgramW6432%"
     cd /d "%directory%"
@@ -326,13 +327,6 @@
     erase "%~dp0\install.bat" > nul
     "%directory9%\dataspammer.bat"
 
-:cancel
-    echo The installer is now closing....
-    set EXIT_CODE=%ERRORLEVEL%
-    if %EXIT_CODE% equ 0 set EXIT_CODE=1
-    if "%OS%"=="Windows_NT" endlocal
-    exit /b %EXIT_CODE%
-
 
 :log
     :: call scheme is:
@@ -406,7 +400,6 @@
     @ping -n %dur% localhost> nul
     exit /b 0
 
-
 :verify
     set "verify=%random%"
     %powershell.short% -Command "& {Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.Interaction]::InputBox('Please enter code %verify% to confirm that you want to execute this option', 'DataSpammer Verify')}" > %TEMP%\out.tmp
@@ -424,8 +417,12 @@
     %powershell.short% -Command %msgBoxArgs%
     goto verify
 
-:restart.script
-    cd /d "%~dp0"
-    install.bat
+:cancel
+    echo The installer is now closing....
+    set EXIT_CODE=%ERRORLEVEL%
+    if %EXIT_CODE% equ 0 set EXIT_CODE=1
+    if "%OS%"=="Windows_NT" endlocal
+    exit /b %EXIT_CODE%
 
-exit /b 0
+
+exit 0

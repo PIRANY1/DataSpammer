@@ -1,7 +1,7 @@
 :: Use only under License
 :: Contribute under https://github.com/PIRANY1/DataSpammer
 :: Version v6 - NIGHTLY
-:: Last edited on 11.04.2025 by PIRANY
+:: Last edited on 12.04.2025 by PIRANY
 
 :: >nul 2>&1
 
@@ -10,7 +10,7 @@
 :: Developer Tool is at dev.options
 
 :: Todo: 
-:: No ETA: Merge DataSpammer & install.bat / change small-install
+:: No ETA: Merge DataSpammer & install.bat / change/improve small-install
 
 ::    Low Priority
 
@@ -23,12 +23,9 @@
 
 ::      Add TLS/SSL, TCP/UDP, SMTP & IMAP Support
 ::      Add File Encryption & Decryption Func - Various Methods e.g AES256, RSA, etc. - As Spam & as Func
-::      Add Install.bat Progress Saving
-::      Check all Menus
-::      Verify Rework Code
 
 ::    High Priority
-::      Validate Important Functions & check Monitor
+::      Verify new Code & check Monitor & Start Testing
 
 :top
     cd /d "%~dp0"
