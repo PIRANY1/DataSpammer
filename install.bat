@@ -233,8 +233,7 @@
         echo skip-sec=0
     ) > settings.conf
 
-    if not defined startmenushortcut1 (goto desktop.icon.install.check)
-:start.menu.icon.setup
+    if not defined startmenushortcut1 ( goto desktop.icon.install.check )
     cd /d "%ProgramData%\Microsoft\Windows\Start Menu\Programs"
     (
     echo cd /d "%directory9%"
@@ -242,9 +241,7 @@
     ) > DataSpammer.bat
 
 :desktop.icon.install.check
-    if not defined desktopic (goto script.win.start.check)
-
-:desktop.icon.install
+    if not defined desktopic ( goto script.win.start.check )
     cd /d "%userprofile%\Desktop"
     (
     echo cd /d "%directory9%"
@@ -252,9 +249,7 @@
     ) > DataSpammer.bat
 
 :script.win.start.check
-    if not defined autostart (goto additional.links.installed)
-    
-:script.win.start.setup
+    if not defined autostart ( goto additional.links.installed )
     cd /d C":\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup"
     (
     echo cd /d "%directory9%"
@@ -351,49 +346,6 @@
     :: exit
     exit /b 0
 
-:update_config
-    :: Example for interactive change
-    :: call :update_config "default-filename" "Type in the filename you want to use." ""
-    
-    :: Example for automated change
-    :: call :update_config "logging" "" "1"
-    
-    :: call :update_config "1" "2" "3"
-    :: Parameter 1: Value (logging etc.)
-    :: Parameter 2: User choice (interactive prompt, empty for automated)
-    :: Parameter 3: New value (leave empty for user input)
-    
-    cd /d "%~dp0"
-    
-    set "key=%~1"
-    set "prompt=%~2"
-    set "new_value=%~3"
-
-    if "%new_value%"=="" (
-        set /p new_value=%prompt%
-    )
-    
-    set "file=settings.conf"
-    set "tmpfile=temp.txt"
-    set linenumber=0
-    
-    (for /f "tokens=1,* delims==" %%a in (!file!) do (
-        if "%%a"=="%key%" (
-            set found=1
-            echo %%a=!new_value!
-        ) else (
-            echo %%a=%%b
-        )
-    )) > !tmpfile!
-    
-    if !found!==0 (
-        echo %key%=%new_value% >> !tmpfile!
-    )
-
-    if !logging!==1 ( call :log Changing_%key% )
-    cls
-    endlocal
-    goto :eof
 
 :sys.lt
     set "dur=%1"
@@ -405,7 +357,7 @@
     %powershell.short% -Command "& {Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.Interaction]::InputBox('Please enter code %verify% to confirm that you want to execute this option', 'DataSpammer Verify')}" > %TEMP%\out.tmp
     set /p OUT=<%TEMP%\out.tmp
     if not defined OUT goto failed
-    if %verify%==%OUT% (goto success) else (goto failed)
+    if "%verify%"==%OUT% ( goto success ) else ( goto failed )
 
 :success
     set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('Success', 'DataSpammer Verify');}"

@@ -15,8 +15,7 @@
 ::    Low Priority
 
 ::      Fix Updater - Clueless After 3 Gazillion Updates - Added -UseBasicParsing to iwr
-::      Improve Developer Menu 
-::      Retire CLI & API
+::      Rework Dev Menu
 ::      Improve DataSpammer.lock - PID is kept
 
 ::    Mid Priority
@@ -26,6 +25,7 @@
 
 ::    High Priority
 ::      Verify new Code & check Monitor & Start Testing
+
 
 :top
     cd /d "%~dp0"
@@ -55,7 +55,7 @@
     if "%1"=="start" title DataSpammer && goto start.verified
     if "%1"=="noelev" title DataSpammer && set "small-install=1" && goto pid.check
     if "%update-install%"=="1" ( goto sys.new.update.installed )
-    if not defined devtools (goto startup) else (goto dev.options)
+    if not defined devtools ( goto startup ) else ( goto dev.options )
 
 :startup
     title DataSpammer - Starting
@@ -76,11 +76,7 @@
     )
 
     :: Apply Color from Settings
-    if defined color (
-        color %color%
-    ) else (
-        color 02
-    )
+    if defined color ( color %color% ) else ( color 02 )
 
 
     :: Start the Elevation Request
@@ -224,7 +220,7 @@
     call :send_message Started.DataSpammer
     call :send_message Established.Socket.Connection
     if %logging% == 1 ( call :log Established_Socket_Connection )
-    if not exist "install.bat" (goto sys.error.no.install) else (goto settings.extract.update)
+    if not exist "install.bat" ( goto sys.error.no.install ) else ( goto settings.extract.update )
 
 :sys.no.settings
     if %logging% == 1 ( call :log Settings_Not_Found )
@@ -367,7 +363,6 @@
     if %logging% == 1 ( call :log Opening_Installer )
     cd /d "%~dp0"
     install.bat
-    if %errorlevel% equ 0 (cls | echo Installer is running....) else (echo There was an Error. Please open the install.bat File manually.)
 
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -385,7 +380,7 @@
    cd /d "%~dp0"
    if "%developermode%"=="1" echo Developer Mode is enabled.
    if "%developermode%"=="1" ( set "dev-mode=1" ) else ( set "dev-mode=0" )
-   if not defined devtools ( goto sys.enable.ascii.tweak ) else ( goto dtd )
+   if not defined devtools ( goto sys.enable.ascii.tweak ) else ( goto dev.options )
 
 :sys.enable.ascii.tweak
     if %logging% == 1 ( call :log Sending_Notification )
@@ -463,7 +458,7 @@
 
 
 :settings
-    if %logging% == 1 ( call :log Opened_Settings_%dev-mode%_dev_mode)
+    if %logging% == 1 ( call :log Opened_Settings_%dev-mode%_dev_mode )
     color
     if %dev-mode% == 1 set "settings-dev-display=Activated"
     if %dev-mode% == 0 set "settings-dev-display=Not Activated"
@@ -701,7 +696,7 @@
     cls
     echo Account created successfully.
     call :sys.lt 1
-    goto :restart.script
+    goto restart.script
 
 :encrypt
     if %logging% == 1 ( call :log Encrypting_Script )
@@ -883,7 +878,7 @@
 
 
 :activate.dev.options   
-    if %dev-mode% == 1 goto open.dev.settings
+    if %dev-mode% == 1 goto dev.options
     echo Do you want to activate the Developer Options?
     echo Developer Options include some advanced features like logging etc.
     echo These Features are experimental & can be unstable.
@@ -1024,7 +1019,7 @@
         set _erl=%errorlevel%
         if %_erl%==1 goto autostart.setup.confirmed
         if %_erl%==2 goto desktop.icon.setup
-        if %_erl%==3 goto autostart
+        if %_erl%==3 goto ad.settings
     goto ad.setup
 
 
@@ -1209,7 +1204,11 @@
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [5] Go Back
+    echo [5] Encrypt / Decrypt File/Directory
+    call :sys.lt 1
+    echo.
+    call :sys.lt 1
+    echo [6] Go Back
     echo.
     echo.
     echo.
@@ -1219,8 +1218,65 @@
         if %_erl%==2 goto desktop.icon.spam
         if %_erl%==3 goto startmenu.spam
         if %_erl%==4 goto app.list.spam
-        if %_erl%==5 goto start.verified
+        if %_erl%==5 goto crypt.spam
+        if %_erl%==6 goto start.verified
     goto local.spams
+
+:crypt.spam
+    echo Encrypt or Decrypt?
+    choice /C ED /M "(E)ncrypt or (D)ecrypt):"
+        set _erl=%errorlevel%
+        if %_erl%==E goto encrypt.spam
+        if %_erl%==D goto decrypt.spam
+    goto crypt.spam    
+
+:encrypt.spam
+    echo Folder or File?
+    choice /C FD /M "(F)ile or (D)irectory):"
+        set _erl=%errorlevel%
+        if %_erl%==F goto encrypt.spam.file
+        if %_erl%==D goto encrypt.spam.folder
+    goto encrypt.spam
+
+
+:decrypt.spam
+    echo Folder or File?
+    choice /C FD /M "(F)ile or (D)irectory):"
+        set _erl=%errorlevel%
+        if %_erl%==F goto decrypt.spam.file
+        if %_erl%==D goto decrypt.spam.folder
+    goto decrypt.spam 
+
+
+openssl.exe aes-256-cbc -d -a -pbkdf2 -in %DEC% -out !_DEC!
+
+openssl.exe aes-256-cbc -a -salt -pbkdf2 -in %ENC% -out %ENC%.enc
+
+
+:encrypt.spam.folder
+    set /p encrypt-dir=Enter the Directory:
+    set /p encrypt-method=Enter the Encryption Method (AES or RSA):
+    set /p encrypt-key=Enter the Encryption Key:
+    set /p encrypt-key-2=Repeat the Encryption Key:
+
+:encrypt.spam.file
+    set /p encrypt-dir=Enter the File Directory:
+    set /p encrypt-method=Enter the Encryption Method (AES or RSA):
+    set /p encrypt-key=Enter the Encryption Key:
+    set /p encrypt-key-2=Repeat the Encryption Key:
+
+:decrypt.spam.folder
+    set /p decrypt-dir=Enter the Directory:
+    set /p decrypt-key=Enter the Encryption Key:
+    set /p decrypt-method=Enter the Encryption Method (AES or RSA):
+
+
+
+:decrypt.spam.file
+    set /p decrypt-dir=Enter the File Directory:
+    set /p decrypt-key=Enter the Encryption Key:
+    set /p decrypt-method=Enter the Encryption Method (AES or RSA):
+
 
 
 :printer.spam
@@ -1439,7 +1495,7 @@
     reg add "%RegPath%" /v "UninstallString" /d "%~f0" /f
 
     echo Created %x% Entry(s).
-    if %x% equ %app.spam.filecount% (goto app.spam.done) else (goto app.spam.start.top)
+    if %x% equ %app.spam.filecount% ( goto app.spam.done ) else ( goto app.spam.start.top )
 
 :app.spam.done
     if %logging% == 1 ( call :log Finished_Spamming_Files:_%filecount% )
@@ -1458,7 +1514,7 @@
 
 :spam.local.user.startmenu
     set "directory.startmenu=%AppData%\Microsoft\Windows\Start Menu\Programs"
-    if %default-filename% equ notused (goto startmenu.custom.name) else (goto startmenu.start)
+    if %default-filename% EQU notused ( goto startmenu.custom.name ) else ( goto startmenu.start )
 
 :spam.all.user.startmenu
     net session >nul 2>&1
@@ -1469,7 +1525,7 @@
         exit
     )
     set "directory.startmenu=%ProgramData%\Microsoft\Windows\Start Menu\Programs"
-    if %default-filename% equ notused (goto startmenu.custom.name) else (goto startmenu.start)
+    if %default-filename% EQU notused ( goto startmenu.custom.name ) else ( goto startmenu.start )
     
 :startmenu.custom.name
     cls
@@ -1653,11 +1709,11 @@
     set /p %default_directory%=Type Your Directory Here:
 
     if exist %default_directory% (
-        echo goto sys.check.custom.name
+        echo goto spam.directory.set
     ) else (
         echo The Directory is invalid!
         pause
-        goto spam.custom.directory
+        goto normal.text.spam
     )
 
 :spam.directory.set
@@ -1747,7 +1803,7 @@
     :: Check if Script is elevated
     setlocal enableextensions ENABLEDELAYEDEXPANSION 
     net session >nul 2>&1
-    if %errorLevel% == 0 (goto sys.delete.script.confirmed) else (goto sys.script.administrator)
+    if %errorLevel% == 0 ( goto sys.delete.script.confirmed ) else ( goto sys.script.administrator )
    
 :sys.delete.script.confirmed
     :: Delete Script
@@ -1764,9 +1820,7 @@
     if exist "%userprofile%\Documents\SecureDataSpammer\" del /S /Q "%userprofile%\Documents\SecureDataSpammer"
     if exist "%~dp0\dataspammer.bat" del "%~dp0\dataspammer.bat"
     reg query "HKCU\Software\DataSpammer" /v Installed >nul 2>&1
-    if not %errorlevel% neq 0 (
-        reg delete "HKCU\Software\DataSpammer" /f
-    )
+    if not %errorlevel% neq 0 ( reg delete "HKCU\Software\DataSpammer" /f )
     echo Uninstall Successfulled
     
 :sys.script.administrator
@@ -1887,14 +1941,14 @@
     echo [8] Go Back
     choice /C 12345678 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 goto dev.jump.callsign
-        if %_erl%==2 goto dev.options
-        if %_erl%==3 @ECHO ON && goto restart.script
-        if %_erl%==4 goto dev.custom.var.set 
-        if %_erl%==5 goto restart.script.dev
-        if %_erl%==6 goto restart.script
-        if %_erl%==7 call :list.vars
-        if %_erl%==8 goto settings
+        if %_erl%==1 
+        if %_erl%==2 
+        if %_erl%==3 
+        if %_erl%==4 
+        if %_erl%==5 
+        if %_erl%==6 
+        if %_erl%==7
+        if %_erl%==8 
     goto dev.options
 
 
@@ -2127,8 +2181,7 @@
     
     set "file=settings.conf"
     set "tmpfile=temp.txt"
-    set linenumber=0
-    
+
     (for /f "tokens=1,* delims==" %%a in (!file!) do (
         if "%%a"=="%key%" (
             set found=1
@@ -2284,7 +2337,7 @@
     for /f "delims=" %%a in ('where certutil') do (
         set "where_output=%%a"
     )  
-    if not defined where_output goto :move.new.files
+    if not defined where_output goto move.new.files
     :: Encrypt new Files, when current Version is already encrypted
     if not exist "%userprofile%\Documents\SecureDataSpammer\token.hash" goto move.new.files
     echo Encrypting newly downloaded Files...
@@ -2500,7 +2553,7 @@
     set /p OUT=<%TEMP%\out.tmp
     :: Fix Empty Input Bypass
     if not defined OUT goto failed
-    if %verify%==%OUT% (goto success) else (goto failed)
+    if %verify%==%OUT% ( goto success ) else ( goto failed )
 
 :success
     set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('Sucess', 'DataSpammer Verify');}"
