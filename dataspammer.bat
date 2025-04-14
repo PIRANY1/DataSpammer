@@ -21,9 +21,9 @@
 ::    Mid Priority
 
 ::      Add TLS/SSL, TCP/UDP, SMTP & IMAP Support
-::      Add File Encryption & Decryption Func - Various Methods e.g AES256, RSA, etc. - As Spam & as Func
 
 ::    High Priority
+
 ::      Verify new Code & check Monitor & Start Testing
 
 
@@ -1274,7 +1274,7 @@
             if "%crypt.method%"=="aes-256-cbc" (
                 openssl enc -aes-256-cbc -salt -in "%%f" -out "%%f.enc" -pass pass:%encrypt-key% -iter 100000
             ) else (
-                openssl enc -chacha20 -salt -in "%%f" -out "%%f.enc" -pass pass:%encrypt-key%
+                openssl enc -chacha20 -salt -in "%%f" -out "%%f.enc" -pass pass:%encrypt-key% -iter 100000
             )
             erase "%%f" >nul 2>&1
             echo File "%%f" encrypted to "%%f.enc".
@@ -1305,7 +1305,7 @@
     if "%crypt.method%"=="aes-256-cbc" (
         openssl enc -aes-256-cbc -salt -in "%encrypt-dir%" -out "%encrypt-dir%.enc" -pass pass:%encrypt-key%  -iter 100000
     ) else (
-        openssl enc -chacha20 -salt -in "%encrypt-dir%" -out "%encrypt-dir%.enc" -pass pass:%encrypt-key%
+        openssl enc -chacha20 -salt -in "%encrypt-dir%" -out "%encrypt-dir%.enc" -pass pass:%encrypt-key% -iter 100000
     )
     erase "%encrypt-dir%" >nul 2>&1
     echo File "%encrypt-dir%" encrypted to "%encrypt-dir%.enc".
@@ -1330,7 +1330,7 @@
         if "%crypt.method%"=="aes-256-cbc" (
             openssl enc -d -aes-256-cbc -salt -in "%%f" -out "%%f.dec" -pass pass:%encrypt-key% -iter 100000
         ) else (
-            openssl enc -d -chacha20 -in "%%f" -out "%%f.dec" -pass pass:%encrypt-key%
+            openssl enc -d -chacha20 -in "%%f" -out "%%f.dec" -pass pass:%encrypt-key% -iter 100000
         )
     
         echo File "%%f" decrypted to "%%f.dec".
@@ -1357,7 +1357,7 @@
     if "%crypt.method%"=="aes-256-cbc" (
         openssl enc -d -aes-256-cbc -salt -in "%encrypt-dir%" -out "%encrypt-dir%.dec" -pass pass:%encrypt-key% -iter 100000
     ) else (
-        openssl enc -d -chacha20 -in "%encrypt-dir%" -out "%encrypt-dir%.dec" -pass pass:%encrypt-key%
+        openssl enc -d -chacha20 -in "%encrypt-dir%" -out "%encrypt-dir%.dec" -pass pass:%encrypt-key% -iter 100000
     )
     
     echo File "%encrypt-dir%" decrypted to "%encrypt-dir%.dec".  
