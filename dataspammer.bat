@@ -885,8 +885,8 @@
     echo.
     choice /C YN /M "Yes/No"
         set _erl=%errorlevel%
-        if %_erl%==Y goto write-dev-options
-        if %_erl%==N goto settings
+        if %_erl%==1 goto write-dev-options
+        if %_erl%==2 goto settings
     goto activate.dev.options   
     
 :write-dev-options
@@ -1226,16 +1226,17 @@
     echo Encrypt or Decrypt?
     choice /C ED /M "(E)ncrypt or (D)ecrypt):"
         set _erl=%errorlevel%
-        if %_erl%==E goto encrypt.spam
-        if %_erl%==D goto decrypt.spam
-    goto crypt.spam    
+        if %_erl%==1 goto encrypt.spam
+        if %_erl%==2 goto decrypt.spam
+    goto crypt.spam
+
 
 :encrypt.spam
     echo Folder or File?
     choice /C FD /M "(F)ile or (D)irectory):"
         set _erl=%errorlevel%
-        if %_erl%==F goto encrypt.spam.file
-        if %_erl%==D goto encrypt.spam.folder
+        if %_erl%==1 goto encrypt.spam.file
+        if %_erl%==2 goto encrypt.spam.folder
     goto encrypt.spam
 
 
@@ -1243,8 +1244,8 @@
     echo Folder or File?
     choice /C FD /M "(F)ile or (D)irectory):"
         set _erl=%errorlevel%
-        if %_erl%==F goto decrypt.spam.file
-        if %_erl%==D goto decrypt.spam.folder
+        if %_erl%==1 goto decrypt.spam.file
+        if %_erl%==2 goto decrypt.spam.folder
     goto decrypt.spam 
 
 
@@ -1254,8 +1255,8 @@
     echo Enter the Encryption Method
     choice /C AC /M "(A)ES or (C)hacha):"
         set _erl=%errorlevel%
-        if %_erl%==A set "crypt.method=aes-256-cbc"
-        if %_erl%==C set "crypt.method=chacha20"
+        if %_erl%==1 set "crypt.method=aes-256-cbc"
+        if %_erl%==2 set "crypt.method=chacha20"
     set /p encrypt-key=Enter the Encryption Key:
     set /p encrypt-key-2=Repeat the Encryption Key:
 
@@ -1295,8 +1296,8 @@
     echo Enter the Encryption Method
     choice /C AC /M "(A)ES or (C)hacha):"
         set _erl=%errorlevel%
-        if %_erl%==A set "crypt.method=aes-256-cbc"
-        if %_erl%==C set "crypt.method=chacha20"
+        if %_erl%==1 set "crypt.method=aes-256-cbc"
+        if %_erl%==2 set "crypt.method=chacha20"
 
 :encrypt.spam.file.passwd
     set /p encrypt-key=Enter the Encryption Key:
@@ -1324,8 +1325,8 @@
     echo Enter the Encryption Method
     choice /C AC /M "(A)ES or (C)hacha):"
         set _erl=%errorlevel%
-        if %_erl%==A set "crypt.method=aes-256-cbc"
-        if %_erl%==C set "crypt.method=chacha20"
+        if %_erl%==1 set "crypt.method=aes-256-cbc"
+        if %_erl%==2 set "crypt.method=chacha20"
 
     echo Decrypting files in "%encrypt-dir%"...
     for %%f in ("%encrypt-dir%\*.enc") do (
@@ -1356,8 +1357,8 @@
     echo Enter the Encryption Method
     choice /C AC /M "(A)ES or (C)hacha):"
         set _erl=%errorlevel%
-        if %_erl%==A set "crypt.method=aes-256-cbc"
-        if %_erl%==C set "crypt.method=chacha20"
+        if %_erl%==1 set "crypt.method=aes-256-cbc"
+        if %_erl%==2 set "crypt.method=chacha20"
 
     echo Decrypting file: %encrypt-dir%
     set "filename=%~nencrypt-dir%"
@@ -1606,8 +1607,8 @@
     echo All Users requires Admin Privileges.
     choice /C AL /M "(A)ll / (L)ocal"
     set _erl=%errorlevel%
-        if %_erl%==A goto spam.all.user.startmenu
-        if %_erl%==L goto spam.local.user.startmenu
+        if %_erl%==1 goto spam.all.user.startmenu
+        if %_erl%==2 goto spam.local.user.startmenu
     goto startmenu.spam
 
 :spam.local.user.startmenu
