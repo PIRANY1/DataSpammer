@@ -1248,35 +1248,133 @@
     goto decrypt.spam 
 
 
-openssl.exe aes-256-cbc -d -a -pbkdf2 -in %DEC% -out !_DEC!
-
-openssl.exe aes-256-cbc -a -salt -pbkdf2 -in %ENC% -out %ENC%.enc
-
 
 :encrypt.spam.folder
     set /p encrypt-dir=Enter the Directory:
-    set /p encrypt-method=Enter the Encryption Method (AES or RSA):
+    echo Enter the Encryption Method
+    choice /C AC /M "(A)ES or (C)hacha):"
+        set _erl=%errorlevel%
+        if %_erl%==A set "crypt.method=aes-256-cbc"
+        if %_erl%==C set "crypt.method=chacha20"
     set /p encrypt-key=Enter the Encryption Key:
     set /p encrypt-key-2=Repeat the Encryption Key:
 
-:encrypt.spam.file
-    set /p encrypt-dir=Enter the File Directory:
-    set /p encrypt-method=Enter the Encryption Method (AES or RSA):
+:encrypt.spam.folder.passwd
     set /p encrypt-key=Enter the Encryption Key:
     set /p encrypt-key-2=Repeat the Encryption Key:
+    if not "%encrypt-key%"=="%encrypt-key-2%" goto encrypt.spam.folder.passwd
+
+
+    echo Encrypting files in "%encrypt-dir%"...
+    for %%f in ("%encrypt-dir%\*") do (
+        if /I not "%%~xf"==".enc" (
+            echo Encrypting file: %%f
+    
+            set "filename=%%~nf"
+            set "extension=%%~xf"
+    
+            if "%crypt.method%"=="aes-256-cbc" (
+                openssl enc -aes-256-cbc -salt -in "%%f" -out "%%f.enc" -pass pass:%encrypt-key%
+            ) else (
+                openssl enc -chacha20 -salt -in "%%f" -out "%%f.enc" -pass pass:%encrypt-key%
+            )
+    
+            echo File "%%f" encrypted to "%%f.enc".
+        )
+    )
+    
+    echo All files encrypted.
+    
+    echo Waiting 2 Seconds...
+    call :sys.lt 4
+    goto local.spams
+
+
+:encrypt.spam.file
+    set /p encrypt-dir=Enter the File Directory:
+    echo Enter the Encryption Method
+    choice /C AC /M "(A)ES or (C)hacha):"
+        set _erl=%errorlevel%
+        if %_erl%==A set "crypt.method=aes-256-cbc"
+        if %_erl%==C set "crypt.method=chacha20"
+
+:encrypt.spam.file.passwd
+    set /p encrypt-key=Enter the Encryption Key:
+    set /p encrypt-key-2=Repeat the Encryption Key:
+    if not "%encrypt-key%"=="%encrypt-key-2%" goto encrypt.spam.file.passwd
+
+    echo Encrypting file: %encrypt-dir%
+    set "filename=%~nencrypt-dir%"
+    set "extension=%~xe"
+    if "%crypt.method%"=="aes-256-cbc" (
+        openssl enc -aes-256-cbc -salt -in "%encrypt-dir%" -out "%filename%%extension%.enc" -pass pass:%encrypt-key%
+    ) else (
+        openssl enc -chacha20 -salt -in "%encrypt-dir%" -out "%filename%%extension%.enc" -pass pass:%encrypt-key%
+    )
+    
+    echo File "%encrypt-dir%" encrypted to "%filename%%extension%.enc".
+    echo Encrypted with %crypt.method%
+    echo Waiting 2 Seconds...    
+    call :sys.lt 4
+    goto local.spams
 
 :decrypt.spam.folder
     set /p decrypt-dir=Enter the Directory:
     set /p decrypt-key=Enter the Encryption Key:
-    set /p decrypt-method=Enter the Encryption Method (AES or RSA):
+    echo Enter the Encryption Method
+    choice /C AC /M "(A)ES or (C)hacha):"
+        set _erl=%errorlevel%
+        if %_erl%==A set "crypt.method=aes-256-cbc"
+        if %_erl%==C set "crypt.method=chacha20"
 
+    echo Decrypting files in "%encrypt-dir%"...
+    for %%f in ("%encrypt-dir%\*.enc") do (
+        echo Decrypting file: %%f
+    
+        set "filename=%%~nf"
+        set "extension=%%~xf"
+    
+        if "%crypt.method%"=="aes-256-cbc" (
+            openssl enc -d -aes-256-cbc -in "%%f" -out "%encrypt-dir%\%filename%%extension%" -pass pass:%encrypt-key%
+        ) else (
+            openssl enc -d -chacha20 -in "%%f" -out "%encrypt-dir%\%filename%%extension%" -pass pass:%encrypt-key%
+        )
+    
+        echo File "%%f" decrypted to "%encrypt-dir%\%filename%%extension%".
+    )
+    
+    echo All files decrypted.
+
+    echo Waiting 2 Seconds...
+    call :sys.lt 4
+    goto local.spams
 
 
 :decrypt.spam.file
     set /p decrypt-dir=Enter the File Directory:
     set /p decrypt-key=Enter the Encryption Key:
-    set /p decrypt-method=Enter the Encryption Method (AES or RSA):
+    echo Enter the Encryption Method
+    choice /C AC /M "(A)ES or (C)hacha):"
+        set _erl=%errorlevel%
+        if %_erl%==A set "crypt.method=aes-256-cbc"
+        if %_erl%==C set "crypt.method=chacha20"
 
+    echo Decrypting file: %encrypt-dir%
+    set "filename=%~nencrypt-dir%"
+    set "extension=%~xe"
+    set "originalfile=%filename%%extension:~0,-4%"
+    
+    if "%crypt.method%"=="aes-256-cbc" (
+        openssl enc -d -aes-256-cbc -in "%encrypt-dir%" -out "%originalfile%" -pass pass:%encrypt-key%
+    ) else (
+        openssl enc -d -chacha20 -in "%encrypt-dir%" -out "%originalfile%" -pass pass:%encrypt-key%
+    )
+    
+    echo File "%encrypt-dir%" decrypted to "%originalfile%".  
+    echo Waiting 2 Seconds...    
+    call :sys.lt 4
+    goto local.spams
+   
 
 
 :printer.spam
