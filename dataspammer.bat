@@ -1223,6 +1223,7 @@
     goto local.spams
 
 :crypt.spam
+    echo Original Files will be REMOVED
     echo Encrypt or Decrypt?
     choice /C ED /M "(E)ncrypt or (D)ecrypt):"
         set _erl=%errorlevel%
@@ -1270,16 +1271,12 @@
     for %%f in ("%encrypt-dir%\*") do (
         if /I not "%%~xf"==".enc" (
             echo Encrypting file: %%f
-    
-            set "filename=%%~nf"
-            set "extension=%%~xf"
-    
             if "%crypt.method%"=="aes-256-cbc" (
-                openssl enc -aes-256-cbc -salt -in "%%f" -out "%%f.enc" -pass pass:%encrypt-key%
+                openssl enc -aes-256-cbc -salt -in "%%f" -out "%%f.enc" -pass pass:%encrypt-key% -iter 100000
             ) else (
                 openssl enc -chacha20 -salt -in "%%f" -out "%%f.enc" -pass pass:%encrypt-key%
             )
-    
+            erase "%%f" >nul 2>&1
             echo File "%%f" encrypted to "%%f.enc".
         )
     )
@@ -1288,7 +1285,7 @@
     
     echo Waiting 2 Seconds...
     call :sys.lt 4
-    goto local.spams
+    goto menu
 
 
 :encrypt.spam.file
@@ -1305,19 +1302,17 @@
     if not "%encrypt-key%"=="%encrypt-key-2%" goto encrypt.spam.file.passwd
 
     echo Encrypting file: %encrypt-dir%
-    set "filename=%~nencrypt-dir%"
-    set "extension=%~xe"
     if "%crypt.method%"=="aes-256-cbc" (
-        openssl enc -aes-256-cbc -salt -in "%encrypt-dir%" -out "%filename%%extension%.enc" -pass pass:%encrypt-key%
+        openssl enc -aes-256-cbc -salt -in "%encrypt-dir%" -out "%encrypt-dir%.enc" -pass pass:%encrypt-key%  -iter 100000
     ) else (
-        openssl enc -chacha20 -salt -in "%encrypt-dir%" -out "%filename%%extension%.enc" -pass pass:%encrypt-key%
+        openssl enc -chacha20 -salt -in "%encrypt-dir%" -out "%encrypt-dir%.enc" -pass pass:%encrypt-key%
     )
-    
-    echo File "%encrypt-dir%" encrypted to "%filename%%extension%.enc".
+    erase "%encrypt-dir%" >nul 2>&1
+    echo File "%encrypt-dir%" encrypted to "%encrypt-dir%.enc".
     echo Encrypted with %crypt.method%
     echo Waiting 2 Seconds...    
     call :sys.lt 4
-    goto local.spams
+    goto menu
 
 :decrypt.spam.folder
     set /p decrypt-dir=Enter the Directory:
@@ -1332,23 +1327,20 @@
     for %%f in ("%encrypt-dir%\*.enc") do (
         echo Decrypting file: %%f
     
-        set "filename=%%~nf"
-        set "extension=%%~xf"
-    
         if "%crypt.method%"=="aes-256-cbc" (
-            openssl enc -d -aes-256-cbc -in "%%f" -out "%encrypt-dir%\%filename%%extension%" -pass pass:%encrypt-key%
+            openssl enc -d -aes-256-cbc -salt -in "%%f" -out "%%f.dec" -pass pass:%encrypt-key% -iter 100000
         ) else (
-            openssl enc -d -chacha20 -in "%%f" -out "%encrypt-dir%\%filename%%extension%" -pass pass:%encrypt-key%
+            openssl enc -d -chacha20 -in "%%f" -out "%%f.dec" -pass pass:%encrypt-key%
         )
     
-        echo File "%%f" decrypted to "%encrypt-dir%\%filename%%extension%".
+        echo File "%%f" decrypted to "%%f.dec".
     )
     
     echo All files decrypted.
 
     echo Waiting 2 Seconds...
     call :sys.lt 4
-    goto local.spams
+    goto menu
 
 
 :decrypt.spam.file
@@ -1361,20 +1353,17 @@
         if %_erl%==2 set "crypt.method=chacha20"
 
     echo Decrypting file: %encrypt-dir%
-    set "filename=%~nencrypt-dir%"
-    set "extension=%~xe"
-    set "originalfile=%filename%%extension:~0,-4%"
     
     if "%crypt.method%"=="aes-256-cbc" (
-        openssl enc -d -aes-256-cbc -in "%encrypt-dir%" -out "%originalfile%" -pass pass:%encrypt-key%
+        openssl enc -d -aes-256-cbc -salt -in "%encrypt-dir%" -out "%encrypt-dir%.dec" -pass pass:%encrypt-key% -iter 100000
     ) else (
-        openssl enc -d -chacha20 -in "%encrypt-dir%" -out "%originalfile%" -pass pass:%encrypt-key%
+        openssl enc -d -chacha20 -in "%encrypt-dir%" -out "%encrypt-dir%.dec" -pass pass:%encrypt-key%
     )
     
-    echo File "%encrypt-dir%" decrypted to "%originalfile%".  
+    echo File "%encrypt-dir%" decrypted to "%encrypt-dir%.dec".  
     echo Waiting 2 Seconds...    
-    call :sys.lt 4
-    goto local.spams
+    call :sys.lt 4c
+    goto menu
    
 
 
