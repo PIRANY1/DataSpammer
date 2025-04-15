@@ -10,30 +10,30 @@
 :: Developer Tool is at dev.options
 
 :: Todo: 
-:: No ETA: Merge DataSpammer & install.bat / change/improve small-install
-
 ::    Low Priority
 
 ::      Fix Updater - Clueless After 3 Gazillion Updates - Added -UseBasicParsing to iwr
 ::      Rework Dev Menu
 ::      Improve DataSpammer.lock - PID is kept
+::      Add Colors
 
 ::    Mid Priority
 
-::      Add TLS/SSL, TCP/UDP, SMTP & IMAP Support
+::      Add SMTP & IMAP Support
 
 ::    High Priority
 
 ::      Verify new Code & check Monitor & Start Testing
 
+:: Add Forced Elev to install
 
 :top
     cd /d "%~dp0"
     @title DataSpammer - Initiating
     @echo off
-    setlocal enabledelayedexpansion
+    @setlocal ENABLEDELAYEDEXPANSION 
     set "exec-dir=%cd%"
-    :: Improve NT Compatabilty - Credits to Gradlew.bat Compiler
+    :: Improve NT Compatabilty - Credits to Gradlew Batch Version
     if "%OS%"=="Windows_NT" setlocal
     set "DIRNAME=%~dp0"
     if "%DIRNAME%"=="" set DIRNAME=.
@@ -41,6 +41,11 @@
     set "current-script-version=v6"
     :: Improve Powershell Speed
     set "powershell.short=powershell.exe -ExecutionPolicy Bypass -NoProfile"
+
+    :: Allows ASCII stuff without Codepage Settings - Not My Work - Credits to ?
+    :: Properly Escape Symbols like | ! & ^ > < etc. when using echo (%$Echo% " Text)
+    SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
+
     if "%1"=="" goto startup
     if "%1"=="version" title DataSpammer && goto version
     if "%1"=="--help" title DataSpammer && goto help.startup
@@ -53,7 +58,6 @@
     if "%1"=="debugtest" title DataSpammer && goto debugtest
     if "%1"=="monitor" title DataSpammer && goto monitor
     if "%1"=="start" title DataSpammer && goto start.verified
-    if "%1"=="noelev" title DataSpammer && set "small-install=1" && goto pid.check
     if "%update-install%"=="1" ( goto sys.new.update.installed )
     if not defined devtools ( goto startup ) else ( goto dev.options )
 
@@ -63,7 +67,6 @@
     :: Check install Type
     set "firstLine="
     set /p firstLine=<settings.conf
-    if "%firstLine%"=="small-install" ( set "small-install=1" && goto sys.enable.ascii.tweak )
 
 :sys.elevate
     :: Parse Settings
@@ -220,7 +223,6 @@
     call :send_message Started.DataSpammer
     call :send_message Established.Socket.Connection
     if %logging% == 1 ( call :log Established_Socket_Connection )
-    if not exist "install.bat" ( goto sys.error.no.install ) else ( goto settings.extract.update )
 
 :sys.no.settings
     if %logging% == 1 ( call :log Settings_Not_Found )
@@ -239,7 +241,7 @@
     call :sys.lt 1
     choice /C 12 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 goto sys.open.installer
+        if %_erl%==1 goto Install
         if %_erl%==2 goto no.settings.update
     goto sys.no.settings
 
@@ -247,7 +249,6 @@
 :no.settings.update
     if %logging% == 1 ( call :log Checking-Update-No-Settings )
     call :gitcall.sys
-    set "small-install=1"
     goto sys.enable.ascii.tweak
 
 
@@ -259,7 +260,7 @@
         echo Opening installer...
         call :sys.lt 4
         cd /d "%~dp0"
-        install.bat
+        Install
     )
     if "%logging%"=="1" ( call :log Checking_Settings_for_Update_Command )
     call :gitcall.sys
@@ -333,37 +334,6 @@
     exit /b
 
 
-:sys.error.no.install
-    if %logging% == 1 ( call :log Install_Bat_Doesnt_Exist )
-    echo The Installer doesnt exist. Some Features may not work.
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    echo [1] Open GitHub
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    echo [2] Continue Anyways
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    choice /C 12 /M "Choose an Option from Above:"
-        set _erl=%errorlevel%
-        if %_erl%==1 goto git.open.repo
-        if %_erl%==2 goto dts.startup.done
-    goto sys.error.no.install
-
-
-:git.open.repo
-    if %logging% == 1 ( call :log Opening_GH-Repo )
-    start "" "https://github.com/PIRANY1/DataSpammer"
-    goto sys.error.no.install
-
-:sys.open.installer
-    if %logging% == 1 ( call :log Opening_Installer )
-    cd /d "%~dp0"
-    install.bat
-
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -387,10 +357,7 @@
     if %logging% == 1 ( call :log Enabling_ASCII_without_CHCP )
     %powershell.short% -Command "& {Add-Type -AssemblyName System.Windows.Forms; Add-Type -AssemblyName System.Drawing; $notify = New-Object System.Windows.Forms.NotifyIcon; $notify.Icon = [System.Drawing.SystemIcons]::Information; $notify.Visible = $true; $notify.ShowBalloonTip(0, 'DataSpammer', 'Started DataSpammer', [System.Windows.Forms.ToolTipIcon]::None)}"
     
-    :: Allows ASCII stuff without Codepage Settings - Not My Work - Credits to ?
-    :: Properly Escape Symbols like | ! & ^ > < etc. when using echo (%$Echo% " Text)
-    SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
-
+    
 :menu
     for /f "tokens=2 delims=[]" %%v in ('ver') do set CMD_VERSION=%%v
     if exist encrypt.bat erase encrypt.bat
@@ -400,11 +367,6 @@
     if %logging% == 1 ( call :log Startup_Complete )
     if not defined username.script set "username.script=%username%"
     title DataSpammer %current-script-version%
-    if "%small-install%" == "1" (
-        set "settings-lock=Locked. Find Information under [44mHelp[32m"
-    ) else (
-        set "settings-lock=Settings"
-    )
 
     
     cls
@@ -427,7 +389,7 @@
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [2] %settings-lock%
+    echo [2] Settings
     color 02
     echo.
     call :sys.lt 1
@@ -714,14 +676,10 @@
         certutil -f -decodehex temp_hex.txt temp_prefix.bin
         move dataspammer.bat original_dataspammer.bat
         copy /b temp_prefix.bin + original_dataspammer.bat dataspammer.bat
-        move install.bat original_install.bat
-        copy /b temp_prefix.bin + original_install.bat install.bat
-        erase original_install.bat
         erase original_dataspammer.bat
         erase temp_hex.txt
         erase temp_prefix.bin
         Cipher /E dataspammer.bat
-        Cipher /E install.bat
         Cipher /E settings.conf
         cd /d "%~dp0"
         start %powershell.short% -Command "Start-Process 'dataspammer.bat' -Verb runAs"
@@ -1897,7 +1855,6 @@
     :: Delete Script
     if exist "%~dp0\LICENSE" del "%~dp0\LICENSE"
     if exist "%~dp0\README.md" del "%~dp0\README.md"
-    if exist "%~dp0\install.bat" del "%~dp0\install.bat"
     cd /d "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup"
     if exist "autostart.bat" del "autostart.bat"
     cd /d "%userprofile%\Desktop"
@@ -2340,17 +2297,6 @@
     )
     pause
 
-    echo -----------
-    echo Install.bat
-    echo -----------
-
-    for /f "tokens=1 delims=:" %%a in ('findstr /r "^:" "install.bat"') do (
-        echo %%a
-    )
-    pause
-    goto dev.options
-
-
 :send_message
     :: Send a Message to Monitor Socket
     if "%monitoring%" NEQ "1" exit /b monitoroff
@@ -2408,13 +2354,11 @@
     if "%1"==beta set "update_url=https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/"
 
     cd /d "%~dp0"
-    erase install.bat && erase README.md && erase LICENSE >nul 2>&1
+    erase README.md && erase LICENSE >nul 2>&1
     mkdir %temp%\dts.update >nul 2>&1
     echo Updating script... 
     %powershell.short% iwr "%update_url%dataspammer.bat" -UseBasicParsing -OutFile "%temp%\dts.update\%~nx0" >nul 2>&1
     cls && echo Updating DataSpammer.bat...
-    %powershell.short% iwr "%update_url%install.bat" -UseBasicParsing -OutFile "%temp%\dts.update\install.bat" >nul 2>&1
-    cls && echo Updating Install.bat...
     %powershell.short% iwr "%update_url%README.md" -UseBasicParsing -OutFile "%temp%\dts.update\README.md" >nul 2>&1
     cls && echo Updating Readme...
     %powershell.short% iwr "%update_url%main/LICENSE" -UseBasicParsing -OutFile "%temp%\dts.update\LICENSE" >nul 2>&1
@@ -2433,14 +2377,10 @@
     certutil -f -decodehex "%temp%\dts.update\temp_hex.txt" "%temp%\dts.update\temp_prefix.bin"
     move "%temp%\dts.update\dataspammer.bat" "%temp%\dts.update\original_dataspammer.bat"
     copy /b "%temp%\dts.update\temp_prefix.bin" + "%temp%\dts.update\original_dataspammer.bat" "%temp%\dts.update\dataspammer.bat"
-    move "%temp%\dts.update\install.bat" "%temp%\dts.update\original_install.bat"
-    copy /b "%temp%\dts.update\temp_prefix.bin" + "%temp%\dts.update\original_install.bat" "%temp%\dts.update\install.bat"
-    erase "%temp%\dts.update\original_install.bat"
     erase "%temp%\dts.update\original_dataspammer.bat"
     erase "%temp%\dts.update\temp_hex.txt"
     erase "%temp%\dts.update\temp_prefix.bin"
     Cipher /E "%temp%\dts.update\dataspammer.bat"
-    Cipher /E "%temp%\dts.update\install.bat"
 
     :move.new.files
     move /y "%temp%\dts.update\*" "%~dp0"
@@ -2652,6 +2592,10 @@
     set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('You have entered the wrong Code. Please try again', 'DataSpammer Verify');}"
     %powershell.short% -Command %msgBoxArgs%
     goto sys.verify.execution
+
+
+
+
 
 
 

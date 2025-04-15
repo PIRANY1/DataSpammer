@@ -1,50 +1,14 @@
-:: Use only under License
-:: Contribute under https://github.com/PIRANY1/DataSpammer
-:: Version v6 - NIGHTLY
-:: Last edited on 12.04.2025 by PIRANY
-:: >nul 2>&1
 
-    @echo off
-    cd /d "%~dp0"
-    @color 02
-    @title DataSpammer - Install
-    @setlocal ENABLEDELAYEDEXPANSION 
-
-    :: Improve Powershell Speed
-    set "powershell.short=powershell.exe -ExecutionPolicy Bypass -NoProfile"
-
-    :: Improve NT Compatability
-    if "%OS%"=="Windows_NT" setlocal
-    set "DIRNAME=%~dp0"
-    if "%DIRNAME%"=="" set DIRNAME=.
-
-    :: Window Sizing
-    mode con: cols=140 lines=40
-
-    set "current-script-version=v6"
-    
-    :: Check if Settings Exist
-    reg query "HKCU\Software\DataSpammer" /v Installed >nul 2>&1
-    if %errorlevel% neq 0 (
-        echo The Installer was already executed.
-        echo Opening DataSpammer.bat...
-        call :sys.lt 3
-        "%~dp0\dataspammer.bat"
-    )
-
-    if exist "%temp%\progress.txt" (
-        set /p progress.content=<%temp%\progress.txt
-        goto %progress.content%
-        erase "%temp%\progress.txt" >nul 2>&1
-    )
+:: Check Reg
+:: Check Elev
+:: Remove Beta Branch
+:: Check readme
+:: add install arg
+:: Add update applist on update
+:: add add to path
 
 :installer.main.window
-    :: Allows ASCII stuff without Codepage Settings - Not My Work - Credits to ?
-    SETLOCAL EnableDelayedExpansion
-    SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
-    SETLOCAL DisableDelayedExpansion
-
-
+    @title DataSpammer - Install
     %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
     %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
     %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
@@ -59,11 +23,11 @@
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [1] Normal Install  (Recommended, Needs Administrator Privileges)
+    echo [1] Use Program Files as Installation Directory 
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [2] Small Install (WITHOUT Updater, Settings and some less-important Features)
+    echo [2] Use Custom Directory
     echo. 
     call :sys.lt 1
     echo.
@@ -71,77 +35,23 @@
     call :sys.lt 1
     choice /C 12 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 goto standard.install.run
-        if %_erl%==2 goto installer.custom.install.directory
-    goto installer.main.window
+        if %_erl%==1 set "directory=%ProgramW6432%"
+        if %_erl%==2 set /p directory=Enter the Directory:
+    if not defined directory ( goto installer.main.window )
 
-:installer.custom.install.directory
-    :: Small Install
-    set /p directory=Please specify the directory where the Script should be installed: 
-    echo Installing Script...
+    if not "%directory:~-1%"=="\" set "directory=%directory%\"
     cd /d "%directory%"
-    mkdir DataSpammer
 
-    cd /d "%~dp0"
-    xcopy dataspammer.bat "%directory%\DataSpammer\"
-    erase dataspammer.bat > nul
-    erase README.md > nul
-    erase LICENSE > nul
-
-    cd /d DataSpammer
-    echo small-install > settings.conf
-
-    echo Installation Done.
-    cd /d "%directory%\DataSpammer\"
-    erase "%~dp0\install.bat" > nul
-    dataspammer.bat
-
-:standard.install.run
-    echo standard.install.run > "%temp%\progress.txt"
-    :: Some Pre-Install Stuff
-    set "directory=%ProgramW6432%"
-    cd /d "%directory%"
-    net session >nul 2>&1
-    if %errorLevel% neq 0 (
-    echo. goto.elevate "%temp%\progress.txt" > nul
-    %powershell.short% -Command "Start-Process '%~f0' -Verb runAs"
-    exit
-    )
-
-:standard.install.run.2
     set "startmenushortcut=Not Included"
     set "desktopicon=Not Included"
     set "autostart=Not Included"
 
-:standard.install.run.3
-    echo Some Files may get flagged by some Antivirus Software.
-    echo.
-    call :sys.lt 1
-    echo [1] Continue
+:installer.menu.select
+    echo Some Files may get flagged as Malware by Antivirus Software.
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [2] Open Link to Disable Antivirus
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    echo [3] Go Back
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    echo [4] Close the Script
-    echo.
-    echo.
-    choice /C 1234 /M "Choose an Option from Above:"
-        set _erl=%errorlevel%
-        if %_erl%==1 cls & goto standard.install.run.4
-        if %_erl%==2 start "" "https://www.security.org/antivirus/turn-off/" & cls 
-        if %_erl%==3 cls & goto installer.main.window
-        if %_erl%==4 cls & goto cancel
-    goto standard.install.run.3
-
-:standard.install.run.4
-    echo The script will install itself in the following directory: %ProgramW6432%
+    echo The script will install itself in the following directory: %directory%
     call :sys.lt 1
     echo.
     call :sys.lt 1
@@ -161,44 +71,40 @@
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [5] De-select / Cancel Options
+    echo [5] De-select All Options
     echo.
     echo.
     choice /C 12345 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 cls && set "startmenushortcut=Included" && set "startmenushortcut1=1" && goto standard.install.run.4
-        if %_erl%==2 cls && set "desktopicon=Included" && set "desktopic1=1" && goto standard.install.run.4
-        if %_erl%==3 cls && set "autostart=Included" && set "autostart1=1" && goto standard.install.run.4
+        if %_erl%==1 cls && set "startmenushortcut=Included" && set "startmenushortcut1=1" && goto installer.menu.select
+        if %_erl%==2 cls && set "desktopicon=Included" && set "desktopic1=1" && goto installer.menu.select
+        if %_erl%==3 cls && set "autostart=Included" && set "autostart1=1" && goto installer.menu.select
         if %_erl%==4 goto installer.start.copy
-        if %_erl%==5 goto standard.install.run.2
-    goto standard.install.run
-
+        if %_erl%==5 set "startmenushortcut=Not Included" && set "desktopicon=Not Included" && set "autostart=Not Included" && goto installer.menu.select
+    goto installer.menu.select
 
 :installer.start.copy
-    set "directory9=%directory%\DataSpammer"
+    set "directory9=%directory%DataSpammer\"
     mkdir "%directory9%" 
  
     cd /d "%~dp0"
 
-    move dataspammer.bat "%directory9%\" >nul
-    move install.bat "%directory9%\" >nul
-    move README.md "%directory9%\" >nul
-    move LICENSE "%directory9%\" >nul
+    move dataspammer.bat "%directory9%\" >nul 2>&1
+    move README.md "%directory9%\" >nul 2>&1
+    move LICENSE "%directory9%\" >nul 2>&1
 
     cd /d "%directory9%"
     :: Download new Files if one line was used to install
     set "update_url=https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/"
     if not exist dataspammer.bat ( %powershell.short% iwr "%update_url%dataspammer.bat" -UseBasicParsing -OutFile "%directory9%\dataspammer.bat" >nul 2>&1 ) 
-    if not exist install.bat ( %powershell.short% iwr "%update_url%install.bat" -UseBasicParsing -OutFile "%directory9%\install.bat" >nul 2>&1 )
     if not exist README.md( %powershell.short% iwr "%update_url%README.md" -UseBasicParsing -OutFile "%directory9%\README.md" >nul 2>&1 )
     if not exist LICENSE( %powershell.short% iwr "%update_url%main/LICENSE" -UseBasicParsing -OutFile "%directory9%\LICENSE" >nul 2>&1 ) 
 
-    :: Add Script to Registry / AppList
+    :: Add Script to Windows App List
     set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
     if defined ProgramFiles(x86) (
         set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
     )
-
     reg add "%RegPath%" /v "DisplayName" /d "DataSpammer" /f
     reg add "%RegPath%" /v "DisplayVersion" /d "%current-script-version%" /f
     reg add "%RegPath%" /v "InstallLocation" /d "%directory9%" /f
@@ -297,16 +203,10 @@
         certutil -f -decodehex "%directory9%\temp_hex.txt" "%directory9%\temp_prefix.bin"
         move "%directory9%\dataspammer.bat" "%directory9%\original_dataspammer.bat"
         copy /b "%directory9%\temp_prefix.bin" + "%directory9%\original_dataspammer.bat" "%directory9%\dataspammer.bat"
-        move "%directory9%\install.bat" "%directory9%\original_install.bat"
-        copy /b "%directory9%\temp_prefix.bin" + "%directory9%\original_install.bat" "%directory9%\install.bat"
-        erase "%directory9%\original_install.bat"
-        erase "%directory9%\original_dataspammer.bat"
         erase "%directory9%\temp_hex.txt"
         erase "%directory9%\temp_prefix.bin"
         Cipher /E "%directory9%\dataspammer.bat"
-        Cipher /E "%directory9%\install.bat"
         cd /d "%~dp0"
-        erase install.bat > nul
         cd /d "%directory9%"
         dataspammer.bat
         erase encrypt.bat
@@ -319,62 +219,8 @@
 :finish.installation
     echo Finishing Installation....
     call :sys.lt 3
-    erase "%~dp0\install.bat" > nul
-    "%directory9%\dataspammer.bat"
+    erase "%~dp0\Install" > nul 
+    Data-Spammer
 
 
-:log
-    :: call scheme is:
-    :: if %logging% == 1 ( call :log Opened_verify_tab )
-    :: _ and - are getting replaced by space    
 
-    set "log.content=%1"
-    set "logfile=DataSpammer.log"
-    
-    :: Check folder structure
-    set "folder=%userprofile%\Documents\DataSpammerLog"
-    if not exist "%folder%" (
-        mkdir "%folder%"
-    )
-    
-    set "log.content.clean=%log.content%"
-    set log.content.clean=%log.content.clean:_= %
-    set log.content.clean=%log.content.clean:-= %
-
-    for /f "tokens=1-3 delims=:." %%a in ("%time%") do set formatted_time=%%a:%%b:%%c
-    echo %date% %formatted_time% %log.content.clean% >> "%folder%\%logfile%"
-    :: exit
-    exit /b 0
-
-
-:sys.lt
-    set "dur=%1"
-    @ping -n %dur% localhost> nul
-    exit /b 0
-
-:verify
-    set "verify=%random%"
-    %powershell.short% -Command "& {Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.Interaction]::InputBox('Please enter code %verify% to confirm that you want to execute this option', 'DataSpammer Verify')}" > %TEMP%\out.tmp
-    set /p OUT=<%TEMP%\out.tmp
-    if not defined OUT goto failed
-    if "%verify%"==%OUT% ( goto success ) else ( goto failed )
-
-:success
-    set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('Success', 'DataSpammer Verify');}"
-    %powershell.short% -Command %msgBoxArgs%
-    exit /b
-
-:failed
-    set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('You have entered the wrong code. Please try again', 'DataSpammer Verify');}"
-    %powershell.short% -Command %msgBoxArgs%
-    goto verify
-
-:cancel
-    echo The installer is now closing....
-    set EXIT_CODE=%ERRORLEVEL%
-    if %EXIT_CODE% equ 0 set EXIT_CODE=1
-    if "%OS%"=="Windows_NT" endlocal
-    exit /b %EXIT_CODE%
-
-
-exit 0

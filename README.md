@@ -17,7 +17,7 @@ Use one of the methods below or download the [Latest Version](https://github.com
 ### One-Line Install
 
 ``` cmd
-curl -sSLo install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat && install.bat
+curl -sSLo install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat && dataspammer.bat install
 ```
 
 ### Git
