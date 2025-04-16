@@ -8,6 +8,13 @@
 :: add add to path
 
 :installer.main.window
+    :: Check Elevation
+    net session >nul 2>&1
+    if %errorLevel% neq 0 (
+        %powershell.short% -Command "Start-Process '%~f0' -Verb runAs"
+        exit 0
+    )
+
     @title DataSpammer - Install
     %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
     %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
@@ -44,7 +51,7 @@
 
     set "startmenushortcut=Not Included"
     set "desktopicon=Not Included"
-    set "autostart=Not Included"
+    set "addpath=Not Included"
 
 :installer.menu.select
     echo Some Files may get flagged as Malware by Antivirus Software.
@@ -63,7 +70,7 @@
     call :sys.lt 1
     echo. 
     call :sys.lt 1
-    echo [3] (%autostart%) Start with Windows/Autostart
+    echo [3] (%addpath%) Add to Path
     call :sys.lt 1
     echo.
     call :sys.lt 1
@@ -78,9 +85,9 @@
         set _erl=%errorlevel%
         if %_erl%==1 cls && set "startmenushortcut=Included" && set "startmenushortcut1=1" && goto installer.menu.select
         if %_erl%==2 cls && set "desktopicon=Included" && set "desktopic1=1" && goto installer.menu.select
-        if %_erl%==3 cls && set "autostart=Included" && set "autostart1=1" && goto installer.menu.select
+        if %_erl%==3 cls && set "addpath=Included" && set "addpath1=1" && goto installer.menu.select
         if %_erl%==4 goto installer.start.copy
-        if %_erl%==5 set "startmenushortcut=Not Included" && set "desktopicon=Not Included" && set "autostart=Not Included" && goto installer.menu.select
+        if %_erl%==5 set "startmenushortcut=Not Included" && set "desktopicon=Not Included" && set "addpath=Not Included" && goto installer.menu.select
     goto installer.menu.select
 
 :installer.start.copy
@@ -111,6 +118,9 @@
     reg add "%RegPath%" /v "Publisher" /d "PIRANY1" /f
     reg add "%RegPath%" /v "UninstallString" /d "%directory9%\dataspammer.bat remove" /f
 
+    :: Add Reg Key - Remember Installed Status
+    reg add "HKCU\Software\DataSpammer" /v Installed /t REG_DWORD /d 1 /f
+
     :: Create settings.conf
     cd /d "%directory9%"
     (
@@ -140,31 +150,21 @@
     ) > settings.conf
 
     if not defined startmenushortcut1 ( goto desktop.icon.install.check )
-    cd /d "%ProgramData%\Microsoft\Windows\Start Menu\Programs"
     (
     echo cd /d "%directory9%"
     echo dataspammer.bat
-    ) > DataSpammer.bat
+    ) > "%ProgramData%\Microsoft\Windows\Start Menu\Programs\DataSpammer.bat"
 
 :desktop.icon.install.check
-    if not defined desktopic ( goto script.win.start.check )
-    cd /d "%userprofile%\Desktop"
+    if not defined desktopic ( goto additional.links.installed )
     (
     echo cd /d "%directory9%"
     echo dataspammer.bat %1 %2 %3 %4 %5
-    ) > DataSpammer.bat
-
-:script.win.start.check
-    if not defined autostart ( goto additional.links.installed )
-    cd /d C":\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup"
-    (
-    echo cd /d "%directory9%"
-    echo dataspammer.bat
-    ) > autostart.bat
+    ) > "%userprofile%\Desktop\DataSpammer.bat"
 
 :additional.links.installed
-    :: Add Registry Key - Remember Installed Status
-    reg add "HKCU\Software\DataSpammer" /v Installed /t REG_DWORD /d 1 /f
+    :: Add Script to PATH
+    if defined addpath1 ( setx PATH "%PATH%;%directory9%" /M )
 
 :sys.main.installer.done
     echo Do you want to encrypt the Script Files?
@@ -180,8 +180,6 @@
     echo [2] No
     call :sys.lt 1
     echo.
-    call :sys.lt 1
-    echo.
     choice /C 12 /M "1/2:"
         set _erl=%errorlevel%
         if %_erl%==1 goto encrypt.script
@@ -194,11 +192,9 @@
         set "where_output=%%a"
     )  
     if not defined where_output goto finish.installation
-    cd /d "%~dp0 "
     echo %random% > "%userprofile%\Documents\SecureDataSpammer\token.hash"
     (
         @echo off
-        cd /d "%~dp0"
         echo FF FE 0D 0A 63 6C 73 0D 0A > "%directory9%\temp_hex.txt"
         certutil -f -decodehex "%directory9%\temp_hex.txt" "%directory9%\temp_prefix.bin"
         move "%directory9%\dataspammer.bat" "%directory9%\original_dataspammer.bat"
@@ -206,21 +202,18 @@
         erase "%directory9%\temp_hex.txt"
         erase "%directory9%\temp_prefix.bin"
         Cipher /E "%directory9%\dataspammer.bat"
-        cd /d "%~dp0"
-        cd /d "%directory9%"
-        dataspammer.bat
-        erase encrypt.bat
-    ) > encrypt.bat
+        cmd /c "%directory9%\dataspammer.bat"
+        erase "%directory9%\encrypt.bat"
+        exit 0
+    ) > "%directory9%\encrypt.bat"
      
-    start %powershell.short% -Command "Start-Process 'encrypt.bat' -Verb runAs"
-    exit /b startedencryption
+    start %powershell.short% -Command "Start-Process '%directory9%\encrypt.bat' -Verb runAs"
+    exit 0
 
 
 :finish.installation
-    echo Finishing Installation....
-    call :sys.lt 3
-    erase "%~dp0\Install" > nul 
-    Data-Spammer
-
-
-
+    echo Finished Installation.
+    echo Starting...
+    cmd /c "%directory9%\dataspammer.bat"
+    erase "%~dp0\dataspammer.bat" > nul
+    exit 0
