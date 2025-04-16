@@ -10,22 +10,11 @@
 :: Developer Tool is at dev.options
 
 :: Todo: 
-::    Low Priority
-
 ::      Fix Updater - Clueless After 3 Gazillion Updates - Added -UseBasicParsing to iwr
 ::      Rework Dev Menu
 ::      Improve DataSpammer.lock - PID is kept
 ::      Add Colors
-
-::    Mid Priority
-
-::      Add SMTP & IMAP Support
-
-::    High Priority
-
 ::      Verify new Code & check Monitor & Start Testing
-
-:: Add Forced Elev to install
 
 :top
     cd /d "%~dp0"
@@ -52,7 +41,7 @@
     if "%1"=="help" title DataSpammer && goto help.startup
     if "%1"=="faststart" title DataSpammer && goto sys.enable.ascii.tweak
     if "%1"=="update" title DataSpammer && goto fast.git.update
-    if "%1"=="update.script" title DataSpammer && call :update.script %2 && exit
+    if "%1"=="update.script" title DataSpammer && call :update.script %2 && goto cancel
     if "%1"=="remove" title DataSpammer && goto sys.delete.script
     if "%1"=="debug" title DataSpammer && goto debuglog
     if "%1"=="debugtest" title DataSpammer && goto debugtest
@@ -90,7 +79,7 @@
         if "%elevation%"=="sudo" goto sudo.elevation
         if "%elevation%"=="gsudo" goto gsudo.elevation
         %powershell.short% -Command "Start-Process '%~f0' -Verb runAs"
-        exit
+        goto cancel
     )
     cd /d "%~dp0"
     goto pid.check
@@ -100,7 +89,7 @@
     if %errorLevel% neq 0 ( 
         for /f "delims=" %%A in ('where sudo') do set SUDO_PATH=%%A
         %SUDO_PATH% cmd.exe -k %~f0
-        exit
+        goto cancel
     )
     cd /d "%~dp0"
     goto pid.check
@@ -110,7 +99,7 @@
     if %errorLevel% neq 0 ( 
         for /f "delims=" %%A in ('where gsudo') do set GSUDO_PATH=%%A
         %GSUDO_PATH% cmd.exe -k %~f0
-        exit
+        goto cancel
     )
     cd /d "%~dp0"
     goto pid.check
@@ -680,7 +669,7 @@
     ) > encrypt.bat
      
     start %powershell.short% -Command "Start-Process 'encrypt.bat' -Verb runAs"
-    exit /b startedencryption
+    goto cancel
 
 
 
@@ -821,9 +810,9 @@
     echo.
     choice /C 1234 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 call :update.script stable && exit
-        if %_erl%==2 call :update.script stable && exit
-        if %_erl%==3 call :update.script beta && exit
+        if %_erl%==1 call :update.script stable && goto cancel
+        if %_erl%==2 call :update.script stable && goto cancel
+        if %_erl%==3 call :update.script beta && goto cancel
         if %_erl%==4 goto settings
     goto settings.version.control
 
@@ -1491,7 +1480,7 @@
         echo Restarting Program as Elevated. Go here again manually.
         call :sys.lt 3
         %powershell.short% -Command "Start-Process '%~f0' -Verb runAs"
-        exit
+        goto cancel
     )
 
     echo Enter random to use random Numerals
@@ -1561,7 +1550,7 @@
         echo Restarting Program with elevated Privileges. Go here again manually.
         call :sys.lt 2
         %powershell.short% -Command "Start-Process '%~f0' -Verb runAs"
-        exit
+        goto cancel
     )
     set "directory.startmenu=%ProgramData%\Microsoft\Windows\Start Menu\Programs"
     if %default-filename% EQU notused ( goto startmenu.custom.name ) else ( goto startmenu.start )
@@ -1802,7 +1791,7 @@
     ) else (
         echo Your Script is outdated [Newest Version: %latest_version% Script Version:%current-script-version%]
     )
-    exit /b 0
+    exit /b %errorlevel%
 
 
 :custom.go
@@ -1867,16 +1856,15 @@
     call :sys.lt 2
     explorer "%~dp0"
     echo. > %temp%\DataSpammerClose.txt
-    exit 0
+    goto cancel
 
 :restart.script
     if %logging% == 1 ( call :log Restarting_Script )
     call :send_message Script.is.restarting
     call :send_message Terminating %PID%
     echo. > %temp%\DataSpammerClose.txt
-    cd /d "%~dp0"
-    dataspammer.bat
-    exit 0
+    cmd /c "%~dp0\dataspammer.bat"
+    goto cancel
 
 
 :monitor
@@ -1905,7 +1893,7 @@
         echo if errorlevel 1 ^(
         echo    echo DataSpammmer with PID %PID.DTS% crashed at %%date%% %%time%% ^> "%%temp%%\DataSpammerCrashed.txt"
         echo    echo DataSpammmer with PID %PID.DTS% crashed at %%date%% %%time%%
-        echo    exit /b 0
+        echo    exit /b %errorlevel%
         echo ^)
         echo timeout /t 1 ^>nul
         echo goto check_process
@@ -1935,13 +1923,13 @@
             del "%temp%\DataSpammerCrashed.txt"
             echo DataSpammer.bat Crashed at !formatted_time!
             timeout /t 5 >nul
-            exit /b 0
+            exit /b %errorlevel%
         )
         if exist "%temp%\DataSpammerClose.txt" (
             del "%temp%\DataSpammerClose.txt"
             echo DataSpammer.bat was Closed at !formatted_time!
             timeout /t 5 >nul
-            exit /b 0
+            exit /b %errorlevel%
         )
 
     call :sys.lt 1
@@ -2097,11 +2085,7 @@
     call :sys.lt 10 count
     echo %time%
     set "endtime=%time%"
-    :: Calc Time Diff
-    call :TimeDifference "%starttime%" "%endtime%" > tmp_time.txt
-    set /p diff.full=<tmp_time.txt
-    del tmp_time.txt
-    echo Time Diff %diff.full%
+    
 
     :: Calc time Diff in ms
     call :TimeDiffInMs "%starttime%" "%endtime%"
@@ -2132,7 +2116,12 @@
     :: Example1: call :dns.spam
     :: Example2: Paste a modified Function here if manual input is required
 
+
     
+
+    :: Calc Time Diff - v6 #27
+    call :TimeDifference "%starttime%" "%endtime%" > tmp_time.txt
+    set /p diff.full=<tmp_time.txt && del tmp_time.txt && echo Time Diff %diff.full%
 
     :: Only Uncomment if Updater was changed
     :: call :update.script stable
@@ -2167,7 +2156,7 @@
         set "dur=%1"
         ping -n %dur% localhost >nul
     )
-    exit /b 0
+    exit /b %errorlevel%
 
 :log
     :: call scheme is:
@@ -2191,7 +2180,7 @@
 
     for /f "tokens=1-3 delims=:." %%a in ("%time%") do set formatted_time=%%a:%%b:%%c
     echo %date% %formatted_time% %log.content.clean% >> "%folder%\%logfile%"
-    exit /b 0
+    exit /b %errorlevel%
     
 
 
@@ -2335,7 +2324,7 @@
     echo.
     echo.
 
-    exit /b 0
+    exit /b %errorlevel%
     if "%1"=="debugtest" title DataSpammer && goto debugtest
 
 :update.script
@@ -2379,9 +2368,8 @@
 
     :move.new.files
     move /y "%temp%\dts.update\*" "%~dp0"
-    cmd.exe -k "%~dp0\dataspammer.bat"
-    exit 
-    goto :EOF
+    cmd.exe -c "%~dp0\dataspammer.bat"
+    goto cancel
 
 
 :version
@@ -2399,7 +2387,7 @@
     echo Version v6 (Beta)
     echo Newest Stable Release: %latest_version%
     echo. 
-    exit /b
+    exit /b %errorlevel%
 
 
 :: Function description:
@@ -2570,7 +2558,7 @@
 :sys.verify.execution
     :: Check for Human Input by asking for random Int Input
     if %logging% == 1 ( call :log Opened_verify_tab )
-    if "%skip-sec%"==1 ( exit /b 0)
+    if "%skip-sec%"==1 ( exit /b %errorlevel%)
     set "verify=%random%"
     %powershell.short% -Command "& {Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.Interaction]::InputBox('Please enter Code %verify% to confirm that you want to execute this Option', 'DataSpammer Verify')}" > %TEMP%\out.tmp
     set /p OUT=<%TEMP%\out.tmp
@@ -2610,7 +2598,7 @@
     net session >nul 2>&1
     if %errorLevel% neq 0 (
         %powershell.short% -Command "Start-Process '%~f0' -Verb runAs"
-        exit 0
+        goto cancel
     )
 
     @title DataSpammer - Install
@@ -2802,11 +2790,11 @@
         Cipher /E "%directory9%\dataspammer.bat"
         cmd /c "%directory9%\dataspammer.bat"
         erase "%directory9%\encrypt.bat"
-        exit 0
+        exit %errorlevel%
     ) > "%directory9%\encrypt.bat"
      
     start %powershell.short% -Command "Start-Process '%directory9%\encrypt.bat' -Verb runAs"
-    exit 0
+    goto cancel
 
 
 :finish.installation
@@ -2814,9 +2802,7 @@
     echo Starting...
     cmd /c "%directory9%\dataspammer.bat"
     erase "%~dp0\dataspammer.bat" > nul
-    exit 0
-
-
+    goto cancel
 
 
 
@@ -2829,5 +2815,5 @@
     echo. > %temp%\DataSpammerClose.txt
     exit /b %EXIT_CODE%
 
-
-exit 0
+goto cancel
+exit %errorlevel%
