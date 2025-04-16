@@ -58,6 +58,7 @@
     if "%1"=="debugtest" title DataSpammer && goto debugtest
     if "%1"=="monitor" title DataSpammer && goto monitor
     if "%1"=="start" title DataSpammer && goto start.verified
+    if "%1"=="install" title DataSpammer && goto installer.main.window
     if "%update-install%"=="1" ( goto sys.new.update.installed )
     if not defined devtools ( goto startup ) else ( goto dev.options )
 
@@ -2329,6 +2330,8 @@
     echo    version     Show Version
     echo.
     echo    debugtest       Verify Functionality
+    echo.
+    echo    install       Start the Installer
     echo.
     echo.
 
