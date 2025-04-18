@@ -17,7 +17,7 @@
 ::      Verify new Code & check Monitor & Start Testing
 
 :top
-    cd /d "%~dp0"
+    @cd /d "%~dp0"
     @title DataSpammer - Initiating
     @echo off
     @setlocal ENABLEDELAYEDEXPANSION 
@@ -28,8 +28,28 @@
     if "%DIRNAME%"=="" set DIRNAME=.
     mode con: cols=140 lines=40
     set "current-script-version=v6"
-    :: Improve Powershell Speed
-    set "powershell.short=powershell.exe -ExecutionPolicy Bypass -NoProfile"
+    :: Improve Powershell Speed 
+    for /f "delims=" %%a in ('where powershell') do set "powershell_path=%%a"
+    set "powershell.short="%powershell_path%" -ExecutionPolicy Bypass -NoProfile -NoLogo"
+    
+    :: Can be Implemented along if errorlevel ...
+    set "errormsg=echo: &call :color _Red "====== ERROR ======" &echo:"
+
+    :: Check for NCS Support 
+    :: NCS is required for ANSI / Color Support
+    call :check_NCS
+    call :color _Green "ANSI Color Support is enabled"
+    
+
+    :: Check if Script is running from Temp Folder
+    if /I "%~dp0"=="%TEMP%" (
+    %errormsg%
+    echo The script was launched from the temp folder.
+    echo You are most likely running the script directly from the archive file.
+    call :sys.lt 10
+    goto cancel
+    )
+    
 
     :: Allows ASCII stuff without Codepage Settings - Not My Work - Credits to ?
     :: Properly Escape Symbols like | ! & ^ > < etc. when using echo (%$Echo% " Text)
@@ -2138,6 +2158,107 @@
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 
+:: =====================================
+:: call :color "ERROR"
+:: Supported Colors: Red, Green, Blue, Gray, White, _Red, _White, _Green, _Yellow
+:: call :color Red      "This is red on light white"
+:: call :color _Red     "This is red on black"
+:: call :color Green    "Green on white"
+:: call :color _Green   "Green on black"
+:: call :color Blue     "Blue on white"
+:: call :color Gray     "Gray background"
+:: call :color White    "Bright white"
+:: call :color _White   "White on dark gray"
+:: call :color _Yellow  "Yellow on black"
+:: =====================================
+
+:color
+    :: Parameter: color text
+    set "color=%~1"
+    shift
+    set "text=%*"
+    set "text=!text:"=!"   
+    
+    for %%F in (Red Gray Green Blue White _Red _White _Green _Yellow) do (
+        set "text=!text:%%F=!"
+    )
+    set "text=!text:_=!"
+    set "text=!text: =!"
+    
+    :: Check if ANSI support is enabled
+    if not "%_NCS%"=="1" (
+        echo %text%
+        exit /b
+    )
+    
+    :: Set escape code
+    if not defined esc (
+        for /F %%a in ('echo prompt $E ^| cmd') do set "esc=%%a"
+    )
+    
+    :: Define Colors
+    set "Red=41;97m"
+    set "Gray=100;97m"
+    set "Green=42;97m"
+    set "Blue=44;97m"
+    set "White=107;91m"
+    set "_Red=40;91m"
+    set "_White=40;37m"
+    set "_Green=40;92m"
+    set "_Yellow=40;93m"
+    
+    :: Select Colors
+    for %%F in (Red Gray Green Blue White _Red _White _Green _Yellow) do (
+        if /I "%color%"=="%%F" (
+            set "code=!%%F!"
+        )
+    )
+    
+    :: Return normal color if no match
+    if not defined code (
+        echo %text%
+        exit /b
+    )
+    
+    :: Color output
+    <nul set /p "=!esc![!code!!text!!esc![0m"
+    echo.
+    exit /b
+
+
+
+:check_NCS
+    :: ===============================
+    :: Function: check for NCS 
+    :: ===============================
+    set "nul1=1>nul"
+    set "nul2=2>nul"
+    
+    set "_NCS=1"
+    
+    :: Get Windows Build
+    set "winbuild=1"
+    for /f "tokens=6 delims=[]. " %%G in ('ver') do set "winbuild=%%G"
+    
+    :: Disable NCS for Old Builds
+    if %winbuild% LSS 10586 set "_NCS=0"
+    
+    :: Check ForceV2 from Registry
+    if %winbuild% GEQ 10586 (
+        reg query "HKCU\Console" /v ForceV2 %nul2% | find /i "0x0" %nul1% && (
+            set "_NCS=0"
+        )
+    )
+    
+    :: Check for Older ARM64 Builds
+    echo "%PROCESSOR_ARCHITECTURE% %PROCESSOR_ARCHITEW6432%" | find /i "ARM64" %nul1% && (
+        if %winbuild% LSS 21277 set "ps32onArm=1"
+    )
+    
+    :: Export NCS
+    set "_NCS=%_NCS%"
+    exit /b
+    
 
 :sys.lt
     setlocal EnableDelayedExpansion
