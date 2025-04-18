@@ -4,22 +4,24 @@
 :: Last edited on 12.04.2025 by PIRANY
 
 :: >nul 2>&1
+:: pushd, popd
+:: 
 
 :: Developer Notes
-:: Define devtools to open the developer menu
 :: Developer Tool is at dev.options
 
 :: Todo: 
 ::      Fix Updater - Clueless After 3 Gazillion Updates - Added -UseBasicParsing to iwr
 ::      Rework Dev Menu
 ::      Improve DataSpammer.lock - PID is kept
-::      Add Colors
+::      Add Colors to more Menus
 ::      Verify new Code & check Monitor & Start Testing
+::      Add more Logs
 
 :top
+    @echo off
     @cd /d "%~dp0"
     @title DataSpammer - Initiating
-    @echo off
     @setlocal ENABLEDELAYEDEXPANSION 
     set "exec-dir=%cd%"
     :: Improve NT Compatabilty - Credits to Gradlew Batch Version
@@ -80,7 +82,7 @@
         goto installer.main.window
     )
 
-:sys.elevate
+    :: Parse Settings from Config
     echo Parsing Settings...
     if not exist "settings.conf" goto sys.no.settings
     set "config_file=settings.conf"
@@ -91,33 +93,12 @@
     :: Apply Color from Settings
     if defined color ( color %color% ) else ( color 02 )
 
-
-    :: Start the Elevation Request
+    :: Elevate Script
     net session >nul 2>&1
     if %errorLevel% neq 0 (
-        if "%elevation%"=="sudo" goto sudo.elevation
-        if "%elevation%"=="gsudo" goto gsudo.elevation
+        if "%elevation%"=="sudo" for /f "delims=" %%A in ('where sudo') do set SUDO_PATH=%%A && %SUDO_PATH% cmd.exe -c %~f0 && goto cancel
+        if "%elevation%"=="gsudo" for /f "delims=" %%A in ('where gsudo') do set GSUDO_PATH=%%A && %GSUDO_PATH% cmd.exe -k %~f0 && goto cancel
         %powershell.short% -Command "Start-Process '%~f0' -Verb runAs"
-        goto cancel
-    )
-    cd /d "%~dp0"
-    goto pid.check
-
-:sudo.elevation
-    net session >nul 2>&1
-    if %errorLevel% neq 0 ( 
-        for /f "delims=" %%A in ('where sudo') do set SUDO_PATH=%%A
-        %SUDO_PATH% cmd.exe -k %~f0
-        goto cancel
-    )
-    cd /d "%~dp0"
-    goto pid.check
-
-:gsudo.elevation
-    net session >nul 2>&1
-    if %errorLevel% neq 0 ( 
-        for /f "delims=" %%A in ('where gsudo') do set GSUDO_PATH=%%A
-        %GSUDO_PATH% cmd.exe -k %~f0
         goto cancel
     )
     cd /d "%~dp0"
@@ -127,19 +108,19 @@
 :pid.check
     :: Get the Parent Process ID of the current script - Needed for Monitor
     %powershell.short% -Command "(Get-CimInstance Win32_Process -Filter \"ProcessId=$PID\").ParentProcessId" > "%temp%\parent_pid.txt"
-    set /p PID=<"%temp%\parent_pid.txt"
+    if exist "%temp%\parent_pid.txt" ( set /p PID=<"%temp%\parent_pid.txt" ) else ( set "PID=ERROR" && %errormsg% && echo Failed to get Parent PID && call :sys.lt 1 ) 
     del "%temp%\parent_pid.txt"
     echo Got PID: %PID%
 
     :: Lock Check - Check if the Script is already running or if it crashed etc. 
     :: Check for existing dataspammer.lock
     if exist "%~dp0\dataspammer.lock" (
-        set /p pid=<"%~dp0\dataspammer.lock"
-        tasklist /FI "PID eq %pid%" | findstr /i "%pid%" >nul
+        set /p pid.lock=<"%~dp0\dataspammer.lock"
+        tasklist /FI "PID eq %pid.lock%" | findstr /i "." >nul
         if %errorlevel%==0 (
-            echo DataSpammer is already running under PID %pid%.
-            call :sys.lt 2
-            del "%~dp0\dataspammer.lock"
+            echo DataSpammer is already running under PID %pid.lock%.
+            call :sys.lt 4
+            goto cancel
         ) else (
             echo DataSpammer may have crashed or was closed. Deleting lock file...
             echo Be aware that some tasks may not have finished properly.
@@ -150,12 +131,11 @@
         echo %PID% > "%~dp0\dataspammer.lock"
     )
 
-    :: Start the Monitor Socket - Moved here to avoid multiple Instances
+    :: Start the Monitor Socket
     if %monitoring%==1 start /min cmd.exe /k ""%~f0" monitor %PID%"
 
     :: Check if Login is Setup
-    set "secure_dir=%userprofile%\Documents\SecureDataSpammer"
-    if not exist "%secure_dir%\username.hash" goto file.check    
+    if not exist "%userprofile%\Documents\SecureDataSpammer\username.hash" goto file.check    
 
 :login.input
     title DataSpammer - Login
@@ -179,8 +159,8 @@
     for /f "delims=" %%a in ('%powershell.short% -Command "(Get-Content '%TEMP%\password_hash.txt' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "password_hash=%%a"
     
     echo Comparing Hashes...
-    set /p stored_username_hash=<"%secure_dir%\username.hash"
-    set /p stored_password_hash=<"%secure_dir%\password.hash"
+    set /p stored_username_hash=<"%userprofile%\Documents\SecureDataSpammer\username.hash"
+    set /p stored_password_hash=<"%userprofile%\Documents\SecureDataSpammer\password.hash"
 
     :: echo Calc Username: "%username_hash%"  Stored Username: "%stored_username_hash%"
     :: echo Calc Password: "%password_hash%"  Stored Password: "%stored_password_hash%"
@@ -194,27 +174,18 @@
         echo Username Matches
         if "%password_hash%" EQU "%stored_password_hash%" (
             echo Password Matches
-            del "%TEMP%\username.txt" > nul
-            del "%TEMP%\password.txt" > nul
-            del "%TEMP%\username_hash.txt" > nul
-            del "%TEMP%\password_hash.txt" > nul
+            del "%TEMP%\username.txt" >nul 2>&1 && del "%TEMP%\password.txt" >nul 2>&1 && del "%TEMP%\username_hash.txt" >nul 2>&1 && del "%TEMP%\password_hash.txt" >nul 2>&1
             goto file.check
         ) else (
             echo Authentication failed. Password does not match.
-            del "%TEMP%\username.txt" > nul
-            del "%TEMP%\password.txt" > nul
-            del "%TEMP%\username_hash.txt" > nul
-            del "%TEMP%\password_hash.txt" > nul
+            del "%TEMP%\username.txt" >nul 2>&1 && del "%TEMP%\password.txt" >nul 2>&1 && del "%TEMP%\username_hash.txt" >nul 2>&1 && del "%TEMP%\password_hash.txt" >nul 2>&1
             echo Credentials do not match!
             pause
             goto login.input
         )
     ) else (
         echo Authentication failed. Username does not match.
-        del "%TEMP%\username.txt" > nul
-        del "%TEMP%\password.txt" > nul
-        del "%TEMP%\username_hash.txt" > nul
-        del "%TEMP%\password_hash.txt" > nul
+        del "%TEMP%\username.txt" >nul 2>&1 && del "%TEMP%\password.txt" >nul 2>&1 && del "%TEMP%\username_hash.txt" >nul 2>&1 && del "%TEMP%\password_hash.txt" >nul 2>&1
         echo Credentials do not match!
         pause
         goto login.input
@@ -344,28 +315,41 @@
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 
 :dts.startup.done
-    title DataSpammer - Idle
+    title DataSpammer - Finishing Startup
 
-:check-dev-options
-   if %logging% == 1 ( call :log Checking_If_Developer_Mode_Is_Turned_On )
-   cd /d "%~dp0"
-   if "%developermode%"=="1" echo Developer Mode is enabled.
-   if "%developermode%"=="1" ( set "dev-mode=1" ) else ( set "dev-mode=0" )
-   if not defined devtools ( goto sys.enable.ascii.tweak ) else ( goto dev.options )
+    :: Check if DataSpammer.log is larger than 1MB
+    for %%A in ("%userprofile%\Documents\DataSpammerLog\DataSpammer.log") do (
+        if %%~zA GTR 1048576 (
+            echo DataSpammer.log is larger than 1MB. Renaming to DataSpammer.log.old.
+            ren "%userprofile%\Documents\DataSpammerLog\DataSpammer.log" "DataSpammer.log.old"
+        )
+    )
 
-:sys.enable.ascii.tweak
+    :: Check Developermode
+    if "%developermode%"=="1" ( set "dev-mode=1" && echo Enabled Developermode ) else ( set "dev-mode=0" )
+
+    :: Extract CMD Version
+    for /f "tokens=2 delims=[]" %%v in ('ver') do set CMD_VERSION=%%v
     if %logging% == 1 ( call :log Sending_Notification )
     if %logging% == 1 ( call :log Enabling_ASCII_without_CHCP )
-    %powershell.short% -Command "& {Add-Type -AssemblyName System.Windows.Forms; Add-Type -AssemblyName System.Drawing; $notify = New-Object System.Windows.Forms.NotifyIcon; $notify.Icon = [System.Drawing.SystemIcons]::Information; $notify.Visible = $true; $notify.ShowBalloonTip(0, 'DataSpammer', 'Started DataSpammer', [System.Windows.Forms.ToolTipIcon]::None)}"
-    
-    
-:menu
-    for /f "tokens=2 delims=[]" %%v in ('ver') do set CMD_VERSION=%%v
-    if exist encrypt.bat erase encrypt.bat
-    if "%1"=="settings" goto settings
-    if %logging% == 1 ( call :log Displaying_Menu )
-    call :send_message Displaying.Menu
+
+    if exist "%~dp0\encrypt.bat" erase "%~dp0\encrypt.bat" >nul 2>&1
+
+    :: Startup Complete Message
+    :: %powershell.short% -Command "& {Add-Type -AssemblyName System.Windows.Forms; Add-Type -AssemblyName System.Drawing; $notify = New-Object System.Windows.Forms.NotifyIcon; $notify.Icon = [System.Drawing.SystemIcons]::Information; $notify.Visible = $true; $notify.ShowBalloonTip(0, 'DataSpammer', 'Started DataSpammer', [System.Windows.Forms.ToolTipIcon]::None)}"
     if %logging% == 1 ( call :log Startup_Complete )
+    if %logging% == 1 ( call :log Successfully_Started_DataSpammer_%current-script-version%_Errorlevel:_%errorlevel% )
+
+    :: Pass all Vars to Log
+    for /f "tokens=1* delims==" %%A in ('set') do (
+        set "env_var=%%A=%%B"
+        set "env_var=!env_var: =_!"
+        call :log "!env_var!"
+    )
+
+:menu
+    cd /d "%~dp0"
+    if %logging% == 1 ( call :log Displaying_Menu )
     if not defined username.script set "username.script=%username%"
     title DataSpammer %current-script-version%
 
@@ -601,28 +585,25 @@
     
 :login.change
     echo Changing Login...
-    set "secure_dir=%userprofile%\Documents\SecureDataSpammer"
-    rmdir /s /q "%secure_dir%"
-    del "%secure_dir%\username.hash"
-    del "%secure_dir%\password.hash"
+    rmdir /s /q "%userprofile%\Documents\SecureDataSpammer"
+    del "%userprofile%\Documents\SecureDataSpammer\username.hash"
+    del "%userprofile%\Documents\SecureDataSpammer\password.hash"
     goto login.create
 
 :login.delete
     echo Deleting Account...
-    set "secure_dir=%userprofile%\Documents\SecureDataSpammer"
     echo Deleting Hashed Files...
-    del "%secure_dir%\username.hash"
-    del "%secure_dir%\password.hash"
-    rmdir /s /q "%secure_dir%"
+    del "%userprofile%\Documents\SecureDataSpammer\username.hash"
+    del "%userprofile%\Documents\SecureDataSpammer\password.hash"
+    rmdir /s /q "%userprofile%\Documents\SecureDataSpammer"
     echo Account deleted successfully.
     echo Restarting Script...
     call :sys.lt 1
     goto restart.script
 
 :login.create
-    set "secure_dir=%userprofile%\Documents\SecureDataSpammer"
     Cipher /E "%userprofile%\Documents\SecureDataSpammer"
-    if exist %secure_dir% echo Account already exists. && call :sys.lt 1 && goto login.setup
+    if exist %userprofile%\Documents\SecureDataSpammer echo Account already exists. && call :sys.lt 1 && goto login.setup
     set /p "username=Please enter a Username: "
 
     %powershell.short% -Command "$password = Read-Host 'Please enter a Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($password))" > %TEMP%\password.tmp
@@ -643,12 +624,12 @@
     
     :: Save the hashed values in a secure location
     echo Saving Secure Data...
-    if not exist "%secure_dir%" mkdir "%secure_dir%"
-    echo %username_hash% > "%secure_dir%\username.hash"
-    echo %password_hash% > "%secure_dir%\password.hash"
+    if not exist "%userprofile%\Documents\SecureDataSpammer" mkdir "%userprofile%\Documents\SecureDataSpammer"
+    echo %username_hash% > "%userprofile%\Documents\SecureDataSpammer\username.hash"
+    echo %password_hash% > "%userprofile%\Documents\SecureDataSpammer\password.hash"
     
-    Cipher /E "%secure_dir%\username.hash"
-    Cipher /E "%secure_dir%\password.hash"
+    Cipher /E "%userprofile%\Documents\SecureDataSpammer\username.hash"
+    Cipher /E "%userprofile%\Documents\SecureDataSpammer\password.hash"
 
     :: Clean up temporary files
     del %TEMP%\username.txt
@@ -984,16 +965,12 @@
 
 
 :autostart.delete
-    net session >nul 2>&1
-    if %errorLevel% NEQ 0 goto sys.script.administrator
     cd /d "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup"
     del autostart.bat
     echo Autostart Link Removed.
     goto menu
 
 :autostart.setup.confirmed
-    net session >nul 2>&1
-    if %errorLevel% NEQ 0 goto sys.script.administrator
     cd /d "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup"
     (
         echo @echo off
@@ -1004,8 +981,6 @@
     goto menu
 
 :desktop.icon.setup
-    net session >nul 2>&1
-    if %errorLevel% NEQ 0 goto sys.script.administrator
     cd /d "%userprofile%\Desktop"
     (
         echo @echo off
@@ -1016,8 +991,6 @@
     goto menu
 
 :desktop.icon.delete                                                                                                    
-    net session >nul 2>&1
-    if %errorLevel% NEQ 0 goto sys.script.administrator
     cd /d "%userprofile%\Desktop"
     del DataSpammer.bat
     echo Successfully Deleted Desktop Icon.
@@ -1494,14 +1467,6 @@
     goto app.list.spam
 
 :app.list.spam.confirmed
-    net session >nul 2>&1
-    if %errorLevel% neq 0 (
-        echo Restarting Program as Elevated. Go here again manually.
-        call :sys.lt 3
-        %powershell.short% -Command "Start-Process '%~f0' -Verb runAs"
-        goto cancel
-    )
-
     echo Enter random to use random Numerals
     echo Enter default to skip an Option
     set /P app.spam.name=Enter the App Name:
@@ -1564,13 +1529,6 @@
     if %default-filename% EQU notused ( goto startmenu.custom.name ) else ( goto startmenu.start )
 
 :spam.all.user.startmenu
-    net session >nul 2>&1
-    if %errorLevel% neq 0 (
-        echo Restarting Program with elevated Privileges. Go here again manually.
-        call :sys.lt 2
-        %powershell.short% -Command "Start-Process '%~f0' -Verb runAs"
-        goto cancel
-    )
     set "directory.startmenu=%ProgramData%\Microsoft\Windows\Start Menu\Programs"
     if %default-filename% EQU notused ( goto startmenu.custom.name ) else ( goto startmenu.start )
     
@@ -1848,9 +1806,15 @@
 
 :sys.delete.script.check.elevation
     :: Check if Script is elevated
-    setlocal enableextensions ENABLEDELAYEDEXPANSION 
     net session >nul 2>&1
-    if %errorLevel% == 0 ( goto sys.delete.script.confirmed ) else ( goto sys.script.administrator )
+    if %errorLevel% == 0 ( 
+        goto sys.delete.script.confirmed 
+    ) else ( 
+        echo The Script is not running as Administrator. Please start the Script as Administrator in order to delete it.
+        call :sys.lt 4
+        explorer "%~dp0"
+        goto cancel
+    )
    
 :sys.delete.script.confirmed
     :: Delete Script
@@ -1869,14 +1833,6 @@
     if not %errorlevel% neq 0 ( reg delete "HKCU\Software\DataSpammer" /f )
     echo Uninstall Successfulled
     
-:sys.script.administrator
-    echo Please start the Script as Administrator in order to install.
-    echo To do this right click the Dataspammer File and click "Run As Administrator"
-    call :sys.lt 2
-    explorer "%~dp0"
-    echo. > %temp%\DataSpammerClose.txt
-    goto cancel
-
 :restart.script
     if %logging% == 1 ( call :log Restarting_Script )
     call :send_message Script.is.restarting
@@ -2273,14 +2229,14 @@
         if !counter! GEQ 0 (
             echo Time left: !counter!
             :: Wait 500ms
-            ping -n 1 -w 500 127.0.0.1 >nul
+            ping -n 1 -w 500 127.0.0.1 >nul 2>&1
             set /a counter-=1
             cls
             goto countdown
         )
     ) else (
         set "dur=%1"
-        ping -n %dur% localhost >nul
+        ping -n %dur% localhost >nul 2>&1
     )
     exit /b %errorlevel%
 
@@ -2288,9 +2244,10 @@
     :: call scheme is:
     :: call :log Opened_verify_tab
     :: In the Logfile _ and - are replaced with Spaces
+    if "%logging%"== "0" exit /b
+    if "%monitoring%"="1" call :send_message "%log.content%"
 
     set "log.content=%1"
-    if defined monitoring call :send_message "%log.content%"
     set "logfile=DataSpammer.log"
     
     :: Check Folder Structure
