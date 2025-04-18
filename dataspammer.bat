@@ -50,7 +50,6 @@
     goto cancel
     )
     
-
     :: Allows ASCII stuff without Codepage Settings - Not My Work - Credits to ?
     :: Properly Escape Symbols like | ! & ^ > < etc. when using echo (%$Echo% " Text)
     SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
@@ -434,37 +433,37 @@
     call :sys.lt 1
     echo. 
     call :sys.lt 1
-    echo [1] Spam Settings
+    call :color _White "[1] Spam Settings"
     call :sys.lt 1
     echo. 
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [2] [31mDeveloper Options (Currently %settings-dev-display%) [32m
+    call :color _Red "[2] Developer Options (Currently %settings-dev-display%)"
     call :sys.lt 1
     echo. 
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [3] Version Control
+    call :color _Yellow "[3] Version Control"
     call :sys.lt 1
     echo. 
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [4] Account
+    call :color _Blue "[4] Account"
     call :sys.lt 1
     echo. 
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [5] Restart Script
+    call :color _Green "[5] Restart Script"
     call :sys.lt 1
     echo. 
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [6] Advanced Options
+    call :color _Red "[6] Advanced Options"    
     call :sys.lt 1
     echo. 
     call :sys.lt 1
@@ -2182,9 +2181,15 @@
     for %%F in (Red Gray Green Blue White _Red _White _Green _Yellow) do (
         set "text=!text:%%F=!"
     )
-    set "text=!text:_=!"
-    set "text=!text: =!"
     
+    :: Remove underscore
+    set "text=!text:_=!"
+
+    :: Remove first space
+    if "!text:~0,1!"==" " (
+        set "text=!text:~1!"
+    )
+
     :: Check if ANSI support is enabled
     if not "%_NCS%"=="1" (
         echo %text%
