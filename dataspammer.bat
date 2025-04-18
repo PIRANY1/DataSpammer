@@ -17,6 +17,13 @@
 ::      Add Colors to more Menus
 ::      Verify new Code & check Monitor & Start Testing
 ::      Add more Logs
+::      Check Reg
+::      Check Elev
+::      Remove Beta Branch
+::      Check readme
+::      add install arg
+::      Add update applist on update
+::      add add to path
 
 :top
     @echo off
@@ -31,8 +38,7 @@
     mode con: cols=140 lines=40
     set "current-script-version=v6"
     :: Improve Powershell Speed 
-    for /f "delims=" %%a in ('where powershell') do set "powershell_path=%%a"
-    set "powershell.short="%powershell_path%" -ExecutionPolicy Bypass -NoProfile -NoLogo"
+    set "powershell.short=powershell -ExecutionPolicy Bypass -NoProfile -NoLogo"
     
     :: Can be Implemented along if errorlevel ...
     set "errormsg=echo: &call :color _Red "====== ERROR ======" &echo:"
@@ -115,10 +121,13 @@
     :: Lock Check - Check if the Script is already running or if it crashed etc. 
     :: Check for existing dataspammer.lock
     if exist "%~dp0\dataspammer.lock" (
-        set /p pid.lock=<"%~dp0\dataspammer.lock"
-        tasklist /FI "PID eq %pid.lock%" | findstr /i "." >nul
+        for /f "usebackq delims=" %%L in ("%~dp0dataspammer.lock") do set "pidlock=%%L"
+        %powershell.short% -Command "if (Get-Process -Id %pidlock% -ErrorAction SilentlyContinue) { exit 0 } else { exit 1 }"
         if %errorlevel%==0 (
-            echo DataSpammer is already running under PID %pid.lock%.
+            echo DataSpammer is already running under PID %pidlock%.
+            echo [DEBUG] Lock-PID: [%pidlock%]
+            echo [DEBUG] Aktueller PID: [%PID%]
+            pause
             call :sys.lt 4
             goto cancel
         ) else (
@@ -800,7 +809,7 @@
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [3] Switch to Developer Branch
+    echo [3] Switch to Develop Branch (may be outdated / unstable)
     call :sys.lt 1
     echo.
     call :sys.lt 1
@@ -2238,13 +2247,13 @@
         set "dur=%1"
         ping -n %dur% localhost >nul 2>&1
     )
-    exit /b %errorlevel%
+    exit /b 0
 
 :log
     :: call scheme is:
     :: call :log Opened_verify_tab
     :: In the Logfile _ and - are replaced with Spaces
-    if "%logging%"== "0" exit /b
+    if "%logging%"=="0" exit /b
     if "%monitoring%"="1" call :send_message "%log.content%"
 
     set "log.content=%1"
@@ -2418,7 +2427,7 @@
     if %logging% == 1 ( call :log Creating_Update_Script )
 
     if "%1"==stable set "update_url=https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/"
-    if "%1"==beta set "update_url=https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/beta/"
+    if "%1"==beta set "update_url=https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/v6/"
 
     cd /d "%~dp0"
     erase README.md && erase LICENSE >nul 2>&1
@@ -2668,14 +2677,6 @@
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 
-:: Check Reg
-:: Check Elev
-:: Remove Beta Branch
-:: Check readme
-:: add install arg
-:: Add update applist on update
-:: add add to path
-
 :installer.main.window
     :: Check Elevation
     net session >nul 2>&1
@@ -2896,6 +2897,7 @@
     if %EXIT_CODE% equ 0 set EXIT_CODE=1
     if "%OS%"=="Windows_NT" endlocal
     echo. > %temp%\DataSpammerClose.txt
+    erase "%~dp0\dataspammer.lock" >nul 2>&1
     exit /b %EXIT_CODE%
 
 goto cancel
