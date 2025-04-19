@@ -6,24 +6,17 @@
 :: >nul 2>&1
 :: pushd, popd
 :: 
-
 :: Developer Notes
 :: Developer Tool is at dev.options
+:: Currently Being Reworked
 
 :: Todo: 
 ::      Fix Updater - Clueless After 3 Gazillion Updates - Added -UseBasicParsing to iwr
-::      Rework Dev Menu
-::      Improve DataSpammer.lock - PID is kept
 ::      Add Colors to more Menus
 ::      Verify new Code & check Monitor & Start Testing
 ::      Add more Logs
-::      Check Reg
-::      Check Elev
-::      Remove Beta Branch
-::      Check readme
-::      add install arg
-::      Add update applist on update
-::      add add to path
+::      Add to Path Option
+
 
 :top
     @echo off
@@ -83,8 +76,8 @@
     :: Check for Install Reg Key
     reg query "HKCU\Software\DataSpammer" /v Installed >nul 2>&1
     if %errorlevel% neq 0 (
-        echo Installation was not executed. 
-        echo Opening installer...
+        call :color _Red "Installation was not executed. "
+        call :color _Green "Opening installer..."
         goto installer.main.window
     )
 
@@ -118,27 +111,36 @@
     del "%temp%\parent_pid.txt"
     echo Got PID: %PID%
 
-    :: Lock Check - Check if the Script is already running or if it crashed etc. 
-    :: Check for existing dataspammer.lock
+    :: Lock Check - Verify that the script is not already running
+    :: Extract PID from lock file
     if exist "%~dp0\dataspammer.lock" (
-        for /f "usebackq delims=" %%L in ("%~dp0dataspammer.lock") do set "pidlock=%%L"
-        %powershell.short% -Command "if (Get-Process -Id %pidlock% -ErrorAction SilentlyContinue) { exit 0 } else { exit 1 }"
-        if %errorlevel%==0 (
-            echo DataSpammer is already running under PID %pidlock%.
-            echo [DEBUG] Lock-PID: [%pidlock%]
-            echo [DEBUG] Aktueller PID: [%PID%]
+        set "pidlock="
+        for /f "usebackq delims=" %%L in ("%~dp0\dataspammer.lock") do set "pidlock=%%L"
+    )    
+    :: Remove spaces from Variables
+    for /f "tokens=* delims=" %%A in ("!PID!") do set "PID=%%A" >nul 2>&1
+    for /f "tokens=* delims=" %%A in ("!pidlock!") do set "pidlock=%%A" >nul 2>&1
+    set "PID=!PID: =!" >nul 2>&1 
+    set "pidlock=!pidlock: =!" >nul 2>&1 
+
+    if defined pidlock (
+        if "!pidlock!"=="!PID!" (
+            call :color _Red "DataSpammer is already running under PID !pidlock!."
+            echo Exiting...
             pause
-            call :sys.lt 4
-            goto cancel
+            goto cancel 
         ) else (
-            echo DataSpammer may have crashed or was closed. Deleting lock file...
-            echo Be aware that some tasks may not have finished properly.
-            del "%~dp0\dataspammer.lock"
-            call :sys.lt 3
+            echo !pidlock! %pid%
+            call :color _Red "DataSpammer may have crashed or was closed. Deleting lock file..."
+            call :color _Red "Be aware that some tasks may not have finished properly."
+            del "%~dp0\dataspammer.lock" >nul 2>&1
+            call :sys.lt 2
         )
     ) else (
-        echo %PID% > "%~dp0\dataspammer.lock"
+        echo No PID Found - Deleting Lock...
+        del "%~dp0\dataspammer.lock" >nul 2>&1 
     )
+    echo %PID% > "%~dp0\dataspammer.lock" >nul 2>&1
 
     :: Start the Monitor Socket
     if %monitoring%==1 start /min cmd.exe /k ""%~f0" monitor %PID%"
@@ -203,47 +205,17 @@
 
 :file.check
     :: Check Files
-    title DataSpammer
+    title DataSpammer - Starting
     :: Improve Log Readability
     for /l %%i in (1,1,10) do (
-        if %logging% == 1 ( call :log . )
+        if !logging! == 1 ( call :log . )
     )
 
     :: Establish Socket Connection
     call :send_message Started.DataSpammer
     call :send_message Established.Socket.Connection
     if %logging% == 1 ( call :log Established_Socket_Connection )
-
-:sys.no.settings
-    if %logging% == 1 ( call :log Settings_Not_Found )
-    cls
-    echo The File "settings.conf" doesnt exist. 
-    call :sys.lt 1
-    echo Do you want to reinstall the Script or do you want to open the Script anyways?
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    echo [1] Reinstall Script
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    echo [2] Open anyways (Some Features may not work)
-    call :sys.lt 1
-    choice /C 12 /M "Choose an Option from Above:"
-        set _erl=%errorlevel%
-        if %_erl%==1 goto installer.main.window
-        if %_erl%==2 goto no.settings.update
-    goto sys.no.settings
-
-
-:no.settings.update
-    if %logging% == 1 ( call :log Checking-Update-No-Settings )
-    call :gitcall.sys
-    goto sys.enable.ascii.tweak
-
-
-:settings.extract.update
-    if "%logging%"=="1" ( call :log Checking_Settings_for_Update_Command )
+    if %logging% == 1 ( call :log Checking_Settings_for_Update_Command )
     call :gitcall.sys
     goto dts.startup.done
 
@@ -308,6 +280,32 @@
         if %_erl%==2 exit /b
     goto git.version.outdated
 
+:sys.no.settings
+    if %logging% == 1 ( call :log Settings_Not_Found )
+    cls
+    echo The File "settings.conf" doesnt exist. 
+    call :sys.lt 1
+    echo Do you want to reinstall the Script or do you want to open the Script anyways?
+    call :sys.lt 1
+    echo.
+    call :sys.lt 1
+    echo [1] Reinstall Script
+    call :sys.lt 1
+    echo.
+    call :sys.lt 1
+    echo [2] Open anyways (Some Features may not work)
+    call :sys.lt 1
+    choice /C 12 /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto installer.main.window
+        if %_erl%==2 goto no.settings.update
+    goto sys.no.settings
+
+:no.settings.update
+    if %logging% == 1 ( call :log Checking-Update-No-Settings )
+    call :gitcall.sys
+    goto sys.enable.ascii.tweak
+
 :git.version.clean
     if %logging% == 1 ( call :log Version_Is_Up_To_Date )
     echo The Version you are currently using is the newest one (%latest_version%)
@@ -325,37 +323,30 @@
 
 :dts.startup.done
     title DataSpammer - Finishing Startup
+    setlocal enabledelayedexpansion
 
     :: Check if DataSpammer.log is larger than 1MB
-    for %%A in ("%userprofile%\Documents\DataSpammerLog\DataSpammer.log") do (
-        if %%~zA GTR 1048576 (
-            echo DataSpammer.log is larger than 1MB. Renaming to DataSpammer.log.old.
-            ren "%userprofile%\Documents\DataSpammerLog\DataSpammer.log" "DataSpammer.log.old"
+    if exist "%userprofile%\Documents\DataSpammerLog\DataSpammer.log" (
+        for %%A in ("%userprofile%\Documents\DataSpammerLog\DataSpammer.log") do (
+            if %%~zA GTR 1048576 (
+                echo DataSpammer.log is larger than 1MB. Renaming to DataSpammer.log.old.
+                ren "%userprofile%\Documents\DataSpammerLog\DataSpammer.log" "DataSpammer.log.old"
+            )
         )
     )
+    
 
     :: Check Developermode
-    if "%developermode%"=="1" ( set "dev-mode=1" && echo Enabled Developermode ) else ( set "dev-mode=0" )
+    if "%developermode%"=="1" ( set "dev-mode=1" & echo Enabled Developermode ) else ( set "dev-mode=0" )
 
     :: Extract CMD Version
     for /f "tokens=2 delims=[]" %%v in ('ver') do set CMD_VERSION=%%v
     if %logging% == 1 ( call :log Sending_Notification )
     if %logging% == 1 ( call :log Enabling_ASCII_without_CHCP )
-
     if exist "%~dp0\encrypt.bat" erase "%~dp0\encrypt.bat" >nul 2>&1
-
-    :: Startup Complete Message
-    :: %powershell.short% -Command "& {Add-Type -AssemblyName System.Windows.Forms; Add-Type -AssemblyName System.Drawing; $notify = New-Object System.Windows.Forms.NotifyIcon; $notify.Icon = [System.Drawing.SystemIcons]::Information; $notify.Visible = $true; $notify.ShowBalloonTip(0, 'DataSpammer', 'Started DataSpammer', [System.Windows.Forms.ToolTipIcon]::None)}"
     if %logging% == 1 ( call :log Startup_Complete )
     if %logging% == 1 ( call :log Successfully_Started_DataSpammer_%current-script-version%_Errorlevel:_%errorlevel% )
-
-    :: Pass all Vars to Log
-    for /f "tokens=1* delims==" %%A in ('set') do (
-        set "env_var=%%A=%%B"
-        set "env_var=!env_var: =_!"
-        call :log "!env_var!"
-    )
-
+    
 :menu
     cd /d "%~dp0"
     if %logging% == 1 ( call :log Displaying_Menu )
@@ -416,8 +407,6 @@
 :settings
     if %logging% == 1 ( call :log Opened_Settings_%dev-mode%_dev_mode )
     color
-    if %dev-mode% == 1 set "settings-dev-display=Activated"
-    if %dev-mode% == 0 set "settings-dev-display=Not Activated"
     cls 
     echo ========
     echo Settings
@@ -432,7 +421,7 @@
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    call :color _Red "[2] Developer Options (Currently %settings-dev-display%)"
+    call :color _Red "[2] Developer Options"
     call :sys.lt 1
     echo. 
     call :sys.lt 1
@@ -1981,6 +1970,14 @@
     if not defined %update% call :update_config "update" "" "1"
     if not defined %update% call :update_config "color" "" "02"    
     if not defined %skip-sec% call :update_config "skip-sec" "" "0"
+
+    :: Renew Version Registry Key
+    set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
+    if defined ProgramFiles(x86) (
+        set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
+    )
+    reg delete "%RegPath%" /v "DisplayVersion" /f
+    reg add "%RegPath%" /v "DisplayVersion" /d "%current-script-version%" /f
     echo Updating Settings...
     call :sys.lt 1    
     goto sys.settings.patched
@@ -2238,14 +2235,14 @@
         if !counter! GEQ 0 (
             echo Time left: !counter!
             :: Wait 500ms
-            ping -n 1 -w 500 127.0.0.1 >nul 2>&1
+            ping -n 1 -w 500 127.0.0.1 >nul
             set /a counter-=1
             cls
             goto countdown
         )
     ) else (
         set "dur=%1"
-        ping -n %dur% localhost >nul 2>&1
+        ping -n %dur% localhost >nul
     )
     exit /b 0
 
@@ -2254,7 +2251,8 @@
     :: call :log Opened_verify_tab
     :: In the Logfile _ and - are replaced with Spaces
     if "%logging%"=="0" exit /b
-    if "%monitoring%"="1" call :send_message "%log.content%"
+    if "%monitoring%"=="1" call :send_message "%log.content%"
+
 
     set "log.content=%1"
     set "logfile=DataSpammer.log"

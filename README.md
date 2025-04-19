@@ -16,8 +16,8 @@ Use one of the methods below or download the [Latest Version](https://github.com
 
 ### One-Line Install
 
-``` cmd
-curl -sSLo install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat && dataspammer.bat install
+``` batch
+curl -sSLO https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat && dataspammer.bat install
 ```
 
 ### Git
@@ -25,7 +25,7 @@ curl -sSLo install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/mai
 ``` batch
 git clone https://github.com/PIRANY1/DataSpammer.git
 cd DataSpammer
-install.bat
+dataspammer.bat install
 ```
 
 ### GitHub CLI
@@ -33,17 +33,12 @@ install.bat
 ``` batch
 gh repo clone PIRANY1/DataSpammer
 cd DataSpammer
-install.bat
+dataspammer.bat install
 ```
 
 ## Known Bugs
 
 Updater doesn't work 100% reliably.
-
-## Encrypt
-
-Files in the Release tab are encrypted to prevent anti-virus detection when writing in the Program Files folder.
-When you are downloading the files elsewhere, you can encrypt them later on.
 
 ## About
 
