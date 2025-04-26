@@ -9,6 +9,7 @@ ICMP, SSH, FTP, DNS, HTTP(S), Printer Spam, Desktop Spam, Folder Spam, Start Men
 ### Other Features
 
 Desktop Shortcut, Autostart, Auto Update, Logging, Elevation via sudo/pwsh/gsudo, Encryption, Debugging, Secure Authentication
+Login, Monitor Socket, Debug Test, Various Functions, Coloring Support (NCS / ANSI), Settings, Registry Support, Applist Support
 
 ## Install
 
@@ -38,7 +39,7 @@ dataspammer.bat install
 
 ## Known Bugs
 
-Updater doesn't work 100% reliably.
+The updater occasionally corrupts files; redownloading the application resolves this issue.
 
 ## About
 

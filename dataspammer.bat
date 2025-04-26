@@ -16,7 +16,8 @@
 ::      Verify new Code & check Monitor & Start Testing
 ::      Add more Logs
 ::      Add to Path Option
-
+::      Fix sys.lt skip at pid.check
+::      Add Readme Features
 
 :top
     @echo off
@@ -335,18 +336,20 @@
         )
     )
     
+    :: Remove encrypt File from Installer
+    if exist "%~dp0\encrypt.bat" erase "%~dp0\encrypt.bat" >nul 2>&1
 
     :: Check Developermode
     if "%developermode%"=="1" ( set "dev-mode=1" & echo Enabled Developermode ) else ( set "dev-mode=0" )
 
     :: Extract CMD Version
     for /f "tokens=2 delims=[]" %%v in ('ver') do set CMD_VERSION=%%v
-    if %logging% == 1 ( call :log Sending_Notification )
-    if %logging% == 1 ( call :log Enabling_ASCII_without_CHCP )
-    if exist "%~dp0\encrypt.bat" erase "%~dp0\encrypt.bat" >nul 2>&1
+
+    :: Logging
     if %logging% == 1 ( call :log Startup_Complete )
     if %logging% == 1 ( call :log Successfully_Started_DataSpammer_%current-script-version%_Errorlevel:_%errorlevel% )
-    
+    if "%developermode%"=="1" if %logging% == 1 ( call :log Developermode is On )
+
 :menu
     cd /d "%~dp0"
     if %logging% == 1 ( call :log Displaying_Menu )
