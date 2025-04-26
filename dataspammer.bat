@@ -27,7 +27,15 @@
 :: echo %var:hello=hi%    = replaces "hello" with "hi"
 :: %1 %2 %3 ... = First, second, third argument etc.
 :: %*           = All arguments as a single string
-
+:: Detect if file is locked
+:: rename file.txt file.locked >nul 2>&1 || echo File is locked
+:: Output 32bit or 64bit
+:: echo %PROCESSOR_ARCHITECTURE%
+:: Escape special characters
+:: ^ = escape symbol (e.g., echo 5^>3 shows "5>3" instead of redirecting)
+:: Limiting random numbers
+:: call :generateRandom
+:: echo %realrandom%
 
 
 :: Developer Notes
@@ -35,13 +43,12 @@
 :: Currently Being Reworked
 
 :: Todo: 
-::      Fix Updater - Clueless After 3 Gazillion Updates - Added -UseBasicParsing to iwr
-::      Add Colors to more Menus
+::      Add more Comments, Logs and Colors
+
+::      V6 Requirements:
+::      Fix Updater - Clueless After 3 Gazillion Updates - Hopefully Fixded
 ::      Verify new Code & check Monitor & Start Testing
-::      Add more Logs
-::      Add to Path Option
 ::      Fix sys.lt skip at pid.check
-::      Add Readme Features
 
 :top
     @echo off
@@ -71,11 +78,11 @@
 
     :: Check if Script is running from Temp Folder
     if /I "%~dp0"=="%TEMP%" (
-    %errormsg%
-    echo The script was launched from the temp folder.
-    echo You are most likely running the script directly from the archive file.
-    call :sys.lt 10
-    goto cancel
+        %errormsg%
+        echo The script was launched from the temp folder.
+        echo You are most likely running the script directly from the archive file.
+        call :sys.lt 10
+        goto cancel
     )
     
     :: Allows ASCII stuff without Codepage Settings - Not My Work - Credits to ?
@@ -675,7 +682,8 @@
     call :sys.lt 1
     cd /d "%~dp0 "
     :: Version Update checks for this File
-    echo %random% > "%userprofile%\Documents\SecureDataSpammer\token.hash"
+    call :generateRandom
+    echo %realrandom% > "%userprofile%\Documents\SecureDataSpammer\token.hash"
     Cipher /E "%userprofile%\Documents\SecureDataSpammer\token.hash"
 
     (
@@ -2109,7 +2117,8 @@
     
     :: Test Write Config
     echo. > "%~dp0\settings.conf"
-    call :update_config "default-filename" "" "%random%"
+    call :generateRandom
+    call :update_config "default-filename" "" "%realrandom%"
     type "%~dp0\settings.conf"
 
     call :version
@@ -2145,6 +2154,34 @@
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
+
+:: Generate real random numbers ( default %random% is limited to 32767)
+:generateRandom
+:: Get two random numbers
+set "r1=%random%"
+set "r2=%random%"
+:: Combine them into a string
+set "str=%r1%_%r2%"
+:: Generate a hash from the string using PowerShell
+for /f %%h in ('powershell -command "[BitConverter]::ToString((New-Object -TypeName System.Security.Cryptography.SHA256Managed).ComputeHash([System.Text.Encoding]::UTF8.GetBytes('%str%'))).Replace('-','')"') do set "hash=%%h"
+
+:: Extract only digits from the hash
+set "digits="
+for /l %%i in (0,1,999) do (
+    set "char=!hash:~%%i,1!"
+    if defined char (
+        if "!char!" geq "0" if "!char!" leq "9" set "digits=!digits!!char!"
+    ) else (
+        goto afterdigits
+    )
+)
+:afterdigits
+:: Fallback if no digits were found
+if not defined digits set "digits=12345"
+:: Limit to 5 digits
+set "realrandom=!digits:~0,5!"
+exit /b
+
 
 :: =====================================
 :: call :color "ERROR"
@@ -2447,7 +2484,7 @@
 :update.script
     cls
     :: Updated in v6
-    :: Old one used seperate file / wget & curl
+    :: Old one used seperate file / wget & curl & iwr
     :: Usage: call :update.script [stable / beta]
     if %logging% == 1 ( call :log Creating_Update_Script )
 
@@ -2456,16 +2493,30 @@
 
     cd /d "%~dp0"
     erase README.md && erase LICENSE >nul 2>&1
-    mkdir %temp%\dts.update >nul 2>&1
-    echo Updating script... 
-    %powershell.short% iwr "%update_url%dataspammer.bat" -UseBasicParsing -OutFile "%temp%\dts.update\%~nx0" >nul 2>&1
-    cls && echo Updating DataSpammer.bat...
-    %powershell.short% iwr "%update_url%README.md" -UseBasicParsing -OutFile "%temp%\dts.update\README.md" >nul 2>&1
-    cls && echo Updating Readme...
-    %powershell.short% iwr "%update_url%main/LICENSE" -UseBasicParsing -OutFile "%temp%\dts.update\LICENSE" >nul 2>&1
-    cls && echo Updating License...
-    call :sys.lt 2
-    echo Updated successfully.
+    set "TMP_DIR=%temp%\dts.update"
+    rd /s /q "%TMP_DIR%" 2>nul
+    mkdir "%TMP_DIR%"
+    echo Downloading...
+    bitsadmin /transfer upd "%update_url%dataspammer.bat" "%TMP_DIR%\dataspammer.bat"
+    if errorlevel 1 (
+        echo %errormsg%
+        echo Download failed. 
+        exit /b 1
+    )    
+    bitsadmin /transfer upd "%update_url%README.md" "%TMP_DIR%\README.md"
+    if errorlevel 1 (
+        echo %errormsg%
+        echo Download failed. 
+        exit /b 1
+    )      
+    bitsadmin /transfer upd "%update_url%LICENSE" "%TMP_DIR%\LICENSE"
+    if errorlevel 1 (
+        echo %errormsg%
+        echo Download failed. 
+        exit /b 1
+    )  
+    cls
+    echo Downloaded Files.
 
     for /f "delims=" %%a in ('where certutil') do (
         set "where_output=%%a"
@@ -2484,10 +2535,12 @@
     Cipher /E "%temp%\dts.update\dataspammer.bat"
 
     :move.new.files
-    move /y "%temp%\dts.update\*" "%~dp0"
-    cmd.exe -c "%~dp0\dataspammer.bat"
+    move /Y "%TMP_DIR%\dataspammer.bat" "%~dp0dataspammer.bat"
+    move /Y "%TMP_DIR%\README.md" "%~dp0README.md"
+    move /Y "%TMP_DIR%\LICENSE" "%~dp0LICENSE"
+    rd /s /q "%TMP_DIR%"
+    cmd.exe /c "%~dp0\dataspammer.bat"
     goto cancel
-
 
 :version
     cd "%temp%"
@@ -2676,7 +2729,8 @@
     :: Check for Human Input by asking for random Int Input
     if %logging% == 1 ( call :log Opened_verify_tab )
     if "%skip-sec%"==1 ( exit /b %errorlevel%)
-    set "verify=%random%"
+    call :generateRandom
+    set "verify=%realrandom% "
     %powershell.short% -Command "& {Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.Interaction]::InputBox('Please enter Code %verify% to confirm that you want to execute this Option', 'DataSpammer Verify')}" > %TEMP%\out.tmp
     set /p OUT=<%TEMP%\out.tmp
     :: Fix Empty Input Bypass
@@ -2886,7 +2940,8 @@
         set "where_output=%%a"
     )  
     if not defined where_output goto finish.installation
-    echo %random% > "%userprofile%\Documents\SecureDataSpammer\token.hash"
+    call :generateRandom
+    echo %realrandom% > "%userprofile%\Documents\SecureDataSpammer\token.hash"
     (
         @echo off
         echo FF FE 0D 0A 63 6C 73 0D 0A > "%directory9%\temp_hex.txt"
