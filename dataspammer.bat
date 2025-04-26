@@ -1,11 +1,35 @@
 :: Use only under License
 :: Contribute under https://github.com/PIRANY1/DataSpammer
-:: Version v6 - NIGHTLY
-:: Last edited on 12.04.2025 by PIRANY
+:: Version v6 - Beta
+:: Last edited on 26.04.2025 by PIRANY
 
-:: >nul 2>&1
-:: pushd, popd
-:: 
+
+:: Short Copy Paste
+:: >nul      = hide normal output
+:: 2>nul     = hide error output
+:: 2>&1      = merge errors into normal output
+:: >nul 2>&1 = hide both normal output and errors
+:: pushd "path" = change to directory and remember previous one
+:: popd = go back to previous directory
+:: %0  = Full path and filename of the batch script
+:: %~d0 = Drive letter of the batch script (e.g., D:)
+:: %~p0 = Path of the batch script (e.g., \Folder\Subfolder\)
+:: %~n0 = Name of the batch script without extension (e.g., script)
+:: %~x0 = File extension of the batch script (e.g., .bat)
+:: %~dp0 = Drive and path only (e.g., D:\Folder\Subfolder\)
+:: %~nx0 = Filename and extension only (e.g., script.bat)
+:: || = run next command only if previous failed
+:: && = run next command only if previous succeeded
+:: for %%A in (*.txt) do echo %%A       = loop through all .txt files
+:: for /r %%A in (*) do echo %%A         = loop recursively through folders
+:: echo %var:~0,2%        = prints first 2 characters ("he")
+:: echo %var:~-2%         = prints last 2 characters ("lo")
+:: echo %var:hello=hi%    = replaces "hello" with "hi"
+:: %1 %2 %3 ... = First, second, third argument etc.
+:: %*           = All arguments as a single string
+
+
+
 :: Developer Notes
 :: Developer Tool is at dev.options
 :: Currently Being Reworked
@@ -42,6 +66,8 @@
     call :check_NCS
     call :color _Green "ANSI Color Support is enabled"
     
+    :: Predefine _erl to ensure errorlevel or choice inputs function correctly
+    set "_erl=FFFF"
 
     :: Check if Script is running from Temp Folder
     if /I "%~dp0"=="%TEMP%" (
@@ -982,18 +1008,20 @@
     goto menu
 
 :desktop.icon.setup
-    cd /d "%userprofile%\Desktop"
-    (
-        echo @echo off
-        echo cd /d "%~dp0"
-        dataspammer.bat
-    ) > DataSpammer.bat
+    echo Adding Desktop Icon
+    cls
+    %powershell.short% -Command ^
+     $WshShell = New-Object -ComObject WScript.Shell; ^
+     $Shortcut = $WshShell.CreateShortcut('%USERPROFILE%\Desktop\DataSpammer.lnk'); ^
+     $Shortcut.TargetPath = '%0'; ^
+     $Shortcut.Save()
     echo Added Desktop Icon
     goto menu
 
-:desktop.icon.delete                                                                                                    
-    cd /d "%userprofile%\Desktop"
-    del DataSpammer.bat
+:desktop.icon.delete
+    echo Deleting Desktop Icon...
+    cls                                                                                              
+    erase "%USERPROFILE%\Desktop\DataSpammer.lnk"
     echo Successfully Deleted Desktop Icon.
     goto menu
 
@@ -1821,12 +1849,8 @@
     :: Delete Script
     if exist "%~dp0\LICENSE" del "%~dp0\LICENSE"
     if exist "%~dp0\README.md" del "%~dp0\README.md"
-    cd /d "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup"
-    if exist "autostart.bat" del "autostart.bat"
-    cd /d "%userprofile%\Desktop"
-    if exist "Dataspammer.bat" del "Dataspammer.bat"
-    cd /d "%ProgramData%\Microsoft\Windows\Start Menu\Programs"
-    if exist "Dataspammer.bat" del "Dataspammer.bat"
+    if exist "%USERPROFILE%\Desktop\DataSpammer.lnk" "erase %USERPROFILE%\Desktop\DataSpammer.lnk"
+    if exist ""%ProgramData%\Microsoft\Windows\Start Menu\Programs\Dataspammer.bat"" erase "%ProgramData%\Microsoft\Windows\Start Menu\Programs\Dataspammer.bat"
     if exist "%userprofile%\Documents\DataSpammerLog\" del /S /Q "%userprofile%\Documents\DataSpammerLog"
     if exist "%userprofile%\Documents\SecureDataSpammer\" del /S /Q "%userprofile%\Documents\SecureDataSpammer"
     if exist "%~dp0\dataspammer.bat" del "%~dp0\dataspammer.bat"
@@ -2820,22 +2844,21 @@
         echo skip-sec=0
     ) > settings.conf
 
-    if not defined startmenushortcut1 ( goto desktop.icon.install.check )
-    (
-    echo cd /d "%directory9%"
-    echo dataspammer.bat
-    ) > "%ProgramData%\Microsoft\Windows\Start Menu\Programs\DataSpammer.bat"
+    :: Create Startmenu Shortcut
+    if defined startmenushortcut1 (
+        echo "%directory9%\dataspammer.bat" %* > "%ProgramData%\Microsoft\Windows\Start Menu\Programs\DataSpammer.bat"
+    )
+    :: Create Desktop Icon
+    if defined desktopic (
+        %powershell.short% -Command ^
+         $WshShell = New-Object -ComObject WScript.Shell; ^
+         $Shortcut = $WshShell.CreateShortcut('%USERPROFILE%\Desktop\DataSpammer.lnk'); ^
+         $Shortcut.TargetPath = '%directory9%\DataSpammer.bat'; ^
+         $Shortcut.Save()
+    )
 
-:desktop.icon.install.check
-    if not defined desktopic ( goto additional.links.installed )
-    (
-    echo cd /d "%directory9%"
-    echo dataspammer.bat %1 %2 %3 %4 %5
-    ) > "%userprofile%\Desktop\DataSpammer.bat"
-
-:additional.links.installed
     :: Add Script to PATH
-    if defined addpath1 ( setx PATH "%PATH%;%directory9%" /M )
+    if defined addpath1 ( setx PATH "%PATH%;%directory9%\DataSpammer.bat" /M )
 
 :sys.main.installer.done
     echo Do you want to encrypt the Script Files?
