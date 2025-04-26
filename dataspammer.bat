@@ -5,28 +5,38 @@
 
 
 :: Short Copy Paste
-:: >nul      = hide normal output
-:: 2>nul     = hide error output
-:: 2>&1      = merge errors into normal output
+
+:: =============================================================
+:: >nul = hide normal output
+:: 2>nul = hide error output
+:: 2>&1 = merge errors into normal output
 :: >nul 2>&1 = hide both normal output and errors
 :: pushd "path" = change to directory and remember previous one
 :: popd = go back to previous directory
-:: %0  = Full path and filename of the batch script
+
+:: =============================================================
+:: %0 = Full path and filename of the batch script
 :: %~d0 = Drive letter of the batch script (e.g., D:)
 :: %~p0 = Path of the batch script (e.g., \Folder\Subfolder\)
 :: %~n0 = Name of the batch script without extension (e.g., script)
 :: %~x0 = File extension of the batch script (e.g., .bat)
 :: %~dp0 = Drive and path only (e.g., D:\Folder\Subfolder\)
 :: %~nx0 = Filename and extension only (e.g., script.bat)
+:: =============================================================
+
+:: =============================================================
 :: || = run next command only if previous failed
 :: && = run next command only if previous succeeded
-:: for %%A in (*.txt) do echo %%A       = loop through all .txt files
-:: for /r %%A in (*) do echo %%A         = loop recursively through folders
-:: echo %var:~0,2%        = prints first 2 characters ("he")
-:: echo %var:~-2%         = prints last 2 characters ("lo")
-:: echo %var:hello=hi%    = replaces "hello" with "hi"
+:: =============================================================
+
+:: =============================================================
+:: for %%A in (*.txt) do echo %%A = loop through all .txt files
+:: for /r %%A in (*) do echo %%A = loop recursively through folders
+:: echo %var:~0,2% = prints first 2 characters ("he")
+:: echo %var:~-2%  = prints last 2 characters ("lo")
+:: echo %var:hello=hi%  = replaces "hello" with "hi"
 :: %1 %2 %3 ... = First, second, third argument etc.
-:: %*           = All arguments as a single string
+:: %* = All arguments as a single string
 :: Detect if file is locked
 :: rename file.txt file.locked >nul 2>&1 || echo File is locked
 :: Output 32bit or 64bit
@@ -36,7 +46,7 @@
 :: Limiting random numbers
 :: call :generateRandom
 :: echo %realrandom%
-
+:: =============================================================
 
 :: Developer Notes
 :: Developer Tool is at dev.options
@@ -52,7 +62,7 @@
 
 :top
     @echo off
-    @cd /d "%~dp0"
+    @pushd "%~dp0"
     @title DataSpammer - Initiating
     @setlocal ENABLEDELAYEDEXPANSION 
     set "exec-dir=%cd%"
@@ -72,7 +82,8 @@
     :: NCS is required for ANSI / Color Support
     call :check_NCS
     call :color _Green "ANSI Color Support is enabled"
-    
+    call :sys.lt 1
+
     :: Predefine _erl to ensure errorlevel or choice inputs function correctly
     set "_erl=FFFF"
 
@@ -2977,6 +2988,7 @@ exit /b
     if "%OS%"=="Windows_NT" endlocal
     echo. > %temp%\DataSpammerClose.txt
     erase "%~dp0\dataspammer.lock" >nul 2>&1
+    popd
     exit /b %EXIT_CODE%
 
 goto cancel
