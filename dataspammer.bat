@@ -43,7 +43,7 @@
 :: echo %PROCESSOR_ARCHITECTURE%
 :: Escape special characters
 :: ^ = escape symbol (e.g., echo 5^>3 shows "5>3" instead of redirecting)
-:: Limiting random numbers
+:: Full random numbers
 :: call :generateRandom
 :: echo %realrandom%
 :: =============================================================
@@ -53,12 +53,14 @@
 :: Currently Being Reworked
 
 :: Todo: 
-::      Add more Comments, Logs and Colors
+::      Add more Comments, Logs ( Err etc. !!!) and Colors
 
 ::      V6 Requirements:
-::      Fix Updater - Clueless After 3 Gazillion Updates - Hopefully Fixded
-::      Verify new Code & check Monitor & Start Testing
-::      Fix sys.lt skip at pid.check
+::      Fix Updater - Clueless After 3 Gazillion Updates - Hopefully Fixed
+::      Verify Code
+::      Improve sys.lt - Skips sometimes
+::      Developer Tool
+::      Add Logging Level
 
 :top
     @echo off
@@ -179,7 +181,7 @@
             call :color _Red "DataSpammer may have crashed or was closed. Deleting lock file..."
             call :color _Red "Be aware that some tasks may not have finished properly."
             del "%~dp0\dataspammer.lock" >nul 2>&1
-            call :sys.lt 2
+            timeout 2 >nul
         )
     ) else (
         echo No PID Found - Deleting Lock...
@@ -625,7 +627,7 @@
         if %_erl%==1 goto login.create
         if %_erl%==2 goto login.change
         if %_erl%==3 goto login.delete
-        if %_erl%==4 goto advanced.options
+        if %_erl%==4 goto settings
     goto login.setup
     
 :login.change
@@ -830,9 +832,14 @@
 
 :settings.skip.sec
     if %logging% == 1 ( call :log Chaning_Skip_security_question )
-    if %skip-sec% == 1 ( set "settings.skip-sec=0" ) else ( set "settings.skip-sec=1" )
+    if %skip-sec% == 1 (
+        set "settings.skip-sec=0"
+    ) else (
+        set "settings.skip-sec=1"
+    )
     call :update_config "skip-sec" "" "%settings.skip-sec%"
     goto restart.script
+
 
 :settings.version.control
     echo.
@@ -846,7 +853,7 @@
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [3] Switch to Develop Branch (may be outdated / unstable)
+    echo [3] Switch to Develop Branch (v6)
     call :sys.lt 1
     echo.
     call :sys.lt 1
@@ -864,10 +871,10 @@
 
 
 :activate.dev.options   
-    if %dev-mode% == 1 goto dev.options
+    if %developermode% == 1 goto dev.options
     echo Do you want to activate the Developer Options?
     echo Developer Options include some advanced features like logging etc.
-    echo These Features are experimental & can be unstable.
+    echo These Features are experimental can be unstable.
     echo.
     choice /C YN /M "Yes/No"
         set _erl=%errorlevel%
@@ -2304,6 +2311,9 @@ exit /b
 
 :sys.lt
     setlocal EnableDelayedExpansion
+    if /i "%2"=="timeout" (
+        timeout /t %1 >nul
+    )
     if /i "%2"=="count" (
         set /a counter=%1
         :countdown
@@ -2323,7 +2333,7 @@ exit /b
 
 :log
     :: call scheme is:
-    :: call :log Opened_verify_tab
+    :: call :log Opened_verify_tab ( ERROR / INFO / WARNING / DEBUG ) <- OPTIONAL
     :: In the Logfile _ and - are replaced with Spaces
     if "%logging%"=="0" exit /b
     if "%monitoring%"=="1" call :send_message "%log.content%"
@@ -2344,7 +2354,7 @@ exit /b
 
 
     for /f "tokens=1-3 delims=:." %%a in ("%time%") do set formatted_time=%%a:%%b:%%c
-    echo %date% %formatted_time% %log.content.clean% >> "%folder%\%logfile%"
+    echo [ DataSpammer / %2 ][%date% - %formatted_time%]: %log.content.clean% >> "%folder%\%logfile%"
     exit /b %errorlevel%
     
 
