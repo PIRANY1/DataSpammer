@@ -1,11 +1,10 @@
 :: Use only under License
 :: Contribute under https://github.com/PIRANY1/DataSpammer
 :: Version v6 - Beta
-:: Last edited on 26.04.2025 by PIRANY
+:: Last edited on 02.05.2025 by PIRANY
 
 
-:: Short Copy Paste
-
+:: Short Copy Paste:
 :: =============================================================
 :: >nul = hide normal output
 :: 2>nul = hide error output
@@ -60,7 +59,7 @@
 ::      Verify Code
 ::      Improve sys.lt - Skips sometimes
 ::      Developer Tool
-::      Add Logging Level
+::      Fix update config
 
 :top
     @echo off
@@ -255,7 +254,7 @@
     title DataSpammer - Starting
     :: Improve Log Readability
     for /l %%i in (1,1,10) do (
-        if !logging! == 1 ( call :log . )
+        if !logging! == 1 ( call :log . INFO )
     )
 
     :: Establish Socket Connection
@@ -831,15 +830,20 @@
     goto spam.settings
 
 :settings.skip.sec
-    if %logging% == 1 ( call :log Chaning_Skip_security_question WARNING )
-    if %skip-sec% == 1 (
+    if %logging% == 1 (
+        call :log Chaning_Skip_security_question WARNING
+    )
+    set "settings.skip-sec=%skip-sec%"
+    if "%settings.skip-sec%"=="1" (
         set "settings.skip-sec=0"
     ) else (
         set "settings.skip-sec=1"
     )
     call :update_config "skip-sec" "" "%settings.skip-sec%"
+    if %logging% == 1 (
+        call :log Skip_Security_Question_Updated_To_%settings.skip-sec% INFO
+    )
     goto restart.script
-
 
 :settings.version.control
     echo.
