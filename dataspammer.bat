@@ -261,19 +261,19 @@
     :: Establish Socket Connection
     call :send_message Started.DataSpammer
     call :send_message Established.Socket.Connection
-    if %logging% == 1 ( call :log Established_Socket_Connection )
-    if %logging% == 1 ( call :log Checking_Settings_for_Update_Command )
+    if %logging% == 1 ( call :log Established_Socket_Connection INFO )
+    if %logging% == 1 ( call :log Checking_Settings_for_Update_Command INFO )
     call :gitcall.sys
     goto dts.startup.done
 
 :gitcall.sys
-    if %logging% == 1 ( call :log Calling_Update_Check )
+    if %logging% == 1 ( call :log Calling_Update_Check INFO )
     call :git.version.check
     call :git.update.check %uptodate%
     exit /b
 
 :git.version.check
-    if %logging% == 1 ( call :log Curling_Github_API )
+    if %logging% == 1 ( call :log Curling_Github_API INFO )
     echo Checking for Updates...
     set "api_url=https://api.github.com/repos/PIRANY1/DataSpammer/releases/latest"
     curl -s %api_url% > apianswer.txt
@@ -294,7 +294,7 @@
     exit /b
     
 :git.update.check
-    if %logging% == 1 ( call :log Extracting_Data_From_API )
+    if %logging% == 1 ( call :log Extracting_Data_From_API INFO )
     if "%1"=="up" (
         call :git.version.clean
     ) else (
@@ -303,7 +303,7 @@
     exit /b
 
 :git.version.outdated
-    if %logging% == 1 ( call :log Version_Outdated )
+    if %logging% == 1 ( call :log Version_Outdated WARNING)
     echo Version Outdated!
     call :sys.lt 1
     echo.
@@ -328,7 +328,7 @@
     goto git.version.outdated
 
 :sys.no.settings
-    if %logging% == 1 ( call :log Settings_Not_Found )
+    if %logging% == 1 ( call :log Settings_Not_Found WARNING )
     cls
     echo The File "settings.conf" doesnt exist. 
     call :sys.lt 1
@@ -349,12 +349,12 @@
     goto sys.no.settings
 
 :no.settings.update
-    if %logging% == 1 ( call :log Checking-Update-No-Settings )
+    if %logging% == 1 ( call :log Checking-Update-No-Settings INFO )
     call :gitcall.sys
     goto sys.enable.ascii.tweak
 
 :git.version.clean
-    if %logging% == 1 ( call :log Version_Is_Up_To_Date )
+    if %logging% == 1 ( call :log Version_Is_Up_To_Date INFO )
     echo The Version you are currently using is the newest one (%latest_version%)
     call :sys.lt 1
     exit /b
@@ -392,13 +392,13 @@
     for /f "tokens=2 delims=[]" %%v in ('ver') do set CMD_VERSION=%%v
 
     :: Logging
-    if %logging% == 1 ( call :log Startup_Complete )
-    if %logging% == 1 ( call :log Successfully_Started_DataSpammer_%current-script-version%_Errorlevel:_%errorlevel% )
-    if "%developermode%"=="1" if %logging% == 1 ( call :log Developermode is On )
+    if %logging% == 1 ( call :log Startup_Complete INFO )
+    if %logging% == 1 ( call :log Successfully_Started_DataSpammer_%current-script-version%_Errorlevel:_%errorlevel% INFO )
+    if "%developermode%"=="1" if %logging% == 1 ( call :log Developermode is On WARNING)
 
 :menu
     cd /d "%~dp0"
-    if %logging% == 1 ( call :log Displaying_Menu )
+    if %logging% == 1 ( call :log Displaying_Menu INFO )
     if not defined username.script set "username.script=%username%"
     title DataSpammer %current-script-version%
 
@@ -454,7 +454,7 @@
 
 
 :settings
-    if %logging% == 1 ( call :log Opened_Settings_%dev-mode%_dev_mode )
+    if %logging% == 1 ( call :log Opened_Settings_%dev-mode%_dev_mode INFO )
     color
     cls 
     echo ========
@@ -554,7 +554,7 @@
     echo.
     echo Currently Using Color: %color%
     echo.
-    echo Color 02 = Black Background & Green Text
+    echo Color 02 = Black Background ^& Green Text
     echo 0 = Black       8 = Gray
     echo 1 = Blue        9 = Light Blue
     echo 2 = Green       A = Light Green
@@ -690,7 +690,7 @@
     goto restart.script
 
 :encrypt
-    if %logging% == 1 ( call :log Encrypting_Script )
+    if %logging% == 1 ( call :log Encrypting_Script WARNING )
     echo Encrypting...
     call :sys.lt 1
     cd /d "%~dp0 "
@@ -771,7 +771,7 @@
     )
     if not defined where_output (echo You dont have sudo enabled. && pause && goto advanced.options)
 
-    if %logging% == 1 ( call :log Chaning_Elevation_to_sudo )
+    if %logging% == 1 ( call :log Chaning_Elevation_to_sudo WARNING )
     call :update_config "elevation" "" "sudo"
     echo Switched to Sudo.
     call :sys.lt 2
@@ -781,7 +781,7 @@
 :switch.pwsh.elevation
     echo Switching to Powershell Elevation...
     call :sys.lt 2
-    if %logging% == 1 ( call :log Chaning_Elevation_to_pwsh )
+    if %logging% == 1 ( call :log Chaning_Elevation_to_pwsh WARNING )
     call :update_config "elevation" "" "pwsh"
     echo Switched to Powershell.
     call :sys.lt 2
@@ -790,7 +790,7 @@
 :switch.gsudo.elevation
     echo Switching to GSUDO Elevation...
     call :sys.lt 2
-    if %logging% == 1 ( call :log Chaning_Elevation_to_gsudo )
+    if %logging% == 1 ( call :log Chaning_Elevation_to_gsudo WARNING )
     call :update_config "elevation" "" "gsudo"
     echo Switched to GSudo.
     call :sys.lt 2
@@ -822,16 +822,16 @@
     echo [6] Go back
     choice /C 123456 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 if %logging% == 1 ( call :log Chaning_Default_Filename ) && call :update_config "default-filename" "Type in the Filename you want to use:" "" && goto restart.script
-        if %_erl%==2 if %logging% == 1 ( call :log Changing_Standart_Directory ) && call :update_config "default_directory" "Type Your Directory Here:" "" && goto restart.script
-        if %_erl%==3 if %logging% == 1 ( call :log Chaning_Standart_Filecount ) && call :update_config "default-filecount" "Enter the Default Filecount:" "" && goto restart.script
-        if %_erl%==4 if %logging% == 1 ( call :log Chaning_Standart_Domain ) && call :update_config "default-domain" "Enter the Default Domain:" "" && goto restart.script
+        if %_erl%==1 if %logging% == 1 ( call :log Chaning_Default_Filename WARNING ) && call :update_config "default-filename" "Type in the Filename you want to use:" "" && goto restart.script
+        if %_erl%==2 if %logging% == 1 ( call :log Changing_Standart_Directory WARNING ) && call :update_config "default_directory" "Type Your Directory Here:" "" && goto restart.script
+        if %_erl%==3 if %logging% == 1 ( call :log Chaning_Standart_Filecount WARNING ) && call :update_config "default-filecount" "Enter the Default Filecount:" "" && goto restart.script
+        if %_erl%==4 if %logging% == 1 ( call :log Chaning_Standart_Domain WARNING ) && call :update_config "default-domain" "Enter the Default Domain:" "" && goto restart.script
         if %_erl%==5 goto settings.skip.sec
         if %_erl%==6 goto settings
     goto spam.settings
 
 :settings.skip.sec
-    if %logging% == 1 ( call :log Chaning_Skip_security_question )
+    if %logging% == 1 ( call :log Chaning_Skip_security_question WARNING )
     if %skip-sec% == 1 (
         set "settings.skip-sec=0"
     ) else (
@@ -883,7 +883,7 @@
     goto activate.dev.options   
     
 :write-dev-options
-    if %logging% == 1 ( call :log Activating_Dev_Options )
+    if %logging% == 1 ( call :log Activating_Dev_Options WARNING )
     cd /d "%~dp0"
     call :update_config "developermode" "" "1"
     echo Developer Options have been activated!
@@ -893,7 +893,7 @@
 
 
 :settings.logging
-    if %logging% == 1 ( call :log Opened_Logging_Settings )
+    if %logging% == 1 ( call :log Opened_Logging_Settings INFO )
     cls
     if %logging% == 1 ( set "settings.logging=Activated" ) else ( set "settings.logging=Disabled" )
     echo Logging is currently: %settings.logging%
@@ -938,7 +938,7 @@
 
 :disable.logging
     if %logging% == 0 ( goto settings.logging )
-    if %logging% == 1 ( call :log Disabling_Logging )
+    if %logging% == 1 ( call :log Disabling_Logging WARNING )
     call :update_config "logging" "" "0"
     echo Disabled Logging.
     call :sys.lt 2
@@ -1061,9 +1061,9 @@
 
 
 :start
-    if %logging% == 1 ( call :log Opened_Start )
+    if %logging% == 1 ( call :log Opened_Start INFO )
     call :sys.verify.execution
-    if %logging% == 1 ( call :log Start_Verified )
+    if %logging% == 1 ( call :log Start_Verified INFO )
     cls
 
 :start.verified
@@ -1149,7 +1149,7 @@
     )
     
     del temp.txt
-    if %logging% == 1 ( call :log Finished_Telnet_Spam_on_%telnet.target% )
+    if %logging% == 1 ( call :log Finished_Telnet_Spam_on_%telnet.target% INFO )
     call :done "The Script Tested the Telnet Server %telnet.target% with %telnet.count% Requests
 
     
@@ -1164,10 +1164,10 @@
     
     :icmp.loop
     ping %icmp.target% -n 1 -w %icmp.rate%
-    if %logging% == 1 ( call :log Sending_ICMP_Request_to_%icmp.target% )
+    if %logging% == 1 ( call :log Sending_ICMP_Request_to_%icmp.target% INFO )
     goto icmp.loop
 
-    if %logging% == 1 ( call :log Finished_ICMP_Spam_on_%icmp.target% )
+    if %logging% == 1 ( call :log Finished_ICMP_Spam_on_%icmp.target% INFO )
     call :done "The Script Tested %icmp.target% with %icmp.rate% milliseconds interval"
 
 :local.spams
@@ -1375,7 +1375,7 @@
         print %print.filename%.txt
         print /D:"%printer-device%" %print.filename%.txt
     )
-    if %logging% == 1 ( call :log Finished_Printer_Spam:%printer.count%_Requests_on_default_Printer )
+    if %logging% == 1 ( call :log Finished_Printer_Spam:%printer.count%_Requests_on_default_Printer INFO )
     erase %print.filename%.txt
     call :done "The Script Created %printer.count% to Default Printer"
 
@@ -1394,7 +1394,7 @@
         curl -s -o NUL -w "Status: %{http_code}\n" !url!
     )
 
-    if %logging% == 1 ( call :log Finished_HTTPS_Spam:%requests%_Requests_on_%url% )
+    if %logging% == 1 ( call :log Finished_HTTPS_Spam:%requests%_Requests_on_%url% INFO )
     call :done "The Script Created %requests% to %url%"
 
 
@@ -1439,7 +1439,7 @@
     
 
 :dns.done
-    if %logging% == 1 ( call :log Finished_DNS_Spam:%request_count%_Requests_on_%domain_server% )
+    if %logging% == 1 ( call :log Finished_DNS_Spam:%request_count%_Requests_on_%domain_server% INFO )
     call :done "The Script Created %request_count% for %domain% on %domain_server%"
 
     
@@ -1501,7 +1501,7 @@
         set /a y+=1
     )
     
-    if %logging% == 1 ( call :log Finished_FTP_Spam:_%filecount% )
+    if %logging% == 1 ( call :log Finished_FTP_Spam:_%filecount% INFO )
     call :done "The Script Created %filecount% Files on the FTP Server: %ftpserver%"
 
 
@@ -1565,7 +1565,7 @@
     if %x% equ %app.spam.filecount% ( goto app.spam.done ) else ( goto app.spam.start.top )
 
 :app.spam.done
-    if %logging% == 1 ( call :log Finished_Spamming_Files:_%filecount% )
+    if %logging% == 1 ( call :log Finished_Spamming_Files:_%filecount% INFO )
     call :done "The Script Created %x% Entrys."
 
 
@@ -1597,8 +1597,8 @@
     goto spam.normal.top
 
 :ssh.spam
-    if "%logging%"=="1" ( call :log Opened_SSH_Spam )
-    if "%logging%"=="1" ( call :log Listing_Local_IPs )
+    if "%logging%"=="1" ( call :log Opened_SSH_Spam INFO )
+    if "%logging%"=="1" ( call :log Listing_Local_IPs INFO )
     
     echo Enter the IP or the Hostename of the Device
     call :sys.lt 2
@@ -1652,7 +1652,7 @@
 
 :spam.ssh.target.win
     setlocal EnableDelayedExpansion
-    if defined logging call :log Spamming_Windows_SSH_Target
+    if "%logging%"=="1" ( call :log Spamming_Windows_SSH_Target INFO )
 
     if "%ssh.regen%"=="1" (
         echo Regenerating SSH keys on target...
@@ -1693,7 +1693,8 @@
 
 :spam.ssh.target.lx
     setlocal EnableDelayedExpansion
-    if defined logging call :log Spamming_Linux_SSH_Target 
+    if "%logging%"=="1" ( call :log Spamming_Linux_SSH_Target INFO )
+
     if "%ssh.regen%"=="1" (
         echo Regenerating SSH keys on target...
         :: Generate New Keys
@@ -1732,11 +1733,11 @@
 
 
 :ssh.done
-    if %logging% == 1 ( call :log Finished_SSH_Spam_Files:_%ssh-filecount%_Host_%ssh-name% )
+    if %logging% == 1 ( call :log Finished_SSH_Spam_Files:_%ssh-filecount%_Host_%ssh-name% INFO )
     call :done "Created %ssh-filecount% Files on %ssh-name%@%ssh-ip%"
 
 :desktop.icon.spam
-    if %logging% == 1 ( call :log Opened_Desktop_Spam )
+    if %logging% == 1 ( call :log Opened_Desktop_Spam INFO )
 
     if "%default-filename%"=="notused" set /p "desk.spam.name=Choose a Filename:"
     if not "%default-filename%"=="notused" set "desk.spam.name=%default-filename%"
@@ -1759,12 +1760,12 @@
         set /a x+=1
     )
 
-    if %logging% == 1 ( call :log Finished_Spamming_Files:_%deskspamlimitedvar% )
+    if %logging% == 1 ( call :log Finished_Spamming_Files:_%deskspamlimitedvar% INFO )
     call :done "The Script Created %deskspamlimitedvar% Files."
 
 
 :normal.text.spam
-    if %logging% == 1 ( call :log Opened_Normal_Spam )
+    if %logging% == 1 ( call :log Opened_Normal_Spam INFO )
     if not "%default_directory%"=="notused" cd /d "%default_directory%" && goto spam.directory.set
     set /p %default_directory%=Type Your Directory Here:
 
@@ -1795,7 +1796,7 @@
         set /a x+=1
     )
 
-    if %logging% == 1 ( call :log Finished_Spamming_Files:_%filecount% )
+    if %logging% == 1 ( call :log Finished_Spamming_Files:_%filecount% INFO )
     call :done "The Script Created %filecount% Files."
 
 
@@ -1827,7 +1828,7 @@
 
 
 :custom.go
-   if %logging% == 1 ( call :log Opened_Custom_GOTO ) 
+   if %logging% == 1 ( call :log Opened_Custom_GOTO INFO ) 
    if "%1"=="go" goto custom.go
    set "custom.goto.location=%2"
    goto %custom.goto.location%
@@ -1885,7 +1886,7 @@
     echo Uninstall Successfulled
     
 :restart.script
-    if %logging% == 1 ( call :log Restarting_Script )
+    if %logging% == 1 ( call :log Restarting_Script WARNING )
     call :send_message Script.is.restarting
     call :send_message Terminating %PID%
     echo. > %temp%\DataSpammerClose.txt
@@ -2145,7 +2146,7 @@
     call :sys.lt 5 count
 
     :: Test Logging
-    call :log Tested_Functionality
+    call :log Tested_Functionality INFO 
     type %userprofile%\Documents\DataSpammerLog\Dataspammer.log
     :: Paste Newly Added Functions of your PR here to test them via GitHub Actions
     :: Example1: call :dns.spam
@@ -2318,7 +2319,7 @@ exit /b
         set /a counter=%1
         :countdown
         if !counter! GEQ 0 (
-            echo Time left: !counter!
+            echo Wating, !counter! Seconds left...
             :: Wait 500ms
             ping -n 1 -w 500 127.0.0.1 >nul
             set /a counter-=1
@@ -2333,7 +2334,12 @@ exit /b
 
 :log
     :: call scheme is:
-    :: call :log Opened_verify_tab ( ERROR / INFO / WARNING / DEBUG ) <- OPTIONAL
+    :: call :log Opened_verify_tab ( ERROR, INFO etc.) <- OPTIONAL
+    :: Use INFO for normal Actions e.g. Opened Menu Foo Bar
+    :: Use ERROR for Errors
+    :: Use WARNING for Impactful Actions e.g. Changed Setting Foo Bar
+    :: Use DEBUG for Debugging
+    :: Custom Log Levels can be added
     :: In the Logfile _ and - are replaced with Spaces
     if "%logging%"=="0" exit /b
     if "%monitoring%"=="1" call :send_message "%log.content%"
@@ -2397,7 +2403,7 @@ exit /b
         echo %key%=%new_value% >> !tmpfile!
     )
 
-    if !logging!==1 ( call :log Changing_%key% )
+    if !logging!==1 ( call :log Changing_%key% INFO )
     echo Restarting...
     cls
     goto :eof
@@ -2507,7 +2513,7 @@ exit /b
     :: Updated in v6
     :: Old one used seperate file / wget & curl & iwr
     :: Usage: call :update.script [stable / beta]
-    if %logging% == 1 ( call :log Creating_Update_Script )
+    if %logging% == 1 ( call :log Creating_Update_Script INFO )
 
     if "%1"==stable set "update_url=https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/"
     if "%1"==beta set "update_url=https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/v6/"
@@ -2748,7 +2754,7 @@ exit /b
 
 :sys.verify.execution
     :: Check for Human Input by asking for random Int Input
-    if %logging% == 1 ( call :log Opened_verify_tab )
+    if %logging% == 1 ( call :log Opened_verify_tab INFO )
     if "%skip-sec%"==1 ( exit /b %errorlevel%)
     call :generateRandom
     set "verify=%realrandom% "
@@ -2818,6 +2824,13 @@ exit /b
 
     if not "%directory:~-1%"=="\" set "directory=%directory%\"
     cd /d "%directory%"
+    echo. > "%directory%\testfile"
+    if not exist "%directory%\testfile" (
+        %errormsg%
+        echo Directory not found or not writable.
+        call :sys.lt 5 count
+        goto installer.main.window
+    )
 
     set "startmenushortcut=Not Included"
     set "desktopicon=Not Included"
