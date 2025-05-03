@@ -2506,9 +2506,9 @@
     echo DataSpammer.bat
     echo ---------------
 
-    for /f "tokens=1 delims=:" %%a in ('findstr /r "^:" "dataspammer.bat"') do (
-        echo %%a
-    )
+    for /f "delims=" %%a in ('findstr /b ":" "dataspammer.bat" ^| findstr /v "^::" ^| findstr /v "^:REM"') do (
+    echo %%a
+)
     pause
 
 :send_message
