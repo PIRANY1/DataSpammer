@@ -1,7 +1,7 @@
 :: Use only under License
 :: Contribute under https://github.com/PIRANY1/DataSpammer
 :: Version v6 - Beta
-:: Last edited on 02.05.2025 by PIRANY
+:: Last edited on 03.05.2025 by PIRANY
 
 
 :: Short Copy Paste:
@@ -60,6 +60,7 @@
 ::      Improve sys.lt - Skips sometimes
 ::      Developer Tool
 ::      Fix update config
+::      Add Loading Animation
 
 :top
     @echo off
@@ -72,7 +73,7 @@
     set "DIRNAME=%~dp0"
     if "%DIRNAME%"=="" set DIRNAME=.
     mode con: cols=140 lines=40
-    set "current-script-version=v6"
+    set "current-script-version=development"
     :: Improve Powershell Speed 
     set "powershell.short=powershell -ExecutionPolicy Bypass -NoProfile -NoLogo"
     
@@ -368,6 +369,28 @@
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 
 :dts.startup.done
+    :: Compare Upstream Version & Local Version
+    if "%current-script-version%"=="v6" (
+        set "remote=https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/v6/dataspammer.bat"
+    ) else (
+        set "remote=https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat"
+    )
+    
+    curl -s -o "%TEMP%\dataspammer_remote.bat" "%remote%"
+    for /f "tokens=1" %%A in ('certutil -hashfile "%TEMP%\dataspammer_remote.bat" SHA256 ^| find /i /v "SHA256" ^| find /i /v "certutil"') do set "REMOTE_HASH=%%A"
+    for /f "tokens=1" %%A in ('certutil -hashfile "%0" SHA256 ^| find /i /v "SHA256" ^| find /i /v "certutil"') do set "LOCAL_HASH=%%A"
+    :: echo Local File: !LOCAL_HASH!
+    :: echo Upstream File: !REMOTE_HASH!
+    
+    if not"!REMOTE_HASH!"=="!LOCAL_HASH!" (
+        %errormsg%
+        echo The GitHub version of the script differs from your local version.
+        echo This could be due to a failed update or manual modifications.
+        echo If you did not make these changes, consider redownloading the script to avoid potential issues.
+        call :sys.lt 5 count
+    )
+    
+
     title DataSpammer - Finishing Startup
     setlocal enabledelayedexpansion
 
@@ -2112,10 +2135,8 @@
     :: Run all :signs & functions & check for updates
 
 :debugtest
-    cd /d "%~dp0"
-    :: resync time
-    net start w32time
-    w32tm /resync 
+    :: resync time 
+    w32tm /resync >nul 2>&1
 
     :: Start Debug Test
     echo Running Debug Test...
@@ -2156,12 +2177,38 @@
     :: Example1: call :dns.spam
     :: Example2: Paste a modified Function here if manual input is required
 
+    :: Generate Full Random - v6 #27
+    call :generateRandom
+    echo Random: %realrandom%
 
-    
+    :: Show Colors - v6 #27
+    call :color Red      "This is red on light white"
+    call :color _Red     "This is red on black"
+    call :color Green    "Green on white"
+    call :color _Green   "Green on black"
+    call :color Blue     "Blue on white"
+    call :color Gray     "Gray background"
+    call :color White    "Bright white"
+    call :color _White   "White on dark gray"
+    call :color _Yellow  "Yellow on black"
+
+    :: check NCS - v6 #27
+    call :check_NCS
+    echo _NCS: %_NCS%
 
     :: Calc Time Diff - v6 #27
     call :TimeDifference "%starttime%" "%endtime%" > tmp_time.txt
     set /p diff.full=<tmp_time.txt && del tmp_time.txt && echo Time Diff %diff.full%
+
+    :: List Vars - v6 #27
+    call :list.vars
+
+    :: Generate Custom Random - v6 #27
+    call :generate_random all 40
+    echo Random: %random_gen%
+    
+    %errormsg%
+    echo Errorlevel: %errorlevel%
 
     :: Only Uncomment if Updater was changed
     :: call :update.script stable
@@ -2180,31 +2227,31 @@
 
 :: Generate real random numbers ( default %random% is limited to 32767)
 :generateRandom
-:: Get two random numbers
-set "r1=%random%"
-set "r2=%random%"
-:: Combine them into a string
-set "str=%r1%_%r2%"
-:: Generate a hash from the string using PowerShell
-for /f %%h in ('powershell -command "[BitConverter]::ToString((New-Object -TypeName System.Security.Cryptography.SHA256Managed).ComputeHash([System.Text.Encoding]::UTF8.GetBytes('%str%'))).Replace('-','')"') do set "hash=%%h"
-
-:: Extract only digits from the hash
-set "digits="
-for /l %%i in (0,1,999) do (
-    set "char=!hash:~%%i,1!"
-    if defined char (
-        if "!char!" geq "0" if "!char!" leq "9" set "digits=!digits!!char!"
-    ) else (
-        goto afterdigits
+    :: Get two random numbers
+    set "r1=%random%"
+    set "r2=%random%"
+    :: Combine them into a string
+    set "str=%r1%_%r2%"
+    :: Generate a hash from the string using PowerShell
+    for /f %%h in ('powershell -command "[BitConverter]::ToString((New-Object -TypeName System.Security.Cryptography.SHA256Managed).ComputeHash([System.Text.Encoding]::UTF8.GetBytes('%str%'))).Replace('-','')"') do set "hash=%%h"
+    
+    :: Extract only digits from the hash
+    set "digits="
+    for /l %%i in (0,1,999) do (
+        set "char=!hash:~%%i,1!"
+        if defined char (
+            if "!char!" geq "0" if "!char!" leq "9" set "digits=!digits!!char!"
+        ) else (
+            goto afterdigits
+        )
     )
-)
-:afterdigits
-:: Fallback if no digits were found
-if not defined digits set "digits=12345"
-:: Limit to 5 digits
-set "realrandom=!digits:~0,5!"
-exit /b
-
+    :afterdigits
+    :: Fallback if no digits were found
+    if not defined digits set "digits=12345"
+    :: Limit to 5 digits
+    set "realrandom=!digits:~0,5!"
+    exit /b
+    
 
 :: =====================================
 :: call :color "ERROR"
