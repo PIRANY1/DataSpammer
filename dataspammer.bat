@@ -102,6 +102,7 @@
     :: Properly Escape Symbols like | ! & ^ > < etc. when using echo (%$Echo% " Text)
     SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
 
+    :: Arguments
     if "%1"=="" goto startup
     if "%1"=="version" title DataSpammer && goto version
     if "%1"=="--help" title DataSpammer && goto help.startup
@@ -115,7 +116,9 @@
     if "%1"=="monitor" title DataSpammer && goto monitor
     if "%1"=="start" title DataSpammer && goto start.verified
     if "%1"=="install" title DataSpammer && goto installer.main.window
-    if "%update-install%"=="1" ( goto sys.new.update.installed )
+
+    :: Undocumented Arguments
+    if "%1"=="update-install" ( goto sys.new.update.installed )
     if not defined devtools ( goto startup ) else ( goto dev.options )
 
 :startup
@@ -2037,10 +2040,12 @@
 
 :sys.new.update.installed
     :: Init New Vars with Content
+    echo Updating Settings...
     set "config_file=settings.conf"
     for /f "usebackq tokens=1,2 delims==" %%a in (`findstr /v "^::" "%config_file%"`) do (
         set "%%a=%%b"
     )
+
     if not defined %default_filename% call :update_config "default_filename" "" "notused"
     if not defined %default-domain% call :update_config "default-domain" "" "notused"
     if not defined %default-filecount% call :update_config "default-filecount" "" "notused"
@@ -2059,34 +2064,13 @@
     )
     reg delete "%RegPath%" /v "DisplayVersion" /f
     reg add "%RegPath%" /v "DisplayVersion" /d "%current-script-version%" /f
-    echo Updating Settings...
-    call :sys.lt 1    
-    goto sys.settings.patched
-
-
-
-
-:sys.settings.patched
-    echo Update was Successful!
-    call :sys.lt 1
-    echo Updated to %latest_version%
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    echo [1] Open Script
-    call :sys.lt 1
-    echo.
-    call :sys.lt 1
-    echo [2] Exit
-    call :sys.lt 1
-    echo.
-    echo.
-    choice /C 12 /M "Choose an Option from Above:"
-        set _erl=%errorlevel%
-        if %_erl%==1 goto restart.script
-        if %_erl%==2 goto cancel
-    goto sys.settings.patched
-
+    cls && echo Updated Settings.
+    cls && echo Successfully updated the Registry Key for the Version.
+    if %logging% == 1 ( call :log Updated_Script_Version:%current-script-version% INFO )
+    if %logging% == 1 ( call :log Errorlevel_after_Update:_%errorlevel% INFO )
+    echo Successfully Updated to %current-script-version%
+    echo Restarting...
+    call :sys.lt 4 count
 
 
 
@@ -3036,7 +3020,7 @@
         erase "%directory9%\temp_hex.txt"
         erase "%directory9%\temp_prefix.bin"
         Cipher /E "%directory9%\dataspammer.bat"
-        cmd /c "%directory9%\dataspammer.bat"
+        cmd /c "%directory9%\dataspammer.bat" update-install
         erase "%directory9%\encrypt.bat"
         exit %errorlevel%
     ) > "%directory9%\encrypt.bat"
@@ -3048,7 +3032,7 @@
 :finish.installation
     echo Finished Installation.
     echo Starting...
-    cmd /c "%directory9%\dataspammer.bat"
+    cmd /c "%directory9%\dataspammer.bat" update-install
     erase "%~dp0\dataspammer.bat" > nul
     goto cancel
 
