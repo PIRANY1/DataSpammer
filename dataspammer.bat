@@ -53,11 +53,11 @@
 
 :: Todo: 
 ::      Add more Comments, Logs ( Err etc. !!!) and Colors
+::      Improve sys.lt - Skips sometimes
+::      Fix Updater - Clueless After 3 Gazillion Updates - Hopefully Fixed
 
 ::      V6 Requirements:
-::      Fix Updater - Clueless After 3 Gazillion Updates - Hopefully Fixed
 ::      Verify Code
-::      Improve sys.lt - Skips sometimes
 ::      Developer Tool
 ::      Fix update config
 ::      Add Loading Animation
@@ -94,10 +94,30 @@
         %errormsg%
         echo The script was launched from the temp folder.
         echo You are most likely running the script directly from the archive file.
-        call :sys.lt 10
+        call :sys.lt 10 count
         goto cancel
     )
     
+    :: Check Windows Version
+    for /f "tokens=3 delims=: " %%a in ('ver') do set ver=%%a
+    if %ver% GEQ 6.3 ( set "winver=8.1" )
+    if %ver% GEQ 6.2 ( set "winver=8" )
+    if %ver% GEQ 6.1 ( set "winver=7" )
+    if defined winver (
+        %errormsg%
+        echo Detected Windows %winver%
+        echo Some features will not work. 
+        echo To use all features, please update to Windows 10/11.
+    )
+
+    :: Check if Script is running from Network Drive
+    if /I "%~d0"=="\\\\" (
+        %errormsg%
+        echo The script was launched from a network drive.
+        echo Installation may not work properly.
+        call :sys.lt 10 count
+    )
+
     :: Allows ASCII stuff without Codepage Settings - Not My Work - Credits to ?
     :: Properly Escape Symbols like | ! & ^ > < etc. when using echo (%$Echo% " Text)
     SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
