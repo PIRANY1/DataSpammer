@@ -1,7 +1,7 @@
 :: Use only under License
 :: Contribute under https://github.com/PIRANY1/DataSpammer
 :: Version v6 - Beta
-:: Last edited on 03.05.2025 by PIRANY
+:: Last edited on 05.05.2025 by PIRANY
 
 
 :: Short Copy Paste:
@@ -291,6 +291,11 @@
 
 :gitcall.sys
     if %logging% == 1 ( call :log Calling_Update_Check INFO )
+    if "%current-script-version%"=="development" (
+        echo Development Version, Skipping Update
+        call :sys.lt 3
+        if %logging% == 1 ( call :log Skipped_Update_Check_%current-script-version% WARN )
+    )
     call :git.version.check
     call :git.update.check %uptodate%
     exit /b
@@ -2282,6 +2287,13 @@
         set "text=!text:%%F=!"
     )
     
+    call :check_args :done %1 %2
+    if "%errorlevel%"=="1" (
+        %errormsg%
+        echo %text%
+        exit /b 1
+    )
+
     :: Remove underscore
     set "text=!text:_=!"
 
@@ -2399,10 +2411,12 @@
     if "%logging%"=="0" exit /b
     if "%monitoring%"=="1" call :send_message "%log.content%"
 
-
     set "log.content=%1"
     set "logfile=DataSpammer.log"
     
+    call :check_args :log %1
+    if "%errorlevel%"=="1" ( set "log.content=ERROR" )
+
     :: Check Folder Structure
     set "folder=%userprofile%\Documents\DataSpammerLog"
     if not exist "%folder%" (
@@ -2422,6 +2436,11 @@
 
 :update_config
     setlocal EnableDelayedExpansion
+    call :check_args :done %1 %2 %3
+    if "%errorlevel%"=="1" (
+        %errormsg%
+        exit /b 1
+    )
     :: Example for Interactive Change
     :: call :update_config "default-filename" "Type in the Filename you want to use." ""
     
@@ -2461,10 +2480,14 @@
     if !logging!==1 ( call :log Changing_%key% INFO )
     echo Restarting...
     cls
-    goto :eof
+    goto :EOF
     
 
 :done
+    call :check_args :done %1
+    if "%errorlevel%"=="1" (
+        %errormsg%
+    )
     cls
     echo.
     %$Echo% "   ____        _        ____                                           
@@ -2569,9 +2592,14 @@
     :: Old one used seperate file / wget & curl & iwr
     :: Usage: call :update.script [stable / beta]
     if %logging% == 1 ( call :log Creating_Update_Script INFO )
+    call :check_args :generate_random %1
+    if "%errorlevel%"=="1" (
+        %errormsg%
+        exit /b 1
+    )    
 
-    if "%1"==stable set "update_url=https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/"
-    if "%1"==beta set "update_url=https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/v6/"
+    if "%1"=="stable" set "update_url=https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/"
+    if "%1"=="beta" set "update_url=https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/v6/"
 
     cd /d "%~dp0"
     erase README.md && erase LICENSE >nul 2>&1
@@ -2649,6 +2677,11 @@
 :: call :generate_random all 40
 :: Output: Random string: fjELw0oV2nA.nDgx4Jk1vNal,2sMS8tSYhDYAP9-
 :generate_random
+    call :check_args :generate_random %1 %2
+    if "%errorlevel%"=="1" (
+        set "random_gen=ERROR"
+        exit /b 1
+    )    
     setlocal EnableDelayedExpansion
     set "type=%~1"
     set "length=%~2"
@@ -2662,7 +2695,9 @@
         set "chars=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz:,.-;!?"
     ) else (
         echo Unknown type: %type%
-        goto :eof
+        if %logging% == 1 ( call :log Unknown_Type_%type% ERROR )
+        if %logging% == 1 ( call :log Caught_At_:generate_random ERROR )
+        goto :EOF
     )
 
     :: Use PowerShell for fast random string generation:
@@ -2671,8 +2706,37 @@
     ) do (
         set "random_gen=%%a"
     )
-    goto :eof
+    goto :EOF
 
+
+:check_args
+    :: %1 = Origin (for logging)
+    :: %2+ = Arguments to check
+    :: Example: call :check_args :generate_random %1 %2 ...
+    
+    set "i=2"
+    
+    :check_loop
+    call set "arg=%%~%i%%"
+    if "!arg!"=="" (
+        %errormsg%
+        echo [Error][%~1] Argument #%i% is missing. Please report this Issue on GitHub.
+        call :sys.lt 4 count
+        if defined logging if "!logging!"=="1" (
+            call :log Caught_Error: ERROR
+            call :log At_:check_args ERROR
+            call :log From:_%~1_#%i%_is_missing ERROR
+        )
+        exit /b 1
+    )
+    
+    set /a i+=1
+    call set "next=%%~%i%%"
+    if defined next (
+        goto :check_loop
+    )
+    exit /b 0
+    
 :: -------------------------------------------------------------------
 :: Function Usage Example: TimeDifference
 ::
@@ -2703,6 +2767,12 @@
 
 :TimeDifference
     setlocal EnableDelayedExpansion
+    call :check_args :TimeDifference %1 %2
+    if "%errorlevel%"=="1" (
+        %errormsg%
+        exit /b 1
+    )
+
     :: Parse time1
     set "time1=%~1"
     set "H1=%time1:~0,2%"
@@ -2755,10 +2825,15 @@
 :: Example: 
 :: call :TimeDiffInMs "21:32:22,32" "21:50:22,32"
 :: echo Time difference: %timeDiffMs% ms
-:: goto :eof
+:: goto :EOF
 :: -------------------------------------------------------------------
 
-    :TimeDiffInMs
+:TimeDiffInMs
+    call :check_args :TimeDiffInMs %1 %2
+    if "%errorlevel%"=="1" (
+        set "timeDiffMs=ERROR"
+        exit /b 1
+    )
     set "start=%~1"
     set "end=%~2"
 
@@ -3062,7 +3137,8 @@
 :cancel 
     :: Exit Script, compatible with NT
     set EXIT_CODE=%ERRORLEVEL%
-    if %EXIT_CODE% equ 0 set EXIT_CODE=1
+    if not "%1"=="" set "EXIT_CODE=%1"
+    if "%EXIT_CODE%"=="" set EXIT_CODE=0
     if "%OS%"=="Windows_NT" endlocal
     echo. > %temp%\DataSpammerClose.txt
     erase "%~dp0\dataspammer.lock" >nul 2>&1
