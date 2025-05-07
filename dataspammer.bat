@@ -53,14 +53,20 @@
 
 :: Todo: 
 ::      Add more Comments, Logs ( Err etc. !!!) and Colors
-::      Improve sys.lt - Skips sometimes
+::      Improve sys.lt - Skips sometimes#
+::      Add more Developer Options
 ::      Fix Updater - Clueless After 3 Gazillion Updates - Hopefully Fixed
 
 ::      V6 Requirements:
 ::      Verify Code
-::      Developer Tool
 ::      Fix update config
 ::      Add Loading Animation
+::      Add Custom CHCP
+::      Add fallback timeout option to sys.lt
+::      Add timeout
+::      Add more erl checks
+::      Keep Defined Vars
+::      Add more Error Catchers
 
 :top
     @echo off
@@ -91,6 +97,7 @@
 
     :: Check if Script is running from Temp Folder
     if /I "%~dp0"=="%TEMP%" (
+        cls
         %errormsg%
         echo The script was launched from the temp folder.
         echo You are most likely running the script directly from the archive file.
@@ -104,11 +111,14 @@
     if %ver% GEQ 6.2 ( set "winver=8" )
     if %ver% GEQ 6.1 ( set "winver=7" )
     if defined winver (
+        cls
         %errormsg%
         echo Detected Windows %winver%
         echo Some features will not work. 
         echo To use all features, please update to Windows 10/11.
+        call :sys.lt 10 count
     )
+
 
     :: Check if Script is running from Network Drive
     if /I "%~d0"=="\\\\" (
@@ -146,21 +156,29 @@
     :: Check for Install Reg Key
     reg query "HKCU\Software\DataSpammer" /v Installed >nul 2>&1
     if %errorlevel% neq 0 (
-        call :color _Red "Installation was not executed. "
+        call :color _Red "Installation was not executed."
         call :color _Green "Opening installer..."
         goto installer.main.window
     )
 
+    if not exist "%~dp0settings.conf" goto sys.no.settings
     :: Parse Settings from Config
+    :: Parser doesnt work when no settings file exist
+    if "%workflow.exec%"=="1" echo Script getting executed from GitHub && goto skip.parse
     echo Parsing Settings...
-    if not exist "settings.conf" goto sys.no.settings
     set "config_file=settings.conf"
     for /f "usebackq tokens=1,2 delims==" %%a in (`findstr /v "^::" "%config_file%"`) do (
         set "%%a=%%b"
     )
-
+    if defined "chcp" (
+        chcp %chcp%
+        call :color _Green "Codepage set to %chcp%"
+    )
+    
+:skip.parse
     :: Apply Color from Settings
     if defined color ( color %color% ) else ( color 02 )
+    
 
     :: Elevate Script
     net session >nul 2>&1
@@ -177,7 +195,8 @@
 :pid.check
     :: Get the Parent Process ID of the current script - Needed for Monitor
     %powershell.short% -Command "(Get-CimInstance Win32_Process -Filter \"ProcessId=$PID\").ParentProcessId" > "%temp%\parent_pid.txt"
-    if exist "%temp%\parent_pid.txt" ( set /p PID=<"%temp%\parent_pid.txt" ) else ( set "PID=ERROR" && %errormsg% && echo Failed to get Parent PID && call :sys.lt 1 ) 
+    if exist "%temp%\parent_pid.txt" ( set /p PID=<"%temp%\parent_pid.txt" ) else ( set "PID=ERROR" && %errormsg% && echo Failed to get Parent PID && call :sys.lt 4 count) 
+    if defined PID set "PID=0000"
     del "%temp%\parent_pid.txt"
     echo Got PID: %PID%
 
@@ -316,7 +335,7 @@
     if "%latest_version%" equ "v6" (
         set "uptodate=up"
     ) else (
-        set "uptodate="
+        set "uptodate=%current-script-version%"
     )
     del apianswer.txt
     exit /b
@@ -582,12 +601,14 @@
     call :sys.lt 1
     echo [6] Change Color
     call :sys.lt 1
-    echo [7] Uninstall
+    echo [7] Change Codepage
+    call :sys.lt 1
+    echo [8] Uninstall
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [8] Go back
-    choice /C 12345678 /M "Choose an Option from Above:"
+    echo [9] Go back
+    choice /C 123456789 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto switch.elevation
         if %_erl%==2 goto encrypt
@@ -595,10 +616,33 @@
         if %_erl%==4 goto settings.logging
         if %_erl%==5 goto monitor.settings
         if %_erl%==6 goto change.color
-        if %_erl%==7 goto sys.delete.script
-        if %_erl%==8 goto settings
+        if %_erl%==7 goto change.chcp
+        if %_erl%==8 goto sys.delete.script
+        if %_erl%==9 goto settings
     goto advanced.options
 
+:change.chcp
+    for /f "tokens=2 delims=:" %%a in ('chcp') do set "chcp.value=%%a"
+    echo Current Codepage: %chcp.value%
+    echo.
+    echo CHCP Values:
+    echo 437	United States
+    echo 850	Multilingual (Latin I)
+    echo 852	Slavic (Latin II)	 
+    echo 855	Cyrillic (Russian)	 
+    echo 857	Turkish	 
+    echo 860	Portuguese	 
+    echo 861	Icelandic	 
+    echo 863	Canadian-French	 
+    echo 865	Nordic	 
+    echo 866	Russian	 
+    echo 869	Modern Greek	 
+    echo 1252	West European Latin	 
+    echo 65000	UTF-7 *	 
+    echo 65001	UTF-8 *
+    set /p chcp.var=Please enter the Codepage:
+    call :update_config "chcp" "" "%chcp.var%" 
+    goto restart.script
 
 :change.color
     echo.
@@ -1871,22 +1915,15 @@
     if "%latest_version%" equ "v6" (
         set "uptodate=up"
     ) else (
-        set "uptodate="
+        set "uptodate=%current-script-version%"
     )
 
-    if "%1"=="up" (
+    if "%uptodate%"=="up" (
         echo The Script is up-to-date [Version:%latest_version%]
     ) else (
         echo Your Script is outdated [Newest Version: %latest_version% Script Version:%current-script-version%]
     )
     exit /b %errorlevel%
-
-
-:custom.go
-   if %logging% == 1 ( call :log Opened_Custom_GOTO INFO ) 
-   if "%1"=="go" goto custom.go
-   set "custom.goto.location=%2"
-   goto %custom.goto.location%
 
 
 :sys.delete.script
@@ -2018,50 +2055,41 @@
     goto fullloop
 
 :dev.options
-    :: Rework In Process. 
-    call :win.version.check
-    echo %OSEdition%
-    echo Type: %OSType%
-    echo Version: %OSVersion%
-    echo Build: %OSBuild%
-    echo %~nx0 / %~0
-    echo %~dpnx0
-    echo PID: %PID%
     title Developer Options - DataSpammer
-
-    echo ALL FEATURES DISABLED CURRENTLY!
-    echo Dev Tools
+    echo PID: %PID%
+    echo Developer Options
     echo.
-    echo [1] Goto Specific Call Sign
+    echo [1] Custom Goto
     echo.
-    echo [2] -
+    echo [2] @ECHO ON
     echo.
-    echo [3] @ECHO ON
+    echo [3] Set a Variable 
     echo.
-    echo [4] Set a Variable 
+    echo [4] Restart the Script (Variables will be kept)
     echo.
-    echo [5] Restart the Script (Variables will be kept)
+    echo [5] Restart the Script (Variables wont be kept)
     echo.
-    echo [6] Restart the Script (Variables wont be kept)
+    echo [6] List all :signs
     echo.
-    echo [7] List all :signs
-    echo.
-    echo [8] Go Back
-    choice /C 12345678 /M "Choose an Option from Above:"
+    echo [7] Go Back
+    choice /C 1234567 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 
-        if %_erl%==2 
-        if %_erl%==3 
-        if %_erl%==4 
-        if %_erl%==5 
-        if %_erl%==6 
-        if %_erl%==7
-        if %_erl%==8 
+        if %_erl%==1 goto dev.options.call.sign
+        if %_erl%==2 @echo on && cls && goto dev.options
+        if %_erl%==3 set /P var=Enter the Variable Name: && set /P value=Enter the Value: && set %var%=%value% && cls && goto dev.options
+        if %_erl%==4 goto top
+        if %_erl%==5 goto restart.script
+        if %_erl%==6 call :list.vars && pause && cls
+        if %_erl%==7 goto settings
     goto dev.options
 
-
-
-
+:dev.options.call.sign
+    echo List all Call Signs?
+    choice /C YN /M "(Y)es / (N)o"
+        set _erl=%errorlevel%
+        if %_erl%==1 call :list.vars && cls && set /P jumpto=Enter the Call Sign: && goto %jumpto% 
+        if %_erl%==2 cls && set /P jumpto=Enter the Call Sign: && goto %jumpto%
+    goto dev.options.call.sign
 
 :sys.new.update.installed
     :: Init New Vars with Content
@@ -2378,24 +2406,19 @@
     
 
 :sys.lt
-    setlocal EnableDelayedExpansion
-    if /i "%2"=="timeout" (
-        timeout /t %1 >nul
-    )
-    if /i "%2"=="count" (
-        set /a counter=%1
-        :countdown
-        if !counter! GEQ 0 (
-            echo Wating, !counter! Seconds left...
-            :: Wait 500ms
-            ping -n 1 -w 500 127.0.0.1 >nul
-            set /a counter-=1
-            cls
-            goto countdown
+    set "dur=%~1"
+    set "mode=%~2"
+    if /i "!mode!"=="count" (
+        for /L %%i in (!dur!,-1,0) do (
+            set "msg=Waiting, %%i seconds remaining..."
+            echo !msg!
+            timeout /t 1 >nul
         )
+        echo.
+    ) else if /i "!mode!"=="timeout" (
+        timeout /t !dur! >nul
     ) else (
-        set "dur=%1"
-        ping -n %dur% localhost >nul
+        ping -n !dur! 127.0.0.1 >nul
     )
     exit /b 0
 
@@ -2441,6 +2464,7 @@
         %errormsg%
         exit /b 1
     )
+    set "found=0"
     :: Example for Interactive Change
     :: call :update_config "default-filename" "Type in the Filename you want to use." ""
     
@@ -2458,7 +2482,7 @@
     set "new_value=%~3"
 
     if "%new_value%"=="" (
-        set /p new_value=%prompt%
+        set /p "new_value=!prompt! "
     )
     
     set "file=settings.conf"
@@ -2477,7 +2501,7 @@
         echo %key%=%new_value% >> !tmpfile!
     )
 
-    if !logging!==1 ( call :log Changing_%key% INFO )
+    if "!logging!"=="1" call :log Changing_%key% INFO
     echo Restarting...
     cls
     goto :EOF
@@ -2535,7 +2559,7 @@
 
     for /f "delims=" %%a in ('findstr /b ":" "dataspammer.bat" ^| findstr /v "^::" ^| findstr /v "^:REM"') do (
     echo %%a
-)
+    )
     pause
 
 :send_message
@@ -2721,7 +2745,8 @@
     if "!arg!"=="" (
         %errormsg%
         echo [Error][%~1] Argument #%i% is missing. Please report this Issue on GitHub.
-        call :sys.lt 4 count
+        echo Waiting 2 Seconds...
+        call :sys.lt 4 
         if defined logging if "!logging!"=="1" (
             call :log Caught_Error: ERROR
             call :log At_:check_args ERROR
@@ -2958,7 +2983,8 @@
     if not exist "%directory%\testfile" (
         %errormsg%
         echo Directory not found or not writable.
-        call :sys.lt 5 count
+        echo Waiting 4 Seconds...
+        call :sys.lt 5
         goto installer.main.window
     )
 
