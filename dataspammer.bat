@@ -53,25 +53,22 @@
 
 :: Todo: 
 ::      Add more Comments, Logs ( Err etc. !!!) and Colors
-::      Improve sys.lt - Skips sometimes#
-::      Add more Developer Options
 ::      Fix Updater - Clueless After 3 Gazillion Updates - Hopefully Fixed
 
 ::      V6 Requirements:
 ::      Verify Code
-::      Fix update config
 ::      Add Loading Animation
-::      Add Custom CHCP
 ::      Add fallback timeout option to sys.lt
-::      Add timeout
+::      Add timeout standby
 ::      Add more erl checks
-::      Keep Defined Vars
 ::      Add more Error Catchers
+::      Rewrite Dev Options - Began
 
 :top
     @echo off
     @pushd "%~dp0"
     @title DataSpammer - Initiating
+    @echo Initializing...
     @setlocal ENABLEDELAYEDEXPANSION 
     set "exec-dir=%cd%"
     :: Improve NT Compatabilty - Credits to Gradlew Batch Version
@@ -603,11 +600,13 @@
     call :sys.lt 1
     echo [7] Change Codepage
     call :sys.lt 1
-    echo [8] Uninstall
+    echo [8] Download Wait.exe - Improve Speed / Wait Time - Source is at PIRANY1/wait.exe
+    call :sys.lt 1
+    echo [9] Uninstall
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [9] Go back
+    echo [10] Go back
     choice /C 123456789 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto switch.elevation
@@ -617,9 +616,47 @@
         if %_erl%==5 goto monitor.settings
         if %_erl%==6 goto change.color
         if %_erl%==7 goto change.chcp
-        if %_erl%==8 goto sys.delete.script
-        if %_erl%==9 goto settings
+        if %_erl%==8 goto download.wait
+        if %_erl%==9 goto sys.delete.script
+        if %_erl%==10 goto settings
     goto advanced.options
+
+:download.wait
+    bitsadmin /transfer upd "https://github.com/PIRANY1/wait-exe/raw/refs/heads/main/bin/wait.exe" "%temp%\wait.exe" 
+    if errorlevel 1 (
+        %errormsg%
+        echo Download failed. 
+        exit /b 1
+    )   
+    bitsadmin /transfer upd "https://github.com/PIRANY1/wait-exe/raw/refs/heads/main/bin/wait.exe.sha256" "%temp%\wait.exe.sha256" 
+    if errorlevel 1 (
+        %errormsg%
+        echo Download failed. 
+        exit /b 1
+    )  
+    :: Compare Hashes - Validate Download
+    certutil -hashfile "%temp%\wait.exe" SHA256 > "%temp%\wait.hash"
+    for /f "delims=" %%a in ('%powershell.short% -Command "(Get-Content '%temp%\wait.exe.sha256' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "sha256_expected=%%a"
+    for /f "delims=" %%a in ('%powershell.short% -Command "(Get-Content '%temp%\wait.hash' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "sha256_actual=%%a"
+
+    
+    if "%sha256_expected%" neq "%sha256_actual%" (
+        %errormsg%
+        echo Hash mismatch! Expected: %sha256_expected%, but got: %sha256_actual%
+        echo Download Failed.
+    )
+    del "%temp%\wait.hash"
+    del "%temp%\wait.exe.sha256"
+        
+    move /Y "%temp%\wait.exe" "%~dp0\wait.exe" 
+    if errorlevel 1 (
+        %errormsg%
+        echo Failed to move wait.exe. 
+        exit /b 1
+    )
+    call :color _Green "wait.exe installed successfully."
+    echo Restarting...
+    goto restart.script
 
 :change.chcp
     for /f "tokens=2 delims=:" %%a in ('chcp') do set "chcp.value=%%a"
@@ -2406,19 +2443,21 @@
     
 
 :sys.lt
-    set "dur=%~1"
-    set "mode=%~2"
-    if /i "!mode!"=="count" (
+    setlocal EnableDelayedExpansion
+    if /i "%2"=="timeout" (
+        timeout /t %1 >nul
+    )
+    if /i "%2"=="count" (
         for /L %%i in (!dur!,-1,0) do (
             set "msg=Waiting, %%i seconds remaining..."
             echo !msg!
             timeout /t 1 >nul
         )
         echo.
-    ) else if /i "!mode!"=="timeout" (
-        timeout /t !dur! >nul
     ) else (
-        ping -n !dur! 127.0.0.1 >nul
+        set /a "result=%1*500-100" 
+        if exist "%~dp0\wait.exe" ( wait.exe %0 )
+        %powershell.short% -command "Start-Sleep -Milliseconds !result!"
     )
     exit /b 0
 
@@ -2633,19 +2672,19 @@
     echo Downloading...
     bitsadmin /transfer upd "%update_url%dataspammer.bat" "%TMP_DIR%\dataspammer.bat"
     if errorlevel 1 (
-        echo %errormsg%
+        %errormsg%
         echo Download failed. 
         exit /b 1
     )    
     bitsadmin /transfer upd "%update_url%README.md" "%TMP_DIR%\README.md"
     if errorlevel 1 (
-        echo %errormsg%
+        %errormsg%
         echo Download failed. 
         exit /b 1
     )      
     bitsadmin /transfer upd "%update_url%LICENSE" "%TMP_DIR%\LICENSE"
     if errorlevel 1 (
-        echo %errormsg%
+        %errormsg%
         echo Download failed. 
         exit /b 1
     )  
@@ -2862,22 +2901,17 @@
     set "start=%~1"
     set "end=%~2"
 
-    :: Replace , with . to standardize
-    set "start=%start:,=.%"
-    set "end=%end:,=.%"
-
-    :: Parse start time
-    for /f "tokens=1-4 delims=:." %%a in ("%start%") do (
-        set /a "startMs = (((%%a*60 + %%b)*60 + %%c)*1000 + %%d)"
+    for /f "tokens=1-4 delims=:," %%a in ("%start%") do (
+        set /a "startMs = (((%%a * 60 + %%b) * 60 + %%c) * 1000 + 1%%d - 100)"
     )
 
-    :: Parse end time
-    for /f "tokens=1-4 delims=:." %%a in ("%end%") do (
-        set /a "endMs = (((%%a*60 + %%b)*60 + %%c)*1000 + %%d)"
+    for /f "tokens=1-4 delims=:," %%a in ("%end%") do (
+        set /a "endMs = (((%%a * 60 + %%b) * 60 + %%c) * 1000 + 1%%d - 100)"
     )
 
-    :: Calculate difference
-    set /a "timeDiffMs = endMs - startMs"
+    set /a diff = endMs - startMs
+
+    set "timeDiffMs=%diff%"
     exit /b
 
 
