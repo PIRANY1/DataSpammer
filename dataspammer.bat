@@ -54,15 +54,16 @@
 :: Todo: 
 ::      Add more Comments, Logs ( Err etc. !!!) and Colors
 ::      Fix Updater - Clueless After 3 Gazillion Updates - Hopefully Fixed
+::      Add more to Dev Options
 
 ::      V6 Requirements:
 ::      Verify Code
-::      Add Loading Animation
-::      Add fallback timeout option to sys.lt
-::      Add timeout standby
+::      Improve Standby
 ::      Add more erl checks
 ::      Add more Error Catchers
-::      Rewrite Dev Options - Began
+::      Add Settings Template to GH
+::      Download new Settings and override with local settings
+
 
 :top
     @echo off
@@ -463,6 +464,7 @@
     if "%developermode%"=="1" if %logging% == 1 ( call :log Developermode is On WARNING)
 
 :menu
+    title DataSpammer
     cd /d "%~dp0"
     if %logging% == 1 ( call :log Displaying_Menu INFO )
     if not defined username.script set "username.script=%username%"
@@ -508,14 +510,14 @@
     echo [5] Cancel
     echo.
     echo.
-    choice /C 12345 /M "Choose an Option from Above:"
-        title DataSpammer
+    choice /C 12345S /T 120 /D S /M "Choose an Option from Above: "
         set _erl=%errorlevel%
         if %_erl%==1 goto start
         if %_erl%==2 goto settings
         if %_erl%==3 goto ad.settings
         if %_erl%==4 explorer https://github.com/PIRANY1/DataSpammer && cls && goto menu
         if %_erl%==5 goto cancel
+        if %_erl%==6 call :standby
     goto menu
 
 
@@ -573,7 +575,7 @@
     echo.
     call :sys.lt 1
 
-    choice /C 1234567 /M "Choose an Option from Above:"
+    choice /C 1234567S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto spam.settings
         if %_erl%==2 goto activate.dev.options
@@ -582,6 +584,7 @@
         if %_erl%==5 goto restart.script
         if %_erl%==6 goto advanced.options
         if %_erl%==7 goto menu
+        if %_erl%==8 call :standby
     goto settings
 
 
@@ -607,7 +610,7 @@
     echo.
     call :sys.lt 1
     echo [10] Go back
-    choice /C 123456789 /M "Choose an Option from Above:"
+    choice /C 123456789S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto switch.elevation
         if %_erl%==2 goto encrypt
@@ -619,6 +622,7 @@
         if %_erl%==8 goto download.wait
         if %_erl%==9 goto sys.delete.script
         if %_erl%==10 goto settings
+        if %_erl%==11 call :standby
     goto advanced.options
 
 :download.wait
@@ -715,11 +719,12 @@
     call :sys.lt 1
     echo [3] Go back
     echo.
-    choice /C 123 /M "Choose an Option from Above:"
+    choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto monitor.enable
         if %_erl%==2 goto monitor.disable
         if %_erl%==3 goto advanced.options
+        if %_erl%==4 call :standby
     goto monitor.settings
 
 :monitor.enable
@@ -753,12 +758,13 @@
     echo [4] Discard
     echo.
     echo.
-    choice /C 1234 /M "Choose an Option from Above:"
+    choice /C 1234S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto login.create
         if %_erl%==2 goto login.change
         if %_erl%==3 goto login.delete
         if %_erl%==4 goto settings
+        if %_erl%==5 call :standby
     goto login.setup
     
 :login.change
@@ -866,11 +872,12 @@
     echo [3] gsudo (/gerardog/gsudo)
     echo.
     echo. 
-    choice /C 123 /M "Choose an Option from Above:"
+    choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto switch.pwsh.elevation
         if %_erl%==2 goto switch.sudo.elevation
-        if %_erl%==2 goto switch.gsudo.elevation
+        if %_erl%==3 goto switch.gsudo.elevation
+        if %_erl%==4 call :standby
     goto switch.elevation
 
 
@@ -951,7 +958,7 @@
     echo. 
     call :sys.lt 1
     echo [6] Go back
-    choice /C 123456 /M "Choose an Option from Above:"
+    choice /C 123456S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 if %logging% == 1 ( call :log Chaning_Default_Filename WARNING ) && call :update_config "default-filename" "Type in the Filename you want to use:" "" && goto restart.script
         if %_erl%==2 if %logging% == 1 ( call :log Changing_Standart_Directory WARNING ) && call :update_config "default_directory" "Type Your Directory Here:" "" && goto restart.script
@@ -959,6 +966,7 @@
         if %_erl%==4 if %logging% == 1 ( call :log Chaning_Standart_Domain WARNING ) && call :update_config "default-domain" "Enter the Default Domain:" "" && goto restart.script
         if %_erl%==5 goto settings.skip.sec
         if %_erl%==6 goto settings
+        if %_erl%==7 call :standby
     goto spam.settings
 
 :settings.skip.sec
@@ -997,12 +1005,13 @@
     call :sys.lt 1
     echo.
     echo.
-    choice /C 1234 /M "Choose an Option from Above:"
+    choice /C 1234S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 call :update.script stable && goto cancel
         if %_erl%==2 call :update.script stable && goto cancel
         if %_erl%==3 call :update.script beta && goto cancel
         if %_erl%==4 goto settings
+        if %_erl%==5 call :standby
     goto settings.version.control
 
 
@@ -1012,10 +1021,11 @@
     echo Developer Options include some advanced features like logging etc.
     echo These Features are experimental can be unstable.
     echo.
-    choice /C YN /M "Yes/No"
+    choice /C YNS /T 120 /D S  /M "Yes/No"
         set _erl=%errorlevel%
         if %_erl%==1 goto write-dev-options
         if %_erl%==2 goto settings
+        if %_erl%==3 call :standby
     goto activate.dev.options   
     
 :write-dev-options
@@ -1055,13 +1065,14 @@
     call :sys.lt 1
     echo.
     echo.
-    choice /C 12345 /M "Choose an Option from Above:"
+    choice /C 12345S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto enable.logging
         if %_erl%==2 goto disable.logging
         if %_erl%==3 cls && echo Opening Log... && notepad %userprofile%\Documents\DataSpammerLog\DataSpammer.log && pause && goto settings.logging
         if %_erl%==4 cls && erase %userprofile%\Documents\DataSpammerLog\DataSpammer.log && echo Log Cleared. && pause && goto settings.logging
         if %_erl%==5 goto settings
+        if %_erl%==6 call :standby
     goto settings.logging
 
 
@@ -1101,11 +1112,12 @@
     echo.
     echo.
 
-    choice /C 123 /M "Choose an Option from Above:"
+    choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto ad.setup
         if %_erl%==2 goto ad.remove
         if %_erl%==3 goto menu
+        if %_erl%==4 call :standby
     goto ad.settings
 
 
@@ -1122,11 +1134,12 @@
     echo [3] Back
     echo.
     echo.
-    choice /C 123 /M "Choose an Option from Above:"
+    choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto autostart.delete
         if %_erl%==2 goto desktop.icon.delete  
         if %_erl%==3 goto ad.settings
+        if %_erl%==4 call :standby
     goto ad.remove
 
 
@@ -1144,11 +1157,12 @@
     call :sys.lt 2
     echo.
 
-    choice /C 123 /M "Choose an Option from Above:"
+    choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto autostart.setup.confirmed
         if %_erl%==2 goto desktop.icon.setup
         if %_erl%==3 goto ad.settings
+        if %_erl%==4 call :standby
     goto ad.setup
 
 
@@ -1215,11 +1229,12 @@
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    choice /C 123 /M "Choose an Option from Above:"
+    choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto local.spams
         if %_erl%==2 goto internet.spams
         if %_erl%==3 goto menu
+        if %_erl%==4 call :standby
     goto start.verified
 
 
@@ -1257,7 +1272,7 @@
     echo.
     call :sys.lt 1
     echo.
-    choice /C 12345678 /M "Choose an Option from Above:"
+    choice /C 12345678S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto ssh.spam
         if %_erl%==2 goto dns.spam
@@ -1267,6 +1282,7 @@
         if %_erl%==6 goto icmp.spam
         if %_erl%==7 goto telnet.spam
         if %_erl%==8 goto start.verified
+        if %_erl%==9 call :standby
     goto internet.spams
 
 :telnet.spam
@@ -1335,7 +1351,7 @@
     echo.
     echo.
     echo.
-    choice /C 12345 /M "Choose an Option from Above:"
+    choice /C 12345S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto normal.text.spam
         if %_erl%==2 goto desktop.icon.spam
@@ -1343,6 +1359,7 @@
         if %_erl%==4 goto app.list.spam
         if %_erl%==5 goto crypt.spam
         if %_erl%==6 goto start.verified
+        if %_erl%==7 call :standby
     goto local.spams
 
 :crypt.spam
@@ -1982,11 +1999,12 @@
     call :sys.lt 1
     echo.
     echo.
-    choice /C 123 /M "Choose an Option from Above:"
+    choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto sys.delete.script.check.elevation
         if %_erl%==2 explorer "https://github.com/PIRANY1/DataSpammer" && goto sys.delete.script
         if %_erl%==3 goto cancel
+        if %_erl%==4 call :standby
     goto sys.delete.script
 
 :sys.delete.script.check.elevation
@@ -2109,7 +2127,7 @@
     echo [6] List all :signs
     echo.
     echo [7] Go Back
-    choice /C 1234567 /M "Choose an Option from Above:"
+    choice /C 1234567S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto dev.options.call.sign
         if %_erl%==2 @echo on && cls && goto dev.options
@@ -2118,6 +2136,7 @@
         if %_erl%==5 goto restart.script
         if %_erl%==6 call :list.vars && pause && cls
         if %_erl%==7 goto settings
+        if %_erl%==8 call :standby
     goto dev.options
 
 :dev.options.call.sign
@@ -2196,12 +2215,13 @@
     echo.
     echo.
     set /P debuglog=Choose an Option from Above
-    choice /C 1234 /M "Choose an Option from Above:"
+    choice /C 1234S /T 120 /D S  /M "Choose an Option from Above:"
     set _erl=%errorlevel%
     if %_erl%==1 echo %ZIP_FILE% | clip && cls && echo Copied debug.log.zip to your Clipboard && pause
     if %_erl%==2 explorer "https://github.com/PIRANY1/DataSpammer/issues"
     if %_erl%==3 rmdir /s /q "%SOURCE_DIR%" && goto advanced.options
     if %_erl%==4 goto advanced.options
+    if %_erl%==5 call :standby
     goto debug.done
     
     :: Collect Functionalities HERE..
@@ -2914,6 +2934,28 @@
     set "timeDiffMs=%diff%"
     exit /b
 
+:loading.animation
+    set "count=%~1"
+    set "wait=1"
+    set "spinner=|/-\"
+    
+    :main_loop
+    for /L %%C in (1,1,%count%) do (
+        for %%A in (0 1 2 3) do (
+            cls
+            set "char=!spinner:~%%A,1!"
+            echo !char!
+            powershell -command "Start-Sleep -Milliseconds %wait%"
+        )
+    )
+    exit /b
+
+:standby
+    :: Display Stanby Message
+    echo Script went into Standby after 2 Minutes
+    echo Press any Key to continue...
+    pause >nul
+    goto :EOF
 
 :win.version.check
     Set UseExpresssion=Reg Query "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v "ProductName"
@@ -3005,10 +3047,11 @@
     echo.
     echo.
     call :sys.lt 1
-    choice /C 12 /M "Choose an Option from Above:"
+    choice /C 12S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 set "directory=%ProgramW6432%"
         if %_erl%==2 set /p directory=Enter the Directory:
+        if %_erl%==3 call :standby
     if not defined directory ( goto installer.main.window )
 
     if not "%directory:~-1%"=="\" set "directory=%directory%\"
@@ -3054,13 +3097,14 @@
     echo [5] De-select All Options
     echo.
     echo.
-    choice /C 12345 /M "Choose an Option from Above:"
+    choice /C 12345S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 cls && set "startmenushortcut=Included" && set "startmenushortcut1=1" && goto installer.menu.select
         if %_erl%==2 cls && set "desktopicon=Included" && set "desktopic1=1" && goto installer.menu.select
         if %_erl%==3 cls && set "addpath=Included" && set "addpath1=1" && goto installer.menu.select
         if %_erl%==4 goto installer.start.copy
         if %_erl%==5 set "startmenushortcut=Not Included" && set "desktopicon=Not Included" && set "addpath=Not Included" && goto installer.menu.select
+        if %_erl%==6 call :standby
     goto installer.menu.select
 
 :installer.start.copy
