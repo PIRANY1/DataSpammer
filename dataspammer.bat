@@ -62,7 +62,7 @@
 ::      Add more erl checks
 ::      Add more Error Catchers
 ::      Add Settings Template to GH
-::      Download new Settings and override with local settings
+::      Download new Settings and override with local settings - sys.no.settings!
 
 
 :top
@@ -117,7 +117,6 @@
         call :sys.lt 10 count
     )
 
-
     :: Check if Script is running from Network Drive
     if /I "%~d0"=="\\\\" (
         %errormsg%
@@ -158,16 +157,11 @@
         call :color _Green "Opening installer..."
         goto installer.main.window
     )
-
-    if not exist "%~dp0settings.conf" goto sys.no.settings
+    dir /b | findstr /i "settings.conf" >nul 2>&1 || echo No Settings Found && goto sys.no.settings
+    if exist "%~dp0settings.conf" ( call :parse.settings )
     :: Parse Settings from Config
     :: Parser doesnt work when no settings file exist
     if "%workflow.exec%"=="1" echo Script getting executed from GitHub && goto skip.parse
-    echo Parsing Settings...
-    set "config_file=settings.conf"
-    for /f "usebackq tokens=1,2 delims==" %%a in (`findstr /v "^::" "%config_file%"`) do (
-        set "%%a=%%b"
-    )
     if defined "chcp" (
         chcp %chcp%
         call :color _Green "Codepage set to %chcp%"
@@ -193,8 +187,8 @@
 :pid.check
     :: Get the Parent Process ID of the current script - Needed for Monitor
     %powershell.short% -Command "(Get-CimInstance Win32_Process -Filter \"ProcessId=$PID\").ParentProcessId" > "%temp%\parent_pid.txt"
-    if exist "%temp%\parent_pid.txt" ( set /p PID=<"%temp%\parent_pid.txt" ) else ( set "PID=ERROR" && %errormsg% && echo Failed to get Parent PID && call :sys.lt 4 count) 
-    if defined PID set "PID=0000"
+    if exist "%temp%\parent_pid.txt" ( set /p PID=<"%temp%\parent_pid.txt" ) else ( set "PID=0000" && %errormsg% && echo Failed to get Parent PID && call :sys.lt 4 count) 
+    if "%PID%"=="" ( set "PID=0000" && %errormsg% && echo Failed to get Parent PID && call :sys.lt 4 count)
     del "%temp%\parent_pid.txt"
     echo Got PID: %PID%
 
@@ -312,6 +306,7 @@
         echo Development Version, Skipping Update
         call :sys.lt 3
         if %logging% == 1 ( call :log Skipped_Update_Check_%current-script-version% WARN )
+        exit /b
     )
     call :git.version.check
     call :git.update.check %uptodate%
@@ -349,12 +344,12 @@
 
 :git.version.outdated
     if %logging% == 1 ( call :log Version_Outdated WARNING)
-    echo Version Outdated!
+    echo Version Outdated ^!
     call :sys.lt 1
     echo.
     call :sys.lt 1
     echo The Version you are currently using is %current-script-version%
-    call :sys.lt 1call :sys.lt 1 
+    call :sys.lt 1
     echo The newest Version avaiable is %latest_version%
     call :sys.lt 1
     echo.
@@ -373,11 +368,10 @@
     goto git.version.outdated
 
 :sys.no.settings
-    if %logging% == 1 ( call :log Settings_Not_Found WARNING )
     cls
     echo The File "settings.conf" doesnt exist. 
     call :sys.lt 1
-    echo Do you want to reinstall the Script or do you want to open the Script anyways?
+    echo A reinstall of the Script is Needed. 
     call :sys.lt 1
     echo.
     call :sys.lt 1
@@ -385,12 +379,12 @@
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [2] Open anyways (Some Features may not work)
+    echo [2] Exit
     call :sys.lt 1
     choice /C 12 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto installer.main.window
-        if %_erl%==2 goto no.settings.update
+        if %_erl%==2 goto cancel
     goto sys.no.settings
 
 :no.settings.update
@@ -2475,11 +2469,19 @@
         )
         echo.
     ) else (
-        set /a "result=%1*500-100" 
-        if exist "%~dp0\wait.exe" ( wait.exe %0 )
-        %powershell.short% -command "Start-Sleep -Milliseconds !result!"
+        ping -4 -n %1 127.0.0.1 >nul
     )
     exit /b 0
+
+:parse.settings
+    :: Parse Settings from Config
+    :: Parser doesnt work when no settings file exist ( crashes script )
+    echo Parsing Settings...
+    set "config_file=settings.conf"
+    for /f "usebackq tokens=1,2 delims==" %%a in (`findstr /v "^::" "%config_file%"`) do (
+        set "%%a=%%b"
+    )
+    goto :EOF
 
 :log
     :: call scheme is:
@@ -3247,7 +3249,7 @@
     echo. > %temp%\DataSpammerClose.txt
     erase "%~dp0\dataspammer.lock" >nul 2>&1
     popd
-    exit /b %EXIT_CODE%
+    exit %EXIT_CODE%
 
 goto cancel
 exit %errorlevel%
