@@ -1,7 +1,7 @@
 :: Use only under License
 :: Contribute under https://github.com/PIRANY1/DataSpammer
 :: Version v6 - Beta
-:: Last edited on 05.05.2025 by PIRANY
+:: Last edited on 15.05.2025 by PIRANY
 
 
 :: Short Copy Paste:
@@ -45,6 +45,7 @@
 :: Full random numbers
 :: call :generateRandom
 :: echo %realrandom%
+:: set /p firstLine=<
 :: =============================================================
 
 :: Developer Notes
@@ -61,9 +62,13 @@
 ::      Improve Standby
 ::      Add more erl checks
 ::      Add more Error Catchers
-::      Add Settings Template to GH
-::      Download new Settings and override with local settings - sys.no.settings!
-
+::      Add auto fix
+::      add smart stuff
+::      Clean empty Lines
+::      Add Custom Auto Instruction Files & link with ASSOC
+::      Implement COMP / FC, CON Device, CALCLS, EVENTCREATE, EXPAND / MAKECAB, MORE, OPENFILES, touch /t, 
+::      Add Printer list Spam
+::      Replace Powershell Logic with Shortcut, SIGCheck.exe, 
 
 :top
     @echo off
@@ -92,6 +97,7 @@
 
     :: Predefine _erl to ensure errorlevel or choice inputs function correctly
     set "_erl=FFFF"
+
 
     :: Check if Script is running from Temp Folder
     if /I "%~dp0"=="%TEMP%" (
@@ -158,6 +164,7 @@
         goto installer.main.window
     )
     dir /b | findstr /i "settings.conf" >nul 2>&1 || echo No Settings Found && goto sys.no.settings
+    if exist "%~dp0settings.conf" ( call :verify.settings )
     if exist "%~dp0settings.conf" ( call :parse.settings )
     :: Parse Settings from Config
     :: Parser doesnt work when no settings file exist
@@ -408,28 +415,7 @@
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 
 :dts.startup.done
-    :: Compare Upstream Version & Local Version
-    if "%current-script-version%"=="v6" (
-        set "remote=https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/v6/dataspammer.bat"
-    ) else (
-        set "remote=https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat"
-    )
-    
-    curl -s -o "%TEMP%\dataspammer_remote.bat" "%remote%"
-    for /f "tokens=1" %%A in ('certutil -hashfile "%TEMP%\dataspammer_remote.bat" SHA256 ^| find /i /v "SHA256" ^| find /i /v "certutil"') do set "REMOTE_HASH=%%A"
-    for /f "tokens=1" %%A in ('certutil -hashfile "%0" SHA256 ^| find /i /v "SHA256" ^| find /i /v "certutil"') do set "LOCAL_HASH=%%A"
-    :: echo Local File: !LOCAL_HASH!
-    :: echo Upstream File: !REMOTE_HASH!
-    
-    if not"!REMOTE_HASH!"=="!LOCAL_HASH!" (
-        %errormsg%
-        echo The GitHub version of the script differs from your local version.
-        echo This could be due to a failed update or manual modifications.
-        echo If you did not make these changes, consider redownloading the script to avoid potential issues.
-        call :sys.lt 5 count
-    )
-    
-
+    call :dataspammer.hash.check
     title DataSpammer - Finishing Startup
     setlocal enabledelayedexpansion
 
@@ -2149,6 +2135,12 @@
         set "%%a=%%b"
     )
 
+    Cipher /E "%~dp0\settings.conf" 
+    Cipher /E "%~dp0\dataspammer.bat"
+    Cipher /E "%userprofile%\SecureDataSpammer\username.hash"
+    Cipher /E "%userprofile%\SecureDataSpammer\settings.hash"
+    Cipher /E "%userprofile%\SecureDataSpammer\password.hash"
+
     if not defined %default_filename% call :update_config "default_filename" "" "notused"
     if not defined %default-domain% call :update_config "default-domain" "" "notused"
     if not defined %default-filecount% call :update_config "default-filecount" "" "notused"
@@ -2159,7 +2151,8 @@
     if not defined %update% call :update_config "update" "" "1"
     if not defined %update% call :update_config "color" "" "02"    
     if not defined %skip-sec% call :update_config "skip-sec" "" "0"
-
+    call :reset.settings.hash
+    
     :: Renew Version Registry Key
     set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
     if defined ProgramFiles(x86) (
@@ -2174,7 +2167,7 @@
     echo Successfully Updated to %current-script-version%
     echo Restarting...
     call :sys.lt 4 count
-
+    goto restart.script
 
 
 :debuglog
@@ -2265,10 +2258,12 @@
     :: Example1: call :dns.spam
     :: Example2: Paste a modified Function here if manual input is required
 
+    echo Generate Random
     :: Generate Full Random - v6 #27
     call :generateRandom
     echo Random: %realrandom%
 
+    echo Show Colors:
     :: Show Colors - v6 #27
     call :color Red      "This is red on light white"
     call :color _Red     "This is red on black"
@@ -2280,17 +2275,21 @@
     call :color _White   "White on dark gray"
     call :color _Yellow  "Yellow on black"
 
+    echo Check NCS
     :: check NCS - v6 #27
     call :check_NCS
     echo _NCS: %_NCS%
 
+    echo Calc Time Diff
     :: Calc Time Diff - v6 #27
     call :TimeDifference "%starttime%" "%endtime%" > tmp_time.txt
     set /p diff.full=<tmp_time.txt && del tmp_time.txt && echo Time Diff %diff.full%
-
+    
+    echo List Vars
     :: List Vars - v6 #27
     call :list.vars
 
+    echo Generate Random
     :: Generate Custom Random - v6 #27
     call :generate_random all 40
     echo Random: %random_gen%
@@ -2312,6 +2311,75 @@
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
+
+:dataspammer.hash.check
+:: Compare Upstream Version & Local Version
+    if "%current-script-version%"=="v6" (
+        set "remote=https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/v6/dataspammer.bat"
+    ) else (
+        set "remote=https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat"
+    )
+    
+    curl -s -o "%TEMP%\dataspammer_remote.bat" "%remote%"
+    for /f "tokens=1" %%A in ('certutil -hashfile "%TEMP%\dataspammer_remote.bat" SHA256 ^| find /i /v "SHA256" ^| find /i /v "certutil"') do set "REMOTE_HASH=%%A"
+    for /f "tokens=1" %%A in ('certutil -hashfile "%0" SHA256 ^| find /i /v "SHA256" ^| find /i /v "certutil"') do set "LOCAL_HASH=%%A"
+    :: echo Local File: !LOCAL_HASH!
+    :: echo Upstream File: !REMOTE_HASH!
+    
+    if not"!REMOTE_HASH!"=="!LOCAL_HASH!" (
+        %errormsg%
+        echo The GitHub version of the script differs from your local version.
+        echo This could be due to a failed update or manual modifications.
+        echo If you did not make these changes, consider redownloading the script to avoid potential issues.
+        call :sys.lt 5 count
+    )
+
+:verify.settings
+    set "hashpath=%userprofile%\Documents\SecureDataSpammer"
+    if exist "%hashpath%\settings.hash" (
+        set /p settingshash=<"%hashpath%\settings.hash"
+    ) else (
+        certutil -hashfile "%~dp0\settings.conf" SHA256 > "%hashpath%\settings.hash"
+        set /p settingshash=<"%hashpath%\settings.hash"
+    )
+    for /f "delims=" %%a in ('%powershell.short% -Command "(Get-Content '%hashpath%\settings.hash' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "saved_hash=%%a"
+    for /f "delims=" %%a in ('%powershell.short% -Command "(Get-Content '%~dp0\settings.conf' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "current_hash=%%a"
+    set "saved_hash=%saved_hash: =%"
+    set "current_hash=%current_hash: =%"
+    
+    if not "%current_hash%" EQU "%saved_hash%" (
+        echo The settings.conf file has been modified unexpectedly. 
+        echo This could indicate manual changes or potential corruption.
+        echo Please review the settings.conf file for any discrepancies or errors.
+        echo If you encounter issues, consider reinstalling the script.
+        call :sys.lt 10
+        goto :EOF
+    )
+    goto :EOF
+
+:reset.settings.hash
+    set "hashpath=%userprofile%\Documents\SecureDataSpammer"
+    if exist "%hashpath%\settings.hash" (
+        del "%hashpath%\settings.hash"
+        certutil -hashfile "%~dp0\settings.conf" SHA256 > "%hashpath%\settings.hash"
+    )
+    exit /b    
+
+:repair.settings
+    if not exist "%~dp0settings.conf" ( echo The settings.conf file is missing! && pause && exit /b 1)
+    set "config_file=%~dp0settings.conf"
+    echo Repairing settings.conf...
+    set "output_file=%temp%\settings.conf"
+    for /f "usebackq tokens=1,* delims==" %%a in (`findstr /v "^::" "%config_file%"`) do (
+        set "key=%%a"
+        set "value=%%b"
+        >> "%output_file%" echo !key!=!value!
+        echo Adding !key! with !value! to %output_file%
+    )
+    erase "%~dp0settings.conf"
+    move /y "%output_file%" "%~dp0settings.conf" 
+    echo Repair completed. The settings.conf file has been restored.
+    exit /b 0
 
 :: Generate real random numbers ( default %random% is limited to 32767)
 :generateRandom
@@ -2462,7 +2530,7 @@
         timeout /t %1 >nul
     )
     if /i "%2"=="count" (
-        for /L %%i in (!dur!,-1,0) do (
+        for /L %%i in (%1,-1,0) do (
             set "msg=Waiting, %%i seconds remaining..."
             echo !msg!
             timeout /t 1 >nul
@@ -2565,6 +2633,8 @@
     if "!logging!"=="1" call :log Changing_%key% INFO
     echo Restarting...
     cls
+    :: Reset the settings Hash save
+    call :reset.settings.hash
     goto :EOF
     
 
