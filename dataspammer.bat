@@ -69,6 +69,7 @@
 ::      Implement COMP / FC, CON Device, CALCLS, EVENTCREATE, EXPAND / MAKECAB, MORE, OPENFILES, touch /t, 
 ::      Add Printer list Spam
 ::      Replace Powershell Logic with Shortcut, SIGCheck.exe, 
+::      Finish v6.port
 
 :top
     @echo off
@@ -3087,6 +3088,7 @@
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 
 :installer.main.window
+    if exist "%~dp0\install.bat" ( goto v6.port )
     :: Check Elevation
     net session >nul 2>&1
     if %errorLevel% neq 0 (
@@ -3274,6 +3276,12 @@
         if %_erl%==2 goto finish.installation
     goto sys.main.installer.done
 
+:v6.port
+    echo Porting to V6...
+    echo Adding Registry Key...
+    reg add "HKCU\Software\DataSpammer" /v Installed /t REG_DWORD /d 1 /f
+    echo Done. 
+    echo Consider reinstalling the Script to avoid any issues. 
 
 :encrypt.script
     for /f "delims=" %%a in ('where certutil') do (
