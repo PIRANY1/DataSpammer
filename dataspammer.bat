@@ -1,7 +1,7 @@
 :: Use only under License
 :: Contribute under https://github.com/PIRANY1/DataSpammer
 :: Version v6 - Beta
-:: Last edited on 15.05.2025 by PIRANY
+:: Last edited on 18.05.2025 by PIRANY
 
 
 :: Short Copy Paste:
@@ -58,25 +58,19 @@
 ::      Add more to Dev Options
 
 ::      V6 Requirements:
-::      Verify Code
+::      Check for Bugs / Verify
 ::      Improve Standby
-::      Add more erl checks
-::      Add more Error Catchers
-::      Add auto fix
-::      add smart stuff
-::      Clean empty Lines
-::      Add Custom Auto Instruction Files & link with ASSOC
+::      Add more Error Catchers / Checks
+::      Continue Custom Instruction File
 ::      Implement COMP / FC, CON Device, CALCLS, EVENTCREATE, EXPAND / MAKECAB, MORE, OPENFILES, touch /t, 
-::      Add Printer list Spam
 ::      Replace Powershell Logic with Shortcut, SIGCheck.exe, 
-::      Finish v6.port
 
 :top
     @echo off
     @pushd "%~dp0"
     @title DataSpammer - Initiating
     @echo Initializing...
-    @setlocal ENABLEDELAYEDEXPANSION 
+    @setlocal ENABLEDELAYEDEXPANSION
     set "exec-dir=%cd%"
     :: Improve NT Compatabilty - Credits to Gradlew Batch Version
     if "%OS%"=="Windows_NT" setlocal
@@ -84,13 +78,13 @@
     if "%DIRNAME%"=="" set DIRNAME=.
     mode con: cols=140 lines=40
     set "current-script-version=development"
-    :: Improve Powershell Speed 
+    :: Improve Powershell Speed
     set "powershell.short=powershell -ExecutionPolicy Bypass -NoProfile -NoLogo"
-    
+
     :: Can be Implemented along if errorlevel ...
     set "errormsg=echo: &call :color _Red "====== ERROR ======" &echo:"
 
-    :: Check for NCS Support 
+    :: Check for NCS Support
     :: NCS is required for ANSI / Color Support
     call :check_NCS
     call :color _Green "ANSI Color Support is enabled"
@@ -150,6 +144,7 @@
     if "%1"=="monitor" title DataSpammer && goto monitor
     if "%1"=="start" title DataSpammer && goto start.verified
     if "%1"=="install" title DataSpammer && goto installer.main.window
+    if exist "%~1" if /i "%~x1"==".dts" goto custom.instruction.read
 
     :: Undocumented Arguments
     if "%1"=="update-install" ( goto sys.new.update.installed )
@@ -164,6 +159,18 @@
         call :color _Green "Opening installer..."
         goto installer.main.window
     )
+
+    :: Check for Install Reg Key
+    for /f "tokens=3*" %%a in ('reg query "HKCU\Software\DataSpammer" /v Version 2^>nul ^| find "Version"') do set "reg_version=%%b"
+    if not defined reg_version ( goto v6.port)
+    if not "%reg_version%"=="%current-script-version%" ( 
+        echo Script Version Registry Key is outdated.
+        choice /C YN /M "Do you want to update the Registry Key? ()"
+            set _erl=%errorlevel%
+            if %_erl%==1 goto sys.new.update.installed
+            if %_erl%==2 
+    )
+
     dir /b | findstr /i "settings.conf" >nul 2>&1 || echo No Settings Found && goto sys.no.settings
     if exist "%~dp0settings.conf" ( call :verify.settings )
     if exist "%~dp0settings.conf" ( call :parse.settings )
@@ -211,10 +218,12 @@
     for /f "tokens=* delims=" %%A in ("!pidlock!") do set "pidlock=%%A" >nul 2>&1
     set "PID=!PID: =!" >nul 2>&1 
     set "pidlock=!pidlock: =!" >nul 2>&1 
+    if %logging% == 1 ( call :log PID-Check_Results:PID:!pid!_PIDlock:!pidlock! INFO )
 
     if defined pidlock (
         if "!pidlock!"=="!PID!" (
             call :color _Red "DataSpammer is already running under PID !pidlock!."
+            if %logging% == 1 ( call :log DataSpammer_Already_Running ERROR)
             echo Exiting...
             pause
             goto cancel 
@@ -222,22 +231,26 @@
             echo !pidlock! %pid%
             call :color _Red "DataSpammer may have crashed or was closed. Deleting lock file..."
             call :color _Red "Be aware that some tasks may not have finished properly."
+            if %logging% == 1 ( call :log DataSpammer_may_have_crashed ERROR )
             del "%~dp0\dataspammer.lock" >nul 2>&1
-            timeout 2 >nul
+            call :sys.lt 4 timeout
         )
     ) else (
         echo No PID Found - Deleting Lock...
+        if %logging% == 1 ( call :log PID_Empty ERROR )
         del "%~dp0\dataspammer.lock" >nul 2>&1 
     )
     echo %PID% > "%~dp0\dataspammer.lock" >nul 2>&1
 
     :: Start the Monitor Socket
-    if %monitoring%==1 start /min cmd.exe /k ""%~f0" monitor %PID%"
+    if %monitoring%==1 start /min cmd.exe /k ""%~f0" monitor %PID%" && if %logging% == 1 ( call :log Starting_Monitor_Socket INFO )
+    
 
     :: Check if Login is Setup
     if not exist "%userprofile%\Documents\SecureDataSpammer\username.hash" goto file.check    
 
 :login.input
+    if %logging% == 1 ( call :log Starting_Login INFO )
     title DataSpammer - Login
     del %TEMP%\username.txt > nul
     del %TEMP%\password.txt > nul
@@ -278,6 +291,7 @@
             goto file.check
         ) else (
             echo Authentication failed. Password does not match.
+            if %logging% == 1 ( call :log Password_Not_Matching WARN )
             del "%TEMP%\username.txt" >nul 2>&1 && del "%TEMP%\password.txt" >nul 2>&1 && del "%TEMP%\username_hash.txt" >nul 2>&1 && del "%TEMP%\password_hash.txt" >nul 2>&1
             echo Credentials do not match!
             pause
@@ -287,6 +301,7 @@
         echo Authentication failed. Username does not match.
         del "%TEMP%\username.txt" >nul 2>&1 && del "%TEMP%\password.txt" >nul 2>&1 && del "%TEMP%\username_hash.txt" >nul 2>&1 && del "%TEMP%\password_hash.txt" >nul 2>&1
         echo Credentials do not match!
+        if %logging% == 1 ( call :log Username_Not_Matching WARN )
         pause
         goto login.input
     )    
@@ -351,7 +366,7 @@
     exit /b
 
 :git.version.outdated
-    if %logging% == 1 ( call :log Version_Outdated WARNING)
+    if %logging% == 1 ( call :log Version_Outdated WARNING )
     echo Version Outdated ^!
     call :sys.lt 1
     echo.
@@ -434,7 +449,7 @@
     if exist "%~dp0\encrypt.bat" erase "%~dp0\encrypt.bat" >nul 2>&1
 
     :: Check Developermode
-    if "%developermode%"=="1" ( set "dev-mode=1" & echo Enabled Developermode ) else ( set "dev-mode=0" )
+    if "%developermode%"=="1" ( set "dev-mode=1" & echo Enabled Developermode && ) else ( set "dev-mode=0" )
 
     :: Extract CMD Version
     for /f "tokens=2 delims=[]" %%v in ('ver') do set CMD_VERSION=%%v
@@ -442,7 +457,7 @@
     :: Logging
     if %logging% == 1 ( call :log Startup_Complete INFO )
     if %logging% == 1 ( call :log Successfully_Started_DataSpammer_%current-script-version%_Errorlevel:_%errorlevel% INFO )
-    if "%developermode%"=="1" if %logging% == 1 ( call :log Developermode is On WARNING)
+    if "%developermode%"=="1" if %logging% == 1 ( call :log Developermode is On WARN )
 
 :menu
     title DataSpammer
@@ -586,11 +601,13 @@
     call :sys.lt 1
     echo [8] Download Wait.exe - Improve Speed / Wait Time - Source is at PIRANY1/wait.exe
     call :sys.lt 1
-    echo [9] Uninstall
+    echo [9] Enable Custom Instruction File (Experimental)
+    call :sys.lt 1
+    echo [10] Uninstall
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [10] Go back
+    echo [11] Go back
     choice /C 123456789S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto switch.elevation
@@ -601,10 +618,24 @@
         if %_erl%==6 goto change.color
         if %_erl%==7 goto change.chcp
         if %_erl%==8 goto download.wait
-        if %_erl%==9 goto sys.delete.script
-        if %_erl%==10 goto settings
-        if %_erl%==11 call :standby
+        if %_erl%==9 goto custom.instruction.enable
+        if %_erl%==10 goto sys.delete.script
+        if %_erl%==11 goto settings        
+        if %_erl%==12 call :standby
     goto advanced.options
+
+:custom.instruction.enable
+    set "ftypedir=%0"
+    :: Connect .dts with dtsfile type
+    ASSOC .dts=dtsfile
+    :: Connect dtsfily type with cmd
+    FTYPE dtsfile=cmd.exe /c "\"%ftypedir%\" \"%%1\""
+    echo Enabled Custom Instructions
+    
+
+:custom.instruction.read
+set "interpret.dts=%1"
+
 
 :download.wait
     bitsadmin /transfer upd "https://github.com/PIRANY1/wait-exe/raw/refs/heads/main/bin/wait.exe" "%temp%\wait.exe" 
@@ -808,7 +839,7 @@
     goto restart.script
 
 :encrypt
-    if %logging% == 1 ( call :log Encrypting_Script WARNING )
+    if %logging% == 1 ( call :log Encrypting_Script WARN )
     echo Encrypting...
     call :sys.lt 1
     cd /d "%~dp0 "
@@ -890,7 +921,7 @@
     )
     if not defined where_output (echo You dont have sudo enabled. && pause && goto advanced.options)
 
-    if %logging% == 1 ( call :log Chaning_Elevation_to_sudo WARNING )
+    if %logging% == 1 ( call :log Chaning_Elevation_to_sudo WARN )
     call :update_config "elevation" "" "sudo"
     echo Switched to Sudo.
     call :sys.lt 2
@@ -900,7 +931,7 @@
 :switch.pwsh.elevation
     echo Switching to Powershell Elevation...
     call :sys.lt 2
-    if %logging% == 1 ( call :log Chaning_Elevation_to_pwsh WARNING )
+    if %logging% == 1 ( call :log Chaning_Elevation_to_pwsh WARN )
     call :update_config "elevation" "" "pwsh"
     echo Switched to Powershell.
     call :sys.lt 2
@@ -909,7 +940,7 @@
 :switch.gsudo.elevation
     echo Switching to GSUDO Elevation...
     call :sys.lt 2
-    if %logging% == 1 ( call :log Chaning_Elevation_to_gsudo WARNING )
+    if %logging% == 1 ( call :log Chaning_Elevation_to_gsudo WARN )
     call :update_config "elevation" "" "gsudo"
     echo Switched to GSudo.
     call :sys.lt 2
@@ -941,10 +972,10 @@
     echo [6] Go back
     choice /C 123456S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 if %logging% == 1 ( call :log Chaning_Default_Filename WARNING ) && call :update_config "default-filename" "Type in the Filename you want to use:" "" && goto restart.script
-        if %_erl%==2 if %logging% == 1 ( call :log Changing_Standart_Directory WARNING ) && call :update_config "default_directory" "Type Your Directory Here:" "" && goto restart.script
-        if %_erl%==3 if %logging% == 1 ( call :log Chaning_Standart_Filecount WARNING ) && call :update_config "default-filecount" "Enter the Default Filecount:" "" && goto restart.script
-        if %_erl%==4 if %logging% == 1 ( call :log Chaning_Standart_Domain WARNING ) && call :update_config "default-domain" "Enter the Default Domain:" "" && goto restart.script
+        if %_erl%==1 if %logging% == 1 ( call :log Chaning_Default_Filename WARN ) && call :update_config "default-filename" "Type in the Filename you want to use:" "" && goto restart.script
+        if %_erl%==2 if %logging% == 1 ( call :log Changing_Standart_Directory WARN ) && call :update_config "default_directory" "Type Your Directory Here:" "" && goto restart.script
+        if %_erl%==3 if %logging% == 1 ( call :log Chaning_Standart_Filecount WARN ) && call :update_config "default-filecount" "Enter the Default Filecount:" "" && goto restart.script
+        if %_erl%==4 if %logging% == 1 ( call :log Chaning_Standart_Domain WARN ) && call :update_config "default-domain" "Enter the Default Domain:" "" && goto restart.script
         if %_erl%==5 goto settings.skip.sec
         if %_erl%==6 goto settings
         if %_erl%==7 call :standby
@@ -952,7 +983,7 @@
 
 :settings.skip.sec
     if %logging% == 1 (
-        call :log Chaning_Skip_security_question WARNING
+        call :log Chaning_Skip_security_question WARN
     )
     set "settings.skip-sec=%skip-sec%"
     if "%settings.skip-sec%"=="1" (
@@ -1010,7 +1041,7 @@
     goto activate.dev.options   
     
 :write-dev-options
-    if %logging% == 1 ( call :log Activating_Dev_Options WARNING )
+    if %logging% == 1 ( call :log Activating_Dev_Options WARN )
     cd /d "%~dp0"
     call :update_config "developermode" "" "1"
     echo Developer Options have been activated!
@@ -1066,7 +1097,7 @@
 
 :disable.logging
     if %logging% == 0 ( goto settings.logging )
-    if %logging% == 1 ( call :log Disabling_Logging WARNING )
+    if %logging% == 1 ( call :log Disabling_Logging WARN )
     call :update_config "logging" "" "0"
     echo Disabled Logging.
     call :sys.lt 2
@@ -1248,7 +1279,11 @@
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [8] Go Back
+    echo [8] Printer List Test
+    call :sys.lt 1
+    echo.
+    call :sys.lt 1
+    echo [9] Go Back
     call :sys.lt 1
     echo.
     call :sys.lt 1
@@ -1262,10 +1297,22 @@
         if %_erl%==5 goto printer.spam
         if %_erl%==6 goto icmp.spam
         if %_erl%==7 goto telnet.spam
-        if %_erl%==8 goto start.verified
-        if %_erl%==9 call :standby
+        if %_erl%==8 goto printer.list.spam
+        if %_erl%==9 goto start.verified
+        if %_erl%==10 call :standby
     goto internet.spams
 
+:printer.list.spam
+    set /P printer.name=Enter the Printer Name:
+    set /P printer.model=Enter the Modell(can be anything):
+    set /P printer.count=Enter the Printer Count:
+    for /L %%i in (1,1,%printer.count%) do (
+        set "count=%%i"
+        RUNDLL32 printui.dll,PrintUIEntry /if /b "!printer.name!!count!" /f "%windir%\inf\ntprint.inf" /m "%printer.model%"
+        echo Added Printer !printer.name!!count!
+    )
+    call :done "The Script has added the Printer %printer.name% with the Model %printer.model% and the Count %printer.count%"
+    
 :telnet.spam
     echo root > temp.txt
     echo 123456 >> temp.txt
@@ -1283,7 +1330,7 @@
     
     del temp.txt
     if %logging% == 1 ( call :log Finished_Telnet_Spam_on_%telnet.target% INFO )
-    call :done "The Script Tested the Telnet Server %telnet.target% with %telnet.count% Requests
+    call :done "The Script Tested the Telnet Server %telnet.target% with %telnet.count% Requests"
 
     
 :icmp.spam
@@ -2011,10 +2058,13 @@
     if exist "%~dp0\dataspammer.bat" del "%~dp0\dataspammer.bat"
     reg query "HKCU\Software\DataSpammer" /v Installed >nul 2>&1
     if not %errorlevel% neq 0 ( reg delete "HKCU\Software\DataSpammer" /f )
+    ASSOC .dts=
+    FTYPE dtsfile=
+
     echo Uninstall Successfulled
     
 :restart.script
-    if %logging% == 1 ( call :log Restarting_Script WARNING )
+    if %logging% == 1 ( call :log Restarting_Script WARN )
     call :send_message Script.is.restarting
     call :send_message Terminating %PID%
     echo. > %temp%\DataSpammerClose.txt
@@ -2494,7 +2544,7 @@
 
 :check_NCS
     :: ===============================
-    :: Function: check for NCS 
+    :: Function: check for NCS Support
     :: ===============================
     set "nul1=1>nul"
     set "nul2=2>nul"
@@ -2527,6 +2577,7 @@
 
 :sys.lt
     setlocal EnableDelayedExpansion
+    if exist "%~dp0\wait.exe" ( wait.exe %1 )
     if /i "%2"=="timeout" (
         timeout /t %1 >nul
     )
@@ -2557,17 +2608,17 @@
     :: call :log Opened_verify_tab ( ERROR, INFO etc.) <- OPTIONAL
     :: Use INFO for normal Actions e.g. Opened Menu Foo Bar
     :: Use ERROR for Errors
-    :: Use WARNING for Impactful Actions e.g. Changed Setting Foo Bar
+    :: Use WARN for Impactful Actions e.g. Changed Setting Foo Bar
     :: Use DEBUG for Debugging
     :: Custom Log Levels can be added
     :: In the Logfile _ and - are replaced with Spaces
     if "%logging%"=="0" exit /b
     if "%monitoring%"=="1" call :send_message "%log.content%"
 
+    call :check_args :log %1
     set "log.content=%1"
     set "logfile=DataSpammer.log"
     
-    call :check_args :log %1
     if "%errorlevel%"=="1" ( set "log.content=ERROR" )
 
     :: Check Folder Structure
@@ -3280,6 +3331,7 @@
     echo Porting to V6...
     echo Adding Registry Key...
     reg add "HKCU\Software\DataSpammer" /v Installed /t REG_DWORD /d 1 /f
+    reg add "HKCU\Software\DataSpammer" /v Version /t REG_SZ /d "%current-script-version%" /f
     echo Done. 
     echo Consider reinstalling the Script to avoid any issues. 
 
