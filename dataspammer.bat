@@ -62,8 +62,8 @@
 ::      Improve Standby
 ::      Add more Error Catchers / Checks
 ::      Continue Custom Instruction File
-::      Implement COMP / FC, CON Device, CALCLS, EVENTCREATE, EXPAND / MAKECAB, MORE, OPENFILES, touch /t, 
-::      Replace Powershell Logic with Shortcut, SIGCheck.exe, 
+::      Implement COMP / FC, 
+::      Create Spam with EXPAND / MAKECAB
 
 :top
     @echo off
@@ -132,6 +132,8 @@
 
     :: Arguments
     if "%1"=="" goto startup
+    if "%1"=="/b" set "b.flag=/b "
+    if "%2"=="/b" set "b.flag=/b "
     if "%1"=="version" title DataSpammer && goto version
     if "%1"=="--help" title DataSpammer && goto help.startup
     if "%1"=="help" title DataSpammer && goto help.startup
@@ -431,6 +433,7 @@
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 
 :dts.startup.done
+    EVENTCREATE /T INFORMATION /ID 100 /L APPLICATION /SO DataSpammer /D "Successfully started DataSpammer %errorlevel%"
     call :dataspammer.hash.check
     title DataSpammer - Finishing Startup
     setlocal enabledelayedexpansion
@@ -1848,7 +1851,7 @@ set "interpret.dts=%1"
             goto ssh.done
         )
         echo New SSH private key generated and saved to new_ssh_key.txt:
-        type new_ssh_key.txt 
+        COPY new_ssh_key.txt CON
         type new_ssh_key.txt | clip
         :: Update the ssh-key variable to use the new key for the following connection
         set "ssh-key=new_ssh_key.txt"
@@ -3308,6 +3311,7 @@ set "interpret.dts=%1"
     if defined addpath1 ( setx PATH "%PATH%;%directory9%\DataSpammer.bat" /M )
 
 :sys.main.installer.done
+    ECHO •
     echo Do you want to encrypt the Script Files?
     call :sys.lt 1
     echo This can bypass Antivirus Detections.
@@ -3372,6 +3376,7 @@ set "interpret.dts=%1"
 
 :cancel 
     :: Exit Script, compatible with NT
+    EVENTCREATE /T INFORMATION /ID 200 /L APPLICATION /SO DataSpammer /D "DataSpammer Exiting %ERRORLEVEL%"
     set EXIT_CODE=%ERRORLEVEL%
     if not "%1"=="" set "EXIT_CODE=%1"
     if "%EXIT_CODE%"=="" set EXIT_CODE=0
@@ -3379,7 +3384,7 @@ set "interpret.dts=%1"
     echo. > %temp%\DataSpammerClose.txt
     erase "%~dp0\dataspammer.lock" >nul 2>&1
     popd
-    exit %EXIT_CODE%
+    exit %b.flag%%EXIT_CODE%
 
 goto cancel
 exit %errorlevel%
