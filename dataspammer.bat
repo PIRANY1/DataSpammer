@@ -1,7 +1,7 @@
 :: Use only under License
 :: Contribute under https://github.com/PIRANY1/DataSpammer
 :: Version v6 - Beta
-:: Last edited on 18.05.2025 by PIRANY
+:: Last edited on 21.05.2025 by PIRANY
 
 
 :: Short Copy Paste:
@@ -62,7 +62,6 @@
 ::      Improve Standby
 ::      Add more Error Catchers / Checks
 ::      Continue Custom Instruction File
-::      Implement COMP / FC, 
 ::      Create Spam with EXPAND / MAKECAB
 
 :top
@@ -658,7 +657,7 @@ set "interpret.dts=%1"
     for /f "delims=" %%a in ('%powershell.short% -Command "(Get-Content '%temp%\wait.exe.sha256' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "sha256_expected=%%a"
     for /f "delims=" %%a in ('%powershell.short% -Command "(Get-Content '%temp%\wait.hash' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "sha256_actual=%%a"
 
-    
+        
     if "%sha256_expected%" neq "%sha256_actual%" (
         %errormsg%
         echo Hash mismatch! Expected: %sha256_expected%, but got: %sha256_actual%
@@ -1231,6 +1230,12 @@ set "interpret.dts=%1"
     if %logging% == 1 ( call :log Start_Verified INFO )
     cls
 
+    for /f "delims=" %%a in ('where python') do (
+        set "where_output=%%a"
+    )
+    if not defined where_output (set "python.line=echo.") else ( set "python.line=[4] Python Scripts (Experimental)")
+
+
 :start.verified
     echo [1] Local Machine
     call :sys.lt 1
@@ -1242,13 +1247,14 @@ set "interpret.dts=%1"
     call :sys.lt 1
     echo [3] Go back
     call :sys.lt 1
-    echo.
+    %python.line%
     call :sys.lt 1
-    choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
+    choice /C 1234S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto local.spams
         if %_erl%==2 goto internet.spams
         if %_erl%==3 goto menu
+        if %_erl%==4 goto python.spams    
         if %_erl%==4 call :standby
     goto start.verified
 
@@ -1304,6 +1310,41 @@ set "interpret.dts=%1"
         if %_erl%==9 goto start.verified
         if %_erl%==10 call :standby
     goto internet.spams
+
+:python.spams
+    echo [1] Zip Bomb Creator
+    call :sys.lt 1
+    echo.
+    call :sys.lt 1
+    echo [2] Go Back
+    call :sys.lt 1
+    echo.
+    call :sys.lt 1
+    echo.
+    choice /C 12S /T 120 /D S  /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto python.zip.bomb
+        if %_erl%==2 goto start.verified
+        if %_erl%==3 call :standby
+    goto python.spams
+
+:python.zip.bomb
+    cd "%~dp0"
+    set /P zipname=Filename (with .zip): 
+    set /P MB=Filesize (in MB): 
+    set /P COUNT=How many Files in the Base layer?:
+    set /A BYTES=%MB% * 1024 * 1024
+    
+    (
+        echo import zipfile
+        echo nullbytes = b'\x00' * %BYTES%
+        echo filename = "%zipname%"
+        echo with zipfile.ZipFile(filename, "w", compression=zipfile.ZIP_DEFLATED) as zipf:
+        echo ^    for i in range(%COUNT%):
+        echo ^        zipf.writestr(f"data_%%03d.bin" %% i, nullbytes)
+    ) > "%temp%\zip.py"
+    python %"temp%\zip.py"
+    erase "%temp%\zip.py"
 
 :printer.list.spam
     set /P printer.name=Enter the Printer Name:
