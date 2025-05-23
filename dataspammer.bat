@@ -1,7 +1,7 @@
 :: Use only under License
 :: Contribute under https://github.com/PIRANY1/DataSpammer
 :: Version v6 - Beta
-:: Last edited on 21.05.2025 by PIRANY
+:: Last edited on 23.05.2025 by PIRANY
 
 
 :: Short Copy Paste:
@@ -59,10 +59,9 @@
 
 ::      V6 Requirements:
 ::      Check for Bugs / Verify
-::      Improve Standby
 ::      Add more Error Catchers / Checks
 ::      Continue Custom Instruction File
-::      Create Spam with EXPAND / MAKECAB
+::      Implement repair.settings
 
 :top
     @echo off
@@ -173,6 +172,7 @@
     )
 
     dir /b | findstr /i "settings.conf" >nul 2>&1 || echo No Settings Found && goto sys.no.settings
+    :: Verify Settings Hash, then Parse Settings
     if exist "%~dp0settings.conf" ( call :verify.settings )
     if exist "%~dp0settings.conf" ( call :parse.settings )
     :: Parse Settings from Config
@@ -325,6 +325,7 @@
     goto dts.startup.done
 
 :gitcall.sys
+    :: Update Function Logic
     if %logging% == 1 ( call :log Calling_Update_Check INFO )
     if "%current-script-version%"=="development" (
         echo Development Version, Skipping Update
@@ -333,10 +334,11 @@
         exit /b
     )
     call :git.version.check
-    call :git.update.check %uptodate%
+    if "%uptodate%"=="up" ( call :git.version.clean ) else ( call :git.version.outdated )
     exit /b
 
 :git.version.check
+    :: Curl GitHub API, extract latest version & compare with current script version
     if %logging% == 1 ( call :log Curling_Github_API INFO )
     echo Checking for Updates...
     set "api_url=https://api.github.com/repos/PIRANY1/DataSpammer/releases/latest"
@@ -348,29 +350,19 @@
         set "latest_version=%%a"
     )
     set "latest_version=%latest_version:"=%"
-
-    if "%latest_version%" equ "v6" (
-        set "uptodate=up"
-    ) else (
-        set "uptodate=%current-script-version%"
-    )
+    if "%latest_version%" equ "v6" ( set "uptodate=up" ) else ( set "uptodate=%current-script-version%" )
     del apianswer.txt
     exit /b
     
-:git.update.check
-    if %logging% == 1 ( call :log Extracting_Data_From_API INFO )
-    if "%1"=="up" (
-        call :git.version.clean
-    ) else (
-        call :git.version.outdated
-    )
+:git.version.clean
+    if %logging% == 1 ( call :log Version_Is_Up_To_Date INFO )
+    echo The Version you are currently using is the newest one (%latest_version%)
+    call :sys.lt 1
     exit /b
 
 :git.version.outdated
-    if %logging% == 1 ( call :log Version_Outdated WARNING )
+    if %logging% == 1 ( call :log Version_Outdated WARN )
     echo Version Outdated ^!
-    call :sys.lt 1
-    echo.
     call :sys.lt 1
     echo The Version you are currently using is %current-script-version%
     call :sys.lt 1
@@ -411,17 +403,6 @@
         if %_erl%==2 goto cancel
     goto sys.no.settings
 
-:no.settings.update
-    if %logging% == 1 ( call :log Checking-Update-No-Settings INFO )
-    call :gitcall.sys
-    goto sys.enable.ascii.tweak
-
-:git.version.clean
-    if %logging% == 1 ( call :log Version_Is_Up_To_Date INFO )
-    echo The Version you are currently using is the newest one (%latest_version%)
-    call :sys.lt 1
-    exit /b
-
 
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -432,11 +413,13 @@
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 
 :dts.startup.done
+    :: Create Event Log Entry
     EVENTCREATE /T INFORMATION /ID 100 /L APPLICATION /SO DataSpammer /D "Successfully started DataSpammer %errorlevel%"
-    call :dataspammer.hash.check
-    title DataSpammer - Finishing Startup
-    setlocal enabledelayedexpansion
 
+    :: Compare Hash
+    call :dataspammer.hash.check
+
+    title DataSpammer - Finishing Startup
     :: Check if DataSpammer.log is larger than 1MB
     if exist "%userprofile%\Documents\DataSpammerLog\DataSpammer.log" (
         for %%A in ("%userprofile%\Documents\DataSpammerLog\DataSpammer.log") do (
@@ -459,17 +442,17 @@
     :: Logging
     if %logging% == 1 ( call :log Startup_Complete INFO )
     if %logging% == 1 ( call :log Successfully_Started_DataSpammer_%current-script-version%_Errorlevel:_%errorlevel% INFO )
-    if "%developermode%"=="1" if %logging% == 1 ( call :log Developermode is On WARN )
+
+    :: Set Username for Menu
+    if not defined username.script set "username.script=%username%"
 
 :menu
     title DataSpammer
     cd /d "%~dp0"
     if %logging% == 1 ( call :log Displaying_Menu INFO )
-    if not defined username.script set "username.script=%username%"
     title DataSpammer %current-script-version%
-
-    
     cls
+
     %$Echo% "   ____        _        ____                                           
     %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __
     %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__|
@@ -490,7 +473,6 @@
     echo.
     call :sys.lt 1
     echo [2] Settings
-    color 02
     echo.
     call :sys.lt 1
     echo.
@@ -640,6 +622,7 @@ set "interpret.dts=%1"
 
 
 :download.wait
+    :: Download Wait.exe and Wait.exe Hash
     bitsadmin /transfer upd "https://github.com/PIRANY1/wait-exe/raw/refs/heads/main/bin/wait.exe" "%temp%\wait.exe" 
     if errorlevel 1 (
         %errormsg%
@@ -652,12 +635,12 @@ set "interpret.dts=%1"
         echo Download failed. 
         exit /b 1
     )  
-    :: Compare Hashes - Validate Download
+    :: Extract Hashes
     certutil -hashfile "%temp%\wait.exe" SHA256 > "%temp%\wait.hash"
     for /f "delims=" %%a in ('%powershell.short% -Command "(Get-Content '%temp%\wait.exe.sha256' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "sha256_expected=%%a"
     for /f "delims=" %%a in ('%powershell.short% -Command "(Get-Content '%temp%\wait.hash' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "sha256_actual=%%a"
 
-        
+    :: Compare Hashes
     if "%sha256_expected%" neq "%sha256_actual%" (
         %errormsg%
         echo Hash mismatch! Expected: %sha256_expected%, but got: %sha256_actual%
@@ -666,6 +649,7 @@ set "interpret.dts=%1"
     del "%temp%\wait.hash"
     del "%temp%\wait.exe.sha256"
         
+    :: Move Wait.exe    
     move /Y "%temp%\wait.exe" "%~dp0\wait.exe" 
     if errorlevel 1 (
         %errormsg%
@@ -677,6 +661,7 @@ set "interpret.dts=%1"
     goto restart.script
 
 :change.chcp
+    :: Change Codepage to allow for different character sets
     for /f "tokens=2 delims=:" %%a in ('chcp') do set "chcp.value=%%a"
     echo Current Codepage: %chcp.value%
     echo.
@@ -700,6 +685,7 @@ set "interpret.dts=%1"
     goto restart.script
 
 :change.color
+    :: Set Color Dialog
     echo.
     echo Currently Using Color: %color%
     echo.
@@ -782,6 +768,7 @@ set "interpret.dts=%1"
     goto login.setup
     
 :login.change
+    :: Delete User Account, then create a new one
     echo Changing Login...
     rmdir /s /q "%userprofile%\Documents\SecureDataSpammer"
     del "%userprofile%\Documents\SecureDataSpammer\username.hash"
@@ -789,8 +776,7 @@ set "interpret.dts=%1"
     goto login.create
 
 :login.delete
-    echo Deleting Account...
-    echo Deleting Hashed Files...
+    :: Delete User Account
     del "%userprofile%\Documents\SecureDataSpammer\username.hash"
     del "%userprofile%\Documents\SecureDataSpammer\password.hash"
     rmdir /s /q "%userprofile%\Documents\SecureDataSpammer"
@@ -800,6 +786,7 @@ set "interpret.dts=%1"
     goto restart.script
 
 :login.create
+    :: Create new Login Hashes
     Cipher /E "%userprofile%\Documents\SecureDataSpammer"
     if exist %userprofile%\Documents\SecureDataSpammer echo Account already exists. && call :sys.lt 1 && goto login.setup
     set /p "username=Please enter a Username: "
@@ -826,6 +813,7 @@ set "interpret.dts=%1"
     echo %username_hash% > "%userprofile%\Documents\SecureDataSpammer\username.hash"
     echo %password_hash% > "%userprofile%\Documents\SecureDataSpammer\password.hash"
     
+    :: Encrypt Hash Files
     Cipher /E "%userprofile%\Documents\SecureDataSpammer\username.hash"
     Cipher /E "%userprofile%\Documents\SecureDataSpammer\password.hash"
 
@@ -841,6 +829,7 @@ set "interpret.dts=%1"
     goto restart.script
 
 :encrypt
+    :: Encrypt Script Files, to bypass Antivirus
     if %logging% == 1 ( call :log Encrypting_Script WARN )
     echo Encrypting...
     call :sys.lt 1
@@ -873,6 +862,7 @@ set "interpret.dts=%1"
 
 
 :switch.elevation
+    :: Switch Elevation Method
     echo Choose an Elevation method.
     echo. 
     echo Powershell is the default and recommended option.
@@ -896,6 +886,7 @@ set "interpret.dts=%1"
 
 
 :switch.sudo.elevation
+    :: Switch to Sudo Elevation
     :: Powershell Elevation is more reliable
     :: Windows will support sudo, starting in 24H2
     :: Check for Windows Version 24H2 or higher > where SUDO > start via sudo
@@ -909,20 +900,18 @@ set "interpret.dts=%1"
     :: Version: %release-id%
     :: Build-Number: %build%
     set /a min_build=25900
-    if %build% geq %min_build% (
-        :: Is 24H2 or higher
-        goto where.sudo
-    ) else (
+    if not %build% geq %min_build% (
         :: is lower than 24H2
         echo You dont have Version 24H2 && pause && goto advanced.options
     )
     
-:where.sudo
+    :: Check if Sudo is installed
     for /f "delims=" %%a in ('where sudo') do (
         set "where_output=%%a"
     )
     if not defined where_output (echo You dont have sudo enabled. && pause && goto advanced.options)
 
+    :: Switch to Sudo
     if %logging% == 1 ( call :log Chaning_Elevation_to_sudo WARN )
     call :update_config "elevation" "" "sudo"
     echo Switched to Sudo.
@@ -931,6 +920,7 @@ set "interpret.dts=%1"
 
 
 :switch.pwsh.elevation
+    :: Switch to Powershell Elevation
     echo Switching to Powershell Elevation...
     call :sys.lt 2
     if %logging% == 1 ( call :log Chaning_Elevation_to_pwsh WARN )
@@ -940,6 +930,7 @@ set "interpret.dts=%1"
     goto restart.script
 
 :switch.gsudo.elevation
+    :: Switch to GSudo Elevation
     echo Switching to GSUDO Elevation...
     call :sys.lt 2
     if %logging% == 1 ( call :log Chaning_Elevation_to_gsudo WARN )
@@ -1906,7 +1897,7 @@ set "interpret.dts=%1"
     ) else (
         ssh %ssh-name%@%ssh-ip% "!ssh_command!"
     )
-    color 02
+    color %color%
     if errorlevel 1 (
         echo [ERROR] SSH connection failed!
         goto ssh.done
@@ -1947,7 +1938,7 @@ set "interpret.dts=%1"
     ) else (
         ssh %ssh-name%@%ssh-ip% "!ssh_command!"
     )
-    color 02
+    color %color%
     if errorlevel 1 (
         echo [ERROR] SSH connection failed!
         goto ssh.done
@@ -2028,6 +2019,7 @@ set "interpret.dts=%1"
 
 
 :fast.git.update
+    :: Fast Update
     cd /d "%temp%"
     echo Checking for Updates...
     set "api_url=https://api.github.com/repos/PIRANY1/DataSpammer/releases/latest"
@@ -2052,8 +2044,13 @@ set "interpret.dts=%1"
     exit /b %errorlevel%
 
 
-:sys.delete.script
+:sys.delete.script  
+    :: Delete Script Dialog
     echo. 
+    call :sys.lt 1
+    echo You are about to delete the whole script. Are you sure?
+    call :sys.lt 1
+    echo.
     call :sys.lt 1
     echo You are about to delete the whole script. Are you sure?
     call :sys.lt 1
@@ -2108,6 +2105,7 @@ set "interpret.dts=%1"
     echo Uninstall Successfulled
     
 :restart.script
+    :: Restart Script
     if %logging% == 1 ( call :log Restarting_Script WARN )
     call :send_message Script.is.restarting
     call :send_message Terminating %PID%
@@ -2185,6 +2183,7 @@ set "interpret.dts=%1"
     goto fullloop
 
 :dev.options
+    :: Dev Options
     title Developer Options - DataSpammer
     echo PID: %PID%
     echo Developer Options
@@ -2215,6 +2214,7 @@ set "interpret.dts=%1"
     goto dev.options
 
 :dev.options.call.sign
+    :: List all Call Signs
     echo List all Call Signs?
     choice /C YN /M "(Y)es / (N)o"
         set _erl=%errorlevel%
@@ -2230,12 +2230,14 @@ set "interpret.dts=%1"
         set "%%a=%%b"
     )
 
+    :: Encrypt new Files
     Cipher /E "%~dp0\settings.conf" 
     Cipher /E "%~dp0\dataspammer.bat"
     Cipher /E "%userprofile%\SecureDataSpammer\username.hash"
     Cipher /E "%userprofile%\SecureDataSpammer\settings.hash"
     Cipher /E "%userprofile%\SecureDataSpammer\password.hash"
 
+    :: Add new Settings
     if not defined %default_filename% call :update_config "default_filename" "" "notused"
     if not defined %default-domain% call :update_config "default-domain" "" "notused"
     if not defined %default-filecount% call :update_config "default-filecount" "" "notused"
@@ -2266,6 +2268,7 @@ set "interpret.dts=%1"
 
 
 :debuglog
+    :: Generate Debug Log, wayyyyyy to much 
     echo Generating Debug Log
     cd /d "%~dp0"
     set SOURCE_DIR="%script.dir%\Debug"
@@ -2285,6 +2288,7 @@ set "interpret.dts=%1"
 
 
 :debug.done
+    :: Display the Debug Log Options
     echo Successfully Generated debug.log.zip
     echo. 
     echo [1] Copy to Clipboard
@@ -2408,7 +2412,7 @@ set "interpret.dts=%1"
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 
 :dataspammer.hash.check
-:: Compare Upstream Version & Local Version
+    :: Compare local and remote script hash
     if "%current-script-version%"=="v6" (
         set "remote=https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/v6/dataspammer.bat"
     ) else (
@@ -2430,6 +2434,7 @@ set "interpret.dts=%1"
     )
 
 :verify.settings
+    :: Check for Settings Hash and if none exist create a new one
     set "hashpath=%userprofile%\Documents\SecureDataSpammer"
     if exist "%hashpath%\settings.hash" (
         set /p settingshash=<"%hashpath%\settings.hash"
@@ -2453,6 +2458,7 @@ set "interpret.dts=%1"
     goto :EOF
 
 :reset.settings.hash
+    :: Reset saved settings hash
     set "hashpath=%userprofile%\Documents\SecureDataSpammer"
     if exist "%hashpath%\settings.hash" (
         del "%hashpath%\settings.hash"
@@ -2461,6 +2467,7 @@ set "interpret.dts=%1"
     exit /b    
 
 :repair.settings
+    :: Try to Repair Settings, may fix parser issues
     if not exist "%~dp0settings.conf" ( echo The settings.conf file is missing! && pause && exit /b 1)
     set "config_file=%~dp0settings.conf"
     echo Repairing settings.conf...
@@ -2620,6 +2627,7 @@ set "interpret.dts=%1"
     
 
 :sys.lt
+    :: Wait for a given time, supports wait.exe
     setlocal EnableDelayedExpansion
     if exist "%~dp0\wait.exe" ( wait.exe %1 )
     if /i "%2"=="timeout" (
@@ -2735,6 +2743,7 @@ set "interpret.dts=%1"
     
 
 :done
+    :: Display Done Window
     call :check_args :done %1
     if "%errorlevel%"=="1" (
         %errormsg%
@@ -2779,6 +2788,7 @@ set "interpret.dts=%1"
     goto done
 
 :list.vars
+    :: List all Goto Signs
     cd "%~dp0"
     echo ---------------
     echo DataSpammer.bat
@@ -2798,6 +2808,7 @@ set "interpret.dts=%1"
     exit /b
 
 :help.startup
+    :: Display Help Message
     echo.
     echo.
     echo Dataspammer: 
@@ -2833,9 +2844,7 @@ set "interpret.dts=%1"
     echo    install       Start the Installer
     echo.
     echo.
-
     exit /b %errorlevel%
-    if "%1"=="debugtest" title DataSpammer && goto debugtest
 
 :update.script
     cls
@@ -2848,16 +2857,19 @@ set "interpret.dts=%1"
         %errormsg%
         exit /b 1
     )    
-
+    
+    :: Check Arguments
     if "%1"=="stable" set "update_url=https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/"
     if "%1"=="beta" set "update_url=https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/v6/"
 
+    :: Installer Preps
     cd /d "%~dp0"
     erase README.md && erase LICENSE >nul 2>&1
     set "TMP_DIR=%temp%\dts.update"
     rd /s /q "%TMP_DIR%" 2>nul
     mkdir "%TMP_DIR%"
     echo Downloading...
+    :: Download Files via BITS
     bitsadmin /transfer upd "%update_url%dataspammer.bat" "%TMP_DIR%\dataspammer.bat"
     if errorlevel 1 (
         %errormsg%
@@ -2879,6 +2891,7 @@ set "interpret.dts=%1"
     cls
     echo Downloaded Files.
 
+    :: Check for Certutil, Required for Encryption
     for /f "delims=" %%a in ('where certutil') do (
         set "where_output=%%a"
     )  
@@ -2904,6 +2917,7 @@ set "interpret.dts=%1"
     goto cancel
 
 :version
+    :: Fast Extract Version
     cd "%temp%"
     set "api_url=https://api.github.com/repos/PIRANY1/DataSpammer/releases/latest"
     curl -s %api_url% > apianswer.txt
@@ -2912,8 +2926,6 @@ set "interpret.dts=%1"
     )
     set "latest_version=%latest_version:"=%"
     del apianswer.txt
-
-
     echo DataSpammer Script
     echo Version v6 (Beta)
     echo Newest Stable Release: %latest_version%
@@ -3103,6 +3115,7 @@ set "interpret.dts=%1"
     exit /b
 
 :loading.animation
+    :: Display Loading Animation, currently unused
     set "count=%~1"
     set "wait=1"
     set "spinner=|/-\"
@@ -3119,13 +3132,27 @@ set "interpret.dts=%1"
     exit /b
 
 :standby
-    :: Display Stanby Message
-    echo Script went into Standby after 2 Minutes
-    echo Press any Key to continue...
-    pause >nul
+    :: Display Standby Screen & Exit after 10 minutes
+    cls
+    echo ==================================================
+    echo                Script Standby Mode 
+    echo --------------------------------------------------
+    echo The script has entered standby after 2 minutes of inactivity.
+    echo Press any key to continue...
+    echo (The script will auto-exit in 10 minutes if no key is pressed)
+    echo ==================================================
+
+    timeout /t 600 /nobreak >nul
+    if errorlevel 1 (
+        echo Timeout reached. Exiting...
+        goto cancel
+    )
+    
+    echo Resuming...
     goto :EOF
 
 :win.version.check
+    :: Check for Windows Edition, OSType, Version and Build Number
     Set UseExpresssion=Reg Query "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v "ProductName"
     for /F "tokens=*" %%X IN ('%UseExpresssion%') do Set OSEdition=%%X
     Set OSEdition=%OSEdition:*REG_SZ    =%
@@ -3164,11 +3191,13 @@ set "interpret.dts=%1"
     if %verify%==%OUT% ( goto success ) else ( goto failed )
 
 :success
-    set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('Sucess', 'DataSpammer Verify');}"
+    :: Auth Success Popup
+    set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('Success', 'DataSpammer Verify');}"
     %powershell.short% -Command %msgBoxArgs%
     exit /b
 
 :failed
+    :: Auth Failed Popup
     set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('You have entered the wrong Code. Please try again', 'DataSpammer Verify');}"
     %powershell.short% -Command %msgBoxArgs%
     goto sys.verify.execution
@@ -3223,8 +3252,11 @@ set "interpret.dts=%1"
         if %_erl%==3 call :standby
     if not defined directory ( goto installer.main.window )
 
+    :: Add Backslash if not present
     if not "%directory:~-1%"=="\" set "directory=%directory%\"
+
     cd /d "%directory%"
+    :: Check RW Permissions
     echo. > "%directory%\testfile"
     if not exist "%directory%\testfile" (
         %errormsg%
@@ -3277,11 +3309,10 @@ set "interpret.dts=%1"
     goto installer.menu.select
 
 :installer.start.copy
+    :: Main Install Code
     set "directory9=%directory%DataSpammer\"
     mkdir "%directory9%" 
- 
     cd /d "%~dp0"
-
     move dataspammer.bat "%directory9%\" >nul 2>&1
     move README.md "%directory9%\" >nul 2>&1
     move LICENSE "%directory9%\" >nul 2>&1
@@ -3352,6 +3383,7 @@ set "interpret.dts=%1"
     if defined addpath1 ( setx PATH "%PATH%;%directory9%\DataSpammer.bat" /M )
 
 :sys.main.installer.done
+    :: Encrypt Dialog
     ECHO •
     echo Do you want to encrypt the Script Files?
     call :sys.lt 1
@@ -3373,6 +3405,7 @@ set "interpret.dts=%1"
     goto sys.main.installer.done
 
 :v6.port
+    :: Port to V6, add Registry Keys
     echo Porting to V6...
     echo Adding Registry Key...
     reg add "HKCU\Software\DataSpammer" /v Installed /t REG_DWORD /d 1 /f
@@ -3381,6 +3414,7 @@ set "interpret.dts=%1"
     echo Consider reinstalling the Script to avoid any issues. 
 
 :encrypt.script
+    :: Encrypt Script Files, bypass Antivirus Detection
     for /f "delims=" %%a in ('where certutil') do (
         set "where_output=%%a"
     )  
@@ -3406,13 +3440,12 @@ set "interpret.dts=%1"
 
 
 :finish.installation
+    :: Restart Script Process 
     echo Finished Installation.
     echo Starting...
     cmd /c "%directory9%\dataspammer.bat" update-install
     erase "%~dp0\dataspammer.bat" > nul
     goto cancel
-
-
 
 
 :cancel 
