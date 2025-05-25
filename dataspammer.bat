@@ -62,6 +62,7 @@
 ::      Add more Error Catchers / Checks
 ::      Continue Custom Instruction File
 ::      Implement repair.settings
+::      Fix Settings Hash Check
 
 :top
     @echo off
@@ -74,7 +75,9 @@
     if "%OS%"=="Windows_NT" setlocal
     set "DIRNAME=%~dp0"
     if "%DIRNAME%"=="" set DIRNAME=.
+    :: Set Window Size
     mode con: cols=140 lines=40
+    :: Development / Production Flag
     set "current-script-version=development"
     :: Improve Powershell Speed
     set "powershell.short=powershell -ExecutionPolicy Bypass -NoProfile -NoLogo"
@@ -91,18 +94,18 @@
     :: Predefine _erl to ensure errorlevel or choice inputs function correctly
     set "_erl=FFFF"
 
-
     :: Check if Script is running from Temp Folder
     if /I "%~dp0"=="%TEMP%" (
         cls
         %errormsg%
-        echo The script was launched from the temp folder.
-        echo You are most likely running the script directly from the archive file.
+        call :color _Red "The script was launched from the temp folder."
+        call :color _Yellow "You are most likely running the script directly from the archive file."
         call :sys.lt 10 count
         goto cancel
     )
     
     :: Check Windows Version
+    call :win.version.check
     for /f "tokens=3 delims=: " %%a in ('ver') do set ver=%%a
     if %ver% GEQ 6.3 ( set "winver=8.1" )
     if %ver% GEQ 6.2 ( set "winver=8" )
@@ -111,16 +114,17 @@
         cls
         %errormsg%
         echo Detected Windows %winver%
-        echo Some features will not work. 
-        echo To use all features, please update to Windows 10/11.
+        call :color _Yellow "Warning: Some features may not work on this version."
+        call :color _Red "For full compatibility, please update to Windows 10 or 11."
+        call :color _Yellow "Note: 'certutil' and other tools may be missing on older Windows versions."
         call :sys.lt 10 count
     )
 
     :: Check if Script is running from Network Drive
     if /I "%~d0"=="\\\\" (
         %errormsg%
-        echo The script was launched from a network drive.
-        echo Installation may not work properly.
+        call :color _Red "The script was launched from a network drive."
+        call :color _Yellow "Installation may not work properly."
         call :sys.lt 10 count
     )
 
@@ -161,14 +165,19 @@
     )
 
     :: Check for Install Reg Key
-    for /f "tokens=3*" %%a in ('reg query "HKCU\Software\DataSpammer" /v Version 2^>nul ^| find "Version"') do set "reg_version=%%b"
-    if not defined reg_version ( goto v6.port)
-    if not "%reg_version%"=="%current-script-version%" ( 
-        echo Script Version Registry Key is outdated.
-        choice /C YN /M "Do you want to update the Registry Key? ()"
-            set _erl=%errorlevel%
-            if %_erl%==1 goto sys.new.update.installed
-            if %_erl%==2 
+    for /f "tokens=1,2,*" %%a in ('reg query "HKCU\Software\DataSpammer" /v Version ^| find "Version"') do (
+      set "reg_version=%%c"
+    )
+    
+    if not defined reg_version (
+        goto v6.port
+    )
+    
+    if not "%reg_version%"=="%current-script-version%" (
+        call :color _Red "Script Version Registry Key is outdated."
+        choice /C YN /M "Do you want to update the Registry Key? (Y/N)"
+        set "_erl=%errorlevel%"
+        if "%_erl%"=="1" ( goto sys.new.update.installed )
     )
 
     dir /b | findstr /i "settings.conf" >nul 2>&1 || echo No Settings Found && goto sys.no.settings
@@ -186,7 +195,6 @@
 :skip.parse
     :: Apply Color from Settings
     if defined color ( color %color% ) else ( color 02 )
-    
 
     :: Elevate Script
     net session >nul 2>&1
@@ -330,7 +338,7 @@
     if "%current-script-version%"=="development" (
         echo Development Version, Skipping Update
         call :sys.lt 3
-        if %logging% == 1 ( call :log Skipped_Update_Check_%current-script-version% WARN )
+        if %logging% == 1 ( call :log Skipped_Update_Check_%current-script-version%_Development_Version WARN )
         exit /b
     )
     call :git.version.check
@@ -351,6 +359,7 @@
     )
     set "latest_version=%latest_version:"=%"
     if "%latest_version%" equ "v6" ( set "uptodate=up" ) else ( set "uptodate=%current-script-version%" )
+    if %logging% == 1 ( call :log %latest_version%=v6 INFO )
     del apianswer.txt
     exit /b
     
@@ -414,7 +423,7 @@
 
 :dts.startup.done
     :: Create Event Log Entry
-    EVENTCREATE /T INFORMATION /ID 100 /L APPLICATION /SO DataSpammer /D "Successfully started DataSpammer %errorlevel%"
+    EVENTCREATE /T INFORMATION /ID 100 /L APPLICATION /SO DataSpammer /D "Successfully started DataSpammer %errorlevel%" >nul
 
     :: Compare Hash
     call :dataspammer.hash.check
@@ -429,12 +438,11 @@
             )
         )
     )
-    
     :: Remove encrypt File from Installer
     if exist "%~dp0\encrypt.bat" erase "%~dp0\encrypt.bat" >nul 2>&1
 
     :: Check Developermode
-    if "%developermode%"=="1" ( set "dev-mode=1" & echo Enabled Developermode && ) else ( set "dev-mode=0" )
+    if "%developermode%"=="1" ( set "dev-mode=1" & echo Enabled Developermode ) else ( set "dev-mode=0" )
 
     :: Extract CMD Version
     for /f "tokens=2 delims=[]" %%v in ('ver') do set CMD_VERSION=%%v
@@ -1224,7 +1232,7 @@ set "interpret.dts=%1"
     for /f "delims=" %%a in ('where python') do (
         set "where_output=%%a"
     )
-    if not defined where_output (set "python.line=echo.") else ( set "python.line=[4] Python Scripts (Experimental)")
+    if not defined where_output (set "python.line=echo.") else ( set "python.line=echo [4] Python Scripts (Experimental)" )
 
 
 :start.verified
@@ -1330,12 +1338,13 @@ set "interpret.dts=%1"
         echo import zipfile
         echo nullbytes = b'\x00' * %BYTES%
         echo filename = "%zipname%"
-        echo with zipfile.ZipFile(filename, "w", compression=zipfile.ZIP_DEFLATED) as zipf:
+        echo with zipfile.ZipFile(filename, "w", compression=zipfile.ZIP_DEFLATED^) as zipf:
         echo ^    for i in range(%COUNT%):
         echo ^        zipf.writestr(f"data_%%03d.bin" %% i, nullbytes)
-    ) > "%temp%\zip.py"
-    python %"temp%\zip.py"
-    erase "%temp%\zip.py"
+    ) > "%~dp0\zip.py"
+
+    python "%~dp0\zip.py"
+    erase "%~dp0\zip.py"
 
 :printer.list.spam
     set /P printer.name=Enter the Printer Name:
@@ -2434,19 +2443,26 @@ set "interpret.dts=%1"
     )
 
 :verify.settings
-    :: Check for Settings Hash and if none exist create a new one
+    goto :EOF
     set "hashpath=%userprofile%\Documents\SecureDataSpammer"
+
+    :: Extract Saved Hash and if none exist create one
     if exist "%hashpath%\settings.hash" (
-        set /p settingshash=<"%hashpath%\settings.hash"
+        set /p saved_hash=<"%hashpath%\settings.hash"
     ) else (
         certutil -hashfile "%~dp0\settings.conf" SHA256 > "%hashpath%\settings.hash"
-        set /p settingshash=<"%hashpath%\settings.hash"
+        set /p saved_hash=<"%hashpath%\settings.hash"
     )
-    for /f "delims=" %%a in ('%powershell.short% -Command "(Get-Content '%hashpath%\settings.hash' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "saved_hash=%%a"
-    for /f "delims=" %%a in ('%powershell.short% -Command "(Get-Content '%~dp0\settings.conf' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "current_hash=%%a"
+
+    :: Extract Current Hash from settings.conf
+    set "settings.file=%~dp0\settings.conf"
+    for /f "delims=" %%a in ('%powershell.short% -Command "(certutil -hashfile "%settings.file%" SHA256 | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "current_hash=%%a"
+
+    :: Remove spaces from Hashes
     set "saved_hash=%saved_hash: =%"
     set "current_hash=%current_hash: =%"
     
+    :: Compare Hashes
     if not "%current_hash%" EQU "%saved_hash%" (
         echo The settings.conf file has been modified unexpectedly. 
         echo This could indicate manual changes or potential corruption.
@@ -2597,8 +2613,6 @@ set "interpret.dts=%1"
     :: ===============================
     :: Function: check for NCS Support
     :: ===============================
-    set "nul1=1>nul"
-    set "nul2=2>nul"
     
     set "_NCS=1"
     
@@ -2614,11 +2628,6 @@ set "interpret.dts=%1"
         reg query "HKCU\Console" /v ForceV2 %nul2% | find /i "0x0" %nul1% && (
             set "_NCS=0"
         )
-    )
-    
-    :: Check for Older ARM64 Builds
-    echo "%PROCESSOR_ARCHITECTURE% %PROCESSOR_ARCHITEW6432%" | find /i "ARM64" %nul1% && (
-        if %winbuild% LSS 21277 set "ps32onArm=1"
     )
     
     :: Export NCS
@@ -3412,6 +3421,7 @@ set "interpret.dts=%1"
     reg add "HKCU\Software\DataSpammer" /v Version /t REG_SZ /d "%current-script-version%" /f
     echo Done. 
     echo Consider reinstalling the Script to avoid any issues. 
+    goto restart.script
 
 :encrypt.script
     :: Encrypt Script Files, bypass Antivirus Detection
