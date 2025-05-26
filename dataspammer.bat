@@ -63,6 +63,8 @@
 ::      Continue Custom Instruction File
 ::      Implement repair.settings
 ::      Fix Settings Hash Check
+::      Fix Lock not being created
+::      Check Update Settings
 
 :top
     @echo off
@@ -221,7 +223,11 @@
     if exist "%~dp0\dataspammer.lock" (
         set "pidlock="
         for /f "usebackq delims=" %%L in ("%~dp0\dataspammer.lock") do set "pidlock=%%L"
-    )    
+    ) else (
+        goto lock.create
+        if %logging% == 1 ( call :log PID_File_Not_Found )
+    )   
+
     :: Remove spaces from Variables
     for /f "tokens=* delims=" %%A in ("!PID!") do set "PID=%%A" >nul 2>&1
     for /f "tokens=* delims=" %%A in ("!pidlock!") do set "pidlock=%%A" >nul 2>&1
@@ -249,11 +255,12 @@
         if %logging% == 1 ( call :log PID_Empty ERROR )
         del "%~dp0\dataspammer.lock" >nul 2>&1 
     )
+
+    :lock.create
     echo %PID% > "%~dp0\dataspammer.lock" >nul 2>&1
 
     :: Start the Monitor Socket
     if %monitoring%==1 start /min cmd.exe /k ""%~f0" monitor %PID%" && if %logging% == 1 ( call :log Starting_Monitor_Socket INFO )
-    
 
     :: Check if Login is Setup
     if not exist "%userprofile%\Documents\SecureDataSpammer\username.hash" goto file.check    
@@ -595,12 +602,12 @@
     call :sys.lt 1
     echo [9] Enable Custom Instruction File (Experimental)
     call :sys.lt 1
-    echo [10] Uninstall
+    echo [U] Uninstall
     call :sys.lt 1
     echo.
     call :sys.lt 1
-    echo [11] Go back
-    choice /C 123456789S /T 120 /D S  /M "Choose an Option from Above:"
+    echo [C] Go back
+    choice /C 123456789UCS /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto switch.elevation
         if %_erl%==2 goto encrypt
@@ -1082,7 +1089,7 @@ set "interpret.dts=%1"
         set _erl=%errorlevel%
         if %_erl%==1 goto enable.logging
         if %_erl%==2 goto disable.logging
-        if %_erl%==3 cls && echo Opening Log... && notepad %userprofile%\Documents\DataSpammerLog\DataSpammer.log && pause && goto settings.logging
+        if %_erl%==3 cls && echo Opening Log... & notepad %userprofile%\Documents\DataSpammerLog\DataSpammer.log && pause && goto settings.logging
         if %_erl%==4 cls && erase %userprofile%\Documents\DataSpammerLog\DataSpammer.log && echo Log Cleared. && pause && goto settings.logging
         if %_erl%==5 goto settings
         if %_erl%==6 call :standby
@@ -2138,8 +2145,10 @@ set "interpret.dts=%1"
     set "PID.DTS=%2"
     echo PID: %PID.DTS%
     set "batScript=%temp%\dts-monitor.bat"
-    erase "%batScript%"
+    erase "%batScript%" >nul
 
+
+    :: Observe Process, loop and if its not running, write to a file
     (
         echo @echo off
         echo setlocal
@@ -2171,18 +2180,18 @@ set "interpret.dts=%1"
         :: Check if a Message is available
         if exist "%TEMP%\socket.message" (
             set /p message.monitor=<"%TEMP%\socket.message"
-            del "%TEMP%\socket.message"
+            del "%TEMP%\socket.message" >nul
             echo %formatted_time%: %message.monitor%
         )
 
         if exist "%temp%\DataSpammerCrashed.txt" (
-            del "%temp%\DataSpammerCrashed.txt"
+            del "%temp%\DataSpammerCrashed.txt" >nul
             echo DataSpammer.bat Crashed at !formatted_time!
             timeout /t 5 >nul
             exit /b %errorlevel%
         )
         if exist "%temp%\DataSpammerClose.txt" (
-            del "%temp%\DataSpammerClose.txt"
+            del "%temp%\DataSpammerClose.txt" >nul
             echo DataSpammer.bat was Closed at !formatted_time!
             timeout /t 5 >nul
             exit /b %errorlevel%
@@ -3151,7 +3160,7 @@ set "interpret.dts=%1"
     echo (The script will auto-exit in 10 minutes if no key is pressed)
     echo ==================================================
 
-    timeout /t 600 /nobreak >nul
+    timeout /t 600 >nul
     if errorlevel 1 (
         echo Timeout reached. Exiting...
         goto cancel
