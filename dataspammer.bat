@@ -61,12 +61,11 @@
 ::      Check for Bugs / Verify
 ::      Add more Error Catchers / Checks
 ::      Continue Custom Instruction File
-::      Fix Settings Hash Check
-::      Fix Lock not being created
-::      Check Update Settings
+::      Fix Wait.exe Delay
 
 :top
     @echo off
+    @cls
     @pushd "%~dp0"
     @title DataSpammer - Initiating
     @echo Initializing...
@@ -264,23 +263,23 @@
 
     :: Check if Login is Setup
     for /f "tokens=3" %%A in ('reg query "HKCU\Software\DataSpammer" /v UsernameHash 2^>nul') do set "storedhash=%%A"
-    if defined storedhash goto file.check
+    if not defined storedhash goto file.check
 
 :login.input
     if %logging% == 1 ( call :log Starting_Login INFO )
-    cls & title DataSpammer - Login
+    cls && title DataSpammer - Login
 
-    :: Username & Password Input
+    :: Username and Password Input
     set /p "username.script=Please enter your Username: "
     set "username.script=%username.script: =%"
     for /f "delims=" %%a in ('%powershell.short% -Command "$pass = Read-Host 'Please enter your Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($pass))"') do set "password=%%a"
 
-    :: Convert Username & Password to Hash
+    :: Convert Username and Password to Hash
     for /f "delims=" %%a in ('%powershell.short% -Command "[Text.Encoding]::UTF8.GetBytes('%username.script%') | % { (New-Object -TypeName Security.Cryptography.SHA256Managed).ComputeHash($_) } | ForEach-Object { $_.ToString('x2') } -join '' "') do set "username_hash=%%a"
     for /f "delims=" %%a in ('%powershell.short% -Command "[Text.Encoding]::UTF8.GetBytes('%password%') | % { (New-Object -TypeName Security.Cryptography.SHA256Managed).ComputeHash($_) } | ForEach-Object { $_.ToString('x2') } -join '' "') do set "password_hash=%%a"
 
     echo Comparing Hashes...
-    :: Extract Stored Username & Password
+    :: Extract Stored Username and Password
     for /f "tokens=3" %%A in ('reg query "HKCU\Software\DataSpammer" /v UsernameHash 2^>nul') do set "stored_username_hash=%%A"
     for /f "tokens=3" %%A in ('reg query "HKCU\Software\DataSpammer" /v PasswordHash 2^>nul') do set "stored_password_hash=%%A"
 
@@ -590,7 +589,7 @@
     call :sys.lt 1
     echo [7] Change Codepage
     call :sys.lt 1
-    echo [8] Download Wait.exe - Improve Speed / Wait Time - Source is at PIRANY1/wait.exe
+    echo [8] Download Wait.exe - Improve Speed / Wait Time - Source is at PIRANY1/wait.exe (ALPHA)
     call :sys.lt 1
     echo [9] Enable Custom Instruction File (Experimental)
     call :sys.lt 1
@@ -601,7 +600,7 @@
     echo.
     call :sys.lt 1
     echo [C] Go back
-    choice /C 123456789UCRS /T 120 /D S  /M "Choose an Option from Above:"
+    choice /C 123456789URCS /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto switch.elevation
         if %_erl%==2 goto encrypt
@@ -628,18 +627,21 @@
     
 
 :custom.instruction.read
-set "interpret.dts=%1"
+    set "interpret.dts=%1"
+
 
 
 :download.wait
     :: Download Wait.exe and Wait.exe Hash
-    bitsadmin /transfer upd "https://github.com/PIRANY1/wait-exe/raw/refs/heads/main/bin/wait.exe" "%temp%\wait.exe" 
+    echo Downloading wait.exe
+    bitsadmin /transfer upd "https://github.com/PIRANY1/wait-exe/raw/refs/heads/main/bin/wait.exe" "%temp%\wait.exe" >nul
     if errorlevel 1 (
         %errormsg%
         echo Download failed. 
         exit /b 1
     )   
-    bitsadmin /transfer upd "https://github.com/PIRANY1/wait-exe/raw/refs/heads/main/bin/wait.exe.sha256" "%temp%\wait.exe.sha256" 
+    echo Downloading Hash...
+    bitsadmin /transfer upd "https://github.com/PIRANY1/wait-exe/raw/refs/heads/main/bin/wait.exe.sha256" "%temp%\wait.exe.sha256" >nul
     if errorlevel 1 (
         %errormsg%
         echo Download failed. 
@@ -655,6 +657,7 @@ set "interpret.dts=%1"
         %errormsg%
         echo Hash mismatch! Expected: %sha256_expected%, but got: %sha256_actual%
         echo Download Failed.
+        goto menu
     )
     del "%temp%\wait.hash"
     del "%temp%\wait.exe.sha256"
@@ -796,7 +799,7 @@ set "interpret.dts=%1"
 :login.create
     :: Create new Login Hashes
     for /f "tokens=3" %%A in ('reg query "HKCU\Software\DataSpammer" /v UsernameHash 2^>nul') do set "storedhash=%%A"
-    if defined storedhash echo Account already exists. && call :sys.lt 4 && goto login.setup
+    if not defined storedhash echo Account already exists. && call :sys.lt 4 && goto login.setup
 
     :: Input Password & Username
     set /p "username.script=Please enter a Username: "
@@ -804,8 +807,8 @@ set "interpret.dts=%1"
     for /f "delims=" %%a in ('%powershell.short% -Command "$pass = Read-Host 'Please enter your Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($pass))"') do set "password=%%a"
 
     echo Hashing the Username and Password...
-    for /f "delims=" %%a in ('%powershell.short% -Command "[Text.Encoding]::UTF8.GetBytes('%username.script%') | % { (New-Object -TypeName Security.Cryptography.SHA256Managed).ComputeHash($_) } | ForEach-Object { $_.ToString('x2') } -join '' "') do set "username_hash=%%a"
-    for /f "delims=" %%a in ('%powershell.short% -Command "[Text.Encoding]::UTF8.GetBytes('%password%') | % { (New-Object -TypeName Security.Cryptography.SHA256Managed).ComputeHash($_) } | ForEach-Object { $_.ToString('x2') } -join '' "') do set "password_hash=%%a"
+    for /f "delims=" %%a in ('%powershell.short% -Command "[Text.Encoding]::UTF8.GetBytes('%username.script%') | ForEach-Object { (New-Object -TypeName Security.Cryptography.SHA256Managed).ComputeHash($_) } | ForEach-Object { $_.ToString('x2') } -join '' "') do set "username_hash=%%a"
+    for /f "delims=" %%a in ('%powershell.short% -Command "[Text.Encoding]::UTF8.GetBytes('%password%') | ForEach-Object { (New-Object -TypeName Security.Cryptography.SHA256Managed).ComputeHash($_) } | ForEach-Object { $_.ToString('x2') } -join '' "') do set "password_hash=%%a"
 
     :: Save the hashed values in a secure location
     echo Saving Secure Data...
@@ -2095,6 +2098,7 @@ set "interpret.dts=%1"
 :restart.script
     :: Restart Script
     if %logging% == 1 ( call :log Restarting_Script WARN )
+    erase "%~dp0\dataspammer.lock" >nul 2>&1
     call :send_message Script.is.restarting
     call :send_message Terminating %PID%
     echo. > %temp%\DataSpammerClose.txt
@@ -2110,6 +2114,7 @@ set "interpret.dts=%1"
     cls
     del "%temp%\DataSpammerCrashed.txt" > nul
     del "%temp%\DataSpammerClose.txt" > nul
+    title Monitoring DataSpammer PID: %2
     echo Opened Monitor Socket.
     echo Waiting for Startup to Finish...
     title Monitoring DataSpammer.bat
@@ -2437,44 +2442,57 @@ set "interpret.dts=%1"
     )
 
 :verify.settings
-    for /f "tokens=3" %%A in ('reg query "HKCU\Software\DataSpammer" /v SettingsHash 2^>nul') do set "storedhash=%%A"
-
-    :: Extract Saved Hash and if none exist create one
-    if not defined storedhash (
-        for /f "delims=" %%h in ('powershell -Command "(Get-FileHash -Path ''%~dp0settings.conf'' -Algorithm SHA256).Hash"') do ( set "storedhash=%%h" )
-        set "storedhash=%storedhash: =%"
-        reg add "HKCU\Software\DataSpammer" /v SettingsHash /t REG_SZ /d "%storedhash%" /f >nul        
-    )
-
-    :: Extract Current Hash from settings.conf
-    set "settings.file=%~dp0\settings.conf"
-    for /f "delims=" %%a in ('%powershell.short% -Command "(Get-FileHash -Path ''%settings.file%'' -Algorithm SHA256).Hash"') do set "current_hash=%%a"
-
-    :: Remove spaces from Hashes
-    set "storedhash=%storedhash: =%"
-    set "current_hash=%current_hash: =%"
+        set "settings.file=%~dp0settings.conf"
     
-    :: Compare Hashes
-    if not "%current_hash%" EQU "%storedhash%" (
-        echo The settings.conf file has been modified unexpectedly. 
-        echo This could indicate manual changes or potential corruption.
-        echo Please review the settings.conf file for any discrepancies or errors.
-        echo If you encounter issues, consider reinstalling the script.
-        call :sys.lt 10
+        for /f "tokens=3" %%A in ('reg query "HKCU\Software\DataSpammer" /v SettingsHash 2^>nul') do set "storedhash=%%A"
+    
+        :: Extract Saved Hash and if none exist create one
+        if not defined storedhash (
+            echo Generating new Settings Hash...
+            cd "%~dp0"
+            for /f "delims=" %%h in ('%powershell.short% -Command "(Get-FileHash -Path \"%settings.file%\" -Algorithm SHA256).Hash"') do (
+                set "storedhash=%%h"
+            )
+            set "storedhash=!storedhash: =!"
+            reg add "HKCU\Software\DataSpammer" /v SettingsHash /t REG_SZ /d "!storedhash!" /f >nul
+            for /f "tokens=3" %%A in ('reg query "HKCU\Software\DataSpammer" /v SettingsHash 2^>nul') do set "storedhash=%%A" 
+        )
+    
+        :: Extract Current Hash from settings.conf
+        for /f "delims=" %%h in ('%powershell.short% -Command "(Get-FileHash -Path \"%settings.file%\" -Algorithm SHA256).Hash"') do (
+            set "current_hash=%%h"
+        )
+    
+        :: Remove spaces from Hashes
+        set "storedhash=!storedhash: =!"
+        set "current_hash=!current_hash: =!"
+
+        :: Compare Hashes
+        if not "!current_hash!"=="!storedhash!" (
+            echo The settings.conf file has been modified unexpectedly.
+            echo This could indicate manual changes or potential corruption.
+            echo Please review the settings.conf file for any discrepancies or errors.
+            echo If you encounter issues, consider reinstalling the script.
+            call :sys.lt 10
+            goto :EOF
+        )
+    
         goto :EOF
-    )
-    goto :EOF
 
 :reset.settings.hash
+    set "settings.file=%~dp0settings.conf"
     :: Delete Saved Hash and create a new one
     for /f "tokens=3" %%A in ('reg query "HKCU\Software\DataSpammer" /v SettingsHash 2^>nul') do set "storedhash=%%A"
+
     if defined storedhash (
         reg delete "HKCU\Software\DataSpammer" /v SettingsHash /f
-        for /f "delims=" %%h in ('powershell -Command "(Get-FileHash -Path ''%~dp0settings.conf'' -Algorithm SHA256).Hash"') do ( set "storedhash=%%h" )
-        set "storedhash=%storedhash: =%"
-        reg add "HKCU\Software\DataSpammer" /v SettingsHash /t REG_SZ /d "%storedhash%" /f >nul   
+        for /f "delims=" %%h in ('%powershell.short% -Command "(Get-FileHash -Path \"%settings.file%\" -Algorithm SHA256).Hash"') do (
+            set "storedhash=%%h"
+        )
+        set "storedhash=!storedhash: =!"
+        reg add "HKCU\Software\DataSpammer" /v SettingsHash /t REG_SZ /d "!storedhash!" /f >nul
     )
-    exit /b    
+    exit /b
 
 :repair.settings
     :: Try to Repair Settings, may fix parser issues
@@ -2611,7 +2629,7 @@ set "interpret.dts=%1"
     set "_NCS=1"
     
     :: Get Windows Build
-    set "winbuild=1"
+    set "winbuild="
     for /f "tokens=6 delims=[]. " %%G in ('ver') do set "winbuild=%%G"
     
     :: Disable NCS for Old Builds
@@ -2696,8 +2714,8 @@ set "interpret.dts=%1"
 :update_config
     setlocal EnableDelayedExpansion
     call :check_args :done %1 %2 %3
-    if "%errorlevel%"=="1" (
-        %errormsg%
+    if "!errorlevel!"=="1" (
+        !errormsg!
         exit /b 1
     )
     set "found=0"
@@ -2723,7 +2741,7 @@ set "interpret.dts=%1"
     
     set "file=settings.conf"
     set "tmpfile=temp.txt"
-
+    if exist "%tmpfile%" del "%tmpfile%"
     (for /f "tokens=1,* delims==" %%a in (!file!) do (
         if "%%a"=="%key%" (
             set found=1
@@ -2733,13 +2751,13 @@ set "interpret.dts=%1"
         )
     )) > !tmpfile!
     
-    if !found!==0 (
+    if "!found!"=="0" (
         echo %key%=%new_value% >> !tmpfile!
     )
 
     if "!logging!"=="1" call :log Changing_%key% INFO
+    move /Y "!tmpfile!" "!file!" >nul
     echo Restarting...
-    cls
     :: Reset the settings Hash save
     call :reset.settings.hash
     goto :EOF
