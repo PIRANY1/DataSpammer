@@ -1,7 +1,7 @@
 :: Use only under License
 :: Contribute under https://github.com/PIRANY1/DataSpammer
 :: Version v6 - Beta
-:: Last edited on 23.05.2025 by PIRANY
+:: Last edited on 29.05.2025 by PIRANY
 
 
 :: Short Copy Paste:
@@ -61,7 +61,6 @@
 ::      Check for Bugs / Verify
 ::      Add more Error Catchers / Checks
 ::      Continue Custom Instruction File
-::      Implement repair.settings
 ::      Fix Settings Hash Check
 ::      Fix Lock not being created
 ::      Check Update Settings
@@ -213,9 +212,9 @@
 :pid.check
     :: Get the Parent Process ID of the current script - Needed for Monitor
     %powershell.short% -Command "(Get-CimInstance Win32_Process -Filter \"ProcessId=$PID\").ParentProcessId" > "%temp%\parent_pid.txt"
-    if exist "%temp%\parent_pid.txt" ( set /p PID=<"%temp%\parent_pid.txt" ) else ( set "PID=0000" && %errormsg% && echo Failed to get Parent PID && call :sys.lt 4 count) 
-    if "%PID%"=="" ( set "PID=0000" && %errormsg% && echo Failed to get Parent PID && call :sys.lt 4 count)
-    del "%temp%\parent_pid.txt"
+    if exist "%temp%\parent_pid.txt" ( set /p PID=<"%temp%\parent_pid.txt" ) else ( set "PID=0000" && %errormsg% && call :color _Red "Failed to get Parent PID" && call :sys.lt 4 count) 
+    if "%PID%"=="" ( set "PID=0000" && %errormsg% && call :color _Red "Failed to Parse Parent PID" && call :sys.lt 4 count)
+    del "%temp%\parent_pid.txt" >nul
     echo Got PID: %PID%
 
     :: Lock Check - Verify that the script is not already running
@@ -225,14 +224,14 @@
         for /f "usebackq delims=" %%L in ("%~dp0\dataspammer.lock") do set "pidlock=%%L"
     ) else (
         goto lock.create
-        if %logging% == 1 ( call :log PID_File_Not_Found )
+        if %logging% == 1 ( call :log No_Lock_Exists INFO )
     )   
 
     :: Remove spaces from Variables
     for /f "tokens=* delims=" %%A in ("!PID!") do set "PID=%%A" >nul 2>&1
     for /f "tokens=* delims=" %%A in ("!pidlock!") do set "pidlock=%%A" >nul 2>&1
-    set "PID=!PID: =!" >nul 2>&1 
-    set "pidlock=!pidlock: =!" >nul 2>&1 
+    set "PID=!PID: =!"
+    set "pidlock=!pidlock: =!"
     if %logging% == 1 ( call :log PID-Check_Results:PID:!pid!_PIDlock:!pidlock! INFO )
 
     if defined pidlock (
@@ -253,69 +252,63 @@
     ) else (
         echo No PID Found - Deleting Lock...
         if %logging% == 1 ( call :log PID_Empty ERROR )
-        del "%~dp0\dataspammer.lock" >nul 2>&1 
+        del "%~dp0\dataspammer.lock" >nul
     )
 
     :lock.create
-    echo %PID% > "%~dp0\dataspammer.lock" >nul 2>&1
+    > "%~dp0\dataspammer.lock" echo %PID%
+    if "%errorlevel%"=="1" ( %errormsg% && call :color _Red "Failed to create lock file." && call :sys.lt 6 count )
 
     :: Start the Monitor Socket
     if %monitoring%==1 start /min cmd.exe /k ""%~f0" monitor %PID%" && if %logging% == 1 ( call :log Starting_Monitor_Socket INFO )
 
     :: Check if Login is Setup
-    if not exist "%userprofile%\Documents\SecureDataSpammer\username.hash" goto file.check    
+    for /f "tokens=3" %%A in ('reg query "HKCU\Software\DataSpammer" /v UsernameHash 2^>nul') do set "storedhash=%%A"
+    if defined storedhash goto file.check
 
 :login.input
     if %logging% == 1 ( call :log Starting_Login INFO )
-    title DataSpammer - Login
-    del %TEMP%\username.txt > nul
-    del %TEMP%\password.txt > nul
-    del %TEMP%\username_hash.txt > nul
-    del %TEMP%\password_hash.txt > nul
+    cls & title DataSpammer - Login
 
-    cls
+    :: Username & Password Input
     set /p "username.script=Please enter your Username: "
-    %powershell.short% -Command "$password = Read-Host 'Please enter your Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($password))" > %TEMP%\password.tmp
-    set /p password=<%TEMP%\password.tmp
-    del %TEMP%\password.tmp
+    set "username.script=%username.script: =%"
+    for /f "delims=" %%a in ('%powershell.short% -Command "$pass = Read-Host 'Please enter your Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($pass))"') do set "password=%%a"
 
-    echo %username.script% > %TEMP%\username.txt
-    echo %password% > %TEMP%\password.txt
-    certutil -hashfile %TEMP%\username.txt SHA256 > %TEMP%\username_hash.txt
-    certutil -hashfile %TEMP%\password.txt SHA256 > %TEMP%\password_hash.txt
+    :: Convert Username & Password to Hash
+    for /f "delims=" %%a in ('%powershell.short% -Command "[Text.Encoding]::UTF8.GetBytes('%username.script%') | % { (New-Object -TypeName Security.Cryptography.SHA256Managed).ComputeHash($_) } | ForEach-Object { $_.ToString('x2') } -join '' "') do set "username_hash=%%a"
+    for /f "delims=" %%a in ('%powershell.short% -Command "[Text.Encoding]::UTF8.GetBytes('%password%') | % { (New-Object -TypeName Security.Cryptography.SHA256Managed).ComputeHash($_) } | ForEach-Object { $_.ToString('x2') } -join '' "') do set "password_hash=%%a"
 
-    for /f "delims=" %%a in ('%powershell.short% -Command "(Get-Content '%TEMP%\username_hash.txt' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "username_hash=%%a"
-    for /f "delims=" %%a in ('%powershell.short% -Command "(Get-Content '%TEMP%\password_hash.txt' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "password_hash=%%a"
-    
     echo Comparing Hashes...
-    set /p stored_username_hash=<"%userprofile%\Documents\SecureDataSpammer\username.hash"
-    set /p stored_password_hash=<"%userprofile%\Documents\SecureDataSpammer\password.hash"
+    :: Extract Stored Username & Password
+    for /f "tokens=3" %%A in ('reg query "HKCU\Software\DataSpammer" /v UsernameHash 2^>nul') do set "stored_username_hash=%%A"
+    for /f "tokens=3" %%A in ('reg query "HKCU\Software\DataSpammer" /v PasswordHash 2^>nul') do set "stored_password_hash=%%A"
+
 
     :: echo Calc Username: "%username_hash%"  Stored Username: "%stored_username_hash%"
     :: echo Calc Password: "%password_hash%"  Stored Password: "%stored_password_hash%"
     
+    :: Remove Whitespaces
     set "username_hash=%username_hash: =%"
     set "stored_username_hash=%stored_username_hash: =%"
     set "password_hash=%password_hash: =%"
     set "stored_password_hash=%stored_password_hash: =%"
 
+    :: Compare Hashes
     if "%username_hash%" EQU "%stored_username_hash%" (
         echo Username Matches
         if "%password_hash%" EQU "%stored_password_hash%" (
             echo Password Matches
-            del "%TEMP%\username.txt" >nul 2>&1 && del "%TEMP%\password.txt" >nul 2>&1 && del "%TEMP%\username_hash.txt" >nul 2>&1 && del "%TEMP%\password_hash.txt" >nul 2>&1
             goto file.check
         ) else (
             echo Authentication failed. Password does not match.
             if %logging% == 1 ( call :log Password_Not_Matching WARN )
-            del "%TEMP%\username.txt" >nul 2>&1 && del "%TEMP%\password.txt" >nul 2>&1 && del "%TEMP%\username_hash.txt" >nul 2>&1 && del "%TEMP%\password_hash.txt" >nul 2>&1
             echo Credentials do not match!
             pause
             goto login.input
         )
     ) else (
         echo Authentication failed. Username does not match.
-        del "%TEMP%\username.txt" >nul 2>&1 && del "%TEMP%\password.txt" >nul 2>&1 && del "%TEMP%\username_hash.txt" >nul 2>&1 && del "%TEMP%\password_hash.txt" >nul 2>&1
         echo Credentials do not match!
         if %logging% == 1 ( call :log Username_Not_Matching WARN )
         pause
@@ -462,10 +455,9 @@
     if not defined username.script set "username.script=%username%"
 
 :menu
-    title DataSpammer
     cd /d "%~dp0"
     if %logging% == 1 ( call :log Displaying_Menu INFO )
-    title DataSpammer %current-script-version%
+    title DataSpammer %current-script-version% - Menu - Development
     cls
 
     %$Echo% "   ____        _        ____                                           
@@ -604,10 +596,12 @@
     call :sys.lt 1
     echo [U] Uninstall
     call :sys.lt 1
+    echo [R] Repair Settings
+    call :sys.lt 1
     echo.
     call :sys.lt 1
     echo [C] Go back
-    choice /C 123456789UCS /T 120 /D S  /M "Choose an Option from Above:"
+    choice /C 123456789UCRS /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto switch.elevation
         if %_erl%==2 goto encrypt
@@ -619,8 +613,9 @@
         if %_erl%==8 goto download.wait
         if %_erl%==9 goto custom.instruction.enable
         if %_erl%==10 goto sys.delete.script
-        if %_erl%==11 goto settings        
-        if %_erl%==12 call :standby
+        if %_erl%==11 goto repair.settings
+        if %_erl%==12 goto settings
+        if %_erl%==13 call :standby
     goto advanced.options
 
 :custom.instruction.enable
@@ -785,16 +780,14 @@ set "interpret.dts=%1"
 :login.change
     :: Delete User Account, then create a new one
     echo Changing Login...
-    rmdir /s /q "%userprofile%\Documents\SecureDataSpammer"
-    del "%userprofile%\Documents\SecureDataSpammer\username.hash"
-    del "%userprofile%\Documents\SecureDataSpammer\password.hash"
+    reg delete "HKCU\Software\DataSpammer" /v UsernameHash /f
+    reg delete "HKCU\Software\DataSpammer" /v PasswordHash /f
     goto login.create
 
 :login.delete
     :: Delete User Account
-    del "%userprofile%\Documents\SecureDataSpammer\username.hash"
-    del "%userprofile%\Documents\SecureDataSpammer\password.hash"
-    rmdir /s /q "%userprofile%\Documents\SecureDataSpammer"
+    reg delete "HKCU\Software\DataSpammer" /v UsernameHash /f
+    reg delete "HKCU\Software\DataSpammer" /v PasswordHash /f
     echo Account deleted successfully.
     echo Restarting Script...
     call :sys.lt 1
@@ -802,42 +795,23 @@ set "interpret.dts=%1"
 
 :login.create
     :: Create new Login Hashes
-    Cipher /E "%userprofile%\Documents\SecureDataSpammer"
-    if exist %userprofile%\Documents\SecureDataSpammer echo Account already exists. && call :sys.lt 1 && goto login.setup
-    set /p "username=Please enter a Username: "
+    for /f "tokens=3" %%A in ('reg query "HKCU\Software\DataSpammer" /v UsernameHash 2^>nul') do set "storedhash=%%A"
+    if defined storedhash echo Account already exists. && call :sys.lt 4 && goto login.setup
 
-    %powershell.short% -Command "$password = Read-Host 'Please enter a Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($password))" > %TEMP%\password.tmp
-    set /p password=<%TEMP%\password.tmp
-    del %TEMP%\password.tmp
-    
+    :: Input Password & Username
+    set /p "username.script=Please enter a Username: "
+    set "username.script=%username.script: =%"
+    for /f "delims=" %%a in ('%powershell.short% -Command "$pass = Read-Host 'Please enter your Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($pass))"') do set "password=%%a"
+
     echo Hashing the Username and Password...
-    :: Hash the username and password using certutil
-    echo %username% > %TEMP%\username.txt
-    echo %password% > %TEMP%\password.txt
-    certutil -hashfile %TEMP%\username.txt SHA256 > %TEMP%\username_hash.txt
-    certutil -hashfile %TEMP%\password.txt SHA256 > %TEMP%\password_hash.txt
-    
-    :: Extract the hash values
-    for /f "delims=" %%a in ('%powershell.short% -Command "(Get-Content '%TEMP%\username_hash.txt' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "username_hash=%%a"
-    for /f "delims=" %%a in ('%powershell.short% -Command "(Get-Content '%TEMP%\password_hash.txt' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "password_hash=%%a"
-    
-    
+    for /f "delims=" %%a in ('%powershell.short% -Command "[Text.Encoding]::UTF8.GetBytes('%username.script%') | % { (New-Object -TypeName Security.Cryptography.SHA256Managed).ComputeHash($_) } | ForEach-Object { $_.ToString('x2') } -join '' "') do set "username_hash=%%a"
+    for /f "delims=" %%a in ('%powershell.short% -Command "[Text.Encoding]::UTF8.GetBytes('%password%') | % { (New-Object -TypeName Security.Cryptography.SHA256Managed).ComputeHash($_) } | ForEach-Object { $_.ToString('x2') } -join '' "') do set "password_hash=%%a"
+
     :: Save the hashed values in a secure location
     echo Saving Secure Data...
-    if not exist "%userprofile%\Documents\SecureDataSpammer" mkdir "%userprofile%\Documents\SecureDataSpammer"
-    echo %username_hash% > "%userprofile%\Documents\SecureDataSpammer\username.hash"
-    echo %password_hash% > "%userprofile%\Documents\SecureDataSpammer\password.hash"
-    
-    :: Encrypt Hash Files
-    Cipher /E "%userprofile%\Documents\SecureDataSpammer\username.hash"
-    Cipher /E "%userprofile%\Documents\SecureDataSpammer\password.hash"
+    reg add "HKCU\Software\DataSpammer" /v UsernameHash /t REG_SZ /d "%username_hash%" /f
+    reg add "HKCU\Software\DataSpammer" /v PasswordHash /t REG_SZ /d "%password_hash%" /f
 
-    :: Clean up temporary files
-    del %TEMP%\username.txt
-    del %TEMP%\password.txt
-    del %TEMP%\username_hash.txt
-    del %TEMP%\password_hash.txt
-    
     cls
     echo Account created successfully.
     call :sys.lt 1
@@ -851,8 +825,7 @@ set "interpret.dts=%1"
     cd /d "%~dp0 "
     :: Version Update checks for this File
     call :generateRandom
-    echo %realrandom% > "%userprofile%\Documents\SecureDataSpammer\token.hash"
-    Cipher /E "%userprofile%\Documents\SecureDataSpammer\token.hash"
+    reg add "HKCU\Software\DataSpammer" /v Token /t REG_SZ /d "%realrandom%" /f
 
     (
         @echo off
@@ -2111,7 +2084,6 @@ set "interpret.dts=%1"
     if exist "%USERPROFILE%\Desktop\DataSpammer.lnk" "erase %USERPROFILE%\Desktop\DataSpammer.lnk"
     if exist ""%ProgramData%\Microsoft\Windows\Start Menu\Programs\Dataspammer.bat"" erase "%ProgramData%\Microsoft\Windows\Start Menu\Programs\Dataspammer.bat"
     if exist "%userprofile%\Documents\DataSpammerLog\" del /S /Q "%userprofile%\Documents\DataSpammerLog"
-    if exist "%userprofile%\Documents\SecureDataSpammer\" del /S /Q "%userprofile%\Documents\SecureDataSpammer"
     if exist "%~dp0\dataspammer.bat" del "%~dp0\dataspammer.bat"
     reg query "HKCU\Software\DataSpammer" /v Installed >nul 2>&1
     if not %errorlevel% neq 0 ( reg delete "HKCU\Software\DataSpammer" /f )
@@ -2218,8 +2190,10 @@ set "interpret.dts=%1"
     echo.
     echo [6] List all :signs
     echo.
-    echo [7] Go Back
-    choice /C 1234567S /T 120 /D S  /M "Choose an Option from Above:"
+    echo [7] List all :signs
+    echo.
+    echo [8] Go Back
+    choice /C 12345678S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto dev.options.call.sign
         if %_erl%==2 @echo on && cls && goto dev.options
@@ -2228,8 +2202,23 @@ set "interpret.dts=%1"
         if %_erl%==5 goto restart.script
         if %_erl%==6 call :list.vars && pause && cls
         if %_erl%==7 goto settings
-        if %_erl%==8 call :standby
+        if %_erl%==8 goto debug.info     
+        if %_erl%==9 call :standby
     goto dev.options
+
+:debug.info
+    echo Monitoring: %monitoring%
+    echo Script Version: %current-script-version%
+    echo Logging: %logging%
+    echo Developer Mode: %developermode%
+    echo Color: %color%
+    echo Default Filename: %default_filename%
+    echo Default Directory: %default_directory%
+    echo Update: %update%
+    echo Default Domain: %default-domain%
+    echo Default File Count: %default-filecount%
+    echo Elevation: %elevation%
+    echo Skip Security Check: %skip-sec%
 
 :dev.options.call.sign
     :: List all Call Signs
@@ -2251,9 +2240,6 @@ set "interpret.dts=%1"
     :: Encrypt new Files
     Cipher /E "%~dp0\settings.conf" 
     Cipher /E "%~dp0\dataspammer.bat"
-    Cipher /E "%userprofile%\SecureDataSpammer\username.hash"
-    Cipher /E "%userprofile%\SecureDataSpammer\settings.hash"
-    Cipher /E "%userprofile%\SecureDataSpammer\password.hash"
 
     :: Add new Settings
     if not defined %default_filename% call :update_config "default_filename" "" "notused"
@@ -2292,7 +2278,6 @@ set "interpret.dts=%1"
     set SOURCE_DIR="%script.dir%\Debug"
     if exist "%SOURCE_DIR%" rmdir /s /q "%SOURCE_DIR%"
     mkdir Debug
-    if exist "%userprofile%\Documents\SecureDataSpammer" copy "%userprofile%\Documents\SecureDataSpammer\" "%SOURCE_DIR%"
     copy "%userprofile%\Documents\DataSpammerLog\DataSpammer.log" "%SOURCE_DIR%"
     ipconfig > "%SOURCE_DIR%\ipconf.txt"
     msinfo32 /report "%SOURCE_DIR%\msinfo.txt"
@@ -2452,27 +2437,25 @@ set "interpret.dts=%1"
     )
 
 :verify.settings
-    goto :EOF
-    set "hashpath=%userprofile%\Documents\SecureDataSpammer"
+    for /f "tokens=3" %%A in ('reg query "HKCU\Software\DataSpammer" /v SettingsHash 2^>nul') do set "storedhash=%%A"
 
     :: Extract Saved Hash and if none exist create one
-    if exist "%hashpath%\settings.hash" (
-        set /p saved_hash=<"%hashpath%\settings.hash"
-    ) else (
-        certutil -hashfile "%~dp0\settings.conf" SHA256 > "%hashpath%\settings.hash"
-        set /p saved_hash=<"%hashpath%\settings.hash"
+    if not defined storedhash (
+        for /f "delims=" %%h in ('powershell -Command "(Get-FileHash -Path ''%~dp0settings.conf'' -Algorithm SHA256).Hash"') do ( set "storedhash=%%h" )
+        set "storedhash=%storedhash: =%"
+        reg add "HKCU\Software\DataSpammer" /v SettingsHash /t REG_SZ /d "%storedhash%" /f >nul        
     )
 
     :: Extract Current Hash from settings.conf
     set "settings.file=%~dp0\settings.conf"
-    for /f "delims=" %%a in ('%powershell.short% -Command "(certutil -hashfile "%settings.file%" SHA256 | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "current_hash=%%a"
+    for /f "delims=" %%a in ('%powershell.short% -Command "(Get-FileHash -Path ''%settings.file%'' -Algorithm SHA256).Hash"') do set "current_hash=%%a"
 
     :: Remove spaces from Hashes
-    set "saved_hash=%saved_hash: =%"
+    set "storedhash=%storedhash: =%"
     set "current_hash=%current_hash: =%"
     
     :: Compare Hashes
-    if not "%current_hash%" EQU "%saved_hash%" (
+    if not "%current_hash%" EQU "%storedhash%" (
         echo The settings.conf file has been modified unexpectedly. 
         echo This could indicate manual changes or potential corruption.
         echo Please review the settings.conf file for any discrepancies or errors.
@@ -2483,11 +2466,13 @@ set "interpret.dts=%1"
     goto :EOF
 
 :reset.settings.hash
-    :: Reset saved settings hash
-    set "hashpath=%userprofile%\Documents\SecureDataSpammer"
-    if exist "%hashpath%\settings.hash" (
-        del "%hashpath%\settings.hash"
-        certutil -hashfile "%~dp0\settings.conf" SHA256 > "%hashpath%\settings.hash"
+    :: Delete Saved Hash and create a new one
+    for /f "tokens=3" %%A in ('reg query "HKCU\Software\DataSpammer" /v SettingsHash 2^>nul') do set "storedhash=%%A"
+    if defined storedhash (
+        reg delete "HKCU\Software\DataSpammer" /v SettingsHash /f
+        for /f "delims=" %%h in ('powershell -Command "(Get-FileHash -Path ''%~dp0settings.conf'' -Algorithm SHA256).Hash"') do ( set "storedhash=%%h" )
+        set "storedhash=%storedhash: =%"
+        reg add "HKCU\Software\DataSpammer" /v SettingsHash /t REG_SZ /d "%storedhash%" /f >nul   
     )
     exit /b    
 
@@ -2915,7 +2900,9 @@ set "interpret.dts=%1"
     )  
     if not defined where_output goto move.new.files
     :: Encrypt new Files, when current Version is already encrypted
-    if not exist "%userprofile%\Documents\SecureDataSpammer\token.hash" goto move.new.files
+    for /f "tokens=3" %%A in ('reg query "HKCU\Software\DataSpammer" /v Token 2^>nul') do set "tokenhash=%%A"
+    if not defined tokenhash goto move.new.files
+
     echo Encrypting newly downloaded Files...
     echo FF FE 0D 0A 63 6C 73 0D 0A >  "%temp%\dts.update\temp_hex.txt"
     certutil -f -decodehex "%temp%\dts.update\temp_hex.txt" "%temp%\dts.update\temp_prefix.bin"
@@ -3199,7 +3186,7 @@ set "interpret.dts=%1"
 :sys.verify.execution
     :: Check for Human Input by asking for random Int Input
     if %logging% == 1 ( call :log Opened_verify_tab INFO )
-    if "%skip-sec%"==1 ( exit /b %errorlevel%)
+    if "%skip-sec%"=="1" ( exit /b %errorlevel%)
     call :generateRandom
     set "verify=%realrandom% "
     %powershell.short% -Command "& {Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.Interaction]::InputBox('Please enter Code %verify% to confirm that you want to execute this Option', 'DataSpammer Verify')}" > %TEMP%\out.tmp
@@ -3428,6 +3415,7 @@ set "interpret.dts=%1"
     echo Adding Registry Key...
     reg add "HKCU\Software\DataSpammer" /v Installed /t REG_DWORD /d 1 /f
     reg add "HKCU\Software\DataSpammer" /v Version /t REG_SZ /d "%current-script-version%" /f
+    call :reset.settings.hash
     echo Done. 
     echo Consider reinstalling the Script to avoid any issues. 
     goto restart.script
@@ -3439,7 +3427,7 @@ set "interpret.dts=%1"
     )  
     if not defined where_output goto finish.installation
     call :generateRandom
-    echo %realrandom% > "%userprofile%\Documents\SecureDataSpammer\token.hash"
+    reg add "HKCU\Software\DataSpammer" /v Token /t REG_SZ /d "%realrandom%" /f
     (
         @echo off
         echo FF FE 0D 0A 63 6C 73 0D 0A > "%directory9%\temp_hex.txt"
