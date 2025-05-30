@@ -2658,7 +2658,7 @@
         for /L %%i in (%1,-1,0) do (
             set "msg=Waiting, %%i seconds remaining..."
             echo !msg!
-            timeout /t 1 >nul
+            ping -n 2 127.0.0.1 >nul
         )
         echo.
     ) else (
@@ -2987,9 +2987,8 @@
     )
 
     :: Use PowerShell for fast random string generation:
-    for /f "usebackq delims=" %%a in (
-        `%powershell.short% -NoProfile -Command "$chars='!chars!'; $len=%length%; (-join (1..$len | ForEach-Object { $chars[(Get-Random -Minimum 0 -Maximum $chars.Length)] }))"`
-    ) do (
+    set "pscmd=%powershell.short% -NoProfile -Command "$chars='!chars!'; $len=%length%; (-join (1..$len | ForEach-Object { $chars[(Get-Random -Minimum 0 -Maximum $chars.Length)] }))""
+    for /f "usebackq delims=" %%a in (`!pscmd!`) do (
         set "random_gen=%%a"
     )
     goto :EOF
