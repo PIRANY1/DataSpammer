@@ -2513,28 +2513,26 @@
 
 :: Generate real random numbers ( default %random% is limited to 32767)
 :generateRandom
-    :: Get two random numbers
+    :: Get Random Numbers
     set "r1=%random%"
     set "r2=%random%"
-    :: Combine them into a string
     set "str=%r1%_%r2%"
-    :: Generate a hash from the string using PowerShell
-    for /f %%h in ('powershell -command "[BitConverter]::ToString((New-Object -TypeName System.Security.Cryptography.SHA256Managed).ComputeHash([System.Text.Encoding]::UTF8.GetBytes('%str%'))).Replace('-','')"') do set "hash=%%h"
-    
+
+    :: Generate Hash
+    for /f %%h in ('echo %str% ^| %powershell.short% -command "$s = $input; $h = [BitConverter]::ToString((New-Object System.Security.Cryptography.SHA256Managed).ComputeHash([System.Text.Encoding]::UTF8.GetBytes($s))).Replace('-', ''); Write-Output $h"') do (
+        set "hash=%%h"
+    )
+
     :: Extract only digits from the hash
     set "digits="
-    for /l %%i in (0,1,999) do (
+    for /l %%i in (0,1,63) do (
         set "char=!hash:~%%i,1!"
-        if defined char (
-            if "!char!" geq "0" if "!char!" leq "9" set "digits=!digits!!char!"
-        ) else (
-            goto afterdigits
-        )
+        if "!char!" geq "0" if "!char!" leq "9" set "digits=!digits!!char!"
     )
-    :afterdigits
-    :: Fallback if no digits were found
+
     if not defined digits set "digits=12345"
-    :: Limit to 5 digits
+
+    :: Max 5 Digits
     set "realrandom=!digits:~0,5!"
     exit /b
     
@@ -3113,28 +3111,30 @@
 :: echo Time difference: %timeDiffMs% ms
 :: goto :EOF
 :: -------------------------------------------------------------------
-
 :TimeDiffInMs
     call :check_args :TimeDiffInMs %1 %2
     if "%errorlevel%"=="1" (
         set "timeDiffMs=ERROR"
         exit /b 1
     )
+
     set "start=%~1"
     set "end=%~2"
 
-    for /f "tokens=1-4 delims=:," %%a in ("%start%") do (
-        set /a "startMs = (((%%a * 60 + %%b) * 60 + %%c) * 1000 + 1%%d - 100)"
+    :: Check for delimiter (, or .)
+    echo(%start% | find "," >nul && set "delim=," || set "delim=."
+
+    for /f "tokens=1-4 delims=:%%delim%%" %%a in ("%start%") do (
+        set /a "startMs = (((%%a * 60 + %%b) * 60 + %%c) * 1000 + %%d * 10)"
     )
 
-    for /f "tokens=1-4 delims=:," %%a in ("%end%") do (
-        set /a "endMs = (((%%a * 60 + %%b) * 60 + %%c) * 1000 + 1%%d - 100)"
+    for /f "tokens=1-4 delims=:%%delim%%" %%a in ("%end%") do (
+        set /a "endMs = (((%%a * 60 + %%b) * 60 + %%c) * 1000 + %%d * 10)"
     )
 
-    set /a diff = endMs - startMs
-
-    set "timeDiffMs=%diff%"
+    set /a "timeDiffMs=endMs - startMs"
     exit /b
+
 
 :loading.animation
     :: Display Loading Animation, currently unused
