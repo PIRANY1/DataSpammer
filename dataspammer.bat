@@ -105,7 +105,7 @@
         goto cancel
     )
     
-    :: Check Windows Version
+    :: Check Windows Version - Win 10 & 11 have certutil and other commands needed. Win 8.1 and below not have them
     call :win.version.check
     for /f "tokens=3 delims=: " %%a in ('ver') do set ver=%%a
     if %ver% GEQ 6.3 ( set "winver=8.1" )
@@ -117,7 +117,7 @@
         echo Detected Windows %winver%
         call :color _Yellow "Warning: Some features may not work on this version."
         call :color _Red "For full compatibility, please update to Windows 10 or 11."
-        call :color _Yellow "Note: 'certutil' and other tools may be missing on older Windows versions."
+        call :color _Yellow "Note: certutil and other tools may be missing on older Windows versions."
         call :sys.lt 10 count
     )
 
@@ -460,12 +460,12 @@
     title DataSpammer %current-script-version% - Menu - Development
     cls
 
-    %$Echo% "   ____        _        ____                                           
+    %$Echo% "   ____        _        ____
     %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __
     %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__|
-    %$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  
-    %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  
-    %$Echo% "                             |_|                                                                    
+    %$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |
+    %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|
+    %$Echo% "                             |_|
 
 
 
@@ -512,9 +512,13 @@
     if %logging% == 1 ( call :log Opened_Settings_%dev-mode%_dev_mode INFO )
     color
     cls 
-    echo ========
-    echo Settings
-    echo ========
+    %$Echo% "    ____       _   _   _ 
+    %$Echo% "   / ___|  ___| |_| |_(_)_ __   __ _ ___
+    %$Echo% "   \___ \ / _ \ __| __| | '_ \ / _` / __|
+    %$Echo% "    ___) |  __/ |_| |_| | | | | (_| \__ \
+    %$Echo% "   |____/ \___|\__|\__|_|_| |_|\__, |___/
+    %$Echo% "                               |___/
+
     echo.
     call :sys.lt 1
     echo. 
@@ -1211,10 +1215,16 @@
     for /f "delims=" %%a in ('where python') do (
         set "where_output=%%a"
     )
-    if not defined where_output (set "python.line=echo.") else ( set "python.line=echo [4] Python Scripts (Experimental)" )
-
+    if not defined where_output (set "python.line=echo.") else ( set "python.line=echo [4] Python Scripts (Experimental)" ) 
 
 :start.verified
+    %$Echo% "     ___        _   _
+    %$Echo% "    / _ \ _ __ | |_(_) ___  _ __  ___ 
+    %$Echo% "   | | | | '_ \| __| |/ _ \| '_ \/ __|
+    %$Echo% "   | |_| | |_) | |_| | (_) | | | \__ \
+    %$Echo% "    \___/| .__/ \__|_|\___/|_| |_|___/
+    %$Echo% "         |_|
+
     echo [1] Local Machine
     call :sys.lt 1
     echo.
@@ -2914,7 +2924,7 @@
     setlocal EnableDelayedExpansion
     set "type=%~1"
     set "length=%~2"
-
+    
     :: Define allowed characters based on type
     if /I "%type%"=="numbers" (
         set "chars=0123456789"
@@ -2924,18 +2934,23 @@
         set "chars=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz:,.-;!?"
     ) else (
         echo Unknown type: %type%
-        if %logging% == 1 ( call :log Unknown_Type_%type% ERROR )
-        if %logging% == 1 ( call :log Caught_At_:generate_random ERROR )
-        goto :EOF
+        if "%logging%"=="1" call :log Unknown_Type_%type% ERROR
+        if "%logging%"=="1" call :log Caught_At_:generate_random ERROR
+        exit /b 1
     )
-
-    :: Use PowerShell for fast random string generation:
-    set "pscmd=%powershell.short% -NoProfile -Command "$chars='!chars!'; $len=%length%; (-join (1..$len | ForEach-Object { $chars[(Get-Random -Minimum 0 -Maximum $chars.Length)] }))""
+    
+    :: Escape quotes properly in PowerShell call
+    set "pscmd=powershell -NoProfile -Command \""
+    set "pscmd=!pscmd!$chars='!chars!'; "
+    set "pscmd=!pscmd!$len=%length%; "
+    set "pscmd=!pscmd!(-join (1..$len | ForEach-Object { $chars[(Get-Random -Minimum 0 -Maximum $chars.Length)] }))"
+    set "pscmd=!pscmd!\""
+    
     for /f "usebackq delims=" %%a in (`!pscmd!`) do (
         set "random_gen=%%a"
     )
-    goto :EOF
-
+    set "random_gen=%random_gen%"
+    exit /b 0
 
 :check_args
     :: %1 = Origin (for logging)
@@ -3102,7 +3117,12 @@
     :: Display Standby Screen & Exit after 10 minutes
     cls
     echo ==================================================
-    echo                Script Standby Mode 
+    %$Echo% "    ____  _                  _ _
+    %$Echo% "   / ___|| |_ __ _ _ __   __| | |__  _   _
+    %$Echo% "   \___ \| __/ _` | '_ \ / _` | '_ \| | | |
+    %$Echo% "    ___) | || (_| | | | | (_| | |_) | |_| |
+    %$Echo% "   |____/ \__\__,_|_| |_|\__,_|_.__/ \__, |
+    %$Echo% "                                     |___/
     echo --------------------------------------------------
     echo The script has entered standby after 2 minutes of inactivity.
     echo Press any key to continue...
@@ -3188,12 +3208,13 @@
     )
 
     @title DataSpammer - Install
-    %$Echo% "   ____        _        ____                                            _           ____ ___ ____      _    _   ___   __
-    %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __| |__  _   _|  _ \_ _|  _ \    / \  | \ | \ \ / /
-    %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__| '_ \| | | | |_) | || |_) |  / _ \ |  \| |\ V / 
-    %$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |  | |_) | |_| |  __/| ||  _ <  / ___ \| |\  | | |  
-    %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|  |_.__/ \__, |_|  |___|_| \_\/_/   \_\_| \_| |_|  
-    %$Echo% "                             |_|                                              |___/                                     
+    %$Echo% "   ____        _        ____
+    %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __
+    %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__|
+    %$Echo% "  | |_| | (_| | || (_| |___) | |_) | (_| | | | | | | | | | | |  __/ |
+    %$Echo% "  |____/ \__,_|\__\__,_|____/| .__/ \__,_|_| |_| |_|_| |_| |_|\___|_|
+    %$Echo% "                             |_|
+
 
     echo Made by PIRANY - %current-script-version% - Batch
     echo.
