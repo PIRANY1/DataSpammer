@@ -63,6 +63,7 @@
 ::      Continue Custom Instruction File
 ::      Fix Wait.exe Delay
 
+
 :top
     @echo off
     @cls
@@ -1170,12 +1171,7 @@
     goto menu
 
 :autostart.setup.confirmed
-    cd /d "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup"
-    (
-        echo @echo off
-        echo cd /d "%~dp0"
-        dataspammer.bat
-    ) > autostart.bat
+    >> "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup\autostart.bat" echo @echo off && cd /d "%~dp0" && dataspammer.bat
     echo Autostart Link Added.
     goto menu
 
@@ -1577,7 +1573,7 @@
 
     set /P printer.content=Enter the Content:
     cd /d "%~dp0"
-    echo %printer.content% > %print.filename%.txt
+    >> "%~dp0\%print.filename%.txt" echo %printer.content%
 
     for /L %%i in (1,1,%printer.count%) do (
         print %print.filename%.txt
@@ -1674,9 +1670,10 @@
     set /a w=1
     cd /d "%temp%"
     for /l %%i in (1,1,%filecount%) do (
-        echo %content% >> %filename%%x%.txt
+        >> "%temp%\%filename%%x%.txt" echo %content%
         set /a w+=1
     )
+
     
     :: Create FTP Command File 
     set ftpCommands=ftpcmd.txt
@@ -1964,7 +1961,7 @@
 
     for /L %%i in (1,1,%desk.filecount%) do (
         echo Creating File %desk.spam.name%%x%.%desk.spam.format%
-        echo %desk.spam.content% > %desk.spam.name%%x%.%desk.spam.format%
+        >> "%userprofile%\Desktop\%desk.spam.name%%x%.%desk.spam.format%" echo %desk.spam.content%
         set /a x+=1
     )
 
@@ -2000,7 +1997,7 @@
 
     for /L %%i in (1,1,%filecount%) do (
         echo Creating File %default-filename%%x%.txt
-        echo %defaultspam.content% > %default-filename%%x%.txt
+        >> "%default-filename%%x%.txt" echo %defaultspam.content%
         set /a x+=1
     )
 
@@ -2323,9 +2320,6 @@
     :: Run all :signs & functions & check for updates
 
 :debugtest
-    :: resync time 
-    w32tm /resync >nul 2>&1
-
     :: Start Debug Test
     echo Running Debug Test...
     set "starttime=%time%"
@@ -2348,64 +2342,15 @@
     call :generate_random all 40
     
     :: Test Write Config
-    echo. > "%~dp0\settings.conf"
+    >> "%~dp0\settings.conf" echo default-filename=notused
     call :generateRandom
     call :update_config "default-filename" "" "%realrandom%"
     type "%~dp0\settings.conf"
 
     call :version
-    
-    call :sys.lt 5
-    call :sys.lt 5 count
 
-    :: Test Logging
-    call :log Tested_Functionality INFO 
-    type %userprofile%\Documents\DataSpammerLog\Dataspammer.log
-    :: Paste Newly Added Functions of your PR here to test them via GitHub Actions
-    :: Example1: call :dns.spam
-    :: Example2: Paste a modified Function here if manual input is required
-
-    echo Generate Random
-    :: Generate Full Random - v6 #27
-    call :generateRandom
-    echo Random: %realrandom%
-
-    echo Show Colors:
-    :: Show Colors - v6 #27
-    call :color Red      "This is red on light white"
-    call :color _Red     "This is red on black"
-    call :color Green    "Green on white"
-    call :color _Green   "Green on black"
-    call :color Blue     "Blue on white"
-    call :color Gray     "Gray background"
-    call :color White    "Bright white"
-    call :color _White   "White on dark gray"
-    call :color _Yellow  "Yellow on black"
-
-    echo Check NCS
-    :: check NCS - v6 #27
-    call :check_NCS
-    echo _NCS: %_NCS%
-
-    echo Calc Time Diff
-    :: Calc Time Diff - v6 #27
-    call :TimeDifference "%starttime%" "%endtime%" > tmp_time.txt
-    set /p diff.full=<tmp_time.txt && del tmp_time.txt && echo Time Diff %diff.full%
-    
-    echo List Vars
-    :: List Vars - v6 #27
-    call :list.vars
-
-    echo Generate Random
-    :: Generate Custom Random - v6 #27
-    call :generate_random all 40
-    echo Random: %random_gen%
-    
     %errormsg%
     echo Errorlevel: %errorlevel%
-
-    :: Only Uncomment if Updater was changed
-    :: call :update.script stable
     echo Finished Testing...
     echo Exiting
     goto cancel
@@ -3331,6 +3276,8 @@
     goto installer.menu.select
 
 :installer.start.copy
+    :: Resync Time to avoid issues with BITS
+    w32tm /resync >nul 2>&1 
     :: Main Install Code
     set "directory9=%directory%DataSpammer\"
     mkdir "%directory9%" 
@@ -3339,12 +3286,30 @@
     move README.md "%directory9%\" >nul 2>&1
     move LICENSE "%directory9%\" >nul 2>&1
 
+    :: Download LICENSE and README.md if only dataspammer.bat is present
     cd /d "%directory9%"
-    :: Download new Files if one line was used to install
     set "update_url=https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/"
-    if not exist dataspammer.bat ( %powershell.short% iwr "%update_url%dataspammer.bat" -UseBasicParsing -OutFile "%directory9%\dataspammer.bat" >nul 2>&1 ) 
-    if not exist README.md( %powershell.short% iwr "%update_url%README.md" -UseBasicParsing -OutFile "%directory9%\README.md" >nul 2>&1 )
-    if not exist LICENSE( %powershell.short% iwr "%update_url%main/LICENSE" -UseBasicParsing -OutFile "%directory9%\LICENSE" >nul 2>&1 ) 
+    echo Downloading...
+    :: Download Files via BITS
+    if not exist README.md ( 
+        echo Downloading README.md...
+        bitsadmin /transfer upd "%update_url%README.md" "%directory9%\README.md"
+        if errorlevel 1 (
+            %errormsg%
+            echo README.md Download failed. This is not critical.
+            call :sys.lt 5
+        )   
+    )
+
+    if not exist LICENSE (
+        echo Downloading LICENSE...
+        bitsadmin /transfer upd "%update_url%LICENSE" "%directory9%\LICENSE"
+        if errorlevel 1 (
+            %errormsg%
+            echo LICENSE Download failed. This is not critical.
+            call :sys.lt 5
+        )  
+    )
 
     :: Add Script to Windows App List
     set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
