@@ -3,6 +3,7 @@
 :: Version v6 - Beta
 :: Last edited on 29.05.2025 by PIRANY
 
+:: Some Functions are inspired from the MAS Script. 
 
 :: Short Copy Paste:
 :: =============================================================
@@ -62,7 +63,6 @@
 ::      Add more Error Catchers / Checks
 ::      Continue Custom Instruction File
 ::      Fix Wait.exe Delay
-
 
 :top
     @echo off
@@ -129,6 +129,31 @@
         call :sys.lt 10 count
     )
 
+    >nul findstr /v "$" "%~nx0" && (
+      %errormsg%
+      echo Script either has LF line ending issue or an empty line at the end of the script is missing.
+      call :sys.lt 20
+      goto cancel
+    )
+
+    sc query Null | find /i "RUNNING"
+    if %errorlevel% NEQ 0 (
+    %errormsg%
+    echo Null Kernel service is not running, script may crash...
+    echo:
+    call :sys.lt 20
+    )
+
+    :: Check if echo is available
+    (
+        echo: >nul
+    ) 2>nul
+    if errorlevel 1 (
+        %errormsg%
+        echo Conflict with echo detected. Script may have issues or crash.
+        call :sys.lt 20 count
+    )    
+    
     :: Allows ASCII stuff without Codepage Settings - Not My Work - Credits to ?
     :: Properly Escape Symbols like | ! & ^ > < etc. when using echo (%$Echo% " Text)
     SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
@@ -377,14 +402,14 @@
     call :sys.lt 1
     echo The newest Version avaiable is %latest_version%
     call :sys.lt 1
-    echo.
+    echo:
     echo [1] Update
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [2] Continue Anyways
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     choice /C 12 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
@@ -398,11 +423,11 @@
     call :sys.lt 1
     echo A reinstall of the Script is Needed. 
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [1] Reinstall Script
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [2] Exit
     call :sys.lt 1
@@ -472,31 +497,31 @@
     call :sys.lt 1
     echo Made by PIRANY - %current-script-version% - Logged in as %username.script% - Batch - CMD Version %CMD_VERSION%
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [1] Start
-    echo.
+    echo:
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [2] Settings
-    echo.
+    echo:
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [3] Autostart/Desktop Icon
-    echo.
+    echo:
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [4] Open GitHub-Repo
-    echo.
+    echo:
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [5] Cancel
-    echo.
-    echo.
+    echo:
+    echo:
     choice /C 12345S /T 120 /D S /M "Choose an Option from Above: "
         set _erl=%errorlevel%
         if %_erl%==1 goto start
@@ -519,51 +544,51 @@
     %$Echo% "   |____/ \___|\__|\__|_|_| |_|\__, |___/
     %$Echo% "                               |___/
 
-    echo.
+    echo:
     call :sys.lt 1
-    echo. 
+    echo: 
     call :sys.lt 1
     call :color _White "[1] Spam Settings"
     call :sys.lt 1
-    echo. 
+    echo: 
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     call :color _Red "[2] Developer Options"
     call :sys.lt 1
-    echo. 
+    echo: 
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     call :color _Yellow "[3] Version Control"
     call :sys.lt 1
-    echo. 
+    echo: 
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     call :color _Blue "[4] Account"
     call :sys.lt 1
-    echo. 
+    echo: 
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     call :color _Green "[5] Restart Script"
     call :sys.lt 1
-    echo. 
+    echo: 
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     call :color _Red "[6] Advanced Options"    
     call :sys.lt 1
-    echo. 
+    echo: 
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [7] Go back
     call :sys.lt 1
-    echo. 
+    echo: 
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
 
     choice /C 1234567S /T 120 /D S  /M "Choose an Option from Above:"
@@ -602,7 +627,7 @@
     call :sys.lt 1
     echo [R] Repair Settings
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [C] Go back
     choice /C 123456789URCS /T 120 /D S  /M "Choose an Option from Above:"
@@ -682,7 +707,7 @@
     :: Change Codepage to allow for different character sets
     for /f "tokens=2 delims=:" %%a in ('chcp') do set "chcp.value=%%a"
     echo Current Codepage: %chcp.value%
-    echo.
+    echo:
     echo CHCP Values:
     echo 437	United States
     echo 850	Multilingual (Latin I)
@@ -704,9 +729,9 @@
 
 :change.color
     :: Set Color Dialog
-    echo.
+    echo:
     echo Currently Using Color: %color%
-    echo.
+    echo:
     echo Color 02 = Black Background ^& Green Text
     echo 0 = Black       8 = Gray
     echo 1 = Blue        9 = Light Blue
@@ -716,7 +741,7 @@
     echo 5 = Purple      D = Light Purple
     echo 6 = Yellow      E = Light Yellow
     echo 7 = Light Gray  F = White
-    echo.
+    echo:
     set /p color.var=Please enter the Color Combination:
     call :update_config "color" "" "%color.var%"
 
@@ -728,15 +753,15 @@
     echo Monitor Socket Settings
     echo -----------------------
 
-    echo.
+    echo:
     echo Monitoring is currently %monitoring-status%
-    echo.
+    echo:
     echo [1] Enable Monitor Socket
     call :sys.lt 1
     echo [2] Disable Monitor Socket
     call :sys.lt 1
     echo [3] Go back
-    echo.
+    echo:
     choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto monitor.enable
@@ -760,22 +785,22 @@
 :login.setup
     cls
     echo Logged in as %username.script%
-    echo.
+    echo:
     echo [1] Create Account
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [2] Change Login   
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [3] Delete Login
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [4] Discard
-    echo.
-    echo.
+    echo:
+    echo:
     choice /C 1234S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto login.create
@@ -860,18 +885,18 @@
 :switch.elevation
     :: Switch Elevation Method
     echo Choose an Elevation method.
-    echo. 
+    echo: 
     echo Powershell is the default and recommended option.
     echo Sudo requires Windows 24H2 or higher and must be manually enabled.
     echo Gsudo is a third-party tool and must be installed manually.
-    echo.
+    echo:
     echo [1] Powershell
-    echo.
+    echo:
     echo [2] sudo (needs 24H2)
-    echo.
+    echo:
     echo [3] gsudo (/gerardog/gsudo)
-    echo.
-    echo. 
+    echo:
+    echo: 
     choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto switch.pwsh.elevation
@@ -940,23 +965,23 @@
 :spam.settings
     echo [1] Default Filename
     call :sys.lt 1
-    echo. 
+    echo: 
     call :sys.lt 1
     echo [2] Default Directory
     call :sys.lt 1
-    echo. 
+    echo: 
     call :sys.lt 1
     echo [3] Default Filecount / Request Count
     call :sys.lt 1
-    echo. 
+    echo: 
     call :sys.lt 1
     echo [4] Default Domain (HTTPS/DNS)
     call :sys.lt 1
-    echo. 
+    echo: 
     call :sys.lt 1
     echo [5] Skip Security Question
     call :sys.lt 1
-    echo. 
+    echo: 
     call :sys.lt 1
     echo [6] Go back
     choice /C 123456S /T 120 /D S  /M "Choose an Option from Above:"
@@ -987,25 +1012,25 @@
     goto restart.script
 
 :settings.version.control
-    echo.
-    echo.
+    echo:
+    echo:
     call :sys.lt 1
     echo [1] Force Update
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [2] Switch to Main Branch
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [3] Switch to Develop Branch (v6)
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [4] Go Back
     call :sys.lt 1
-    echo.
-    echo.
+    echo:
+    echo:
     choice /C 1234S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 call :update.script stable && goto cancel
@@ -1021,7 +1046,7 @@
     echo Do you want to activate the Developer Options?
     echo Developer Options include some advanced features like logging etc.
     echo These Features are experimental can be unstable.
-    echo.
+    echo:
     choice /C YNS /T 120 /D S  /M "Yes/No"
         set _erl=%errorlevel%
         if %_erl%==1 goto write-dev-options
@@ -1044,28 +1069,28 @@
     cls
     if %logging% == 1 ( set "settings.logging=Activated" ) else ( set "settings.logging=Disabled" )
     echo Logging is currently: %settings.logging%
-    echo.
+    echo:
     call :sys.lt 1
     echo [1] Activate Logging
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [2] Disable Logging
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [3] Open Log
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [4] Clear Log
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [5] Go Back
     call :sys.lt 1
-    echo.
-    echo.
+    echo:
+    echo:
     choice /C 12345S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto enable.logging
@@ -1094,24 +1119,24 @@
 
 :ad.settings
     cls
-    echo.
+    echo:
     echo =================================
     echo Autostart / Desktop Icon Settings
     echo =================================
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [1] Setup 
-    echo.
+    echo:
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [2] Uninstall
-    echo.
+    echo:
     call :sys.lt 1
     echo [3] Back
-    echo.
-    echo.
+    echo:
+    echo:
 
     choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
@@ -1125,16 +1150,16 @@
 :ad.remove
     cls
     echo [1] Delete Autostart
-    echo.
+    echo:
     call :sys.lt 1
-    echo.
+    echo:
     echo [2] Delete Desktop Icon
-    echo.
+    echo:
     call :sys.lt 1
-    echo.
+    echo:
     echo [3] Back
-    echo.
-    echo.
+    echo:
+    echo:
     choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto autostart.delete
@@ -1148,15 +1173,15 @@
     cls
     echo [1] Start Setup for Autostart
     call :sys.lt 2
-    echo.
+    echo:
     call :sys.lt 2
     echo [2] Start Setup for Desktop Icon
     call :sys.lt 2
-    echo.
+    echo:
     call :sys.lt 2
     echo [3] Go Back
     call :sys.lt 2
-    echo.
+    echo:
 
     choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
@@ -1215,7 +1240,7 @@
     for /f "delims=" %%a in ('where python') do (
         set "where_output=%%a"
     )
-    if not defined where_output (set "python.line=echo.") else ( set "python.line=echo [4] Python Scripts (Experimental)" ) 
+    if not defined where_output (set "python.line=echo:") else ( set "python.line=echo [4] Python Scripts (Experimental)" ) 
 
 :start.verified
     %$Echo% "     ___        _   _
@@ -1227,11 +1252,11 @@
 
     echo [1] Local Machine
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [2] Internet ( LAN / WAN)
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [3] Go back
     call :sys.lt 1
@@ -1250,41 +1275,41 @@
 :internet.spams
     echo [1] SSH Test (Key-Auth or No Password)
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [2] DNS Test
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [3] FTP Test
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [4] HTTP(S) Test
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [5] Printer Test
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [6] ICMP Test (ping)
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [7] Telnet
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [8] Printer List Test
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [9] Go Back
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
-    echo.
+    echo:
     choice /C 12345678S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto ssh.spam
@@ -1302,13 +1327,13 @@
 :python.spams
     echo [1] Zip Bomb Creator
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [2] Go Back
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
-    echo.
+    echo:
     choice /C 12S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto python.zip.bomb
@@ -1386,32 +1411,32 @@
 :local.spams
     echo Choose the Method you want to use:
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [1] .txt Spam in custom Directory
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [2] Desktop Icon Spam
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [3] Startmenu Spam
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [4] App-List Spam
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [5] Encrypt / Decrypt File/Directory
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [6] Go Back
-    echo.
-    echo.
-    echo.
+    echo:
+    echo:
+    echo:
     choice /C 12345S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto normal.text.spam
@@ -1724,12 +1749,12 @@
 :app.list.spam
     cls
     echo This Function will spam the Applist under "Settings > Apps > Installed Apps" with Entrys of your choice.
-    echo.
+    echo:
     echo [1] Continue
-    echo.
+    echo:
     echo [2] Go Back
-    echo.
-    echo.
+    echo:
+    echo:
     choice /C 12 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto app.list.spam.confirmed
@@ -1740,13 +1765,13 @@
     echo Enter random to use random Numerals
     echo Enter default to skip an Option
     set /P app.spam.name=Enter the App Name:
-    echo.
+    echo:
     set /P app.spam.app.version=Enter the App Version:
-    echo.
+    echo:
     set /P app.spam.path=Enter the Path of the App (any File):
-    echo.
+    echo:
     set /P app.spam.publisher=Enter the Publisher:
-    echo.
+    echo:
     set /P app.spam.filecount=How many Entrys should be created:
     
     for /f %%R in ('call :generate_random all 15') do set "random1=%%R"
@@ -1817,17 +1842,17 @@
     
     echo Enter the IP or the Hostename of the Device
     call :sys.lt 2
-    echo.
-    echo.
+    echo:
+    echo:
     :: Use nmap to find local IPs
     for /f "delims=" %%a in ('where nmap') do (
         set "where_output=%%a"
     )
     if defined where_output ( echo Scanning Local Subnet for IPs (takes ca. 10secs) && where_output nmap -sn 192.168.1.0/24 ) else ( echo Listing ARP Cache IPs && arp -a )
     
-    echo.
-    echo.
-    echo.
+    echo:
+    echo:
+    echo:
     set /P ssh-ip=Enter the IP:
     set /P ssh-name=Enter the Username:
     set /P ssh-filecount=Enter the Filecount:
@@ -1838,12 +1863,12 @@
 :ssh.hijack
     echo Should the SSH-Keys be regenerated?
     echo This will prohibit anyone with the Old Keys from Accessing the Target
-    echo.
+    echo:
     echo [1] Yes
-    echo.
+    echo:
     echo [2] No
-    echo.
-    echo.
+    echo:
+    echo:
     choice /C 12 /M "Choose an option from above:"
         set _erl=%errorlevel%
         if %_erl%==1 set "ssh.regen=1" && goto ssh.start.spam
@@ -1852,12 +1877,12 @@
 
 :ssh.start.spam
     echo Is the SSH Host running Windows or Linux?
-    echo.
+    echo:
     echo [1] Windows
-    echo.
+    echo:
     echo [2] Linux
-    echo.
-    echo.
+    echo:
+    echo:
     choice /C 12 /M "Choose an option from above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto spam.ssh.target.win
@@ -2045,28 +2070,28 @@
 
 :sys.delete.script  
     :: Delete Script Dialog
-    echo. 
+    echo: 
     call :sys.lt 1
     echo You are about to delete the whole script. Are you sure?
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo You are about to delete the whole script. Are you sure?
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [1] Yes, Delete the Whole Script
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [2] Open the Github-Repo
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [3] No Go Back
     call :sys.lt 1
-    echo.
-    echo.
+    echo:
+    echo:
     choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto sys.delete.script.check.elevation
@@ -2108,7 +2133,7 @@
     erase "%~dp0\dataspammer.lock" >nul 2>&1
     call :send_message Script.is.restarting
     call :send_message Terminating %PID%
-    echo. > %temp%\DataSpammerClose.txt
+    echo: > %temp%\DataSpammerClose.txt
     cmd /c "%~dp0\dataspammer.bat"
     goto cancel
 
@@ -2157,7 +2182,7 @@
 
 
     :fullloop
-    :: For controlled exits use echo. > %temp%\DataSpammerClose.txt
+    :: For controlled exits use echo: > %temp%\DataSpammerClose.txt
 
         for /f "tokens=1-3 delims=:." %%a in ("%time%") do set formatted_time=%%a:%%b:%%c
 
@@ -2189,21 +2214,21 @@
     title Developer Options - DataSpammer
     echo PID: %PID%
     echo Developer Options
-    echo.
+    echo:
     echo [1] Custom Goto
-    echo.
+    echo:
     echo [2] @ECHO ON
-    echo.
+    echo:
     echo [3] Set a Variable 
-    echo.
+    echo:
     echo [4] Restart the Script (Variables will be kept)
-    echo.
+    echo:
     echo [5] Restart the Script (Variables wont be kept)
-    echo.
+    echo:
     echo [6] List all :signs
-    echo.
+    echo:
     echo [7] List all :signs
-    echo.
+    echo:
     echo [8] Go Back
     choice /C 12345678S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
@@ -2305,16 +2330,16 @@
 :debug.done
     :: Display the Debug Log Options
     echo Successfully Generated debug.log.zip
-    echo. 
+    echo: 
     echo [1] Copy to Clipboard
-    echo.
+    echo:
     echo [2] Open GitHub Repository
-    echo. 
+    echo: 
     echo [3] Delete Debug Files and Go Back
-    echo. 
+    echo: 
     echo [4] Go Back
-    echo.
-    echo.
+    echo:
+    echo:
     set /P debuglog=Choose an Option from Above
     choice /C 1234S /T 120 /D S  /M "Choose an Option from Above:"
     set _erl=%errorlevel%
@@ -2569,7 +2594,7 @@
     
     :: Color output
     <nul set /p "=!esc![!code!!text!!esc![0m"
-    echo.
+    echo:
     exit /b
 
 
@@ -2613,7 +2638,7 @@
             echo !msg!
             ping -n 2 127.0.0.1 >nul
         )
-        echo.
+        echo:
     ) else (
         ping -4 -n %1 127.0.0.1 >nul
     )
@@ -2723,7 +2748,7 @@
         %errormsg%
     )
     cls
-    echo.
+    echo:
     %$Echo% "   ____        _        ____                                           
     %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __
     %$Echo% "  | | | |/ _` | __/ _` \___ \| '_ \ / _` | '_ ` _ \| '_ ` _ \ / _ \ '__|
@@ -2734,26 +2759,26 @@
 
     
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo %~1
-    echo.
+    echo:
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo Do you want to Close the Script or Go to the Menu?
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [1] Close
-    echo.
+    echo:
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [2] Menu
-    echo.
+    echo:
     call :sys.lt 1
     choice /C 12 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
@@ -2783,41 +2808,41 @@
 
 :help.startup
     :: Display Help Message
-    echo.
-    echo.
+    echo:
+    echo:
     echo Dataspammer: 
     echo    Script to stress-test various Protocols or Systems
     echo    For educational purposes only.
-    echo.
+    echo:
     echo Usage dataspammer [Argument]
     echo       dataspammer.bat [Argument]
-    echo.
+    echo:
     echo Parameters: 
     echo    help    Show this Help Dialog
-    echo.
+    echo:
     echo    update  Check for Updates and exit afterwards
-    echo.
+    echo:
     echo    faststart   Start the Script without checking for Anything 
-    echo.
+    echo:
     echo    remove  Remove the Script and its components from your System
-    echo.
+    echo:
     echo    start   Directly start a Spam Method
-    echo.
+    echo:
     echo    noelev  Start the Script without Administrator
-    echo.
+    echo:
     echo    debug   Generate Debug Log (Requires Admin / UAC)
-    echo.
+    echo:
     echo    monitor     Opens the Monitor Socket
-    echo.
+    echo:
     echo    update.script [ stable / beta ]     Force Update the Script
-    echo.
+    echo:
     echo    version     Show Version
-    echo.
+    echo:
     echo    debugtest       Verify Functionality
-    echo.
+    echo:
     echo    install       Start the Installer
-    echo.
-    echo.
+    echo:
+    echo:
     exit /b %errorlevel%
 
 :update.script
@@ -2905,7 +2930,7 @@
     echo DataSpammer Script
     echo Version v6 (Beta)
     echo Newest Stable Release: %latest_version%
-    echo. 
+    echo: 
     exit /b %errorlevel%
 
 
@@ -3217,21 +3242,21 @@
 
 
     echo Made by PIRANY - %current-script-version% - Batch
-    echo.
+    echo:
     call :sys.lt 1
     echo This Installer will lead you through the process of installing the DataSpammer Utility.
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [1] Use Program Files as Installation Directory 
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [2] Use Custom Directory
-    echo. 
+    echo: 
     call :sys.lt 1
-    echo.
-    echo.
+    echo:
+    echo:
     call :sys.lt 1
     choice /C 12S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
@@ -3245,7 +3270,7 @@
 
     cd /d "%directory%"
     :: Check RW Permissions
-    echo. > "%directory%\testfile"
+    echo: > "%directory%\testfile"
     if not exist "%directory%\testfile" (
         %errormsg%
         echo Directory not found or not writable.
@@ -3261,31 +3286,31 @@
 :installer.menu.select
     echo Some Files may get flagged as Malware by Antivirus Software.
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo The script will install itself in the following directory: %directory%
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [1] (%startmenushortcut%) Startmenu Shortcut/All Apps List 
     call :sys.lt 1
-    echo. 
+    echo: 
     call :sys.lt 1
     echo [2] (%desktopicon%) Desktop Shortcut
     call :sys.lt 1
-    echo. 
+    echo: 
     call :sys.lt 1
     echo [3] (%addpath%) Add to Path
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [4] Done/Skip
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [5] De-select All Options
-    echo.
-    echo.
+    echo:
+    echo:
     choice /C 12345S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 cls && set "startmenushortcut=Included" && set "startmenushortcut1=1" && goto installer.menu.select
@@ -3397,15 +3422,15 @@
     call :sys.lt 1
     echo This can bypass Antivirus Detections.
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [1] Yes
     call :sys.lt 1
-    echo.
+    echo:
     call :sys.lt 1
     echo [2] No
     call :sys.lt 1
-    echo.
+    echo:
     choice /C 12 /M "1/2:"
         set _erl=%errorlevel%
         if %_erl%==1 goto encrypt.script
@@ -3465,10 +3490,12 @@
     if not "%1"=="" set "EXIT_CODE=%1"
     if "%EXIT_CODE%"=="" set EXIT_CODE=0
     if "%OS%"=="Windows_NT" endlocal
-    echo. > %temp%\DataSpammerClose.txt
+    echo: > %temp%\DataSpammerClose.txt
     erase "%~dp0\dataspammer.lock" >nul 2>&1
     popd
     exit %b.flag%%EXIT_CODE%
 
 goto cancel
 exit %errorlevel%
+
+:: Leave empty line below 
