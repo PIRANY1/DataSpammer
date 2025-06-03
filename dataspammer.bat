@@ -63,6 +63,7 @@
 ::      Add more Error Catchers / Checks
 ::      Continue Custom Instruction File
 ::      Fix Wait.exe Delay
+::      Improve Socket Conns
 
 :top
     @echo off
@@ -159,9 +160,15 @@
     SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
 
     :: Arguments
+
+    :: If no arguments are given, start the script normally
     if "%1"=="" goto startup
+
+    :: Apply /b Flag to all Exits
     if "%1"=="/b" set "b.flag=/b "
     if "%2"=="/b" set "b.flag=/b "
+
+    :: Regular Argument Checks - Documented at help.startup
     if "%1"=="version" title DataSpammer && goto version
     if "%1"=="--help" title DataSpammer && goto help.startup
     if "%1"=="help" title DataSpammer && goto help.startup
@@ -174,10 +181,14 @@
     if "%1"=="monitor" title DataSpammer && goto monitor
     if "%1"=="start" title DataSpammer && goto start.verified
     if "%1"=="install" title DataSpammer && goto installer.main.window
+    
+    :: Check if Argument is a Path, then execute it as CIF
     if exist "%~1" if /i "%~x1"==".dts" goto custom.instruction.read
 
     :: Undocumented Arguments
     if "%1"=="update-install" ( goto sys.new.update.installed )
+
+    :: Check for DevTools Quick Jump - Undocumented & not used since v4
     if not defined devtools ( goto startup ) else ( goto dev.options )
 
 :startup
@@ -195,10 +206,12 @@
       set "reg_version=%%c"
     )
     
+    :: If no Reg Key is found, port to v6
     if not defined reg_version (
         goto v6.port
     )
     
+    :: Check if RegKey is outdated
     if not "%reg_version%"=="%current-script-version%" (
         call :color _Red "Script Version Registry Key is outdated."
         choice /C YN /M "Do you want to update the Registry Key? (Y/N)"
@@ -206,19 +219,26 @@
         if "%_erl%"=="1" ( goto sys.new.update.installed )
     )
 
-    dir /b | findstr /i "settings.conf" >nul 2>&1 || echo No Settings Found && goto sys.no.settings
-    :: Verify Settings Hash, then Parse Settings
-    if exist "%~dp0settings.conf" ( call :verify.settings )
-    if exist "%~dp0settings.conf" ( call :parse.settings )
-    :: Parse Settings from Config
-    :: Parser doesnt work when no settings file exist
+    :: Check if Script is executed by Workflow
     if "%workflow.exec%"=="1" echo Script getting executed from GitHub && goto skip.parse
+
+    :: Check for Settings File 
+    dir /b | findstr /i "settings.conf" >nul 2>&1 || echo No Settings Found && goto sys.no.settings
+    
+    :: Verify Settings Hash
+    if exist "%~dp0settings.conf" ( call :verify.settings )
+    
+    :: Parse Config - Doesnt work when no settings file is present
+    if exist "%~dp0settings.conf" ( call :parse.settings )
+
+    :: Apply Custom Codepage if defined
     if defined "chcp" (
         chcp %chcp%
         call :color _Green "Codepage set to %chcp%"
     )
     
 :skip.parse
+
     :: Apply Color from Settings
     if defined color ( color %color% ) else ( color 02 )
 
@@ -242,6 +262,14 @@
     del "%temp%\parent_pid.txt" >nul
     echo Got PID: %PID%
 
+    :: Allow Better Readability
+    if %logging% == 1 ( call :log . INFO )
+    if %logging% == 1 ( call :log =================== INFO )
+    if %logging% == 1 ( call :log DataSpammer_Startup INFO )
+    if %logging% == 1 ( call :log Current_PID:_%PID% INFO )
+    if %logging% == 1 ( call :log =================== INFO )
+    if %logging% == 1 ( call :log . INFO )
+
     :: Lock Check - Verify that the script is not already running
     :: Extract PID from lock file
     if exist "%~dp0\dataspammer.lock" (
@@ -259,14 +287,17 @@
     set "pidlock=!pidlock: =!"
     if %logging% == 1 ( call :log PID-Check_Results:PID:!pid!_PIDlock:!pidlock! INFO )
 
+    :: If Lock could be parsed compare to current PID 
     if defined pidlock (
         if "!pidlock!"=="!PID!" (
+            :: PIDs match, script is already running
             call :color _Red "DataSpammer is already running under PID !pidlock!."
             if %logging% == 1 ( call :log DataSpammer_Already_Running ERROR)
             echo Exiting...
             pause
             goto cancel 
         ) else (
+            :: PIDs do not match, lock file still exists
             echo !pidlock! %pid%
             call :color _Red "DataSpammer may have crashed or was closed. Deleting lock file..."
             call :color _Red "Be aware that some tasks may not have finished properly."
@@ -275,12 +306,14 @@
             call :sys.lt 4 timeout
         )
     ) else (
+        :: No PID found in lock file. Delete it 
         echo No PID Found - Deleting Lock...
         if %logging% == 1 ( call :log PID_Empty ERROR )
         del "%~dp0\dataspammer.lock" >nul
     )
 
     :lock.create
+    :: Create a new lock & write current PID to it
     > "%~dp0\dataspammer.lock" echo %PID%
     if "%errorlevel%"=="1" ( %errormsg% && call :color _Red "Failed to create lock file." && call :sys.lt 6 count )
 
@@ -301,14 +334,14 @@
     for /f "delims=" %%a in ('%powershell.short% -Command "$pass = Read-Host 'Please enter your Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($pass))"') do set "password=%%a"
 
     :: Convert Username and Password to Hash
+    echo Converting to Hash...
     for /f "delims=" %%a in ('%powershell.short% -Command "[Text.Encoding]::UTF8.GetBytes('%username.script%') | % { (New-Object -TypeName Security.Cryptography.SHA256Managed).ComputeHash($_) } | ForEach-Object { $_.ToString('x2') } -join '' "') do set "username_hash=%%a"
     for /f "delims=" %%a in ('%powershell.short% -Command "[Text.Encoding]::UTF8.GetBytes('%password%') | % { (New-Object -TypeName Security.Cryptography.SHA256Managed).ComputeHash($_) } | ForEach-Object { $_.ToString('x2') } -join '' "') do set "password_hash=%%a"
 
-    echo Comparing Hashes...
     :: Extract Stored Username and Password
+    echo Extracting Hash from Registry...
     for /f "tokens=3" %%A in ('reg query "HKCU\Software\DataSpammer" /v UsernameHash 2^>nul') do set "stored_username_hash=%%A"
     for /f "tokens=3" %%A in ('reg query "HKCU\Software\DataSpammer" /v PasswordHash 2^>nul') do set "stored_password_hash=%%A"
-
 
     :: echo Calc Username: "%username_hash%"  Stored Username: "%stored_username_hash%"
     :: echo Calc Password: "%password_hash%"  Stored Password: "%stored_password_hash%"
@@ -320,6 +353,7 @@
     set "stored_password_hash=%stored_password_hash: =%"
 
     :: Compare Hashes
+    echo Comparing Hashes...
     if "%username_hash%" EQU "%stored_username_hash%" (
         echo Username Matches
         if "%password_hash%" EQU "%stored_password_hash%" (
@@ -342,24 +376,22 @@
 
 
 :file.check
-    :: Check Files
     title DataSpammer - Starting
-    :: Improve Log Readability
-    for /l %%i in (1,1,10) do (
-        if !logging! == 1 ( call :log . INFO )
-    )
 
     :: Establish Socket Connection
     call :send_message Started.DataSpammer
     call :send_message Established.Socket.Connection
     if %logging% == 1 ( call :log Established_Socket_Connection INFO )
     if %logging% == 1 ( call :log Checking_Settings_for_Update_Command INFO )
+
+    :: Open Update Logic
     call :gitcall.sys
     goto dts.startup.done
 
 :gitcall.sys
     :: Update Function Logic
     if %logging% == 1 ( call :log Calling_Update_Check INFO )
+    :: If Script is in Development Mode, skip the update check
     if "%current-script-version%"=="development" (
         echo Development Version, Skipping Update
         call :sys.lt 3
@@ -379,9 +411,11 @@
     echo Got Release Info...
     echo Extracting Data...
     call :sys.lt 2
+    :: Extract Tag Name from JSON Response
     for /f "tokens=2 delims=:, " %%a in ('findstr /R /C:"\"tag_name\"" apianswer.txt') do (
         set "latest_version=%%a"
     )
+    :: Compare latest version with current script version
     set "latest_version=%latest_version:"=%"
     if "%latest_version%" equ "v6" ( set "uptodate=up" ) else ( set "uptodate=%current-script-version%" )
     if %logging% == 1 ( call :log %latest_version%=v6 INFO )
