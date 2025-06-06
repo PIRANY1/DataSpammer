@@ -54,16 +54,16 @@
 :: Currently Being Reworked
 
 :: Todo: 
-::      Add more Comments, Logs ( Err etc. !!!) and Colors
+::      Add more Comments, Logs , Socket Messages, Error Handling and Coloring
 ::      Fix Updater - Clueless After 3 Gazillion Updates - Hopefully Fixed
 ::      Add more to Dev Options
 
 ::      V6 Requirements:
 ::      Check for Bugs / Verify
-::      Add more Error Catchers / Checks
+::      Add Release Workflow w. Setup Build, Encryption etc.
 ::      Continue Custom Instruction File
 ::      Fix Wait.exe Delay
-::      Improve Socket Conns
+::      Add Filename, RW, Directory checks
 
 :top
     @echo off
@@ -318,7 +318,11 @@
     if "%errorlevel%"=="1" ( %errormsg% && call :color _Red "Failed to create lock file." && call :sys.lt 6 count )
 
     :: Start the Monitor Socket
-    if %monitoring%==1 start /min cmd.exe /k ""%~f0" monitor %PID%" && if %logging% == 1 ( call :log Starting_Monitor_Socket INFO )
+    if %monitoring%==1 (
+        start /min cmd.exe /k ""%~f0" monitor %PID%" 
+        if %logging% == 1 ( call :log Starting_Monitor_Socket INFO )
+        >> "%TEMP%\socket.con" echo Connection Request from %PID%
+    )
 
     :: Check if Login is Setup
     for /f "tokens=3" %%A in ('reg query "HKCU\Software\DataSpammer" /v UsernameHash 2^>nul') do set "storedhash=%%A"
@@ -379,8 +383,8 @@
     title DataSpammer - Starting
 
     :: Establish Socket Connection
-    call :send_message Started.DataSpammer
-    call :send_message Established.Socket.Connection
+    call :send_message Started DataSpammer
+    call :send_message Established Socket Connection
     if %logging% == 1 ( call :log Established_Socket_Connection INFO )
     if %logging% == 1 ( call :log Checking_Settings_for_Update_Command INFO )
 
@@ -1512,7 +1516,7 @@
 
 
 :encrypt.spam.folder
-    set /p encrypt-dir=Enter the Directory:
+    call :rw.check encrypt-dir "Enter the Directory: "
     echo Enter the Encryption Method
     choice /C AC /M "(A)ES or (C)hacha):"
         set _erl=%errorlevel%
@@ -1575,7 +1579,7 @@
     goto menu
 
 :decrypt.spam.folder
-    set /p decrypt-dir=Enter the Directory:
+    call :rw.check decrypt-dir "Enter the Directory: "
     set /p decrypt-key=Enter the Encryption Key:
     echo Enter the Encryption Method
     choice /C AC /M "(A)ES or (C)hacha):"
@@ -2041,15 +2045,7 @@
 :normal.text.spam
     if %logging% == 1 ( call :log Opened_Normal_Spam INFO )
     if not "%default_directory%"=="notused" cd /d "%default_directory%" && goto spam.directory.set
-    set /p %default_directory%=Type Your Directory Here:
-
-    if exist %default_directory% (
-        echo goto spam.directory.set
-    ) else (
-        echo The Directory is invalid!
-        pause
-        goto normal.text.spam
-    )
+    call :rw.check default_directory "Enter the Directory: "
 
 :spam.directory.set
     if "%default-filename%"=="notused" set /P filename=Enter the Filename:
@@ -2165,7 +2161,7 @@
     :: Restart Script
     if %logging% == 1 ( call :log Restarting_Script WARN )
     erase "%~dp0\dataspammer.lock" >nul 2>&1
-    call :send_message Script.is.restarting
+    call :send_message Script is restarting
     call :send_message Terminating %PID%
     echo: > %temp%\DataSpammerClose.txt
     cmd /c "%~dp0\dataspammer.bat"
@@ -2183,6 +2179,10 @@
     title Monitoring DataSpammer PID: %2
     echo Opened Monitor Socket.
     echo Waiting for Startup to Finish...
+    if exist "%temp%\socket.con " (
+        del "%temp%\socket.con" >nul
+        echo Socket Connection Established.
+    )
     title Monitoring DataSpammer.bat
     :: Parse PID from Main Process
     set "PID.DTS=%2"
@@ -2312,6 +2312,9 @@
     Cipher /E "%~dp0\settings.conf" 
     Cipher /E "%~dp0\dataspammer.bat"
 
+    :: Extract CHCP Value
+    for /f "tokens=2 delims=:" %%a in ('chcp') do set "chcp.value=%%a"
+
     :: Add new Settings
     if not defined %default_filename% call :update_config "default_filename" "" "notused"
     if not defined %default-domain% call :update_config "default-domain" "" "notused"
@@ -2323,6 +2326,7 @@
     if not defined %update% call :update_config "update" "" "1"
     if not defined %update% call :update_config "color" "" "02"    
     if not defined %skip-sec% call :update_config "skip-sec" "" "0"
+    if not defined %skip-sec% call :update_config "chcp" "" "%chcp.value%"
     call :reset.settings.hash
     
     :: Renew Version Registry Key
@@ -2432,6 +2436,57 @@
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+:: --------------------------------------------------------------------------------------------------
+:: Function :rw.check
+:: Prompts the user for a directory path and checks if the directory exists and is writable.
+::
+:: Parameters:
+::   %1 - The name of the variable to store the directory path (e.g., "encrypt-dir")
+::   %2 - The prompt message to display to the user
+::
+:: Behavior:
+::   - Prompts the user until a valid, writable directory is entered.
+::   - Writes a test file and attempts to rename it to verify write permissions.
+::   - Logs an error if the directory doesn't exist or is not writable.
+::
+:: Example Call:
+::   call :rw.check encrypt-dir "Enter the Directory: "
+:: --------------------------------------------------------------------------------------------------
+
+:rw.check
+    call :check_args :rw.check %1 %2
+    set "key=%1"
+    set "prompt=%2"
+    
+    :rw.check.sub
+    set /p "!key!"=!prompt!
+    
+    if not defined !key! (
+        echo No directory specified. Please provide a directory.
+        goto :rw.check.sub
+    )
+    
+    set "path=!%key%!"
+    
+    >>"!path!\file.txt" echo This is a test file to check write permissions.
+    if not exist "!path!\file.txt" (
+        echo The directory "!path!" does not exist.
+        call :log Directory_"!path!"_does_not_exist ERROR
+        goto :rw.check.sub
+    )
+    
+    rename "!path!\file.txt" file.locked >nul 2>&1 || (
+        echo The directory "!path!" is not writable.
+        call :log Directory_"!path!"_is_not_writable ERROR
+        goto :rw.check.sub
+    )
+    
+    echo The directory "!path!" exists and is writable.
+    goto :EOF
+
 
 :dataspammer.hash.check
     :: Compare local and remote script hash
@@ -2836,7 +2891,7 @@
     :: Send a Message to Monitor Socket
     if "%monitoring%" NEQ "1" exit /b monitoroff
     set "socket.location=%TEMP%\socket.message"
-    set "message=%1"
+    set "message=%1 %2 %3 %4 %5 %6 %7 %8 %9"
     echo %message% > "%socket.location%"
     exit /b
 
