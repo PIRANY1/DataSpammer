@@ -63,7 +63,6 @@
 ::      Add Release Workflow w. Setup Build, Encryption etc.
 ::      Continue Custom Instruction File
 ::      Fix Wait.exe Delay
-::      Add Filename, RW, Directory checks
 
 :top
     @echo off
@@ -120,6 +119,32 @@
         call :color _Red "For full compatibility, please update to Windows 10 or 11."
         call :color _Yellow "Note: certutil and other tools may be missing on older Windows versions."
         call :sys.lt 10 count
+    ) else (
+        call :color _Green "Windows Version is sufficient: %ver%"
+    )
+
+    :: Check if PowerShell is available
+    where powershell >nul 2>&1 || (
+        %errormsg%
+        call :color _Red "PowerShell is not available."
+        echo Script wont work properly.
+        call :sys.lt 10 count
+    ) else (
+        call :color _Green "PowerShell is available."
+    )
+ 
+    :: Check if Powershell is over version 4
+    for /f "delims=." %%V in ('
+        %powershell.short% ^
+          "$PSVersionTable.PSVersion.Major"
+    ') do set "PS_MAJOR=%%V"
+    
+    if !PS_MAJOR! LSS 4 (
+        %errormsg%
+        call :color _Red "PowerShell version is too old."
+        echo Please update Powershell to at least version 4.
+    ) else (
+        call :color _Green "Powershell Version is sufficient: !PS_MAJOR!.x"
     )
 
     :: Check if Script is running from Network Drive
@@ -135,6 +160,8 @@
       echo Script either has LF line ending issue or an empty line at the end of the script is missing.
       call :sys.lt 20
       goto cancel
+    ) else (
+      call :color _Green "Line endings are correct."
     )
 
     sc query Null | find /i "RUNNING"
@@ -143,6 +170,8 @@
     echo Null Kernel service is not running, script may crash...
     echo:
     call :sys.lt 20
+    ) else (
+        call :color _Green "Null Kernel service is running."
     )
 
     :: Check if echo is available
@@ -153,7 +182,9 @@
         %errormsg%
         echo Conflict with echo detected. Script may have issues or crash.
         call :sys.lt 20 count
-    )    
+    ) else (
+        call :color _Green "Echo is available."
+    )
     
     :: Allows ASCII stuff without Codepage Settings - Not My Work - Credits to ?
     :: Properly Escape Symbols like | ! & ^ > < etc. when using echo (%$Echo% " Text)
@@ -251,6 +282,25 @@
         goto cancel
     )
     cd /d "%~dp0"
+
+    :: Check if Temp Folder is writable
+    call :rw.check "%temp%"
+    if "%errorlevel%"=="1" (
+        %errormsg%
+        call :color _Red "Temp Folder is not writable."
+        echo Script may not work properly.
+        call :sys.lt 10 count
+    )
+
+    :: Check if local dir is writable
+    call :rw.check "%~dp0"
+    if "%errorlevel%"=="1" (
+        %errormsg%
+        call :color _Red "Local Directory is not writable."
+        echo Script may not work properly.
+        call :sys.lt 10 count
+    )
+
     goto pid.check
 
 
@@ -1516,7 +1566,7 @@
 
 
 :encrypt.spam.folder
-    call :rw.check encrypt-dir "Enter the Directory: "
+    call :directory.input encrypt-dir "Enter the Directory: "
     echo Enter the Encryption Method
     choice /C AC /M "(A)ES or (C)hacha):"
         set _erl=%errorlevel%
@@ -1579,7 +1629,7 @@
     goto menu
 
 :decrypt.spam.folder
-    call :rw.check decrypt-dir "Enter the Directory: "
+    call :directory.input encrypt-dir "Enter the Directory: "
     set /p decrypt-key=Enter the Encryption Key:
     echo Enter the Encryption Method
     choice /C AC /M "(A)ES or (C)hacha):"
@@ -2045,7 +2095,7 @@
 :normal.text.spam
     if %logging% == 1 ( call :log Opened_Normal_Spam INFO )
     if not "%default_directory%"=="notused" cd /d "%default_directory%" && goto spam.directory.set
-    call :rw.check default_directory "Enter the Directory: "
+    call :directory.input encrypt-dir "Enter the Directory: "
 
 :spam.directory.set
     if "%default-filename%"=="notused" set /P filename=Enter the Filename:
@@ -2437,55 +2487,82 @@
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 
-
-
-:: --------------------------------------------------------------------------------------------------
-:: Function :rw.check
-:: Prompts the user for a directory path and checks if the directory exists and is writable.
+:: ------------------------------
+:: :directory.input
+:: Prompts the user to enter a directory path.
+:: Verifies that the directory exists and is writable using :rw.check.
 ::
-:: Parameters:
-::   %1 - The name of the variable to store the directory path (e.g., "encrypt-dir")
-::   %2 - The prompt message to display to the user
+:: Arguments:
+::   %1 - Variable name (key) to store the user's input
+::   %2 - Prompt message to display to the user
 ::
-:: Behavior:
-::   - Prompts the user until a valid, writable directory is entered.
-::   - Writes a test file and attempts to rename it to verify write permissions.
-::   - Logs an error if the directory doesn't exist or is not writable.
+:: Example:
+::   call :directory.input mydir "Enter the target directory: "
+::   echo You entered: !mydir!
 ::
-:: Example Call:
-::   call :rw.check encrypt-dir "Enter the Directory: "
-:: --------------------------------------------------------------------------------------------------
+:: Returns:
+::   errorlevel 0 if the directory exists and is writable
+::   errorlevel 1 if not (loop will re-prompt)
+:: ------------------------------
 
-:rw.check
+:directory.input
     call :check_args :rw.check %1 %2
     set "key=%1"
     set "prompt=%2"
     
-    :rw.check.sub
+    :directory.input.sub
     set /p "!key!"=!prompt!
     
     if not defined !key! (
         echo No directory specified. Please provide a directory.
-        goto :rw.check.sub
+        goto directory.input.sub
     )
     
     set "path=!%key%!"
     
-    >>"!path!\file.txt" echo This is a test file to check write permissions.
-    if not exist "!path!\file.txt" (
-        echo The directory "!path!" does not exist.
-        call :log Directory_"!path!"_does_not_exist ERROR
-        goto :rw.check.sub
-    )
-    
-    rename "!path!\file.txt" file.locked >nul 2>&1 || (
-        echo The directory "!path!" is not writable.
-        call :log Directory_"!path!"_is_not_writable ERROR
-        goto :rw.check.sub
+    call :rw.check "%path%"
+    if "%errorlevel%"=="1" (
+        goto directory.input.sub
     )
     
     echo The directory "!path!" exists and is writable.
-    goto :EOF
+    exit /b 0
+
+
+:: ------------------------------
+:: :rw.check
+:: Checks whether the given directory exists and is writable.
+:: It creates and renames a temporary file to test permissions.
+::
+:: Arguments:
+::   %1 - Full path to the directory to test
+::
+:: Example:
+::   call :rw.check "%temp%"
+::
+:: Returns:
+::   errorlevel 0 if the directory exists and is writable
+::   errorlevel 1 if it does not exist or is not writable
+:: ------------------------------
+:rw.check
+    call :check_args :rw.check "%1" 
+    set "path=%1"
+
+    >>"%path%\file.txt" echo This is a test file to check write permissions.
+    if not exist "%path%\file.txt" (
+        echo The directory "%path%" does not exist.
+        call :log Directory_"%path%"_does_not_exist ERROR
+        exit /b 1
+    )
+
+    rename "%path%\file.txt" file.locked >nul 2>&1 || (
+        echo The directory "%path%" is not writable.
+        call :log Directory_"%path%"_is_not_writable ERROR
+        exit /b 1
+    )
+
+    echo The directory "%path%" exists and is writable.
+    exit /b 0
 
 
 :dataspammer.hash.check
@@ -2543,10 +2620,10 @@
             echo Please review the settings.conf file for any discrepancies or errors.
             echo If you encounter issues, consider reinstalling the script.
             call :sys.lt 10
-            goto :EOF
+            exit /b 0
         )
-    
-        goto :EOF
+
+        exit /b 0
 
 :reset.settings.hash
     set "settings.file=%~dp0settings.conf"
@@ -2741,7 +2818,7 @@
     for /f "usebackq tokens=1,2 delims==" %%a in (`findstr /v "^::" "%config_file%"`) do (
         set "%%a=%%b"
     )
-    goto :EOF
+    exit /b 0
 
 :log
     :: call scheme is:
@@ -2827,8 +2904,7 @@
     echo Restarting...
     :: Reset the settings Hash save
     call :reset.settings.hash
-    goto :EOF
-    
+    exit /b 0
 
 :done
     :: Display Done Window
@@ -3183,7 +3259,7 @@
 :: Example: 
 :: call :TimeDiffInMs "21:32:22,32" "21:50:22,32"
 :: echo Time difference: %timeDiffMs% ms
-:: goto :EOF
+:: exit /b 0
 :: -------------------------------------------------------------------
 :TimeDiffInMs
     call :check_args :TimeDiffInMs %1 %2
@@ -3250,7 +3326,7 @@
     )
     
     echo Resuming...
-    goto :EOF
+    exit /b 0
 
 :win.version.check
     :: Check for Windows Edition, OSType, Version and Build Number
@@ -3275,7 +3351,7 @@
     :: Type: %OSType%
     :: Version: %OSVersion%
     :: Build: %OSBuild%
-    goto :EOF
+    exit /b 0
 
 
 
