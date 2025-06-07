@@ -63,6 +63,7 @@
 ::      Add Release Workflow w. Setup Build, Encryption etc.
 ::      Continue Custom Instruction File
 ::      Fix Wait.exe Delay
+::      Check Startmenu Spam
 
 :top
     @echo off
@@ -1431,7 +1432,9 @@
 
 :python.zip.bomb
     cd "%~dp0"
-    set /P zipname=Filename (with .zip): 
+
+    :python.zip.bomb.sub
+    call :filename.check zipname "Filename (with .zip): "
     set /P MB=Filesize (in MB): 
     set /P COUNT=How many Files in the Base layer?:
     set /A BYTES=%MB% * 1024 * 1024
@@ -1687,8 +1690,7 @@
     if "%default-filecount%"=="notused" set /P printer.count=How many Files should be printed
     if not "%default-filecount%"=="notused" set "printer.count=default-domain"
 
-    if "%default-filename%"=="notused" set /P print.filename=Enter the Filename:
-    if not "%default-filename%"=="notused" set "print.filename=%default-filename%"
+    call :filename.check print.filename "Enter the Filename:"
 
     cls
     wmic printer get Name
@@ -1777,9 +1779,7 @@
     set /P username=Enter the Username:
     set /P password=Enter the Password:
     set /P remoteDir=Enter the Directory (leave empty if unsure):
-
-    if "%default-filename%"=="notused" set /P filename=Enter the Filename:
-    if not "%default-filename%"=="notused" set "filename=%default-filename%"
+    call :filename.check filename "Enter the Filename:"
 
     set /P content=Enter the File Content:
 
@@ -1909,16 +1909,14 @@
 
 :spam.local.user.startmenu
     set "directory.startmenu=%AppData%\Microsoft\Windows\Start Menu\Programs"
-    if %default-filename% EQU notused ( goto startmenu.custom.name ) else ( goto startmenu.start )
+    goto startmenu.custom.name
 
 :spam.all.user.startmenu
     set "directory.startmenu=%ProgramData%\Microsoft\Windows\Start Menu\Programs"
-    if %default-filename% EQU notused ( goto startmenu.custom.name ) else ( goto startmenu.start )
-    
+    goto startmenu.custom.name
+
 :startmenu.custom.name
-    cls
-    echo Illegal Characters:\ / : * ? " < > |"
-    set /p default-filename=Type in the Filename you want to use:
+    call :filename.check default-filename "Enter the Filename:"
 
 :startmenu.start
     cd /d "%directory.startmenu%"
@@ -2066,9 +2064,8 @@
 
 :desktop.icon.spam
     if %logging% == 1 ( call :log Opened_Desktop_Spam INFO )
-
-    if "%default-filename%"=="notused" set /p "desk.spam.name=Choose a Filename:"
-    if not "%default-filename%"=="notused" set "desk.spam.name=%default-filename%"
+    
+    call :filename.check desk.spam.name "Enter the Filename:"
 
     set /p desk.spam.format=Choose the Format (without the dot):
     set /p desk.spam.content=Enter the File-Content:
@@ -2098,9 +2095,7 @@
     call :directory.input encrypt-dir "Enter the Directory: "
 
 :spam.directory.set
-    if "%default-filename%"=="notused" set /P filename=Enter the Filename:
-    if not "%default-filename%"=="notused" set "filename=%default-filename%"
-
+    call :filename.check filename "Enter the Filename:"
     if "%default-filecount%"=="notused" set /P filecount=How many Files should be created:
     if not "%default-filecount%"=="notused" set "filecount=%default-filecount%"
     
@@ -2488,6 +2483,76 @@
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 
 :: ------------------------------
+:: :filename.check
+:: Prompts the user to enter a filename.
+:: Verifies that the filename is valid using :fd.check.
+::
+:: Arguments:
+::   %1 - Variable name (key) to store the user's input
+::   %2 - Prompt message to display to the user
+::
+:: Example:
+::   call :filename.check myfile "Enter the target filename: "
+::   echo You entered: !myfile!
+::
+:: Returns:
+::   errorlevel 0 if the directory exists and is writable
+::   errorlevel 1 if not (loop will re-prompt)
+:: ------------------------------
+:filename.check
+    call :check_args :filename.check %1 %2
+    set "key=%1"
+    set "prompt=%2"
+
+    if not "!default-filename!"=="notused" (
+        set "!key!=!default-filename!"
+        exit /b 0
+    )
+
+    :filename.check.sub
+    set /p "!key!=!prompt!"
+
+    if not defined !key! (
+        echo No filename specified. Please provide a filename.
+        goto filename.check.sub
+    )
+
+    for /f "delims=" %%A in ('echo !%key%!') do set "path=%%A"
+
+    call :fd.check file "!path!"
+    if "!errorlevel!"=="1" (
+        goto filename.check.sub
+    )
+
+    echo The file "!path!" exists and is writable.
+    exit /b 0
+
+:fd.check
+    :: Check if a File or a Directory has a valid syntax
+    :: Example:
+    :: call :fd.check file thisisinvalid//.txt
+    :: call :fd.check directory "C:\this\is\invalid\:?.txt"
+    call :check_args :fd.check "%1" "%2"
+    set "type=%1"
+    set "filepath=%2"
+    if "%type%"=="file" (
+        echo.%filename% | findstr /R "[\\/:*?\"<>|]" >nul
+        if %errorlevel%==0 (
+            echo Invalid characters in filename: %filepath%
+            exit /b 1
+        )
+    ) else if "%type%"=="directory" (
+        for %%F in ("%filepath%") do (
+            echo.%%~nF | findstr /R "[\\/:*?\"<>|]" >nul
+            if not errorlevel 1 (
+                echo Invalid characters found in filename: %%~nF
+                exit /b 1
+            )
+        )        
+    )
+    exit /b 0
+
+:: ------------------------------
 :: :directory.input
 :: Prompts the user to enter a directory path.
 :: Verifies that the directory exists and is writable using :rw.check.
@@ -2519,7 +2584,7 @@
     )
     
     set "path=!%key%!"
-    
+    call :fd.check directory "%path%"
     call :rw.check "%path%"
     if "%errorlevel%"=="1" (
         goto directory.input.sub
