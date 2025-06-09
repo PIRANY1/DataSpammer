@@ -277,10 +277,20 @@
     :: Elevate Script
     net session >nul 2>&1
     if %errorLevel% neq 0 (
-        if "%elevation%"=="sudo" for /f "delims=" %%A in ('where sudo') do set SUDO_PATH=%%A && %SUDO_PATH% cmd.exe -c %~f0 && goto cancel
-        if "%elevation%"=="gsudo" for /f "delims=" %%A in ('where gsudo') do set GSUDO_PATH=%%A && %GSUDO_PATH% cmd.exe -k %~f0 && goto cancel
-        %powershell.short% -Command "Start-Process '%~f0' -Verb runAs"
-        goto cancel
+        if "%elevation%"=="sudo" (
+            for /f "delims=" %%A in ('where sudo') do set SUDO_PATH=%%A
+            %SUDO_PATH% cmd.exe -c %~f0 || goto elevation_failed
+            goto cancel
+        )
+        if "%elevation%"=="gsudo" (
+            for /f "delims=" %%A in ('where gsudo') do set GSUDO_PATH=%%A
+            %GSUDO_PATH% cmd.exe -k %~f0 || goto elevation_failed
+            goto cancel
+        )
+        if "%elevation%"=="pswh" (
+            %powershell.short% -Command "Start-Process '%~f0' -Verb runAs" || goto elevation_failed
+            goto cancel
+        )
     )
     cd /d "%~dp0"
 
@@ -304,6 +314,13 @@
 
     goto pid.check
 
+:elevation_failed
+    %errormsg%
+    call :color _Red "Failed to elevate script."
+    echo Please run the script as Administrator.
+    echo Script will exit in 5 seconds...
+    call :sys.lt 5 count
+    goto cancel
 
 :pid.check
     :: Get the Parent Process ID of the current script - Needed for Monitor
@@ -3647,7 +3664,7 @@
 
 :sys.main.installer.done
     :: Encrypt Dialog
-    ECHO •
+    ECHO ï¿½
     echo Do you want to encrypt the Script Files?
     call :sys.lt 1
     echo This can bypass Antivirus Detections.
