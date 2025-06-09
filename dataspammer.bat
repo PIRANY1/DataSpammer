@@ -64,6 +64,10 @@
 ::      Continue Custom Instruction File
 ::      Fix Wait.exe Delay
 ::      Check Startmenu Spam
+::      Fix Startup Checks
+::      Fix Temp RW Check
+::      Fix Local RW Check
+::      Fix Count
 
 :top
     @echo off
@@ -93,6 +97,12 @@
     call :color _Green "ANSI Color Support is enabled"
     call :sys.lt 1
 
+    :: Regular Argument Checks - Documented at help.startup
+    if "%1"=="version" title DataSpammer && goto version
+    if "%1"=="--help" title DataSpammer && goto help.startup
+    if "%1"=="help" title DataSpammer && goto help.startup
+
+
     :: Predefine _erl to ensure errorlevel or choice inputs function correctly
     set "_erl=FFFF"
 
@@ -108,10 +118,18 @@
     
     :: Check Windows Version - Win 10 & 11 have certutil and other commands needed. Win 8.1 and below not have them
     call :win.version.check
-    for /f "tokens=3 delims=: " %%a in ('ver') do set ver=%%a
-    if %ver% GEQ 6.3 ( set "winver=8.1" )
-    if %ver% GEQ 6.2 ( set "winver=8" )
-    if %ver% GEQ 6.1 ( set "winver=7" )
+    for /f "tokens=2 delims=[]" %%a in ('ver') do set "ver_full=%%a"
+    for /f "tokens=1-4 delims=." %%a in ("%ver_full%") do (
+        set "ver_major=%%a"
+        set "ver_minor=%%b"
+        set "ver=%%a.%%b"
+    )
+
+    :: Compare
+    if "%ver%" == "6.1" set "winver=7"
+    if "%ver%" == "6.2" set "winver=8"
+    if "%ver%" == "6.3" set "winver=8.1"
+
     if defined winver (
         cls
         %errormsg%
@@ -121,11 +139,12 @@
         call :color _Yellow "Note: certutil and other tools may be missing on older Windows versions."
         call :sys.lt 10 count
     ) else (
-        call :color _Green "Windows Version is sufficient: %ver%"
-    )
+        call :color _Green "Windows Version is sufficient: %ver_full%"
+    )    
 
     :: Check if PowerShell is available
-    where powershell >nul 2>&1 || (
+    where powershell >nul 2>&1
+    if errorlevel 1 (
         %errormsg%
         call :color _Red "PowerShell is not available."
         echo Script wont work properly.
@@ -133,13 +152,9 @@
     ) else (
         call :color _Green "PowerShell is available."
     )
- 
+
     :: Check if Powershell is over version 4
-    for /f "delims=." %%V in ('
-        %powershell.short% ^
-          "$PSVersionTable.PSVersion.Major"
-    ') do set "PS_MAJOR=%%V"
-    
+    for /f "delims=." %%V in ('%powershell.short% "$PSVersionTable.PSVersion.Major"') do set "PS_MAJOR=%%V"
     if !PS_MAJOR! LSS 4 (
         %errormsg%
         call :color _Red "PowerShell version is too old."
@@ -156,16 +171,18 @@
         call :sys.lt 10 count
     )
 
-    >nul findstr /v "$" "%~nx0" && (
-      %errormsg%
-      echo Script either has LF line ending issue or an empty line at the end of the script is missing.
-      call :sys.lt 20
-      goto cancel
+    :: Check for Line Issues
+    findstr /v "$" "%~nx0" >nul
+    if errorlevel 1 (
+        call :color _Green "Line endings are correct."
     ) else (
-      call :color _Green "Line endings are correct."
+        %errormsg%
+        echo Script either has LF line ending issue or an empty line at the end of the script is missing.
+        call :sys.lt 20
+        goto cancel
     )
 
-    sc query Null | find /i "RUNNING"
+    sc query Null | find /i "RUNNING" >nul
     if %errorlevel% NEQ 0 (
     %errormsg%
     echo Null Kernel service is not running, script may crash...
@@ -175,18 +192,6 @@
         call :color _Green "Null Kernel service is running."
     )
 
-    :: Check if echo is available
-    (
-        echo: >nul
-    ) 2>nul
-    if errorlevel 1 (
-        %errormsg%
-        echo Conflict with echo detected. Script may have issues or crash.
-        call :sys.lt 20 count
-    ) else (
-        call :color _Green "Echo is available."
-    )
-    
     :: Allows ASCII stuff without Codepage Settings - Not My Work - Credits to ?
     :: Properly Escape Symbols like | ! & ^ > < etc. when using echo (%$Echo% " Text)
     SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
@@ -199,11 +204,9 @@
     :: Apply /b Flag to all Exits
     if "%1"=="/b" set "b.flag=/b "
     if "%2"=="/b" set "b.flag=/b "
+    if "%3"=="/b" set "b.flag=/b "
 
     :: Regular Argument Checks - Documented at help.startup
-    if "%1"=="version" title DataSpammer && goto version
-    if "%1"=="--help" title DataSpammer && goto help.startup
-    if "%1"=="help" title DataSpammer && goto help.startup
     if "%1"=="faststart" title DataSpammer && goto sys.enable.ascii.tweak
     if "%1"=="update" title DataSpammer && goto fast.git.update
     if "%1"=="update.script" title DataSpammer && call :update.script %2 && goto cancel
@@ -236,7 +239,7 @@
     :: Check for Install Reg Key
     for /f "tokens=1,2,*" %%a in ('reg query "HKCU\Software\DataSpammer" /v Version ^| find "Version"') do (
       set "reg_version=%%c"
-    )
+    ) >nul
     
     :: If no Reg Key is found, port to v6
     if not defined reg_version (
@@ -2221,7 +2224,7 @@
     
 :restart.script
     :: Restart Script
-    if %logging% == 1 ( call :log Restarting_Script WARN )
+    if "%logging%"=="1" ( call :log Restarting_Script WARN )
     erase "%~dp0\dataspammer.lock" >nul 2>&1
     call :send_message Script is restarting
     call :send_message Terminating %PID%
@@ -2364,15 +2367,11 @@
 
 :sys.new.update.installed
     :: Init New Vars with Content
-    echo Updating Settings...
+    echo Parsing Settings File...
     set "config_file=settings.conf"
     for /f "usebackq tokens=1,2 delims==" %%a in (`findstr /v "^::" "%config_file%"`) do (
         set "%%a=%%b"
     )
-
-    :: Encrypt new Files
-    Cipher /E "%~dp0\settings.conf" 
-    Cipher /E "%~dp0\dataspammer.bat"
 
     :: Extract CHCP Value
     for /f "tokens=2 delims=:" %%a in ('chcp') do set "chcp.value=%%a"
@@ -3061,7 +3060,7 @@
     echo    Script to stress-test various Protocols or Systems
     echo    For educational purposes only.
     echo:
-    echo Usage dataspammer [Argument]
+    echo Usage dataspammer [Argument] 
     echo       dataspammer.bat [Argument]
     echo:
     echo Parameters: 
@@ -3088,6 +3087,8 @@
     echo    debugtest       Verify Functionality
     echo:
     echo    install       Start the Installer
+    echo:
+    echo    /b      Exit while keeping CMD Window (can be combined with other Arguments)
     echo:
     echo:
     exit /b %errorlevel%
@@ -3161,7 +3162,7 @@
     move /Y "%TMP_DIR%\README.md" "%~dp0README.md"
     move /Y "%TMP_DIR%\LICENSE" "%~dp0LICENSE"
     rd /s /q "%TMP_DIR%"
-    cmd.exe /c "%~dp0\dataspammer.bat"
+    cmd.exe /c "%~dp0\dataspammer.bat" update-install
     goto cancel
 
 :version
@@ -3575,9 +3576,9 @@
     set "directory9=%directory%DataSpammer\"
     mkdir "%directory9%" 
     cd /d "%~dp0"
-    move dataspammer.bat "%directory9%\" >nul 2>&1
-    move README.md "%directory9%\" >nul 2>&1
-    move LICENSE "%directory9%\" >nul 2>&1
+    copy "%~dp0dataspammer.bat" "%directory9%\" >nul 2>&1
+    move "%~dp0README.md" "%directory9%\" >nul 2>&1
+    move "%~dp0LICENSE" "%directory9%\" >nul 2>&1
 
     :: Download LICENSE and README.md if only dataspammer.bat is present
     cd /d "%directory9%"
@@ -3586,7 +3587,7 @@
     :: Download Files via BITS
     if not exist README.md ( 
         echo Downloading README.md...
-        bitsadmin /transfer upd "%update_url%README.md" "%directory9%\README.md"
+        bitsadmin /transfer upd "%update_url%README.md" "%directory9%\README.md" >nul
         if errorlevel 1 (
             %errormsg%
             echo README.md Download failed. This is not critical.
@@ -3596,7 +3597,7 @@
 
     if not exist LICENSE (
         echo Downloading LICENSE...
-        bitsadmin /transfer upd "%update_url%LICENSE" "%directory9%\LICENSE"
+        bitsadmin /transfer upd "%update_url%LICENSE" "%directory9%\LICENSE" >nul
         if errorlevel 1 (
             %errormsg%
             echo LICENSE Download failed. This is not critical.
@@ -3619,52 +3620,56 @@
     reg add "HKCU\Software\DataSpammer" /v Installed /t REG_DWORD /d 1 /f
 
     :: Create settings.conf
-    cd /d "%directory9%"
+    echo: > "%directory9%\settings.conf"
+    set "content=:: DataSpammer configuration
+    :: Standard Filename
+    default_filename=notused
+    :: Standard Directory
+    default_directory=notused
+    :: Check for Updates
+    update=1
+    :: Logging is on by default
+    logging=1
+    :: Developer Mode
+    developermode=0
+    :: Default Filecount
+    default-filecount=notused
+    :: Default Domain
+    default-domain=notused
+    :: Elevation Method used (pwsh / sudo / gsudo)
+    elevation=pwsh
+    :: Change Monitoring Socket
+    monitoring=0
+    :: Change Color - Default 02 (CMD Coloring)
+    color=02
+    :: Skip Security Question
+    skip-sec=0
+    :: Set Custom Codepage (Advanced)
+    chcp=0"
+    :: Write to File
     (
-        echo :: DataSpammer configuration
-        echo :: Standard Filename
-        echo default_filename=notused
-        echo :: Standard Directory
-        echo default_directory=notused
-        echo :: Check for Updates
-        echo update=1
-        echo :: Logging is on by default
-        echo logging=1
-        echo :: Developer Mode
-        echo developermode=0
-        echo :: Default Filecount
-        echo default-filecount=notused
-        echo :: Default Domain
-        echo default-domain=notused
-        echo :: Elevation Method used (pwsh / sudo / gsudo)
-        echo elevation=pwsh
-        echo :: Change Monitoring Socket
-        echo monitoring=0
-        echo :: Change Color - Default 02 (CMD Coloring)
-        echo color=02
-        echo :: Skip Security Question
-        echo skip-sec=0
-    ) > settings.conf
+        for %%A in ("!content!") do (
+            echo %%~A
+        )
+    ) > "%directory9%\settings.conf"    
 
     :: Create Startmenu Shortcut
     if defined startmenushortcut1 (
         echo "%directory9%\dataspammer.bat" %* > "%ProgramData%\Microsoft\Windows\Start Menu\Programs\DataSpammer.bat"
     )
-    :: Create Desktop Icon
-    if defined desktopic (
-        %powershell.short% -Command ^
-         $WshShell = New-Object -ComObject WScript.Shell; ^
-         $Shortcut = $WshShell.CreateShortcut('%USERPROFILE%\Desktop\DataSpammer.lnk'); ^
-         $Shortcut.TargetPath = '%directory9%\DataSpammer.bat'; ^
-         $Shortcut.Save()
-    )
+    :: Create Desktop Icon w. pre defined Variables
+    set "targetShortcut=%USERPROFILE%\Desktop\DataSpammer.lnk"
+    set "targetPath=%directory9%\DataSpammer.bat"
+    if defined desktopic1 (
+        %powershell.short% -Command "$WshShell = New-Object -ComObject WScript.Shell; $Shortcut = $WshShell.CreateShortcut('%targetShortcut%'); $Shortcut.TargetPath = '%targetPath%'; $Shortcut.Save()"
+    ) >nul 
+
 
     :: Add Script to PATH
-    if defined addpath1 ( setx PATH "%PATH%;%directory9%\DataSpammer.bat" /M )
+    if defined addpath1 ( setx PATH "%PATH%;%directory9%\DataSpammer.bat" /M >nul )
 
 :sys.main.installer.done
     :: Encrypt Dialog
-    ECHO �
     echo Do you want to encrypt the Script Files?
     call :sys.lt 1
     echo This can bypass Antivirus Detections.
@@ -3712,7 +3717,7 @@
         erase "%directory9%\temp_hex.txt"
         erase "%directory9%\temp_prefix.bin"
         Cipher /E "%directory9%\dataspammer.bat"
-        cmd /c "%directory9%\dataspammer.bat" update-install
+        cmd /c "%directory9%\dataspammer.bat"
         erase "%directory9%\encrypt.bat"
         exit %errorlevel%
     ) > "%directory9%\encrypt.bat"
@@ -3725,7 +3730,7 @@
     :: Restart Script Process 
     echo Finished Installation.
     echo Starting...
-    cmd /c "%directory9%\dataspammer.bat" update-install
+    cmd /c "%directory9%\dataspammer.bat"
     erase "%~dp0\dataspammer.bat" > nul
     goto cancel
 
