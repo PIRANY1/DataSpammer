@@ -7,26 +7,45 @@
 
 :: Short Copy Paste:
 :: =============================================================
-:: >nul = hide normal output
-:: 2>nul = hide error output
-:: 2>&1 = merge errors into normal output
-:: >nul 2>&1 = hide both normal output and errors
-:: pushd "path" = change to directory and remember previous one
-:: popd = go back to previous directory
+:: >nul           = hide normal output
+:: 2>nul          = hide error output
+:: 2>&1           = merge errors into normal output
+:: >nul 2>&1      = hide both normal output and errors
+:: pushd "path"   = change to directory and remember previous one
+:: popd           = go back to previous directory
 
-:: =============================================================
-:: %0 = Full path and filename of the batch script
-:: %~d0 = Drive letter of the batch script (e.g., D:)
-:: %~p0 = Path of the batch script (e.g., \Folder\Subfolder\)
-:: %~n0 = Name of the batch script without extension (e.g., script)
-:: %~x0 = File extension of the batch script (e.g., .bat)
-:: %~dp0 = Drive and path only (e.g., D:\Folder\Subfolder\)
-:: %~nx0 = Filename and extension only (e.g., script.bat)
+:: Example:
+:: pushd "C:\Windows"
+:: dir >nul
+:: popd
 :: =============================================================
 
 :: =============================================================
-:: || = run next command only if previous failed
-:: && = run next command only if previous succeeded
+:: %0              = Full path and filename of the batch script
+:: %~d0            = Drive letter of the batch script (e.g., D:)
+:: %~p0            = Path of the batch script (e.g., \Folder\Subfolder\)
+:: %~n0            = Name of the batch script without extension (e.g., script)
+:: %~x0            = File extension of the batch script (e.g., .bat)
+:: %~dp0           = Drive and path only (e.g., D:\Folder\Subfolder\)
+:: %~nx0           = Filename and extension only (e.g., script.bat)
+
+:: Example:
+:: echo Running from %~dp0
+:: =============================================================
+
+:: =============================================================
+:: %~f1            = Full path of argument 1
+:: %~d1            = Drive Letter of argument 1
+:: %~p1            = Path without Drive Letter of argument 1
+:: %~n1            = Filename without extension of argument 1
+:: %~x1            = File extension of argument 1
+:: %~s1            = Path in short 8.3 format of argument 1
+:: %~a1            = File attributes of argument 1
+:: %~t1            = Timestamp of argument 1
+:: %~z1            = Size of argument 1
+
+:: Example:
+:: echo File "%~n1%~x1" is %~z1 bytes and last modified %~t1
 :: =============================================================
 
 :: =============================================================
@@ -68,6 +87,7 @@
 ::      Fix Temp RW Check
 ::      Fix Local RW Check
 ::      Fix Count
+::      Replace Install RW Check with function rw check
 
 :top
     @echo off
@@ -98,9 +118,9 @@
     call :sys.lt 1
 
     :: Regular Argument Checks - Documented at help.startup
-    if "%1"=="version" title DataSpammer && goto version
-    if "%1"=="--help" title DataSpammer && goto help.startup
-    if "%1"=="help" title DataSpammer && goto help.startup
+    if "%~1"=="version" title DataSpammer && goto version
+    if "%~1"=="--help" title DataSpammer && goto help.startup
+    if "%~1"=="help" title DataSpammer && goto help.startup
 
 
     :: Predefine _erl to ensure errorlevel or choice inputs function correctly
@@ -199,29 +219,29 @@
     :: Arguments
 
     :: If no arguments are given, start the script normally
-    if "%1"=="" goto startup
+    if "%~1"=="" goto startup
 
     :: Apply /b Flag to all Exits
-    if "%1"=="/b" set "b.flag=/b "
-    if "%2"=="/b" set "b.flag=/b "
-    if "%3"=="/b" set "b.flag=/b "
+    if "%~1"=="/b" set "b.flag=/b "
+    if "%~2"=="/b" set "b.flag=/b "
+    if "%~3"=="/b" set "b.flag=/b "
 
     :: Regular Argument Checks - Documented at help.startup
-    if "%1"=="faststart" title DataSpammer && goto sys.enable.ascii.tweak
-    if "%1"=="update" title DataSpammer && goto fast.git.update
-    if "%1"=="update.script" title DataSpammer && call :update.script %2 && goto cancel
-    if "%1"=="remove" title DataSpammer && goto sys.delete.script
-    if "%1"=="debug" title DataSpammer && goto debuglog
-    if "%1"=="debugtest" title DataSpammer && goto debugtest
-    if "%1"=="monitor" title DataSpammer && goto monitor
-    if "%1"=="start" title DataSpammer && goto start.verified
-    if "%1"=="install" title DataSpammer && goto installer.main.window
+    if "%~1"=="faststart" title DataSpammer && goto sys.enable.ascii.tweak
+    if "%~1"=="update" title DataSpammer && goto fast.git.update
+    if "%~1"=="update.script" title DataSpammer && call :update.script "%~2" && goto cancel
+    if "%~1"=="remove" title DataSpammer && goto sys.delete.script
+    if "%~1"=="debug" title DataSpammer && goto debuglog
+    if "%~1"=="debugtest" title DataSpammer && goto debugtest
+    if "%~1"=="monitor" title DataSpammer && goto monitor
+    if "%~1"=="start" title DataSpammer && goto start.verified
+    if "%~1"=="install" title DataSpammer && goto installer.main.window
     
     :: Check if Argument is a Path, then execute it as CIF
     if exist "%~1" if /i "%~x1"==".dts" goto custom.instruction.read
 
     :: Undocumented Arguments
-    if "%1"=="update-install" ( goto sys.new.update.installed )
+    if "%~1"=="update-install" ( goto sys.new.update.installed )
 
     :: Check for DevTools Quick Jump - Undocumented & not used since v4
     if not defined devtools ( goto startup ) else ( goto dev.options )
@@ -757,7 +777,7 @@
     goto advanced.options
 
 :custom.instruction.enable
-    set "ftypedir=%0"
+    set "ftypedir=%~0"
     :: Connect .dts with dtsfile type
     ASSOC .dts=dtsfile
     :: Connect dtsfily type with cmd
@@ -766,7 +786,8 @@
     
 
 :custom.instruction.read
-    set "interpret.dts=%1"
+    set "interpret.dts=%~1"
+    :: check for extension
 
 
 
@@ -1319,7 +1340,7 @@
     %powershell.short% -Command ^
      $WshShell = New-Object -ComObject WScript.Shell; ^
      $Shortcut = $WshShell.CreateShortcut('%USERPROFILE%\Desktop\DataSpammer.lnk'); ^
-     $Shortcut.TargetPath = '%0'; ^
+     $Shortcut.TargetPath = '%~0'; ^
      $Shortcut.Save()
     echo Added Desktop Icon
     goto menu
@@ -2241,7 +2262,7 @@
     cls
     del "%temp%\DataSpammerCrashed.txt" > nul
     del "%temp%\DataSpammerClose.txt" > nul
-    title Monitoring DataSpammer PID: %2
+    title Monitoring DataSpammer PID: %~2
     echo Opened Monitor Socket.
     echo Waiting for Startup to Finish...
     if exist "%temp%\socket.con " (
@@ -2250,7 +2271,7 @@
     )
     title Monitoring DataSpammer.bat
     :: Parse PID from Main Process
-    set "PID.DTS=%2"
+    set "PID.DTS=%~2"
     echo PID: %PID.DTS%
     set "batScript=%temp%\dts-monitor.bat"
     erase "%batScript%" >nul
@@ -2516,9 +2537,9 @@
 ::   errorlevel 1 if not (loop will re-prompt)
 :: ------------------------------
 :filename.check
-    call :check_args :filename.check %1 %2
-    set "key=%1"
-    set "prompt=%2"
+    call :check_args :filename.check "%~1" "%~2"
+    set "key=%~1"
+    set "prompt=%~2"
 
     if not "!default-filename!"=="notused" (
         set "!key!=!default-filename!"
@@ -2548,9 +2569,9 @@
     :: Example:
     :: call :fd.check file thisisinvalid//.txt
     :: call :fd.check directory "C:\this\is\invalid\:?.txt"
-    call :check_args :fd.check "%1" "%2"
-    set "type=%1"
-    set "filepath=%2"
+    call :check_args :fd.check "%~1" "%~2"
+    set "type=%~1"
+    set "filepath=%~2"
     if "%type%"=="file" (
         echo.%filename% | findstr /R "[\\/:*?\"<>|]" >nul
         if %errorlevel%==0 (
@@ -2586,10 +2607,11 @@
 ::   errorlevel 1 if not (loop will re-prompt)
 :: ------------------------------
 
+
 :directory.input
-    call :check_args :rw.check %1 %2
-    set "key=%1"
-    set "prompt=%2"
+    call :check_args :rw.check "%~1" "%~2"
+    set "key=%~1"
+    set "prompt=%~2"
     
     :directory.input.sub
     set /p "!key!"=!prompt!
@@ -2626,8 +2648,8 @@
 ::   errorlevel 1 if it does not exist or is not writable
 :: ------------------------------
 :rw.check
-    call :check_args :rw.check "%1" 
-    set "path=%1"
+    call :check_args :rw.check "%~1" 
+    set "path=%~1"
 
     >>"%path%\file.txt" echo This is a test file to check write permissions.
     if not exist "%path%\file.txt" (
@@ -2639,9 +2661,10 @@
     rename "%path%\file.txt" file.locked >nul 2>&1 || (
         echo The directory "%path%" is not writable.
         call :log Directory_"%path%"_is_not_writable ERROR
+        erase "%path%\file.txt"
         exit /b 1
     )
-
+    erase "%path%\file.locked" 
     echo The directory "%path%" exists and is writable.
     exit /b 0
 
@@ -2656,7 +2679,7 @@
     
     curl -s -o "%TEMP%\dataspammer_remote.bat" "%remote%"
     for /f "tokens=1" %%A in ('certutil -hashfile "%TEMP%\dataspammer_remote.bat" SHA256 ^| find /i /v "SHA256" ^| find /i /v "certutil"') do set "REMOTE_HASH=%%A"
-    for /f "tokens=1" %%A in ('certutil -hashfile "%0" SHA256 ^| find /i /v "SHA256" ^| find /i /v "certutil"') do set "LOCAL_HASH=%%A"
+    for /f "tokens=1" %%A in ('certutil -hashfile "%~0" SHA256 ^| find /i /v "SHA256" ^| find /i /v "certutil"') do set "LOCAL_HASH=%%A"
     :: echo Local File: !LOCAL_HASH!
     :: echo Upstream File: !REMOTE_HASH!
     
@@ -2789,7 +2812,7 @@
         set "text=!text:%%F=!"
     )
     
-    call :check_args :done %1 %2
+    call :check_args :done "%~1" "%~2"
     if "%errorlevel%"=="1" (
         %errormsg%
         echo %text%
@@ -2875,19 +2898,19 @@
 :sys.lt
     :: Wait for a given time, supports wait.exe
     setlocal EnableDelayedExpansion
-    if exist "%~dp0\wait.exe" ( wait.exe %1 )
-    if /i "%2"=="timeout" (
-        timeout /t %1 >nul
+    if exist "%~dp0\wait.exe" ( wait.exe %~1 )
+    if /i "%~2"=="timeout" (
+        timeout /t %~1 >nul
     )
-    if /i "%2"=="count" (
-        for /L %%i in (%1,-1,0) do (
+    if /i "%~2"=="count" (
+        for /L %%i in (%~1,-1,0) do (
             set "msg=Waiting, %%i seconds remaining..."
             echo !msg!
             ping -n 2 127.0.0.1 >nul
         )
         echo:
     ) else (
-        ping -4 -n %1 127.0.0.1 >nul
+        ping -4 -n %~1 127.0.0.1 >nul
     )
     exit /b 0
 
@@ -2913,8 +2936,8 @@
     if "%logging%"=="0" exit /b
     if "%monitoring%"=="1" call :send_message "%log.content%"
 
-    call :check_args :log %1
-    set "log.content=%1"
+    call :check_args :log "%~1"
+    set "log.content=%~1"
     set "logfile=DataSpammer.log"
     
     if "%errorlevel%"=="1" ( set "log.content=ERROR" )
@@ -2931,14 +2954,14 @@
 
 
     for /f "tokens=1-3 delims=:." %%a in ("%time%") do set formatted_time=%%a:%%b:%%c
-    echo [ DataSpammer / %2 ][%date% - %formatted_time%]: %log.content.clean% >> "%folder%\%logfile%"
+    echo [ DataSpammer / %~2 ][%date% - %formatted_time%]: %log.content.clean% >> "%folder%\%logfile%"
     exit /b %errorlevel%
     
 
 
 :update_config
     setlocal EnableDelayedExpansion
-    call :check_args :done %1 %2 %3
+    call :check_args :done "%~1" "%~2" "%~3"
     if "!errorlevel!"=="1" (
         !errormsg!
         exit /b 1
@@ -2989,7 +3012,7 @@
 
 :done
     :: Display Done Window
-    call :check_args :done %1
+    call :check_args :done "%~1"
     if "%errorlevel%"=="1" (
         %errormsg%
     )
@@ -3048,7 +3071,7 @@
     :: Send a Message to Monitor Socket
     if "%monitoring%" NEQ "1" exit /b monitoroff
     set "socket.location=%TEMP%\socket.message"
-    set "message=%1 %2 %3 %4 %5 %6 %7 %8 %9"
+    set "message=%~1 %~2 %~3 %~4 %~5 %~6 %~7 %~8 %~9"
     echo %message% > "%socket.location%"
     exit /b
 
@@ -3099,15 +3122,15 @@
     :: Old one used seperate file / wget & curl & iwr
     :: Usage: call :update.script [stable / beta]
     if %logging% == 1 ( call :log Creating_Update_Script INFO )
-    call :check_args :generate_random %1
+    call :check_args :generate_random "%~1"
     if "%errorlevel%"=="1" (
         %errormsg%
         exit /b 1
     )    
     
     :: Check Arguments
-    if "%1"=="stable" set "update_url=https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/"
-    if "%1"=="beta" set "update_url=https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/v6/"
+    if "%~1"=="stable" set "update_url=https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/"
+    if "%~1"=="beta" set "update_url=https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/v6/"
 
     :: Installer Preps
     cd /d "%~dp0"
@@ -3189,7 +3212,7 @@
 :: call :generate_random all 40
 :: Output: Random string: fjELw0oV2nA.nDgx4Jk1vNal,2sMS8tSYhDYAP9-
 :generate_random
-    call :check_args :generate_random %1 %2
+    call :check_args :generate_random "%~1" "%~2"
     if "%errorlevel%"=="1" (
         set "random_gen=ERROR"
         exit /b 1
@@ -3284,7 +3307,7 @@
 
 :TimeDifference
     setlocal EnableDelayedExpansion
-    call :check_args :TimeDifference %1 %2
+    call :check_args :TimeDifference "%~1" "%~2"
     if "%errorlevel%"=="1" (
         %errormsg%
         exit /b 1
@@ -3345,7 +3368,7 @@
 :: exit /b 0
 :: -------------------------------------------------------------------
 :TimeDiffInMs
-    call :check_args :TimeDiffInMs %1 %2
+    call :check_args :TimeDiffInMs "%~1" "%~2"
     if "%errorlevel%"=="1" (
         set "timeDiffMs=ERROR"
         exit /b 1
@@ -3508,7 +3531,7 @@
     call :sys.lt 1
     choice /C 12S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 set "directory=%ProgramW6432%"
+        if %_erl%==1 set "directory=%ProgramFiles%"
         if %_erl%==2 set /p directory=Enter the Directory:
         if %_erl%==3 call :standby
     if not defined directory ( goto installer.main.window )
@@ -3739,7 +3762,7 @@
     :: Exit Script, compatible with NT
     EVENTCREATE /T INFORMATION /ID 200 /L APPLICATION /SO DataSpammer /D "DataSpammer Exiting %ERRORLEVEL%"
     set EXIT_CODE=%ERRORLEVEL%
-    if not "%1"=="" set "EXIT_CODE=%1"
+    if not "%~1"=="" set "EXIT_CODE=%~1"
     if "%EXIT_CODE%"=="" set EXIT_CODE=0
     if "%OS%"=="Windows_NT" endlocal
     echo: > %temp%\DataSpammerClose.txt
