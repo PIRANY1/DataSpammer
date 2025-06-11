@@ -77,7 +77,7 @@
 ::      V6 Requirements:
 ::      Check for Bugs / Verify
 ::      Add Release Workflow w. Setup Build, Encryption etc.
-::      Continue Custom Instruction File
+::      Verify CIF Parser
 ::      Fix Wait.exe Delay
 ::      Check Startmenu Spam
 ::      Check RW Checks
@@ -87,6 +87,9 @@
 ::      Add Debug CON Output Mode (set "debug=CON"   >%debug% ?)
 ::      Improve Window Sizing
 ::      Sort Startup Snippets
+::      Add Locales
+::      Add Delete 
+::      Verify 32bit Comp - WOW64 Compatibility Layer is ignored
 
 :top
     @echo off
@@ -115,7 +118,36 @@
     :: NCS is required for ANSI / Color Support
     call :check_NCS
     call :color _Green "ANSI Color Support is enabled"
-    call :sys.lt 1
+    
+
+    :: Parse Correct Timeout & Ping Locations otherwise WOW64 May cause issues.
+    for /f "delims=" %%P in ('where ping.exe 2^>nul') do set "ping=%%P"
+    if not defined PING (
+        %errormsg%
+        call :color _Red "Ping is not found."
+        call :color _Red "Please verify that PING is available in your PATH."
+        call :sys.lt 10 count
+        goto cancel
+    ) else (
+        call :color _Green "Ping found at: !PING!"
+    )
+    
+    for /f "delims=" %%T in ('where timeout.exe 2^>nul') do set "timeout=%%T"
+    if not defined TIMEOUT (
+        %errormsg%
+        call :color _Red "Timeout is not found."
+        call :color _Red "Please verify that TIMEOUT is available in your PATH."
+        call :sys.lt 10 count
+        goto cancel
+    ) else (
+        call :color _Green "Timeout found at: !TIMEOUT!"
+    )
+
+    :: Set CMD Path based on Context - 64bit or 32bit
+    set "cmdPath=%SystemRoot%\System32\cmd.exe"
+    if exist "%cmdPath%" (
+        set "cmdPath=%cmdPath%"
+    )
 
     :: No Dependency Functions (Arguments) - Documented at help.startup
     if "%~1"=="version" title DataSpammer && goto version
@@ -143,6 +175,13 @@
         call :sys.lt 10 count
     )
 
+    :: Check if Script is running from a UNC Path
+    if /I "%~d0"=="\\" (
+        %errormsg%
+        call :color _Red "The script was launched from a UNC path."
+        call :color _Yellow "Installation may not work properly."
+        call :sys.lt 10 count
+    )
 
     :: Check Windows Version - Win 10 & 11 have certutil and other commands needed. Win 8.1 and below not have them
     call :win.version.check
@@ -185,7 +224,7 @@
     ) else (
         call :color _Green "Powershell found at: !powershell_location!"
     )
-    set "powershell_short="%powershell_location%" -ExecutionPolicy Bypass -NoProfile -NoLogo"
+    set "powershell_short=%powershell_location% -ExecutionPolicy Bypass -NoProfile -NoLogo"
     set "powershell_short_alternative=powershell -ExecutionPolicy Bypass -NoProfile -NoLogo"
 
     :: Check if Powershell is over version 4
@@ -246,7 +285,7 @@
     if "%~1"=="install" title DataSpammer && goto installer.main.window
     
     :: Check if Argument is a Path, then execute it as CIF
-    if exist "%~1" if /i "%~x1"==".dts" goto custom.instruction.read
+    if /i "%~x1"==".dts" goto custom.instruction.read
 
     :: Undocumented Arguments
     if "%~1"=="update-install" ( goto sys.new.update.installed )
@@ -283,7 +322,11 @@
     if "%workflow.exec%"=="1" call :color _Green "Script getting executed from GitHub" && goto skip.parse
 
     :: Check for Settings File 
-    dir /b | findstr /i "settings.conf" >nul 2>&1 || call :color _Red "No Settings Found" && goto sys.no.settings
+    dir "%~dp0" /b | findstr /i "settings.conf" >nul 2>&1 || (
+        %errormsg%
+        call :color _Red "No Settings Found"
+        goto sys.no.settings
+    )
     
     :: Verify Settings Hash
     if exist "%~dp0settings.conf" ( call :verify.settings )
@@ -306,16 +349,16 @@
     if %errorLevel% neq 0 (
         if "%elevation%"=="sudo" (
             for /f "delims=" %%A in ('where sudo') do set SUDO_PATH=%%A
-            %SUDO_PATH% cmd.exe -c %~f0 || goto elevation_failed
+            %SUDO_PATH% "%cmdPath%" /c "%~f0" %b.flag% || goto elevation_failed
             goto cancel
         )
         if "%elevation%"=="gsudo" (
             for /f "delims=" %%A in ('where gsudo') do set GSUDO_PATH=%%A
-            %GSUDO_PATH% cmd.exe -k %~f0 || goto elevation_failed
+            %GSUDO_PATH% "%cmdPath%" /c "%~f0" %b.flag% || goto elevation_failed
             goto cancel
         )
         if "%elevation%"=="pwsh" (
-            %powershell_short% -Command "Start-Process '%~f0' -Verb runAs" || goto elevation_failed
+            %powershell_short% -Command "Start-Process '%cmdPath%' -ArgumentList '/c \"%~f0\" %b.flag%' -Verb runAs" || goto elevation_failed
             goto cancel
         )
         %errormsg%
@@ -326,6 +369,20 @@
     )
     cd /d "%~dp0"
 
+    if defined PROCESSOR_ARCHITEW6432 (
+        %errormsg%
+        call :color _Red "Running as 32-Bit on 64-Bit Windows"
+        call :color _Yellow "Relaunching as 64-Bit..."
+        start %cmdPath% /c "%~f0" %b.flag%
+        call :sys.lt 5 count
+        goto cancel
+    ) else (
+        call :color _Green "Running on 64-Bit Windows"
+    )
+    echo Hello > test.txt
+type test.txt
+del test.txt
+
     :: Check if Temp Folder is writable
     call :rw.check "%temp%"
     if "%errorlevel%"=="1" (
@@ -334,6 +391,10 @@
         echo Script may not work properly.
         call :sys.lt 10 count
     )
+    echo Hello > test.txt
+type test.txt
+
+    echo after & choice & pause
 
     :: Check if local dir is writable
     call :rw.check "%exec-dir%"
@@ -343,9 +404,8 @@
         echo Script may not work properly.
         call :sys.lt 10 count
     )
-
     goto pid.check
-
+    
 :elevation_failed
     %errormsg%
     call :color _Red "Failed to elevate script."
@@ -374,7 +434,6 @@
     if %logging% == 1 ( call :log =================== INFO )
     if %logging% == 1 ( call :log . INFO )
 
-
     :: If lockfile exists, extract PID 
     if exist "%~dp0\dataspammer.lock" (
         set "pidlock="
@@ -399,10 +458,10 @@
             if %logging% == 1 ( call :log DataSpammer_Already_Running ERROR)
             echo Exiting...
             pause
-            goto cancel 
+            goto cancel
         ) else (
             :: PIDs do not match, lock file still exists
-            echo !pidlock! %pid%
+            :: echo !pidlock! %pid%
             call :color _Red "DataSpammer may have crashed or was closed. Deleting lock file..."
             call :color _Red "Be aware that some tasks may not have finished properly."
             if %logging% == 1 ( call :log DataSpammer_may_have_crashed ERROR )
@@ -423,14 +482,13 @@
 
     :: Start the Monitor Socket
     if %monitoring%==1 (
-        start /min cmd.exe /k ""%~f0" monitor %PID%" 
+        start /min %cmdPath% /k ""%~f0" monitor %PID%" 
         if %logging% == 1 ( call :log Starting_Monitor_Socket INFO )
         >> "%TEMP%\socket.con" echo Connection Request from %PID%
     )
 
     :: Check if Login is Setup
-    for /f "tokens=3" %%A in ('reg query "HKCU\Software\DataSpammer" /v UsernameHash 2^>nul') do set "storedhash=%%A"
-    if not defined storedhash goto file.check
+    reg query "HKCU\Software\DataSpammer" /v UsernameHash >nul 2>&1 || goto file.check
 
 :login.input
     if %logging% == 1 ( call :log Starting_Login INFO )
@@ -459,7 +517,6 @@
     set "stored_username_hash=%stored_username_hash: =%"
     set "password_hash=%password_hash: =%"
     set "stored_password_hash=%stored_password_hash: =%"
-
     :: Compare Hashes
     echo Comparing Hashes...
     if "%username_hash%" EQU "%stored_username_hash%" (
@@ -485,7 +542,6 @@
 
 :file.check
     title DataSpammer - Starting
-
     :: Establish Socket Connection
     call :send_message Started DataSpammer
     call :send_message Established Socket Connection
@@ -501,10 +557,10 @@
     if %logging% == 1 ( call :log Calling_Update_Check INFO )
     :: If Script is in Development Mode, skip the update check
     if "%current-script-version%"=="development" (
-        echo Development Version, Skipping Update
-        call :sys.lt 3
-        if %logging% == 1 ( call :log Skipped_Update_Check_%current-script-version%_Development_Version WARN )
-        exit /b
+        call :color _Green "Development Version, Skipping Update"
+        call :sys.lt 5
+        if "%logging%"=="1" ( call :log Skipped_Update_Check_%current-script-version%_Development_Version WARN )
+        exit /b 0
     )
     call :git.version.check
     if "%uptodate%"=="up" ( call :git.version.clean ) else ( call :git.version.outdated )
@@ -800,10 +856,48 @@
     
 
 :custom.instruction.read
+    :: Read Linked CIF File & interpret it
     set "interpret.dts=%~1"
-    :: check for extension
-
-
+    if not exist "%interpret.dts%" (
+        %errormsg%
+        call :color _Red "Custom Instruction File does not exist."
+        echo Please check the path and try again.
+        call :sys.lt 5 count
+        goto cancel
+    )
+    echo Parsing CIF File: %interpret.dts%
+    set "firstLineHandled=false"
+    for /f "usebackq delims=" %%L in ("%interpret.dts%") do (
+        set "line=%%L"
+        set "trimmed=!line:~0,1!"
+        :: Ignore empty lines and comments
+        if not "!line!"=="" if "!trimmed!" NEQ "#" (
+            if "!firstLineHandled!"=="false" (
+                :: Treat first line as label
+                echo Used Label: %%L
+                set "label.cif=%%L"
+                set "firstLineHandled=true"
+            ) else (
+                :: If line has a "=", treat it as a variable assignment
+                echo !line! | findstr "=" >nul
+                if !errorlevel! == 0 (
+                    for /f "tokens=1* delims==" %%A in ("!line!") do (
+                        echo Setting Variable: %%A=%%B
+                        set "%%A=%%B"
+                    )
+                ) else (
+                    if not "%%L"=="" (
+                        echo Executing command: %%L
+                        %%L
+                    )
+                )
+            )
+        )
+    )
+    echo Finished Interpreting CIF File: %interpret.dts%
+    echo Exiting...
+    pause
+    goto cancel
 
 :download.wait
     :: Download Wait.exe and Wait.exe Hash
@@ -2267,7 +2361,7 @@
     call :send_message Script is restarting
     call :send_message Terminating %PID%
     echo: > %temp%\DataSpammerClose.txt
-    cmd /c "%~dp0\dataspammer.bat"
+    start %cmdPath% /c "%~f0"
     goto cancel
 
 
@@ -2670,9 +2764,11 @@
     set "path=%~1"
     set "testfilename=tmpcheck_%random%"
     set "testfile=%path%\%testfilename%.tmp"
-    break>"%testfile%" 2>nul 
-
-    if not exist "%path%\file.txt" (
+    echo. > "%testfile%" 2>nul || (
+        call :color _Red "Could not create a temporary file in the directory "%path%"."
+        exit /b 1
+    )
+    if not exist "%path%\" (
         call :color _Red "The directory "%path%" does not exist."
         exit /b 1
     )
@@ -2724,6 +2820,13 @@
                 set "storedhash=%%h"
             )
             set "storedhash=!storedhash: =!"
+            if "!storedhash!"=="" (
+                %errormsg%
+                call :color _Red "Failed to generate hash for settings.conf."
+                call :color _Yellow "This Error is not critical. Please report it on GitHub."
+                call :sys.lt 5 count
+                exit /b 0
+            )
             reg add "HKCU\Software\DataSpammer" /v SettingsHash /t REG_SZ /d "!storedhash!" /f >nul
             for /f "tokens=3" %%A in ('reg query "HKCU\Software\DataSpammer" /v SettingsHash 2^>nul') do set "storedhash=%%A" 
         )
@@ -2916,23 +3019,24 @@
     
 
 :sys.lt
-    :: Wait for a given time, supports wait.exe
     setlocal EnableDelayedExpansion
+    :: Wait for a given time, supports wait.exe
     if exist "%~dp0\wait.exe" ( wait.exe %~1 )
     if /i "%~2"=="timeout" (
-        timeout /t %~1 >nul
+        %timeout% /t %~1 >nul
     )
     if /i "%~2"=="count" (
         for /L %%i in (%~1,-1,0) do (
             set "msg=Waiting, %%i seconds remaining..."
             echo !msg!
-            timeout /t 1 >nul
+            %timeout% /t 1 >nul
         )
         echo:
     ) else (
         set /a "wait_time=%~1 * 500"
-        ping -n 1 -w %wait_time% 127.0.0.1 >nul
+        %ping% -n 1 -w %wait_time% 127.0.0.1 >nul
     )
+    endlocal
     exit /b 0
 
 :parse.settings
@@ -3188,8 +3292,7 @@
     )  
     if not defined where_output goto move.new.files
     :: Encrypt new Files, when current Version is already encrypted
-    for /f "tokens=3" %%A in ('reg query "HKCU\Software\DataSpammer" /v Token 2^>nul') do set "tokenhash=%%A"
-    if not defined tokenhash goto move.new.files
+    reg query "HKCU\Software\DataSpammer" /v Token >nul 2>&1 || goto move.new.files
 
     echo Encrypting newly downloaded Files...
     echo FF FE 0D 0A 63 6C 73 0D 0A >  "%temp%\dts.update\temp_hex.txt"
@@ -3206,7 +3309,7 @@
     move /Y "%TMP_DIR%\README.md" "%~dp0README.md"
     move /Y "%TMP_DIR%\LICENSE" "%~dp0LICENSE"
     rd /s /q "%TMP_DIR%"
-    cmd.exe /c "%~dp0\dataspammer.bat" update-install
+    start %cmdPath% /c "%~f0" update-install
     goto cancel
 
 :version
@@ -3761,7 +3864,7 @@
         erase "%directory9%\temp_hex.txt"
         erase "%directory9%\temp_prefix.bin"
         Cipher /E "%directory9%\dataspammer.bat"
-        cmd /c "%directory9%\dataspammer.bat"
+        start %cmdPath% /c "%directory9%\dataspammer.bat"
         erase "%directory9%\encrypt.bat"
         exit %errorlevel%
     ) > "%directory9%\encrypt.bat"
@@ -3774,7 +3877,7 @@
     :: Restart Script Process 
     echo Finished Installation.
     echo Starting...
-    cmd /c "%directory9%\dataspammer.bat"
+    start %cmdPath% /c "%directory9%\dataspammer.bat"
     erase "%~dp0\dataspammer.bat" > nul
     goto cancel
 
