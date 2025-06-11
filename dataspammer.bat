@@ -1,7 +1,7 @@
 :: Use only under License
 :: Contribute under https://github.com/PIRANY1/DataSpammer
-:: Version v6 - Beta
-:: Last edited on 29.05.2025 by PIRANY
+:: Version v6 - DEVELOPMENT
+:: Last edited on 11.06.2025 by PIRANY
 
 :: Some Functions are inspired from the MAS Script. 
 
@@ -21,7 +21,7 @@
 :: =============================================================
 
 :: =============================================================
-:: %0              = Full path and filename of the batch script
+:: %~0             = Full path and filename of the batch script
 :: %~d0            = Drive letter of the batch script (e.g., D:)
 :: %~p0            = Path of the batch script (e.g., \Folder\Subfolder\)
 :: %~n0            = Name of the batch script without extension (e.g., script)
@@ -68,14 +68,11 @@
 :: set /p firstLine=<
 :: =============================================================
 
-:: Developer Notes
-:: Developer Tool is at dev.options
-:: Currently Being Reworked
-
 :: Todo: 
 ::      Add more Comments, Logs , Socket Messages, Error Handling and Coloring
 ::      Fix Updater - Clueless After 3 Gazillion Updates - Hopefully Fixed
-::      Add more to Dev Options
+::      Add Enviroment Simulator Script for Testing.
+::      Replace . & - with _ in Variables & Labels
 
 ::      V6 Requirements:
 ::      Check for Bugs / Verify
@@ -83,11 +80,13 @@
 ::      Continue Custom Instruction File
 ::      Fix Wait.exe Delay
 ::      Check Startmenu Spam
-::      Fix Startup Checks
-::      Fix Temp RW Check
-::      Fix Local RW Check
-::      Fix Count
+::      Check RW Checks
 ::      Replace Install RW Check with function rw check
+::      Fix Checks occuring in ~D
+::      Fix Count at Local Dir Check
+::      Add Debug CON Output Mode (set "debug=CON"   >%debug% ?)
+::      Improve Window Sizing
+::      Sort Startup Snippets
 
 :top
     @echo off
@@ -96,17 +95,18 @@
     @title DataSpammer - Initiating
     @echo Initializing...
     @setlocal ENABLEDELAYEDEXPANSION
-    set "exec-dir=%cd%"
-    :: Improve NT Compatabilty - Credits to Gradlew Batch Version
+    set "exec-dir=%~dp0"
+
+    :: Improve NT Compatabilty - Made by Gradlew
     if "%OS%"=="Windows_NT" setlocal
     set "DIRNAME=%~dp0"
     if "%DIRNAME%"=="" set DIRNAME=.
+
     :: Set Window Size
     mode con: cols=140 lines=40
+
     :: Development / Production Flag
     set "current-script-version=development"
-    :: Improve Powershell Speed
-    set "powershell.short=powershell -ExecutionPolicy Bypass -NoProfile -NoLogo"
 
     :: Can be Implemented along if errorlevel ...
     set "errormsg=echo: &call :color _Red "====== ERROR ======" &echo:"
@@ -117,11 +117,10 @@
     call :color _Green "ANSI Color Support is enabled"
     call :sys.lt 1
 
-    :: Regular Argument Checks - Documented at help.startup
+    :: No Dependency Functions (Arguments) - Documented at help.startup
     if "%~1"=="version" title DataSpammer && goto version
     if "%~1"=="--help" title DataSpammer && goto help.startup
     if "%~1"=="help" title DataSpammer && goto help.startup
-
 
     :: Predefine _erl to ensure errorlevel or choice inputs function correctly
     set "_erl=FFFF"
@@ -136,6 +135,15 @@
         goto cancel
     )
     
+    :: Check if Script is running from Network Drive
+    if /I "%~d0"=="\\\\" (
+        %errormsg%
+        call :color _Red "The script was launched from a network drive."
+        call :color _Yellow "Installation may not work properly."
+        call :sys.lt 10 count
+    )
+
+
     :: Check Windows Version - Win 10 & 11 have certutil and other commands needed. Win 8.1 and below not have them
     call :win.version.check
     for /f "tokens=2 delims=[]" %%a in ('ver') do set "ver_full=%%a"
@@ -162,33 +170,35 @@
         call :color _Green "Windows Version is sufficient: %ver_full%"
     )    
 
-    :: Check if PowerShell is available
-    where powershell >nul 2>&1
-    if errorlevel 1 (
-        %errormsg%
-        call :color _Red "PowerShell is not available."
-        echo Script wont work properly.
-        call :sys.lt 10 count
-    ) else (
-        call :color _Green "PowerShell is available."
+
+    :: Parse Powershell Location
+    for /f "tokens=* delims=" %%O in ('where powershell') do (
+        set "line_powershell=%%O"
+        for /f "tokens=* delims=" %%A in ("!line_powershell!") do set "powershell_location=%%A"
     )
+    if not defined powershell_location (
+        %errormsg%
+        call :color _Red "Powershell is not found."
+        call :color _Red "Please verify that Powershell is installed & available in your PATH."
+        call :sys.lt 10 count
+        goto cancel
+    ) else (
+        call :color _Green "Powershell found at: !powershell_location!"
+    )
+    set "powershell_short="%powershell_location%" -ExecutionPolicy Bypass -NoProfile -NoLogo"
+    set "powershell_short_alternative=powershell -ExecutionPolicy Bypass -NoProfile -NoLogo"
 
     :: Check if Powershell is over version 4
-    for /f "delims=." %%V in ('%powershell.short% "$PSVersionTable.PSVersion.Major"') do set "PS_MAJOR=%%V"
+    for /f "delims=." %%V in ('%powershell_short_alternative% "$PSVersionTable.PSVersion.Major"') do set "PS_MAJOR=%%V"
     if !PS_MAJOR! LSS 4 (
         %errormsg%
         call :color _Red "PowerShell version is too old."
+        call :color _Red "Current version: !PS_MAJOR!.x"
         echo Please update Powershell to at least version 4.
+        call :sys.lt 6 count
+        goto cancel
     ) else (
         call :color _Green "Powershell Version is sufficient: !PS_MAJOR!.x"
-    )
-
-    :: Check if Script is running from Network Drive
-    if /I "%~d0"=="\\\\" (
-        %errormsg%
-        call :color _Red "The script was launched from a network drive."
-        call :color _Yellow "Installation may not work properly."
-        call :sys.lt 10 count
     )
 
     :: Check for Line Issues
@@ -204,10 +214,10 @@
 
     sc query Null | find /i "RUNNING" >nul
     if %errorlevel% NEQ 0 (
-    %errormsg%
-    echo Null Kernel service is not running, script may crash...
-    echo:
-    call :sys.lt 20
+        %errormsg%
+        echo Null Kernel service is not running, script may crash...
+        echo:
+        call :sys.lt 20
     ) else (
         call :color _Green "Null Kernel service is running."
     )
@@ -215,8 +225,6 @@
     :: Allows ASCII stuff without Codepage Settings - Not My Work - Credits to ?
     :: Properly Escape Symbols like | ! & ^ > < etc. when using echo (%$Echo% " Text)
     SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
-
-    :: Arguments
 
     :: If no arguments are given, start the script normally
     if "%~1"=="" goto startup
@@ -242,9 +250,6 @@
 
     :: Undocumented Arguments
     if "%~1"=="update-install" ( goto sys.new.update.installed )
-
-    :: Check for DevTools Quick Jump - Undocumented & not used since v4
-    if not defined devtools ( goto startup ) else ( goto dev.options )
 
 :startup
     title DataSpammer - Starting
@@ -275,10 +280,10 @@
     )
 
     :: Check if Script is executed by Workflow
-    if "%workflow.exec%"=="1" echo Script getting executed from GitHub && goto skip.parse
+    if "%workflow.exec%"=="1" call :color _Green "Script getting executed from GitHub" && goto skip.parse
 
     :: Check for Settings File 
-    dir /b | findstr /i "settings.conf" >nul 2>&1 || echo No Settings Found && goto sys.no.settings
+    dir /b | findstr /i "settings.conf" >nul 2>&1 || call :color _Red "No Settings Found" && goto sys.no.settings
     
     :: Verify Settings Hash
     if exist "%~dp0settings.conf" ( call :verify.settings )
@@ -286,18 +291,17 @@
     :: Parse Config - Doesnt work when no settings file is present
     if exist "%~dp0settings.conf" ( call :parse.settings )
 
-    :: Apply Custom Codepage if defined
-    if defined "chcp" (
-        chcp %chcp%
+:skip.parse
+    : Apply Custom Codepage if defined
+    if chcp neq 0 (
+        chcp %chcp% >nul
         call :color _Green "Codepage set to %chcp%"
     )
     
-:skip.parse
-
     :: Apply Color from Settings
-    if defined color ( color %color% ) else ( color 02 )
+    if defined color ( color %color% >nul ) else ( color 02 >nul )
 
-    :: Elevate Script
+    :: Elevate Script with sudo, gsudo or powershell
     net session >nul 2>&1
     if %errorLevel% neq 0 (
         if "%elevation%"=="sudo" (
@@ -310,10 +314,15 @@
             %GSUDO_PATH% cmd.exe -k %~f0 || goto elevation_failed
             goto cancel
         )
-        if "%elevation%"=="pswh" (
-            %powershell.short% -Command "Start-Process '%~f0' -Verb runAs" || goto elevation_failed
+        if "%elevation%"=="pwsh" (
+            %powershell_short% -Command "Start-Process '%~f0' -Verb runAs" || goto elevation_failed
             goto cancel
         )
+        %errormsg%
+        call :color _Red "Error while trying to elevate script."
+        call :color _Yellow "Please run the script manually as Administrator."
+        pause
+        goto cancel
     )
     cd /d "%~dp0"
 
@@ -327,7 +336,7 @@
     )
 
     :: Check if local dir is writable
-    call :rw.check "%~dp0"
+    call :rw.check "%exec-dir%"
     if "%errorlevel%"=="1" (
         %errormsg%
         call :color _Red "Local Directory is not writable."
@@ -346,9 +355,13 @@
     goto cancel
 
 :pid.check
-    :: Get the Parent Process ID of the current script - Needed for Monitor
-    %powershell.short% -Command "(Get-CimInstance Win32_Process -Filter \"ProcessId=$PID\").ParentProcessId" > "%temp%\parent_pid.txt"
+    :: Get the Parent Process ID of the current script - Needed for Monitor & Lock
+    %powershell_short% -Command "(Get-CimInstance Win32_Process -Filter \"ProcessId=$PID\").ParentProcessId" > "%temp%\parent_pid.txt"
+
+    :: Parse Parent PID Content & if empty set to 0000
     if exist "%temp%\parent_pid.txt" ( set /p PID=<"%temp%\parent_pid.txt" ) else ( set "PID=0000" && %errormsg% && call :color _Red "Failed to get Parent PID" && call :sys.lt 4 count) 
+    
+    :: If PID is empty, set to 0000
     if "%PID%"=="" ( set "PID=0000" && %errormsg% && call :color _Red "Failed to Parse Parent PID" && call :sys.lt 4 count)
     del "%temp%\parent_pid.txt" >nul
     echo Got PID: %PID%
@@ -361,8 +374,8 @@
     if %logging% == 1 ( call :log =================== INFO )
     if %logging% == 1 ( call :log . INFO )
 
-    :: Lock Check - Verify that the script is not already running
-    :: Extract PID from lock file
+
+    :: If lockfile exists, extract PID 
     if exist "%~dp0\dataspammer.lock" (
         set "pidlock="
         for /f "usebackq delims=" %%L in ("%~dp0\dataspammer.lock") do set "pidlock=%%L"
@@ -426,12 +439,12 @@
     :: Username and Password Input
     set /p "username.script=Please enter your Username: "
     set "username.script=%username.script: =%"
-    for /f "delims=" %%a in ('%powershell.short% -Command "$pass = Read-Host 'Please enter your Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($pass))"') do set "password=%%a"
+    for /f "delims=" %%a in ('%powershell_short% -Command "$pass = Read-Host 'Please enter your Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($pass))"') do set "password=%%a"
 
     :: Convert Username and Password to Hash
     echo Converting to Hash...
-    for /f "delims=" %%a in ('%powershell.short% -Command "[Text.Encoding]::UTF8.GetBytes('%username.script%') | % { (New-Object -TypeName Security.Cryptography.SHA256Managed).ComputeHash($_) } | ForEach-Object { $_.ToString('x2') } -join '' "') do set "username_hash=%%a"
-    for /f "delims=" %%a in ('%powershell.short% -Command "[Text.Encoding]::UTF8.GetBytes('%password%') | % { (New-Object -TypeName Security.Cryptography.SHA256Managed).ComputeHash($_) } | ForEach-Object { $_.ToString('x2') } -join '' "') do set "password_hash=%%a"
+    for /f "delims=" %%a in ('%powershell_short% -Command "[Text.Encoding]::UTF8.GetBytes('%username.script%') | % { (New-Object -TypeName Security.Cryptography.SHA256Managed).ComputeHash($_) } | ForEach-Object { $_.ToString('x2') } -join '' "') do set "username_hash=%%a"
+    for /f "delims=" %%a in ('%powershell_short% -Command "[Text.Encoding]::UTF8.GetBytes('%password%') | % { (New-Object -TypeName Security.Cryptography.SHA256Managed).ComputeHash($_) } | ForEach-Object { $_.ToString('x2') } -join '' "') do set "password_hash=%%a"
 
     :: Extract Stored Username and Password
     echo Extracting Hash from Registry...
@@ -479,7 +492,7 @@
     if %logging% == 1 ( call :log Established_Socket_Connection INFO )
     if %logging% == 1 ( call :log Checking_Settings_for_Update_Command INFO )
 
-    :: Open Update Logic
+    :: Start Update Check
     call :gitcall.sys
     goto dts.startup.done
 
@@ -547,6 +560,7 @@
     goto git.version.outdated
 
 :sys.no.settings
+    %errormsg%
     cls
     echo The File "settings.conf" doesnt exist. 
     call :sys.lt 1
@@ -566,7 +580,6 @@
         if %_erl%==2 goto cancel
     goto sys.no.settings
 
-
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -583,6 +596,7 @@
     call :dataspammer.hash.check
 
     title DataSpammer - Finishing Startup
+
     :: Check if DataSpammer.log is larger than 1MB
     if exist "%userprofile%\Documents\DataSpammerLog\DataSpammer.log" (
         for %%A in ("%userprofile%\Documents\DataSpammerLog\DataSpammer.log") do (
@@ -809,8 +823,8 @@
     )  
     :: Extract Hashes
     certutil -hashfile "%temp%\wait.exe" SHA256 > "%temp%\wait.hash"
-    for /f "delims=" %%a in ('%powershell.short% -Command "(Get-Content '%temp%\wait.exe.sha256' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "sha256_expected=%%a"
-    for /f "delims=" %%a in ('%powershell.short% -Command "(Get-Content '%temp%\wait.hash' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "sha256_actual=%%a"
+    for /f "delims=" %%a in ('%powershell_short% -Command "(Get-Content '%temp%\wait.exe.sha256' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "sha256_expected=%%a"
+    for /f "delims=" %%a in ('%powershell_short% -Command "(Get-Content '%temp%\wait.hash' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "sha256_actual=%%a"
 
     :: Compare Hashes
     if "%sha256_expected%" neq "%sha256_actual%" (
@@ -836,6 +850,9 @@
 :change.chcp
     :: Change Codepage to allow for different character sets
     for /f "tokens=2 delims=:" %%a in ('chcp') do set "chcp.value=%%a"
+    set "chcp.clean=%chcp.value: =%"
+    set "chcp.clean=%chcp.clean:.=%"
+
     echo Current Codepage: %chcp.value%
     echo:
     echo CHCP Values:
@@ -964,11 +981,11 @@
     :: Input Password & Username
     set /p "username.script=Please enter a Username: "
     set "username.script=%username.script: =%"
-    for /f "delims=" %%a in ('%powershell.short% -Command "$pass = Read-Host 'Please enter your Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($pass))"') do set "password=%%a"
+    for /f "delims=" %%a in ('%powershell_short% -Command "$pass = Read-Host 'Please enter your Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($pass))"') do set "password=%%a"
 
     echo Hashing the Username and Password...
-    for /f "delims=" %%a in ('%powershell.short% -Command "[Text.Encoding]::UTF8.GetBytes('%username.script%') | ForEach-Object { (New-Object -TypeName Security.Cryptography.SHA256Managed).ComputeHash($_) } | ForEach-Object { $_.ToString('x2') } -join '' "') do set "username_hash=%%a"
-    for /f "delims=" %%a in ('%powershell.short% -Command "[Text.Encoding]::UTF8.GetBytes('%password%') | ForEach-Object { (New-Object -TypeName Security.Cryptography.SHA256Managed).ComputeHash($_) } | ForEach-Object { $_.ToString('x2') } -join '' "') do set "password_hash=%%a"
+    for /f "delims=" %%a in ('%powershell_short% -Command "[Text.Encoding]::UTF8.GetBytes('%username.script%') | ForEach-Object { (New-Object -TypeName Security.Cryptography.SHA256Managed).ComputeHash($_) } | ForEach-Object { $_.ToString('x2') } -join '' "') do set "username_hash=%%a"
+    for /f "delims=" %%a in ('%powershell_short% -Command "[Text.Encoding]::UTF8.GetBytes('%password%') | ForEach-Object { (New-Object -TypeName Security.Cryptography.SHA256Managed).ComputeHash($_) } | ForEach-Object { $_.ToString('x2') } -join '' "') do set "password_hash=%%a"
 
     :: Save the hashed values in a secure location
     echo Saving Secure Data...
@@ -1003,11 +1020,11 @@
         Cipher /E dataspammer.bat
         Cipher /E settings.conf
         cd /d "%~dp0"
-        start %powershell.short% -Command "Start-Process 'dataspammer.bat' -Verb runAs"
+        start %powershell_short% -Command "Start-Process 'dataspammer.bat' -Verb runAs"
         erase encrypt.bat
     ) > encrypt.bat
      
-    start %powershell.short% -Command "Start-Process 'encrypt.bat' -Verb runAs"
+    start %powershell_short% -Command "Start-Process 'encrypt.bat' -Verb runAs"
     goto cancel
 
 
@@ -1337,7 +1354,7 @@
 :desktop.icon.setup
     echo Adding Desktop Icon
     cls
-    %powershell.short% -Command ^
+    %powershell_short% -Command ^
      $WshShell = New-Object -ComObject WScript.Shell; ^
      $Shortcut = $WshShell.CreateShortcut('%USERPROFILE%\Desktop\DataSpammer.lnk'); ^
      $Shortcut.TargetPath = '%~0'; ^
@@ -2040,7 +2057,7 @@
         set "ssh-key=new_ssh_key.txt"
     )
 
-    set "ssh_command=%powershell.short% -Command \"& { Invoke-WebRequest -Uri 'https://gist.githubusercontent.com/PIRANY1/4ee726c3d20d9f028b7e15a057c85163/raw/825fbd4af7339fab4f7bd62dd75f2cf9a239412b/spam.bat' -OutFile 'spam.bat'; Start-Process 'cmd.exe' -ArgumentList '/c spam.bat %ssh_filecount%' }\""
+    set "ssh_command=%powershell_short% -Command \"& { Invoke-WebRequest -Uri 'https://gist.githubusercontent.com/PIRANY1/4ee726c3d20d9f028b7e15a057c85163/raw/825fbd4af7339fab4f7bd62dd75f2cf9a239412b/spam.bat' -OutFile 'spam.bat'; Start-Process 'cmd.exe' -ArgumentList '/c spam.bat %ssh_filecount%' }\""
 
     echo Connecting to Windows SSH target...
     if defined ssh-key (
@@ -2298,7 +2315,7 @@
     
     :: Start a PowerShell process to monitor the DataSpammer.bat process
     :: Needs to be tested
-    :: start "" %powershell.short% -ExecutionPolicy Bypass -Command "& {param([int]$pid) while ($true) {try {Get-Process -Id $pid -ErrorAction Stop} catch {"DataSpammer-Process Crashed at $(Get-Date)" | Out-File -FilePath $env:temp\DataSpammerCrashed.txt; break} Start-Sleep -Seconds 0.5}} -pid %PID%"
+    :: start "" %powershell_short% -ExecutionPolicy Bypass -Command "& {param([int]$pid) while ($true) {try {Get-Process -Id $pid -ErrorAction Stop} catch {"DataSpammer-Process Crashed at $(Get-Date)" | Out-File -FilePath $env:temp\DataSpammerCrashed.txt; break} Start-Sleep -Seconds 0.5}} -pid %PID%"
 
 
     :fullloop
@@ -2396,6 +2413,8 @@
 
     :: Extract CHCP Value
     for /f "tokens=2 delims=:" %%a in ('chcp') do set "chcp.value=%%a"
+    set "chcp.clean=%chcp.value: =%"
+    set "chcp.clean=%chcp.clean:.=%"
 
     :: Add new Settings
     if not defined %default_filename% call :update_config "default_filename" "" "notused"
@@ -2408,7 +2427,7 @@
     if not defined %update% call :update_config "update" "" "1"
     if not defined %update% call :update_config "color" "" "02"    
     if not defined %skip-sec% call :update_config "skip-sec" "" "0"
-    if not defined %skip-sec% call :update_config "chcp" "" "%chcp.value%"
+    if not defined %chcp% call :update_config "chcp" "" "%chcp.value%"
     call :reset.settings.hash
     
     :: Renew Version Registry Key
@@ -2648,25 +2667,26 @@
 ::   errorlevel 1 if it does not exist or is not writable
 :: ------------------------------
 :rw.check
-    call :check_args :rw.check "%~1" 
     set "path=%~1"
+    set "testfilename=tmpcheck_%random%"
+    set "testfile=%path%\%testfilename%.tmp"
+    break>"%testfile%" 2>nul 
 
-    >>"%path%\file.txt" echo This is a test file to check write permissions.
     if not exist "%path%\file.txt" (
-        echo The directory "%path%" does not exist.
-        call :log Directory_"%path%"_does_not_exist ERROR
+        call :color _Red "The directory "%path%" does not exist."
         exit /b 1
     )
 
-    rename "%path%\file.txt" file.locked >nul 2>&1 || (
-        echo The directory "%path%" is not writable.
-        call :log Directory_"%path%"_is_not_writable ERROR
-        erase "%path%\file.txt"
+    ren "%testfile%" "%testfilename%.locked" 2>nul || (
+        call :color _Red "The directory "%path%" is not writable."
+        del "%testfile%" 2>nul
         exit /b 1
     )
-    erase "%path%\file.locked" 
-    echo The directory "%path%" exists and is writable.
+
+    del "%path%\%testfilename%.locked" 2>nul
+    call :color _Green "The directory "%path%" exists and is writable."
     exit /b 0
+
 
 
 :dataspammer.hash.check
@@ -2700,7 +2720,7 @@
         if not defined storedhash (
             echo Generating new Settings Hash...
             cd "%~dp0"
-            for /f "delims=" %%h in ('%powershell.short% -Command "(Get-FileHash -Path \"%settings.file%\" -Algorithm SHA256).Hash"') do (
+            for /f "delims=" %%h in ('%powershell_short% -Command "(Get-FileHash -Path \"%settings.file%\" -Algorithm SHA256).Hash"') do (
                 set "storedhash=%%h"
             )
             set "storedhash=!storedhash: =!"
@@ -2709,7 +2729,7 @@
         )
     
         :: Extract Current Hash from settings.conf
-        for /f "delims=" %%h in ('%powershell.short% -Command "(Get-FileHash -Path \"%settings.file%\" -Algorithm SHA256).Hash"') do (
+        for /f "delims=" %%h in ('%powershell_short% -Command "(Get-FileHash -Path \"%settings.file%\" -Algorithm SHA256).Hash"') do (
             set "current_hash=%%h"
         )
     
@@ -2736,7 +2756,7 @@
 
     if defined storedhash (
         reg delete "HKCU\Software\DataSpammer" /v SettingsHash /f
-        for /f "delims=" %%h in ('%powershell.short% -Command "(Get-FileHash -Path \"%settings.file%\" -Algorithm SHA256).Hash"') do (
+        for /f "delims=" %%h in ('%powershell_short% -Command "(Get-FileHash -Path \"%settings.file%\" -Algorithm SHA256).Hash"') do (
             set "storedhash=%%h"
         )
         set "storedhash=!storedhash: =!"
@@ -2769,7 +2789,7 @@
     set "str=%r1%_%r2%"
 
     :: Generate Hash
-    for /f %%h in ('echo %str% ^| %powershell.short% -command "$s = $input; $h = [BitConverter]::ToString((New-Object System.Security.Cryptography.SHA256Managed).ComputeHash([System.Text.Encoding]::UTF8.GetBytes($s))).Replace('-', ''); Write-Output $h"') do (
+    for /f %%h in ('echo %str% ^| %powershell_short% -command "$s = $input; $h = [BitConverter]::ToString((New-Object System.Security.Cryptography.SHA256Managed).ComputeHash([System.Text.Encoding]::UTF8.GetBytes($s))).Replace('-', ''); Write-Output $h"') do (
         set "hash=%%h"
     )
 
@@ -2906,11 +2926,12 @@
         for /L %%i in (%~1,-1,0) do (
             set "msg=Waiting, %%i seconds remaining..."
             echo !msg!
-            ping -n 2 127.0.0.1 >nul
+            timeout /t 1 >nul
         )
         echo:
     ) else (
-        ping -4 -n %~1 127.0.0.1 >nul
+        set /a "wait_time=%~1 * 500"
+        ping -n 1 -w %wait_time% 127.0.0.1 >nul
     )
     exit /b 0
 
@@ -3467,7 +3488,7 @@
     if "%skip-sec%"=="1" ( exit /b %errorlevel%)
     call :generateRandom
     set "verify=%realrandom% "
-    %powershell.short% -Command "& {Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.Interaction]::InputBox('Please enter Code %verify% to confirm that you want to execute this Option', 'DataSpammer Verify')}" > %TEMP%\out.tmp
+    %powershell_short% -Command "& {Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.Interaction]::InputBox('Please enter Code %verify% to confirm that you want to execute this Option', 'DataSpammer Verify')}" > %TEMP%\out.tmp
     set /p OUT=<%TEMP%\out.tmp
     :: Fix Empty Input Bypass
     if not defined OUT goto failed
@@ -3476,13 +3497,13 @@
 :success
     :: Auth Success Popup
     set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('Success', 'DataSpammer Verify');}"
-    %powershell.short% -Command %msgBoxArgs%
+    %powershell_short% -Command %msgBoxArgs%
     exit /b
 
 :failed
     :: Auth Failed Popup
     set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('You have entered the wrong Code. Please try again', 'DataSpammer Verify');}"
-    %powershell.short% -Command %msgBoxArgs%
+    %powershell_short% -Command %msgBoxArgs%
     goto sys.verify.execution
 
 
@@ -3499,7 +3520,7 @@
     :: Check Elevation
     net session >nul 2>&1
     if %errorLevel% neq 0 (
-        %powershell.short% -Command "Start-Process '%~f0' -Verb runAs"
+        %powershell_short% -Command "Start-Process '%~f0' -Verb runAs"
         goto cancel
     )
 
@@ -3684,7 +3705,7 @@
     set "targetShortcut=%USERPROFILE%\Desktop\DataSpammer.lnk"
     set "targetPath=%directory9%\DataSpammer.bat"
     if defined desktopic1 (
-        %powershell.short% -Command "$WshShell = New-Object -ComObject WScript.Shell; $Shortcut = $WshShell.CreateShortcut('%targetShortcut%'); $Shortcut.TargetPath = '%targetPath%'; $Shortcut.Save()"
+        %powershell_short% -Command "$WshShell = New-Object -ComObject WScript.Shell; $Shortcut = $WshShell.CreateShortcut('%targetShortcut%'); $Shortcut.TargetPath = '%targetPath%'; $Shortcut.Save()"
     ) >nul 
 
 
@@ -3745,7 +3766,7 @@
         exit %errorlevel%
     ) > "%directory9%\encrypt.bat"
      
-    start %powershell.short% -Command "Start-Process '%directory9%\encrypt.bat' -Verb runAs"
+    start %powershell_short% -Command "Start-Process '%directory9%\encrypt.bat' -Verb runAs"
     goto cancel
 
 
