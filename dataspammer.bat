@@ -71,10 +71,7 @@
 :: =============================================================
 :: Settings:
 :: Default Filename: default_filename = (Filename)
-:: Default Directory: default_directory = (Directory)
 :: Developermode: developermode = (0/1)
-:: Default Filecount: default-filecount = (int)
-:: Default Domain: default-domain = (Domain)
 :: Change Monitoring Socket: monitoring = (0/1)
 :: Change Color: color = (Color Syntax)
 :: Skip Security Question: skip-sec = (0/1)
@@ -100,8 +97,8 @@
 ::      Sort Startup Snippets
 ::      Add Locales
 ::      Fix Delete
-::      Fix use of default-* settings
-::      Add Portable Install
+::      Add use of default-filename everywhere
+::      Add Elevation Option based on install directory
 
 :top
     @echo off
@@ -363,11 +360,15 @@
             %powershell_short% -Command "Start-Process '%cmdPath%' -ArgumentList '/c \"%~f0\" %b.flag%' -Verb runAs" || goto elevation_failed
             goto cancel
         )
-        %errormsg%
-        call :color _Red "Error while trying to elevate script."
-        call :color _Yellow "Please run the script manually as Administrator."
-        pause
-        goto cancel
+        if "%elevation%"=="off" (
+            call :color _Green "Elevation is disabled."
+        ) else (
+            %errormsg%
+            call :color _Red "Error while trying to elevate script."
+            call :color _Yellow "Please run the script manually as Administrator."
+            pause
+            goto cancel
+        )
     )
     cd /d "%~dp0"
 
@@ -480,7 +481,7 @@
     if "%errorlevel%"=="1" ( %errormsg% && call :color _Red "Failed to create lock file." && call :sys.lt 6 count )
 
     :: Start the Monitor Socket
-    if %monitoring%==1 (
+    if "%monitoring%"=="1" (
         start /min %cmdPath% /k ""%~f0" monitor %PID%" 
         if %logging% == 1 ( call :log Starting_Monitor_Socket INFO )
         >> "%TEMP%\socket.con" echo Connection Request from %PID%
@@ -971,8 +972,8 @@
 
 
 :monitor.settings
-    if %monitoring%==1 set "monitoring-status=Enabled"
-    if %monitoring%==0 set "monitoring-status=Disabled"
+    if "%monitoring%"=="1" set "monitoring-status=Enabled"
+    if "%monitoring%"=="0" set "monitoring-status=Disabled"
     echo -----------------------
     echo Monitor Socket Settings
     echo -----------------------
@@ -1184,38 +1185,44 @@
     goto restart.script
 
 
-
+:: ------------------------------
+:: :filename.check
+:: Prompts the user to enter a filename.
+:: Verifies that the filename is valid using :fd.check.
+::
+:: Arguments:
+::   %1 - Variable name (key) to store the user's input
+::   %2 - Prompt message to display to the user
+::
+:: Example:
+::   call :filename.check myfile "Enter the target filename: "
+::   echo You entered: !myfile!
+::
+:: Returns:
+::   errorlevel 0 if the directory exists and is writable
+::   errorlevel 1 if not (loop will re-prompt)
+:: ------------------------------
 :spam.settings
     echo [1] Default Filename
     call :sys.lt 1
     echo: 
     call :sys.lt 1
-    echo [2] Default Directory
+    echo [2] Skip Security Question
     call :sys.lt 1
     echo: 
     call :sys.lt 1
-    echo [3] Default Filecount / Request Count
-    call :sys.lt 1
-    echo: 
-    call :sys.lt 1
-    echo [4] Default Domain (HTTPS/DNS)
-    call :sys.lt 1
-    echo: 
-    call :sys.lt 1
-    echo [5] Skip Security Question
-    call :sys.lt 1
-    echo: 
-    call :sys.lt 1
-    echo [6] Go back
-    choice /C 123456S /T 120 /D S  /M "Choose an Option from Above:"
+    echo [3] Go back
+    choice /C 1234S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 if %logging% == 1 ( call :log Chaning_Default_Filename WARN ) && call :update_config "default-filename" "Type in the Filename you want to use:" "" && goto restart.script
-        if %_erl%==2 if %logging% == 1 ( call :log Changing_Standart_Directory WARN ) && call :update_config "default_directory" "Type Your Directory Here:" "" && goto restart.script
-        if %_erl%==3 if %logging% == 1 ( call :log Chaning_Standart_Filecount WARN ) && call :update_config "default-filecount" "Enter the Default Filecount:" "" && goto restart.script
-        if %_erl%==4 if %logging% == 1 ( call :log Chaning_Standart_Domain WARN ) && call :update_config "default-domain" "Enter the Default Domain:" "" && goto restart.script
-        if %_erl%==5 goto settings.skip.sec
-        if %_erl%==6 goto settings
-        if %_erl%==7 call :standby
+        if %_erl%==1 (
+            if %logging% == 1 ( call :log Chaning_Default_Filename WARN )
+            call :filename.check default-filename "Type in the Filename you want to use:"
+            call :update_config "default-filename" "" "%default-filename%" 
+            goto restart.script
+        )
+        if %_erl%==2 goto settings.skip.sec
+        if %_erl%==3 goto settings
+        if %_erl%==4 call :standby
     goto spam.settings
 
 :settings.skip.sec
@@ -1601,11 +1608,8 @@
     echo 123456 >> temp.txt
     echo exit >> temp.txt
 
-    if "%default-domain%"=="notused" set /P telnet.target=Enter the Target:
-    if not "%default-domain%"=="notused" set "telnet.target=%default-domain%"
-    
-    if "%default-filecount%"=="notused" set /P telnet.count=How many Requests should be made
-    if not "%default-filecount%"=="notused" set "telnet.count=default-domain"
+    set /P telnet.target=Enter the Target:
+    set /P telnet.count=How many Requests should be made?: 
 
     for /L %%i in (1,1,%telnet.count%) do (
         telnet %telnet.target% 23 < input.txt
@@ -1617,8 +1621,7 @@
 
     
 :icmp.spam
-    if "%default-domain%"=="notused" set /P icmp.target=Enter the Target:
-    if not "%default-domain%"=="notused" set "icmp.target=%default-domain%"
+    set /P icmp.target=Enter the Target:
     
     set /P icmp.rate=Enter the rate (milliseconds between requests):
     
@@ -1821,8 +1824,7 @@
 :printer.spam
     :: print /D:%printer% %file%
     :: set printer="\\NetworkPrinter\PrinterName"
-    if "%default-filecount%"=="notused" set /P printer.count=How many Files should be printed
-    if not "%default-filecount%"=="notused" set "printer.count=default-domain"
+    set /P printer.count=How many Files should be printed?: 
 
     call :filename.check print.filename "Enter the Filename:"
 
@@ -1847,10 +1849,8 @@
 :https.spam
     setlocal EnableDelayedExpansion
     echo Spam a HTTP/HTTPS Server with Requests
-    if "%default-domain%"=="notused" set /P url=Enter a Domain or an IP:
-    if not "%default-domain%"=="notused" set "url=default-domain"
-    if "%default-filecount%"=="notused" set /P requests=How many requests should be made:
-    if not "%default-filecount%"=="notused" set "requests=default-domain"
+    set /P url=Enter a Domain or an IP:
+    set /P requests=How many requests should be made?: 
 
     for /L %%i in (1,1,%requests%) do (
         echo Sending Request %%i of %requests% to %url%
@@ -1865,12 +1865,9 @@
     setlocal EnableDelayedExpansion    
     echo DNS-Spam is useful if you have a local DNS Server running (PiHole, Adguard etc.)
     set /P domain_server=Enter the DNS-Server IP (leave empty for default):
-    if "%default-domain%"=="notused" set /P domain=Enter the Domain:
-    if not "%default-domain%"=="notused" set "domain=%default-domain%"
+    set /P domain=Enter the Domain:
+    set /P request_count=Enter the Request Count?:
 
-    if "%default-filecount%"=="notused" set /P request_count=Enter the Request Count:
-    if not "%default-filecount%"=="notused" set "request_count=%default-filecount%"
-    
     if not defined domain_server set "domain_server= "
     
     cls
@@ -1905,8 +1902,6 @@
     if %logging% == 1 ( call :log Finished_DNS_Spam:%request_count%_Requests_on_%domain_server% INFO )
     call :done "The Script Created %request_count% for %domain% on %domain_server%"
 
-    
-
 :ftp.spam
     cls
     set /P ftpserver=Enter a Domain or IP:
@@ -1916,9 +1911,7 @@
     call :filename.check filename "Enter the Filename:"
 
     set /P content=Enter the File Content:
-
-    if "%default-filecount%"=="notused" set /P filecount=How many Files should be created:
-    if not "%default-filecount%"=="notused" set "filecount=%default-filecount%"
+    set /P filecount=How many Files should be created:
     
     echo %content% > %filename%.txt
     
@@ -2204,8 +2197,7 @@
     set /p desk.spam.format=Choose the Format (without the dot):
     set /p desk.spam.content=Enter the File-Content:
 
-    if "%default-filecount%"=="notused" set /P filecount=How many Files should be created:
-    if not "%default-filecount%"=="notused" set "desk.filecount=%default-filecount%"
+    set /P filecount=How many Files should be created?:
 
     cls
     echo Starting.....
@@ -2225,21 +2217,15 @@
 
 :normal.text.spam
     if %logging% == 1 ( call :log Opened_Normal_Spam INFO )
-    if defined default_directory(
-        cd /d "%default_directory%" && goto spam.directory.set
-    )
-    call :directory.input normal.text.spam "Enter the Directory: "
-
-:spam.directory.set
+    call :directory.input text_spam_directory "Enter the Directory: "
     call :filename.check filename "Enter the Filename:"
-    if "%default-filecount%"=="notused" set /P filecount=How many Files should be created:
-    if not "%default-filecount%"=="notused" set "filecount=%default-filecount%"
-    
+    set /P filecount=How many Files should be created?: 
+
     set /P defaultspam.content=Enter the File Content:
     
 :spam.normal.top
     set /a x=1
-    cd /d "%default_directory%"
+    cd /d "%text_spam_directory%"
 
     for /L %%i in (1,1,%filecount%) do (
         echo Creating File %default-filename%%x%.txt
@@ -2465,12 +2451,10 @@
     echo Developer Mode: %developermode%
     echo Color: %color%
     echo Default Filename: %default_filename%
-    echo Default Directory: %default_directory%
     echo Update: %update%
-    echo Default Domain: %default-domain%
-    echo Default File Count: %default-filecount%
     echo Elevation: %elevation%
     echo Skip Security Check: %skip-sec%
+    goto dev.options
 
 :dev.options.call.sign
     :: List all Call Signs
@@ -2483,11 +2467,8 @@
 
 :sys.new.update.installed
     if not defined %default_filename% call :update_config "default_filename" "" "notused"
-    if not defined %default-domain% call :update_config "default-domain" "" "notused"
-    if not defined %default-filecount% call :update_config "default-filecount" "" "notused"
     if not defined %developermode% call :update_config "developermode" "" "0"
     if not defined %logging% call :update_config "logging" "" "1"
-    if not defined %default_directory% call :update_config "default_directory" "" "notused"
     if not defined %elevation% call :update_config "elevation" "" "pwsh"
     if not defined %update% call :update_config "update" "" "1"
     if not defined %update% call :update_config "color" "" "02"    
@@ -3546,16 +3527,21 @@
     echo:
     call :sys.lt 1
     echo [2] Use Custom Directory
+    call :sys.lt 1
+    echo:
+    call :sys.lt 1
+    echo [3] Portable Install (only add required Registry Keys)
     echo: 
     call :sys.lt 1
     echo:
     echo:
     call :sys.lt 1
-    choice /C 12S /T 120 /D S  /M "Choose an Option from Above:"
+    choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 set "directory=%ProgramFiles%"
         if %_erl%==2 set /p directory=Enter the Directory:
-        if %_erl%==3 call :standby
+        if %_erl%==3 goto portable.install
+        if %_erl%==4 call :standby
     if not defined directory ( goto installer.main.window )
 
     :: Add Backslash if not present
@@ -3660,6 +3646,7 @@
 
     :: Add Reg Key - Remember Installed Status
     reg add "HKCU\Software\DataSpammer" /v Installed /t REG_DWORD /d 1 /f
+    reg add "HKCU\Software\DataSpammer" /v Version /t REG_SZ /d "%current-script-version%" /f
 
     :: Create Startmenu Shortcut
     if defined startmenushortcut1 (
@@ -3741,6 +3728,17 @@
     erase "%~dp0\dataspammer.bat" > nul
     goto cancel
 
+:portable.install
+    reg add "HKCU\Software\DataSpammer" /v Installed /t REG_DWORD /d "1" /f
+    reg add "HKCU\Software\DataSpammer" /v Version /t REG_SZ /d "%current-script-version%" /f
+    reg add "HKCU\Software\DataSpammer" /v logging /t REG_SZ /d "1" /f
+    reg add "HKCU\Software\DataSpammer" /v color /t REG_SZ /d "02" /f
+    echo Is the Script in a directory that requires Administrative Privileges?
+    choice /C YN /M "(Y)es/(N)o"
+        set _erl=%errorlevel%
+        if %_erl%==1 reg add "HKCU\Software\DataSpammer" /v elevation /t REG_SZ /d "pwsh" /f
+        if %_erl%==2 reg add "HKCU\Software\DataSpammer" /v elevation /t REG_SZ /d "off" /f
+    goto restart.script
 
 :cancel 
     :: Exit Script, compatible with NT
