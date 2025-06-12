@@ -80,10 +80,7 @@
 ::      Verify CIF Parser
 ::      Fix Wait.exe Delay
 ::      Check Startmenu Spam
-::      Check RW Checks
-::      Replace Install RW Check with function rw check
-::      Fix Checks occuring in ~D
-::      Fix Count at Local Dir Check
+::      Replace Settings File with Registry & Add Portable Install
 ::      Add Debug CON Output Mode (set "debug=CON"   >%debug% ?)
 ::      Improve Window Sizing
 ::      Sort Startup Snippets
@@ -380,11 +377,6 @@
         call :color _Green "Running on 64-Bit Windows"
     )
 
-    echo before & choice & pause
-    echo Hello > test.txt
-    type test.txt
-    del test.txt
-
     :: Check if Temp Folder is writable
     call :rw.check "%temp%"
     if "%errorlevel%"=="1" (
@@ -395,10 +387,6 @@
     ) else (
         call :color _Green "Temp Folder is writable."
     )
-
-    echo Hello > test.txt
-    type test.txt
-    echo after & choice & pause
 
     :: Check if local dir is writable
     call :rw.check "%exec-dir%"
@@ -430,15 +418,17 @@
     :: If PID is empty, set to 0000
     if "%PID%"=="" ( set "PID=0000" && %errormsg% && call :color _Red "Failed to Parse Parent PID" && call :sys.lt 4 count)
     del "%temp%\parent_pid.txt" >nul
-    echo Got PID: %PID%
+    call :color _Green "Got PID: %PID%"
 
     :: Allow Better Readability
-    if %logging% == 1 ( call :log . INFO )
-    if %logging% == 1 ( call :log =================== INFO )
-    if %logging% == 1 ( call :log DataSpammer_Startup INFO )
-    if %logging% == 1 ( call :log Current_PID:_%PID% INFO )
-    if %logging% == 1 ( call :log =================== INFO )
-    if %logging% == 1 ( call :log . INFO )
+    if "%logging%"=="1" (
+        call :log . INFO
+        call :log =================== INFO
+        call :log DataSpammer_Startup INFO
+        call :log Current_PID:_%PID% INFO
+        call :log =================== INFO
+        call :log . INFO
+    )
 
     :: If lockfile exists, extract PID 
     if exist "%~dp0\dataspammer.lock" (
@@ -446,31 +436,28 @@
         for /f "usebackq delims=" %%L in ("%~dp0\dataspammer.lock") do set "pidlock=%%L"
     ) else (
         goto lock.create
-        if %logging% == 1 ( call :log No_Lock_Exists INFO )
+        if "%logging%"=="1" ( call :log No_Lock_Exists INFO )
     )   
 
     :: Remove spaces from Variables
-    for /f "tokens=* delims=" %%A in ("!PID!") do set "PID=%%A" >nul 2>&1
-    for /f "tokens=* delims=" %%A in ("!pidlock!") do set "pidlock=%%A" >nul 2>&1
     set "PID=!PID: =!"
     set "pidlock=!pidlock: =!"
     if %logging% == 1 ( call :log PID-Check_Results:PID:!pid!_PIDlock:!pidlock! INFO )
 
-    :: If Lock could be parsed compare to current PID 
+    :: If Lock could be parsed check if process is running
     if defined pidlock (
-        if "!pidlock!"=="!PID!" (
-            :: PIDs match, script is already running
+        tasklist /FI "PID eq !pidlock!" | findstr /i "!pidlock!" >nul
+        if !errorlevel! == 0 (
+            :: process is already running under pidlock, exit
             call :color _Red "DataSpammer is already running under PID !pidlock!."
-            if %logging% == 1 ( call :log DataSpammer_Already_Running ERROR)
+            if !logging! == 1 call :log DataSpammer_Already_Running ERROR
             echo Exiting...
             pause
             goto cancel
         ) else (
-            :: PIDs do not match, lock file still exists
-            :: echo !pidlock! %pid%
             call :color _Red "DataSpammer may have crashed or was closed. Deleting lock file..."
             call :color _Red "Be aware that some tasks may not have finished properly."
-            if %logging% == 1 ( call :log DataSpammer_may_have_crashed ERROR )
+            if !logging! == 1 call :log DataSpammer_may_have_crashed ERROR
             del "%~dp0\dataspammer.lock" >nul 2>&1
             call :sys.lt 4 timeout
         )
@@ -685,6 +672,11 @@
     if not defined username.script set "username.script=%username%"
 
 :menu
+    if defined color (
+        color %color% >nul
+    ) else (
+        color 02 >nul
+    )
     cd /d "%~dp0"
     if %logging% == 1 ( call :log Displaying_Menu INFO )
     title DataSpammer %current-script-version% - Menu - Development
@@ -3048,11 +3040,11 @@
 :parse.settings
     :: Parse Settings from Config
     :: Parser doesnt work when no settings file exist ( crashes script )
-    echo Parsing Settings...
     set "config_file=settings.conf"
     for /f "usebackq tokens=1,2 delims==" %%a in (`findstr /v "^::" "%config_file%"`) do (
         set "%%a=%%b"
     )
+    call :color _Green "Successfully parsed Settings"
     exit /b 0
 
 :log
@@ -3671,15 +3663,12 @@
 
     cd /d "%directory%"
     :: Check RW Permissions
-    echo: > "%directory%\testfile"
-    if not exist "%directory%\testfile" (
-        %errormsg%
-        echo Directory not found or not writable.
-        echo Waiting 4 Seconds...
-        call :sys.lt 5
+    call :rw.check "%directory%"
+    if %errorlevel% neq 0 (
+        echo Please choose a different directory.
+        call :sys.lt 6
         goto installer.main.window
     )
-
     set "startmenushortcut=Not Included"
     set "desktopicon=Not Included"
     set "addpath=Not Included"
