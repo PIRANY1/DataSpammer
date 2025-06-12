@@ -379,9 +379,11 @@
     ) else (
         call :color _Green "Running on 64-Bit Windows"
     )
+
+    echo before & choice & pause
     echo Hello > test.txt
-type test.txt
-del test.txt
+    type test.txt
+    del test.txt
 
     :: Check if Temp Folder is writable
     call :rw.check "%temp%"
@@ -390,10 +392,12 @@ del test.txt
         call :color _Red "Temp Folder is not writable."
         echo Script may not work properly.
         call :sys.lt 10 count
+    ) else (
+        call :color _Green "Temp Folder is writable."
     )
-    echo Hello > test.txt
-type test.txt
 
+    echo Hello > test.txt
+    type test.txt
     echo after & choice & pause
 
     :: Check if local dir is writable
@@ -403,6 +407,8 @@ type test.txt
         call :color _Red "Local Directory is not writable."
         echo Script may not work properly.
         call :sys.lt 10 count
+    ) else (
+        call :color _Green "Local Directory is writable."
     )
     goto pid.check
     
@@ -2667,14 +2673,14 @@ type test.txt
         goto filename.check.sub
     )
 
-    for /f "delims=" %%A in ('echo !%key%!') do set "path=%%A"
+    for /f "delims=" %%A in ('echo !%key%!') do set "f.path=%%A"
 
-    call :fd.check file "!path!"
+    call :fd.check file "!f.path!"
     if "!errorlevel!"=="1" (
         goto filename.check.sub
     )
 
-    echo The file "!path!" exists and is writable.
+    echo The file "!f.path!" exists and is writable.
     exit /b 0
 
 :fd.check
@@ -2734,14 +2740,14 @@ type test.txt
         goto directory.input.sub
     )
     
-    set "path=!%key%!"
-    call :fd.check directory "%path%"
-    call :rw.check "%path%"
+    set "dir.path=!%key%!"
+    call :fd.check directory "%dir.path%"
+    call :rw.check "%dir.path%"
     if "%errorlevel%"=="1" (
         goto directory.input.sub
     )
     
-    echo The directory "!path!" exists and is writable.
+    echo The directory "!dir.path!" exists and is writable.
     exit /b 0
 
 
@@ -2761,26 +2767,26 @@ type test.txt
 ::   errorlevel 1 if it does not exist or is not writable
 :: ------------------------------
 :rw.check
-    set "path=%~1"
+    set "rw.path=%~1"
     set "testfilename=tmpcheck_%random%"
-    set "testfile=%path%\%testfilename%.tmp"
+    set "testfile=%rw.path%\%testfilename%.tmp"
     echo. > "%testfile%" 2>nul || (
-        call :color _Red "Could not create a temporary file in the directory "%path%"."
+        call :color _Red "Could not create a temporary file in the directory "%rw.path%"."
         exit /b 1
     )
-    if not exist "%path%\" (
-        call :color _Red "The directory "%path%" does not exist."
+    if not exist "%rw.path%\" (
+        call :color _Red "The directory "%rw.path%" does not exist."
         exit /b 1
     )
 
     ren "%testfile%" "%testfilename%.locked" 2>nul || (
-        call :color _Red "The directory "%path%" is not writable."
+        call :color _Red "The directory "%rw.path%" is not writable."
         del "%testfile%" 2>nul
         exit /b 1
     )
 
-    del "%path%\%testfilename%.locked" 2>nul
-    call :color _Green "The directory "%path%" exists and is writable."
+    del "%rw.path%\%testfilename%.locked" 2>nul
+    call :color _Green "The directory "%rw.path%" exists and is writable."
     exit /b 0
 
 
