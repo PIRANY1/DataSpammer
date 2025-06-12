@@ -25,5 +25,5 @@ jobs:
       - name: Run DataSpammer Debug Test
         run: |
           cd DataSpammer
-          cmd.exe /c set "workflow.exec=1" && ${{ github.workspace }}\DataSpammer\dataspammer.bat debugtest
+          cmd.exe /c ${{ github.workspace }}\DataSpammer\dataspammer.bat debugtest
           

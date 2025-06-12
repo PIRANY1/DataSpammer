@@ -1,7 +1,8 @@
 :: Use only under License
 :: Contribute under https://github.com/PIRANY1/DataSpammer
 :: Version v6 - DEVELOPMENT
-:: Last edited on 11.06.2025 by PIRANY
+:: Last edited on 12.06.2025 by PIRANY
+:: SHA256 Hash: 
 
 :: Some Functions are inspired from the MAS Script. 
 
@@ -13,11 +14,6 @@
 :: >nul 2>&1      = hide both normal output and errors
 :: pushd "path"   = change to directory and remember previous one
 :: popd           = go back to previous directory
-
-:: Example:
-:: pushd "C:\Windows"
-:: dir >nul
-:: popd
 :: =============================================================
 
 :: =============================================================
@@ -28,9 +24,6 @@
 :: %~x0            = File extension of the batch script (e.g., .bat)
 :: %~dp0           = Drive and path only (e.g., D:\Folder\Subfolder\)
 :: %~nx0           = Filename and extension only (e.g., script.bat)
-
-:: Example:
-:: echo Running from %~dp0
 :: =============================================================
 
 :: =============================================================
@@ -90,15 +83,15 @@
 ::      Check for Bugs / Verify
 ::      Add Release Workflow w. Setup Build, Encryption etc.
 ::      Verify CIF Parser
-::      Fix Wait.exe Delay
-::      Check Startmenu Spam
+::      Fix Wait.exe Delay - Hard to change
+::      Verify Startmenu Spam
 ::      Add Debug CON Output Mode (set "debug=CON"   >%debug% ?)
 ::      Improve Window Sizing
 ::      Sort Startup Snippets
 ::      Add Locales
-::      Fix Delete
-::      Add use of default-filename everywhere
 ::      Add Elevation Option based on install directory
+::      Remove Autostart
+::      Replace Startmenu with .lnk
 
 :top
     @echo off
@@ -327,13 +320,9 @@
         if "%_erl%"=="1" ( goto sys.new.update.installed )
     )
 
-    :: Check if Script is executed by Workflow
-    if "%workflow.exec%"=="1" call :color _Green "Script getting executed from GitHub" && goto skip.parse
-
     :: Parse Config
     call :parse.settings
 
-:skip.parse
     : Apply Custom Codepage if defined
     if chcp neq 0 (
         chcp %chcp% >nul
@@ -1184,24 +1173,6 @@
     call :sys.lt 2
     goto restart.script
 
-
-:: ------------------------------
-:: :filename.check
-:: Prompts the user to enter a filename.
-:: Verifies that the filename is valid using :fd.check.
-::
-:: Arguments:
-::   %1 - Variable name (key) to store the user's input
-::   %2 - Prompt message to display to the user
-::
-:: Example:
-::   call :filename.check myfile "Enter the target filename: "
-::   echo You entered: !myfile!
-::
-:: Returns:
-::   errorlevel 0 if the directory exists and is writable
-::   errorlevel 1 if not (loop will re-prompt)
-:: ------------------------------
 :spam.settings
     echo [1] Default Filename
     call :sys.lt 1
@@ -1216,7 +1187,10 @@
         set _erl=%errorlevel%
         if %_erl%==1 (
             if %logging% == 1 ( call :log Chaning_Default_Filename WARN )
-            call :filename.check default-filename "Type in the Filename you want to use:"
+            :df.filename.input
+            set /p default-filename=Type in the Filename you want to use:
+            call :fd.check file %default-filename%
+            if "%errorlevel%"=="1" goto df.filename.input
             call :update_config "default-filename" "" "%default-filename%" 
             goto restart.script
         )
@@ -2044,8 +2018,6 @@
 
 :startmenu.custom.name
     call :filename.check default-filename "Enter the Filename:"
-
-:startmenu.start
     cd /d "%directory.startmenu%"
     goto spam.normal.top
 
@@ -2228,8 +2200,8 @@
     cd /d "%text_spam_directory%"
 
     for /L %%i in (1,1,%filecount%) do (
-        echo Creating File %default-filename%%x%.txt
-        >> "%default-filename%%x%.txt" echo %defaultspam.content%
+        echo Creating File %filename%%x%.txt
+        >> "%filename%%x%.txt" echo %defaultspam.content%
         set /a x+=1
     )
 
@@ -2316,12 +2288,11 @@
     if exist "%USERPROFILE%\Desktop\DataSpammer.lnk" "erase %USERPROFILE%\Desktop\DataSpammer.lnk"
     if exist ""%ProgramData%\Microsoft\Windows\Start Menu\Programs\Dataspammer.bat"" erase "%ProgramData%\Microsoft\Windows\Start Menu\Programs\Dataspammer.bat"
     if exist "%userprofile%\Documents\DataSpammerLog\" del /S /Q "%userprofile%\Documents\DataSpammerLog"
-    if exist "%~dp0\dataspammer.bat" del "%~dp0\dataspammer.bat"
     reg query "HKCU\Software\DataSpammer" /v Installed >nul 2>&1
     if not %errorlevel% neq 0 ( reg delete "HKCU\Software\DataSpammer" /f )
     ASSOC .dts=
     FTYPE dtsfile=
-
+    if exist "%~dp0\dataspammer.bat" del "%~dp0\dataspammer.bat"
     echo Uninstall Successfulled
     
 :restart.script
@@ -2466,15 +2437,6 @@
     goto dev.options.call.sign
 
 :sys.new.update.installed
-    if not defined %default_filename% call :update_config "default_filename" "" "notused"
-    if not defined %developermode% call :update_config "developermode" "" "0"
-    if not defined %logging% call :update_config "logging" "" "1"
-    if not defined %elevation% call :update_config "elevation" "" "pwsh"
-    if not defined %update% call :update_config "update" "" "1"
-    if not defined %update% call :update_config "color" "" "02"    
-    if not defined %skip-sec% call :update_config "skip-sec" "" "0"
-    if not defined %chcp% call :update_config "chcp" "" "%chcp.value%"
-    
     :: Renew Version Registry Key
     set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
     if defined ProgramFiles(x86) (
@@ -2599,7 +2561,7 @@
     set "key=%~1"
     set "prompt=%~2"
 
-    if not "!default-filename!"=="notused" (
+    if defined default-filename (
         set "!key!=!default-filename!"
         exit /b 0
     )
