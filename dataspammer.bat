@@ -68,6 +68,21 @@
 :: set /p firstLine=<
 :: =============================================================
 
+:: =============================================================
+:: Settings:
+:: Default Filename: default_filename = (Filename)
+:: Default Directory: default_directory = (Directory)
+:: Developermode: developermode = (0/1)
+:: Default Filecount: default-filecount = (int)
+:: Default Domain: default-domain = (Domain)
+:: Change Monitoring Socket: monitoring = (0/1)
+:: Change Color: color = (Color Syntax)
+:: Skip Security Question: skip-sec = (0/1)
+:: Custom Codepage: chcp = (Codepage)
+:: Logging: logging = (0/1)
+:: Elevation: elevation = (pwsh/gsudo/sudo)
+:: =============================================================
+
 :: Todo: 
 ::      Add more Comments, Logs , Socket Messages, Error Handling and Coloring
 ::      Fix Updater - Clueless After 3 Gazillion Updates - Hopefully Fixed
@@ -80,13 +95,13 @@
 ::      Verify CIF Parser
 ::      Fix Wait.exe Delay
 ::      Check Startmenu Spam
-::      Replace Settings File with Registry & Add Portable Install
 ::      Add Debug CON Output Mode (set "debug=CON"   >%debug% ?)
 ::      Improve Window Sizing
 ::      Sort Startup Snippets
 ::      Add Locales
-::      Add Delete 
-::      Verify 32bit Comp - WOW64 Compatibility Layer is ignored
+::      Fix Delete
+::      Fix use of default-* settings
+::      Add Portable Install
 
 :top
     @echo off
@@ -318,18 +333,8 @@
     :: Check if Script is executed by Workflow
     if "%workflow.exec%"=="1" call :color _Green "Script getting executed from GitHub" && goto skip.parse
 
-    :: Check for Settings File 
-    dir "%~dp0" /b | findstr /i "settings.conf" >nul 2>&1 || (
-        %errormsg%
-        call :color _Red "No Settings Found"
-        goto sys.no.settings
-    )
-    
-    :: Verify Settings Hash
-    if exist "%~dp0settings.conf" ( call :verify.settings )
-    
-    :: Parse Config - Doesnt work when no settings file is present
-    if exist "%~dp0settings.conf" ( call :parse.settings )
+    :: Parse Config
+    call :parse.settings
 
 :skip.parse
     : Apply Custom Codepage if defined
@@ -435,15 +440,16 @@
         set "pidlock="
         for /f "usebackq delims=" %%L in ("%~dp0\dataspammer.lock") do set "pidlock=%%L"
     ) else (
+        if "%logging%"=="1" call :log No_Lock_Exists INFO
         goto lock.create
-        if "%logging%"=="1" ( call :log No_Lock_Exists INFO )
-    )   
+    )
 
     :: Remove spaces from Variables
     set "PID=!PID: =!"
     set "pidlock=!pidlock: =!"
-    if %logging% == 1 ( call :log PID-Check_Results:PID:!pid!_PIDlock:!pidlock! INFO )
 
+    if "%logging%"=="1" call :log PID-Check_Results:PID:!PID!_PIDlock:!pidlock! INFO
+    
     :: If Lock could be parsed check if process is running
     if defined pidlock (
         tasklist /FI "PID eq !pidlock!" | findstr /i "!pidlock!" >nul
@@ -607,27 +613,6 @@
         if %_erl%==1 call :update.script stable && exit
         if %_erl%==2 exit /b
     goto git.version.outdated
-
-:sys.no.settings
-    %errormsg%
-    cls
-    echo The File "settings.conf" doesnt exist. 
-    call :sys.lt 1
-    echo A reinstall of the Script is Needed. 
-    call :sys.lt 1
-    echo:
-    call :sys.lt 1
-    echo [1] Reinstall Script
-    call :sys.lt 1
-    echo:
-    call :sys.lt 1
-    echo [2] Exit
-    call :sys.lt 1
-    choice /C 12 /M "Choose an Option from Above:"
-        set _erl=%errorlevel%
-        if %_erl%==1 goto installer.main.window
-        if %_erl%==2 goto cancel
-    goto sys.no.settings
 
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -822,8 +807,6 @@
     call :sys.lt 1
     echo [U] Uninstall
     call :sys.lt 1
-    echo [R] Repair Settings
-    call :sys.lt 1
     echo:
     call :sys.lt 1
     echo [C] Go back
@@ -839,9 +822,8 @@
         if %_erl%==8 goto download.wait
         if %_erl%==9 goto custom.instruction.enable
         if %_erl%==10 goto sys.delete.script
-        if %_erl%==11 goto repair.settings
-        if %_erl%==12 goto settings
-        if %_erl%==13 call :standby
+        if %_erl%==11 goto settings
+        if %_erl%==12 call :standby
     goto advanced.options
 
 :custom.instruction.enable
@@ -941,11 +923,14 @@
 
 :change.chcp
     :: Change Codepage to allow for different character sets
-    for /f "tokens=2 delims=:" %%a in ('chcp') do set "chcp.value=%%a"
-    set "chcp.clean=%chcp.value: =%"
-    set "chcp.clean=%chcp.clean:.=%"
+    for /f "tokens=2 delims=:" %%A in ('chcp') do (
+        set "chcp.value=%%A"
+    )
+    set "chcp.value=!chcp.value: =!"
+    set "chcp.clean=!chcp.value:.=!"
 
-    echo Current Codepage: %chcp.value%
+
+    echo Current Codepage: !chcp.clean!
     echo:
     echo CHCP Values:
     echo 437	United States
@@ -1110,7 +1095,6 @@
         erase temp_hex.txt
         erase temp_prefix.bin
         Cipher /E dataspammer.bat
-        Cipher /E settings.conf
         cd /d "%~dp0"
         start %powershell_short% -Command "Start-Process 'dataspammer.bat' -Verb runAs"
         erase encrypt.bat
@@ -2241,8 +2225,10 @@
 
 :normal.text.spam
     if %logging% == 1 ( call :log Opened_Normal_Spam INFO )
-    if not "%default_directory%"=="notused" cd /d "%default_directory%" && goto spam.directory.set
-    call :directory.input encrypt-dir "Enter the Directory: "
+    if defined default_directory(
+        cd /d "%default_directory%" && goto spam.directory.set
+    )
+    call :directory.input normal.text.spam "Enter the Directory: "
 
 :spam.directory.set
     call :filename.check filename "Enter the Filename:"
@@ -2496,19 +2482,6 @@
     goto dev.options.call.sign
 
 :sys.new.update.installed
-    :: Init New Vars with Content
-    echo Parsing Settings File...
-    set "config_file=settings.conf"
-    for /f "usebackq tokens=1,2 delims==" %%a in (`findstr /v "^::" "%config_file%"`) do (
-        set "%%a=%%b"
-    )
-
-    :: Extract CHCP Value
-    for /f "tokens=2 delims=:" %%a in ('chcp') do set "chcp.value=%%a"
-    set "chcp.clean=%chcp.value: =%"
-    set "chcp.clean=%chcp.clean:.=%"
-
-    :: Add new Settings
     if not defined %default_filename% call :update_config "default_filename" "" "notused"
     if not defined %default-domain% call :update_config "default-domain" "" "notused"
     if not defined %default-filecount% call :update_config "default-filecount" "" "notused"
@@ -2520,7 +2493,6 @@
     if not defined %update% call :update_config "color" "" "02"    
     if not defined %skip-sec% call :update_config "skip-sec" "" "0"
     if not defined %chcp% call :update_config "chcp" "" "%chcp.value%"
-    call :reset.settings.hash
     
     :: Renew Version Registry Key
     set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
@@ -2607,12 +2579,6 @@
     echo Build: %OSBuild%
     call :generate_random all 40
     
-    :: Test Write Config
-    >> "%~dp0\settings.conf" echo default-filename=notused
-    call :generateRandom
-    call :update_config "default-filename" "" "%realrandom%"
-    type "%~dp0\settings.conf"
-
     call :version
 
     %errormsg%
@@ -2805,83 +2771,6 @@
         call :sys.lt 5 count
     )
 
-:verify.settings
-        set "settings.file=%~dp0settings.conf"
-    
-        for /f "tokens=3" %%A in ('reg query "HKCU\Software\DataSpammer" /v SettingsHash 2^>nul') do set "storedhash=%%A"
-    
-        :: Extract Saved Hash and if none exist create one
-        if not defined storedhash (
-            echo Generating new Settings Hash...
-            cd "%~dp0"
-            for /f "delims=" %%h in ('%powershell_short% -Command "(Get-FileHash -Path \"%settings.file%\" -Algorithm SHA256).Hash"') do (
-                set "storedhash=%%h"
-            )
-            set "storedhash=!storedhash: =!"
-            if "!storedhash!"=="" (
-                %errormsg%
-                call :color _Red "Failed to generate hash for settings.conf."
-                call :color _Yellow "This Error is not critical. Please report it on GitHub."
-                call :sys.lt 5 count
-                exit /b 0
-            )
-            reg add "HKCU\Software\DataSpammer" /v SettingsHash /t REG_SZ /d "!storedhash!" /f >nul
-            for /f "tokens=3" %%A in ('reg query "HKCU\Software\DataSpammer" /v SettingsHash 2^>nul') do set "storedhash=%%A" 
-        )
-    
-        :: Extract Current Hash from settings.conf
-        for /f "delims=" %%h in ('%powershell_short% -Command "(Get-FileHash -Path \"%settings.file%\" -Algorithm SHA256).Hash"') do (
-            set "current_hash=%%h"
-        )
-    
-        :: Remove spaces from Hashes
-        set "storedhash=!storedhash: =!"
-        set "current_hash=!current_hash: =!"
-
-        :: Compare Hashes
-        if not "!current_hash!"=="!storedhash!" (
-            echo The settings.conf file has been modified unexpectedly.
-            echo This could indicate manual changes or potential corruption.
-            echo Please review the settings.conf file for any discrepancies or errors.
-            echo If you encounter issues, consider reinstalling the script.
-            call :sys.lt 10
-            exit /b 0
-        )
-
-        exit /b 0
-
-:reset.settings.hash
-    set "settings.file=%~dp0settings.conf"
-    :: Delete Saved Hash and create a new one
-    for /f "tokens=3" %%A in ('reg query "HKCU\Software\DataSpammer" /v SettingsHash 2^>nul') do set "storedhash=%%A"
-
-    if defined storedhash (
-        reg delete "HKCU\Software\DataSpammer" /v SettingsHash /f
-        for /f "delims=" %%h in ('%powershell_short% -Command "(Get-FileHash -Path \"%settings.file%\" -Algorithm SHA256).Hash"') do (
-            set "storedhash=%%h"
-        )
-        set "storedhash=!storedhash: =!"
-        reg add "HKCU\Software\DataSpammer" /v SettingsHash /t REG_SZ /d "!storedhash!" /f >nul
-    )
-    exit /b
-
-:repair.settings
-    :: Try to Repair Settings, may fix parser issues
-    if not exist "%~dp0settings.conf" ( echo The settings.conf file is missing! && pause && exit /b 1)
-    set "config_file=%~dp0settings.conf"
-    echo Repairing settings.conf...
-    set "output_file=%temp%\settings.conf"
-    for /f "usebackq tokens=1,* delims==" %%a in (`findstr /v "^::" "%config_file%"`) do (
-        set "key=%%a"
-        set "value=%%b"
-        >> "%output_file%" echo !key!=!value!
-        echo Adding !key! with !value! to %output_file%
-    )
-    erase "%~dp0settings.conf"
-    move /y "%output_file%" "%~dp0settings.conf" 
-    echo Repair completed. The settings.conf file has been restored.
-    exit /b 0
-
 :: Generate real random numbers ( default %random% is limited to 32767)
 :generateRandom
     :: Get Random Numbers
@@ -2924,7 +2813,7 @@
 
 :color
     :: Parameter: color text
-    set "color=%~1"
+    set "color.func=%~1"
     shift
     set "text=%*"
     set "text=!text:"=!"   
@@ -2972,7 +2861,7 @@
     
     :: Select Colors
     for %%F in (Red Gray Green Blue White _Red _White _Green _Yellow) do (
-        if /I "%color%"=="%%F" (
+        if /I "%color.func%"=="%%F" (
             set "code=!%%F!"
         )
     )
@@ -3038,13 +2927,37 @@
     exit /b 0
 
 :parse.settings
-    :: Parse Settings from Config
-    :: Parser doesnt work when no settings file exist ( crashes script )
-    set "config_file=settings.conf"
-    for /f "usebackq tokens=1,2 delims==" %%a in (`findstr /v "^::" "%config_file%"`) do (
-        set "%%a=%%b"
+    :: Parse Settings from Registry
+    set "ignoreKeys=Token UsernameHash Version Installed PasswordHash"
+    set "settings.count=0"
+    :: Read Registry keys from HKCU\Software\DataSpammer
+    for /f "skip=2 tokens=1,2,*" %%A in ('reg query "HKCU\Software\DataSpammer" 2^>nul') do (
+        set "key=%%A"
+        set "value=%%C"
+        
+        set "ignore=false"
+        for %%k in (%ignoreKeys%) do (
+            if /i "!key!"=="%%k" set "ignore=true"
+        )
+
+        if /i "!ignore!"=="false" (
+            set "!key!=!value!"
+            set /a "settings.count+=1"
+        )
     )
-    call :color _Green "Successfully parsed Settings"
+     
+    if not defined logging set "logging=1"
+    if not defined elevation set "elevation=pwsh"
+    set "color=02"
+
+    for /f "tokens=2 delims=:" %%A in ('chcp') do (
+        set "chcp.value=%%A"
+    )
+    set "chcp.value=!chcp.value: =!"
+    set "chcp.clean=!chcp.value:.=!"
+    if not defined chcp set "chcp=!chcp.clean!"
+
+    call :color _Green "Successfully parsed %settings.count% settings from the registry."
     exit /b 0
 
 :log
@@ -3083,13 +2996,6 @@
 
 
 :update_config
-    setlocal EnableDelayedExpansion
-    call :check_args :done "%~1" "%~2" "%~3"
-    if "!errorlevel!"=="1" (
-        !errormsg!
-        exit /b 1
-    )
-    set "found=0"
     :: Example for Interactive Change
     :: call :update_config "default-filename" "Type in the Filename you want to use." ""
     
@@ -3099,9 +3005,12 @@
     :: Parameter 1: Value (logging etc.)
     :: Parameter 2: User Choice (interactive prompt, empty for automated)
     :: Parameter 3: New Value (leave empty for user input)
-    
-    cd /d "%~dp0"
-    
+    call :check_args :done "%~1" "%~2" "%~3"
+    if "!errorlevel!"=="1" (
+        !errormsg!
+        exit /b 1
+    )
+
     set "key=%~1"
     set "prompt=%~2"
     set "new_value=%~3"
@@ -3109,28 +3018,19 @@
     if "%new_value%"=="" (
         set /p "new_value=!prompt! "
     )
-    
-    set "file=settings.conf"
-    set "tmpfile=temp.txt"
-    if exist "%tmpfile%" del "%tmpfile%"
-    (for /f "tokens=1,* delims==" %%a in (!file!) do (
-        if "%%a"=="%key%" (
-            set found=1
-            echo %%a=!new_value!
-        ) else (
-            echo %%a=%%b
-        )
-    )) > !tmpfile!
-    
-    if "!found!"=="0" (
-        echo %key%=%new_value% >> !tmpfile!
+
+    reg add "HKCU\Software\DataSpammer" /v "%key%" /t REG_SZ /d "%new_value%" /f >nul
+    if "!logging!"=="1" call :log Changed_%key% WARN
+
+    :: Check if the registry command was successful
+    if errorlevel 1 (
+        %errormsg%
+        call :color _Red "Error updating registry key %key%."
+        exit /b 1
+    ) else (
+        call :color _Green "Successfully updated %key% to '%new_value%'."
     )
 
-    if "!logging!"=="1" call :log Changing_%key% INFO
-    move /Y "!tmpfile!" "!file!" >nul
-    echo Restarting...
-    :: Reset the settings Hash save
-    call :reset.settings.hash
     exit /b 0
 
 :done
@@ -3761,40 +3661,6 @@
     :: Add Reg Key - Remember Installed Status
     reg add "HKCU\Software\DataSpammer" /v Installed /t REG_DWORD /d 1 /f
 
-    :: Create settings.conf
-    echo: > "%directory9%\settings.conf"
-    set "content=:: DataSpammer configuration
-    :: Standard Filename
-    default_filename=notused
-    :: Standard Directory
-    default_directory=notused
-    :: Check for Updates
-    update=1
-    :: Logging is on by default
-    logging=1
-    :: Developer Mode
-    developermode=0
-    :: Default Filecount
-    default-filecount=notused
-    :: Default Domain
-    default-domain=notused
-    :: Elevation Method used (pwsh / sudo / gsudo)
-    elevation=pwsh
-    :: Change Monitoring Socket
-    monitoring=0
-    :: Change Color - Default 02 (CMD Coloring)
-    color=02
-    :: Skip Security Question
-    skip-sec=0
-    :: Set Custom Codepage (Advanced)
-    chcp=0"
-    :: Write to File
-    (
-        for %%A in ("!content!") do (
-            echo %%~A
-        )
-    ) > "%directory9%\settings.conf"    
-
     :: Create Startmenu Shortcut
     if defined startmenushortcut1 (
         echo "%directory9%\dataspammer.bat" %* > "%ProgramData%\Microsoft\Windows\Start Menu\Programs\DataSpammer.bat"
@@ -3837,7 +3703,6 @@
     echo Adding Registry Key...
     reg add "HKCU\Software\DataSpammer" /v Installed /t REG_DWORD /d 1 /f
     reg add "HKCU\Software\DataSpammer" /v Version /t REG_SZ /d "%current-script-version%" /f
-    call :reset.settings.hash
     echo Done. 
     echo Consider reinstalling the Script to avoid any issues. 
     goto restart.script
