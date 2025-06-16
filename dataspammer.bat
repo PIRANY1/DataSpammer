@@ -287,6 +287,7 @@
 
     :: Undocumented Arguments
     if "%~1"=="update-install" ( goto sys.new.update.installed )
+    if "%~1"=="ifp.install" ( goto ifp.install )
 
 :startup
     :: Check for Install Reg Key
@@ -3597,6 +3598,34 @@
     reg add "HKCU\Software\DataSpammer" /v Version /t REG_SZ /d "%current_script_version%" /f
     echo Done. 
     echo Consider reinstalling the Script to avoid any issues. 
+    goto restart.script
+
+:ifp.install
+    :: If Script was installed by Install Forge add Registry Stuff here
+    :: Add Script to Windows App List
+    set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
+    if defined ProgramFiles(x86) (
+        set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
+    )
+    reg add "%RegPath%" /v "DisplayName" /d "DataSpammer" /f
+    reg add "%RegPath%" /v "DisplayVersion" /d "%current_script_version%" /f
+    reg add "%RegPath%" /v "InstallLocation" /d "%directory9%" /f
+    reg add "%RegPath%" /v "Publisher" /d "PIRANY1" /f
+    reg add "%RegPath%" /v "UninstallString" /d "%directory9%\dataspammer.bat remove" /f
+
+    :: Add Reg Key - Remember Installed Status
+    reg add "HKCU\Software\DataSpammer" /v Installed /t REG_DWORD /d 1 /f
+    reg add "HKCU\Software\DataSpammer" /v Version /t REG_SZ /d "%current_script_version%" /f
+
+    :: Add Script to PATH
+    if defined addpath1 ( setx PATH "%PATH%;%directory9%\DataSpammer.bat" /M >nul )
+
+    :: Add Remember Encrypted State Token
+    call :generateRandom
+    reg add "HKCU\Software\DataSpammer" /v Token /t REG_SZ /d "%realrandom%" /f
+    reg add "HKCU\Software\DataSpammer" /v logging /t REG_SZ /d "1" /f
+    reg add "HKCU\Software\DataSpammer" /v color /t REG_SZ /d "02" /f
+    echo Successfully Installed.
     goto restart.script
 
 :encrypt.script
