@@ -69,8 +69,8 @@
 :: Change Color: color = (Color Syntax)
 :: Skip Security Question: skip-sec = (0/1)
 :: Custom Codepage: chcp = (Codepage)
-:: Logging: logging = (0/1)
-:: Elevation: elevation = (pwsh/gsudo/sudo)
+:: Logging: logging = (0/1/2)
+:: Elevation: elevation = (pwsh/gsudo/sudo/off)
 :: =============================================================
 
 :: Todo: 
@@ -87,11 +87,9 @@
 ::      Verify Startmenu Spam
 ::      Add Debug CON Output Mode (set "debug=CON"   >%debug% ?)
 ::      Improve Window Sizing
-::      Sort Startup Snippets
 ::      Add Locales
 ::      Add Elevation Option based on install directory
-::      Remove Autostart
-::      Replace Startmenu with .lnk
+::      Improve Normal Spam Function
 
 :top
     @echo off
@@ -100,7 +98,6 @@
     @title DataSpammer - Initiating
     @echo Initializing...
     @setlocal ENABLEDELAYEDEXPANSION
-    set "exec-dir=%~dp0"
 
     :: Improve NT Compatabilty - Made by Gradlew
     if "%OS%"=="Windows_NT" setlocal
@@ -111,16 +108,28 @@
     mode con: cols=140 lines=40
 
     :: Development / Production Flag
-    set "current-script-version=development"
+    set "current_script_version=development"
+
+    set "exec-dir=%~dp0"
 
     :: Can be Implemented along if errorlevel ...
     set "errormsg=echo: &call :color _Red "====== ERROR ======" &echo:"
+    
+    :: Predefine _erl to ensure errorlevel or choice inputs function correctly
+    set "_erl=FFFF"
+
+    :: Allows ASCII stuff without Codepage Settings - Not My Work - Credits to ?
+    :: Properly Escape Symbols like | ! & ^ > < etc. when using echo (%$Echo% " Text)
+    SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
 
     :: Check for NCS Support
     :: NCS is required for ANSI / Color Support
     call :check_NCS
-    call :color _Green "ANSI Color Support is enabled"
-    
+    if "%_NCS%"=="1" ( 
+        call :color _Green "ANSI Color Support is enabled"
+    ) else (
+        echo ANSI Color Support is not enabled.
+    )
 
     :: Parse Correct Timeout & Ping Locations otherwise WOW64 May cause issues.
     for /f "delims=" %%P in ('where ping.exe 2^>nul') do set "ping=%%P"
@@ -145,19 +154,10 @@
         call :color _Green "Timeout found at: !TIMEOUT!"
     )
 
-    :: Set CMD Path based on Context - 64bit or 32bit
-    set "cmdPath=%SystemRoot%\System32\cmd.exe"
-    if exist "%cmdPath%" (
-        set "cmdPath=%cmdPath%"
-    )
-
     :: No Dependency Functions (Arguments) - Documented at help.startup
     if "%~1"=="version" title DataSpammer && goto version
     if "%~1"=="--help" title DataSpammer && goto help.startup
     if "%~1"=="help" title DataSpammer && goto help.startup
-
-    :: Predefine _erl to ensure errorlevel or choice inputs function correctly
-    set "_erl=FFFF"
 
     :: Check if Script is running from Temp Folder
     if /I "%~dp0"=="%TEMP%" (
@@ -263,10 +263,6 @@
         call :color _Green "Null Kernel service is running."
     )
 
-    :: Allows ASCII stuff without Codepage Settings - Not My Work - Credits to ?
-    :: Properly Escape Symbols like | ! & ^ > < etc. when using echo (%$Echo% " Text)
-    SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
-
     :: If no arguments are given, start the script normally
     if "%~1"=="" goto startup
 
@@ -293,7 +289,6 @@
     if "%~1"=="update-install" ( goto sys.new.update.installed )
 
 :startup
-    title DataSpammer - Starting
     :: Check for Install Reg Key
     reg query "HKCU\Software\DataSpammer" /v Installed >nul 2>&1
     if %errorlevel% neq 0 (
@@ -313,7 +308,7 @@
     )
     
     :: Check if RegKey is outdated
-    if not "%reg_version%"=="%current-script-version%" (
+    if not "%reg_version%"=="%current_script_version%" (
         call :color _Red "Script Version Registry Key is outdated."
         choice /C YN /M "Do you want to update the Registry Key? (Y/N)"
         set "_erl=%errorlevel%"
@@ -545,10 +540,10 @@
     :: Update Function Logic
     if %logging% == 1 ( call :log Calling_Update_Check INFO )
     :: If Script is in Development Mode, skip the update check
-    if "%current-script-version%"=="development" (
+    if "%current_script_version%"=="development" (
         call :color _Green "Development Version, Skipping Update"
         call :sys.lt 5
-        if "%logging%"=="1" ( call :log Skipped_Update_Check_%current-script-version%_Development_Version WARN )
+        if "%logging%"=="1" ( call :log Skipped_Update_Check_%current_script_version%_Development_Version WARN )
         exit /b 0
     )
     call :git.version.check
@@ -570,7 +565,7 @@
     )
     :: Compare latest version with current script version
     set "latest_version=%latest_version:"=%"
-    if "%latest_version%" equ "v6" ( set "uptodate=up" ) else ( set "uptodate=%current-script-version%" )
+    if "%latest_version%" equ "v6" ( set "uptodate=up" ) else ( set "uptodate=%current_script_version%" )
     if %logging% == 1 ( call :log %latest_version%=v6 INFO )
     del apianswer.txt
     exit /b
@@ -585,7 +580,7 @@
     if %logging% == 1 ( call :log Version_Outdated WARN )
     echo Version Outdated ^!
     call :sys.lt 1
-    echo The Version you are currently using is %current-script-version%
+    echo The Version you are currently using is %current_script_version%
     call :sys.lt 1
     echo The newest Version avaiable is %latest_version%
     call :sys.lt 1
@@ -614,7 +609,7 @@
 
 :dts.startup.done
     :: Create Event Log Entry
-    EVENTCREATE /T INFORMATION /ID 100 /L APPLICATION /SO DataSpammer /D "Successfully started DataSpammer %errorlevel%" >nul
+    EVENTCREATE /T INFORMATION /ID 100 /L APPLICATION /SO DataSpammer /D "Successfully started DataSpammer-%current_script_version% %errorlevel%" >nul
 
     :: Compare Hash
     call :dataspammer.hash.check
@@ -641,7 +636,7 @@
 
     :: Logging
     if %logging% == 1 ( call :log Startup_Complete INFO )
-    if %logging% == 1 ( call :log Successfully_Started_DataSpammer_%current-script-version%_Errorlevel:_%errorlevel% INFO )
+    if %logging% == 1 ( call :log Successfully_Started_DataSpammer_%current_script_version%_Errorlevel:_%errorlevel% INFO )
 
     :: Set Username for Menu
     if not defined username.script set "username.script=%username%"
@@ -654,7 +649,7 @@
     )
     cd /d "%~dp0"
     if %logging% == 1 ( call :log Displaying_Menu INFO )
-    title DataSpammer %current-script-version% - Menu - Development
+    title DataSpammer %current_script_version% - Menu - Development
     cls
 
     %$Echo% "   ____        _        ____
@@ -667,7 +662,7 @@
 
 
     call :sys.lt 1
-    echo Made by PIRANY - %current-script-version% - Logged in as %username.script% - Batch - CMD Version %CMD_VERSION%
+    echo Made by PIRANY - %current_script_version% - Logged in as %username.script% - Batch - CMD Version %CMD_VERSION%
     call :sys.lt 1
     echo:
     call :sys.lt 1
@@ -681,7 +676,7 @@
     call :sys.lt 1
     echo:
     call :sys.lt 1
-    echo [3] Autostart/Desktop Icon
+    echo [3] Desktop Icon
     echo:
     call :sys.lt 1
     echo:
@@ -698,7 +693,7 @@
         set _erl=%errorlevel%
         if %_erl%==1 goto start
         if %_erl%==2 goto settings
-        if %_erl%==3 goto ad.settings
+        if %_erl%==3 goto desktop.settings
         if %_erl%==4 explorer https://github.com/PIRANY1/DataSpammer && cls && goto menu
         if %_erl%==5 goto cancel
         if %_erl%==6 call :standby
@@ -1271,7 +1266,9 @@
 :settings.logging
     if %logging% == 1 ( call :log Opened_Logging_Settings INFO )
     cls
-    if %logging% == 1 ( set "settings.logging=Activated" ) else ( set "settings.logging=Disabled" )
+    if %logging% == 0 set "settings.logging=Disabled"
+    if %logging% == 1 set "settings.logging=Enabled"
+    if %logging% == 2 set "settings.logging=Enabled (Only Critical)"
     echo Logging is currently: %settings.logging%
     echo:
     call :sys.lt 1
@@ -1308,7 +1305,10 @@
 
 :enable.logging
     if %logging% == 1 ( goto settings.logging )
-    call :update_config "logging" "" "1"
+    echo Do you want to set Logging to Only ERRORs / WARNs or General?
+    choice /C CG /M "(C)ritical / (G)eneral"
+        if %_erl%==1 call :update_config "logging" "" "2"
+        if %_erl%==2 call :update_config "logging" "" "1"
     echo Enabled Logging.
     call :sys.lt 2
     goto restart.script
@@ -1321,92 +1321,29 @@
     call :sys.lt 2
     goto restart.script
 
-:ad.settings
+:desktop.settings
     cls
     echo:
-    echo =================================
-    echo Autostart / Desktop Icon Settings
-    echo =================================
+    echo =====================
+    echo Desktop Icon Settings
+    echo =====================
     call :sys.lt 1
     echo:
     call :sys.lt 1
     echo [1] Setup 
     echo:
     call :sys.lt 1
-    echo:
-    call :sys.lt 1
-    echo [2] Uninstall
-    echo:
-    call :sys.lt 1
     echo [3] Back
     echo:
     echo:
 
     choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 goto ad.setup
-        if %_erl%==2 goto ad.remove
+        if %_erl%==1 goto desktop.setup
+        if %_erl%==2 goto desktop.remove
         if %_erl%==3 goto menu
         if %_erl%==4 call :standby
-    goto ad.settings
-
-
-:ad.remove
-    cls
-    echo [1] Delete Autostart
-    echo:
-    call :sys.lt 1
-    echo:
-    echo [2] Delete Desktop Icon
-    echo:
-    call :sys.lt 1
-    echo:
-    echo [3] Back
-    echo:
-    echo:
-    choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
-        set _erl=%errorlevel%
-        if %_erl%==1 goto autostart.delete
-        if %_erl%==2 goto desktop.icon.delete  
-        if %_erl%==3 goto ad.settings
-        if %_erl%==4 call :standby
-    goto ad.remove
-
-
-:ad.setup
-    cls
-    echo [1] Start Setup for Autostart
-    call :sys.lt 2
-    echo:
-    call :sys.lt 2
-    echo [2] Start Setup for Desktop Icon
-    call :sys.lt 2
-    echo:
-    call :sys.lt 2
-    echo [3] Go Back
-    call :sys.lt 2
-    echo:
-
-    choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
-        set _erl=%errorlevel%
-        if %_erl%==1 goto autostart.setup.confirmed
-        if %_erl%==2 goto desktop.icon.setup
-        if %_erl%==3 goto ad.settings
-        if %_erl%==4 call :standby
-    goto ad.setup
-
-
-
-:autostart.delete
-    cd /d "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup"
-    del autostart.bat
-    echo Autostart Link Removed.
-    goto menu
-
-:autostart.setup.confirmed
-    >> "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup\autostart.bat" echo @echo off && cd /d "%~dp0" && dataspammer.bat
-    echo Autostart Link Added.
-    goto menu
+    goto desktop.settings
 
 :desktop.icon.setup
     echo Adding Desktop Icon
@@ -1417,13 +1354,7 @@
      $Shortcut.TargetPath = '%~0'; ^
      $Shortcut.Save()
     echo Added Desktop Icon
-    goto menu
-
-:desktop.icon.delete
-    echo Deleting Desktop Icon...
-    cls                                                                                              
-    erase "%USERPROFILE%\Desktop\DataSpammer.lnk"
-    echo Successfully Deleted Desktop Icon.
+    call :sys.lt 4
     goto menu
 
 
@@ -1972,7 +1903,7 @@
     if %app.spam.path% == random set "app.spam.path=%~f0"
     if %app.spam.publisher% == random set "app.spam.publisher=%random3%"
     if %app.spam.name% == default set "app.spam.name=DataSpammer"
-    if %app.spam.app.version% == default set "app.spam.app.version=%current-script-version%"
+    if %app.spam.app.version% == default set "app.spam.app.version=%current_script_version%"
     if %app.spam.path% == default set "app.spam.path=%~f0"
     if %app.spam.publisher% == default set "app.spam.publisher=DataSpammer"
     set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\%app.spam.name%"
@@ -2226,13 +2157,13 @@
     if "%latest_version%" equ "v6" (
         set "uptodate=up"
     ) else (
-        set "uptodate=%current-script-version%"
+        set "uptodate=%current_script_version%"
     )
 
     if "%uptodate%"=="up" (
         echo The Script is up-to-date [Version:%latest_version%]
     ) else (
-        echo Your Script is outdated [Newest Version: %latest_version% Script Version:%current-script-version%]
+        echo Your Script is outdated [Newest Version: %latest_version% Script Version:%current_script_version%]
     )
     exit /b %errorlevel%
 
@@ -2417,7 +2348,7 @@
 
 :debug.info
     echo Monitoring: %monitoring%
-    echo Script Version: %current-script-version%
+    echo Script Version: %current_script_version%
     echo Logging: %logging%
     echo Developer Mode: %developermode%
     echo Color: %color%
@@ -2443,12 +2374,12 @@
         set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
     )
     reg delete "%RegPath%" /v "DisplayVersion" /f
-    reg add "%RegPath%" /v "DisplayVersion" /d "%current-script-version%" /f
+    reg add "%RegPath%" /v "DisplayVersion" /d "%current_script_version%" /f
     cls && echo Updated Settings.
     cls && echo Successfully updated the Registry Key for the Version.
-    if %logging% == 1 ( call :log Updated_Script_Version:%current-script-version% INFO )
+    if %logging% == 1 ( call :log Updated_Script_Version:%current_script_version% INFO )
     if %logging% == 1 ( call :log Errorlevel_after_Update:_%errorlevel% INFO )
-    echo Successfully Updated to %current-script-version%
+    echo Successfully Updated to %current_script_version%
     echo Restarting...
     call :sys.lt 4 count
     goto restart.script
@@ -2694,7 +2625,7 @@
 
 :dataspammer.hash.check
     :: Compare local and remote script hash
-    if "%current-script-version%"=="v6" (
+    if "%current_script_version%"=="v6" (
         set "remote=https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/v6/dataspammer.bat"
     ) else (
         set "remote=https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat"
@@ -2912,8 +2843,10 @@
     :: Use DEBUG for Debugging
     :: Custom Log Levels can be added
     :: In the Logfile _ and - are replaced with Spaces
-    if "%logging%"=="0" exit /b
+    if "%logging%"=="0" exit /b 0
     if "%monitoring%"=="1" call :send_message "%log.content%"
+
+    if "%logging%"==2 if "%~2"=="INFO" exit /b 0
 
     call :check_args :log "%~1"
     set "log.content=%~1"
@@ -3477,7 +3410,7 @@
     %$Echo% "                             |_|
 
 
-    echo Made by PIRANY - %current-script-version% - Batch
+    echo Made by PIRANY - %current_script_version% - Batch
     echo:
     call :sys.lt 1
     echo This Installer will lead you through the process of installing the DataSpammer Utility.
@@ -3601,19 +3534,29 @@
         set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
     )
     reg add "%RegPath%" /v "DisplayName" /d "DataSpammer" /f
-    reg add "%RegPath%" /v "DisplayVersion" /d "%current-script-version%" /f
+    reg add "%RegPath%" /v "DisplayVersion" /d "%current_script_version%" /f
     reg add "%RegPath%" /v "InstallLocation" /d "%directory9%" /f
     reg add "%RegPath%" /v "Publisher" /d "PIRANY1" /f
     reg add "%RegPath%" /v "UninstallString" /d "%directory9%\dataspammer.bat remove" /f
 
     :: Add Reg Key - Remember Installed Status
     reg add "HKCU\Software\DataSpammer" /v Installed /t REG_DWORD /d 1 /f
-    reg add "HKCU\Software\DataSpammer" /v Version /t REG_SZ /d "%current-script-version%" /f
+    reg add "HKCU\Software\DataSpammer" /v Version /t REG_SZ /d "%current_script_version%" /f
 
     :: Create Startmenu Shortcut
     if defined startmenushortcut1 (
-        echo "%directory9%\dataspammer.bat" %* > "%ProgramData%\Microsoft\Windows\Start Menu\Programs\DataSpammer.bat"
+        echo Adding Startmenu Shortcut
+        %powershell_short% -Command ^
+         $WshShell = New-Object -ComObject WScript.Shell; ^
+         $Shortcut = $WshShell.CreateShortcut('%ProgramData%\Microsoft\Windows\Start Menu\Programs\DataSpammer.lnk'); ^
+         $Shortcut.TargetPath = '%directory9%\dataspammer.bat'; ^
+         $Shortcut.Save()
+        echo Added Startmenu Shortcut
+        call :sys.lt 4
+        goto menu
     )
+
+
     :: Create Desktop Icon w. pre defined Variables
     set "targetShortcut=%USERPROFILE%\Desktop\DataSpammer.lnk"
     set "targetPath=%directory9%\DataSpammer.bat"
@@ -3651,7 +3594,7 @@
     echo Porting to V6...
     echo Adding Registry Key...
     reg add "HKCU\Software\DataSpammer" /v Installed /t REG_DWORD /d 1 /f
-    reg add "HKCU\Software\DataSpammer" /v Version /t REG_SZ /d "%current-script-version%" /f
+    reg add "HKCU\Software\DataSpammer" /v Version /t REG_SZ /d "%current_script_version%" /f
     echo Done. 
     echo Consider reinstalling the Script to avoid any issues. 
     goto restart.script
@@ -3692,7 +3635,7 @@
 
 :portable.install
     reg add "HKCU\Software\DataSpammer" /v Installed /t REG_DWORD /d "1" /f
-    reg add "HKCU\Software\DataSpammer" /v Version /t REG_SZ /d "%current-script-version%" /f
+    reg add "HKCU\Software\DataSpammer" /v Version /t REG_SZ /d "%current_script_version%" /f
     reg add "HKCU\Software\DataSpammer" /v logging /t REG_SZ /d "1" /f
     reg add "HKCU\Software\DataSpammer" /v color /t REG_SZ /d "02" /f
     echo Is the Script in a directory that requires Administrative Privileges?
