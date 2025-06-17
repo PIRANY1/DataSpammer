@@ -86,7 +86,7 @@
 ::      Add Workflows
 ::      Fix Wait.exe Delay - Hard to change
 ::      Improve Window Sizing
-
+::      Fix Color Keeping
 
 :top
     @echo off
@@ -150,6 +150,9 @@
     ) else (
         call :color _Green "Timeout found at: !TIMEOUT!"
     )
+
+    :: Set CMD Path based on Context - 64bit or 32bit
+    set "cmdPath=%ComSpec%"
 
     :: No Dependency Functions (Arguments) - Documented at help.startup
     if "%~1"=="version" title DataSpammer && goto version
@@ -263,10 +266,15 @@
     :: If no arguments are given, start the script normally
     if "%~1"=="" goto startup
 
-    :: Apply /b Flag to all Exits
-    if "%~1"=="/b" set "b.flag=/b "
-    if "%~2"=="/b" set "b.flag=/b "
-    if "%~3"=="/b" set "b.flag=/b "
+    :: Check for /b or /v
+    for %%A in (%1 %2 %3 %4) do (
+        if /I "%%~A"=="/b" (
+            set "b.flag=/b "
+        )
+        if /I "%%~A"=="/v" (
+            set "verbose=1"
+        )
+    )
 
     :: Regular Argument Checks - Documented at help.startup
     if "%~1"=="faststart" title DataSpammer && goto sys.enable.ascii.tweak
@@ -318,10 +326,10 @@
 
     if "%verbose%"=="1" (
         call :color _Green "Verbose Output is Disabled"
-        set "destination=nul"
+        set "destination=CON"
     ) else (
         call :color _Green "Verbose Output is Enabled"
-        set "destination=CON"
+        set "destination=nul"
     )
 
     : Apply Custom Codepage if defined
@@ -666,7 +674,6 @@
     %$Echo% "                             |_|
 
 
-
     call :sys.lt 1
     echo Made by PIRANY - %current_script_version% - Logged in as %username.script% - Batch - CMD Version %CMD_VERSION%
     call :sys.lt 1
@@ -810,7 +817,7 @@
     echo:
     call :sys.lt 1
     echo [C] Go back
-    choice /C 123456789URCS /T 120 /D S  /M "Choose an Option from Above:"
+    choice /C 123456789UCS /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto switch.elevation
         if %_erl%==2 goto encrypt
@@ -1340,11 +1347,10 @@
     echo [1] Setup 
     echo:
     call :sys.lt 1
-    echo [3] Back
-    echo:
+    echo [2] Back
     echo:
 
-    choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
+    choice /C 12S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto desktop.setup
         if %_erl%==2 goto desktop.remove
@@ -3091,6 +3097,8 @@
     echo    install       Start the Installer
     echo:
     echo    /b      Exit while keeping CMD Window (can be combined with other Arguments)
+    echo:
+    echo    /v      Show Verbose Output (can be combined with other Arguments)
     echo:
     echo:
     exit /b %errorlevel%
