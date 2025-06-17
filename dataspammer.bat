@@ -75,6 +75,7 @@
 
 :: Todo: 
 ::      Add more Comments, Logs , Socket Messages, Error Handling and Coloring
+::      Implement echo Verbose Message >destination%
 ::      Fix Updater - Clueless After 3 Gazillion Updates - Hopefully Fixed
 ::      Add Enviroment Simulator Script for Testing.
 ::      Replace . & - with _ in Variables & Labels
@@ -82,12 +83,9 @@
 ::      Add Locales
 
 ::      V6 Requirements:
-::      Check for Bugs / Verify
 ::      Add Workflows
 ::      Fix Wait.exe Delay - Hard to change
-::      Add Debug CON Output Mode (set "debug=CON"   >%debug% ?)
 ::      Improve Window Sizing
-::      Add Elevation Option based on install directory
 
 
 :top
@@ -317,6 +315,14 @@
 
     :: Parse Config
     call :parse.settings
+
+    if "%verbose%"=="1" (
+        call :color _Green "Verbose Output is Disabled"
+        set "destination=nul"
+    ) else (
+        call :color _Green "Verbose Output is Enabled"
+        set "destination=CON"
+    )
 
     : Apply Custom Codepage if defined
     if chcp neq 0 (
@@ -785,7 +791,7 @@
     call :sys.lt 1
     echo [2] Encrypt Files (Bypass most Antivirus detections)
     call :sys.lt 1
-    echo [3] Generate Debug Log
+    echo [3] Verbose Output
     call :sys.lt 1
     echo [4] Logging
     call :sys.lt 1
@@ -808,7 +814,7 @@
         set _erl=%errorlevel%
         if %_erl%==1 goto switch.elevation
         if %_erl%==2 goto encrypt
-        if %_erl%==3 goto debuglog
+        if %_erl%==3 goto verbose.output.settings
         if %_erl%==4 goto settings.logging
         if %_erl%==5 goto monitor.settings
         if %_erl%==6 goto change.color
@@ -819,6 +825,42 @@
         if %_erl%==11 goto settings
         if %_erl%==12 call :standby
     goto advanced.options
+
+:verbose.output.settings
+    if "%verbose%"=="1" set "verbose.status=Enabled"
+    if "%verbose%"=="0" set "verbose.status=Disabled"
+    echo -----------------------
+    echo Verbose Output Settings
+    echo -----------------------
+
+    echo:
+    echo Verbose Output is currently %verbose.status%
+    echo:
+    echo [1] Enable Verbose Output
+    call :sys.lt 1
+    echo [2] Disable Verbose Output
+    call :sys.lt 1
+    echo [3] Go back
+    echo:
+    choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto verbose.enable
+        if %_erl%==2 goto verbose.disable
+        if %_erl%==3 goto advanced.options
+        if %_erl%==4 call :standby
+    goto verbose.output.settings
+
+:verbose.enable
+    call :update_config "verbose" "" "1"
+    echo Verbose Output Enabled.
+    call :sys.lt 2
+    goto verbose.output.settings
+
+:verbose.disable
+    call :update_config "verbose" "" "0"
+    echo Verbose Output Disabled.
+    call :sys.lt 2
+    goto verbose.output.settings
 
 :custom.instruction.enable
     set "ftypedir=%~0"
@@ -2466,53 +2508,6 @@
     call :sys.lt 4 count
     goto restart.script
 
-
-:debuglog
-    :: Generate Debug Log, wayyyyyy to much 
-    echo Generating Debug Log
-    cd /d "%~dp0"
-    set SOURCE_DIR="%script.dir%\Debug"
-    if exist "%SOURCE_DIR%" rmdir /s /q "%SOURCE_DIR%"
-    mkdir Debug
-    copy "%userprofile%\Documents\DataSpammerLog\DataSpammer.log" "%SOURCE_DIR%"
-    ipconfig > "%SOURCE_DIR%\ipconf.txt"
-    msinfo32 /report "%SOURCE_DIR%\msinfo.txt"
-    ipconfig /renew /flushdns
-    driverquery /FO list /v > "%SOURCE_DIR%\drivers.txt"
-    tasklist /v > "%SOURCE_DIR%\tasklist.txt"
-    systeminfo > "%SOURCE_DIR%\systeminfo.txt"
-    set ZIP_FILE="%script.dir%\debug.log.zip"
-    tar -a -cf "%ZIP_FILE%" -C "%SOURCE_DIR%" .
-    del /s /q "%SOURCE_DIR%"
-
-
-:debug.done
-    :: Display the Debug Log Options
-    echo Successfully Generated debug.log.zip
-    echo: 
-    echo [1] Copy to Clipboard
-    echo:
-    echo [2] Open GitHub Repository
-    echo: 
-    echo [3] Delete Debug Files and Go Back
-    echo: 
-    echo [4] Go Back
-    echo:
-    echo:
-    set /P debuglog=Choose an Option from Above
-    choice /C 1234S /T 120 /D S  /M "Choose an Option from Above:"
-    set _erl=%errorlevel%
-    if %_erl%==1 echo %ZIP_FILE% | clip && cls && echo Copied debug.log.zip to your Clipboard && pause
-    if %_erl%==2 explorer "https://github.com/PIRANY1/DataSpammer/issues"
-    if %_erl%==3 rmdir /s /q "%SOURCE_DIR%" && goto advanced.options
-    if %_erl%==4 goto advanced.options
-    if %_erl%==5 call :standby
-    goto debug.done
-    
-    :: Collect Functionalities HERE..
-    :: DNS & HTTPS & Basic Filespam 
-    :: Run all :signs & functions & check for updates
-
 :debugtest
     :: Start Debug Test
     echo Running Debug Test...
@@ -2904,6 +2899,7 @@
      
     if not defined logging set "logging=1"
     if not defined elevation set "elevation=pwsh"
+    if not defined verbose set "verbose=0"
     set "color=02"
 
     for /f "tokens=2 delims=:" %%A in ('chcp') do (
@@ -2949,6 +2945,8 @@
 
     for /f "tokens=1-3 delims=:." %%a in ("%time%") do set formatted_time=%%a:%%b:%%c
     echo [ DataSpammer / %~2 ][%date% - %formatted_time%]: %log.content.clean% >> "%folder%\%logfile%"
+    :: If Verbose is On Display Log to Screen
+    if "%verbose%"=="1" echo Writing Log: [ DataSpammer / %~2 ][%date% - %formatted_time%]: %log.content.clean%
     exit /b %errorlevel%
     
 
