@@ -78,18 +78,17 @@
 ::      Fix Updater - Clueless After 3 Gazillion Updates - Hopefully Fixed
 ::      Add Enviroment Simulator Script for Testing.
 ::      Replace . & - with _ in Variables & Labels
+::      Verify CIF Parser
+::      Add Locales
 
 ::      V6 Requirements:
 ::      Check for Bugs / Verify
-::      Add Release Workflow w. Setup Build, Encryption etc.
-::      Verify CIF Parser
+::      Add Workflows
 ::      Fix Wait.exe Delay - Hard to change
-::      Verify Startmenu Spam
 ::      Add Debug CON Output Mode (set "debug=CON"   >%debug% ?)
 ::      Improve Window Sizing
-::      Add Locales
 ::      Add Elevation Option based on install directory
-::      Improve Normal Spam Function
+
 
 :top
     @echo off
@@ -700,6 +699,15 @@
         if %_erl%==6 call :standby
     goto menu
 
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+:: ------------------------------------------------- Settings Start ---------------------------------------------------------------------------------
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+
+
 
 :settings
     if %logging% == 1 ( call :log Opened_Settings_%dev-mode%_dev_mode INFO )
@@ -820,50 +828,6 @@
     FTYPE dtsfile=cmd.exe /c "\"%ftypedir%\" \"%%1\""
     echo Enabled Custom Instructions
     
-
-:custom.instruction.read
-    :: Read Linked CIF File & interpret it
-    set "interpret.dts=%~1"
-    if not exist "%interpret.dts%" (
-        %errormsg%
-        call :color _Red "Custom Instruction File does not exist."
-        echo Please check the path and try again.
-        call :sys.lt 5 count
-        goto cancel
-    )
-    echo Parsing CIF File: %interpret.dts%
-    set "firstLineHandled=false"
-    for /f "usebackq delims=" %%L in ("%interpret.dts%") do (
-        set "line=%%L"
-        set "trimmed=!line:~0,1!"
-        :: Ignore empty lines and comments
-        if not "!line!"=="" if "!trimmed!" NEQ "#" (
-            if "!firstLineHandled!"=="false" (
-                :: Treat first line as label
-                echo Used Label: %%L
-                set "label.cif=%%L"
-                set "firstLineHandled=true"
-            ) else (
-                :: If line has a "=", treat it as a variable assignment
-                echo !line! | findstr "=" >nul
-                if !errorlevel! == 0 (
-                    for /f "tokens=1* delims==" %%A in ("!line!") do (
-                        echo Setting Variable: %%A=%%B
-                        set "%%A=%%B"
-                    )
-                ) else (
-                    if not "%%L"=="" (
-                        echo Executing command: %%L
-                        %%L
-                    )
-                )
-            )
-        )
-    )
-    echo Finished Interpreting CIF File: %interpret.dts%
-    echo Exiting...
-    pause
-    goto cancel
 
 :download.wait
     :: Download Wait.exe and Wait.exe Hash
@@ -1359,12 +1323,14 @@
     goto menu
 
 
-::
-::               /\            /\ 
-::                |  SETTINGS  |  
-::                |  SPAM PART |
-::               \/            \/
-::
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+:: ------------------------------------------------- Settings <_> Spams------------------------------------------------------------------------------
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 
 :start
@@ -1446,7 +1412,7 @@
     echo:
     call :sys.lt 1
     echo:
-    choice /C 12345678S /T 120 /D S  /M "Choose an Option from Above:"
+    choice /C 123456789S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto ssh.spam
         if %_erl%==2 goto dns.spam
@@ -1459,6 +1425,9 @@
         if %_erl%==9 goto start.verified
         if %_erl%==10 call :standby
     goto internet.spams
+
+
+
 
 :python.spams
     echo [1] Zip Bomb Creator
@@ -1498,6 +1467,9 @@
     python "%~dp0\zip.py"
     erase "%~dp0\zip.py"
 
+
+
+
 :printer.list.spam
     set /P printer.name=Enter the Printer Name:
     set /P printer.model=Enter the Modell(can be anything):
@@ -1509,6 +1481,8 @@
     )
     call :done "The Script has added the Printer %printer.name% with the Model %printer.model% and the Count %printer.count%"
     
+
+
 :telnet.spam
     echo root > temp.txt
     echo 123456 >> temp.txt
@@ -1524,6 +1498,7 @@
     del temp.txt
     if %logging% == 1 ( call :log Finished_Telnet_Spam_on_%telnet.target% INFO )
     call :done "The Script Tested the Telnet Server %telnet.target% with %telnet.count% Requests"
+
 
     
 :icmp.spam
@@ -1541,6 +1516,8 @@
 
     if %logging% == 1 ( call :log Finished_ICMP_Spam_on_%icmp.target% INFO )
     call :done "The Script Tested %icmp.target% with %icmp.rate% milliseconds interval"
+
+
 
 :local.spams
     echo Choose the Method you want to use:
@@ -1571,7 +1548,7 @@
     echo:
     echo:
     echo:
-    choice /C 12345S /T 120 /D S  /M "Choose an Option from Above:"
+    choice /C 123456S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto normal.text.spam
         if %_erl%==2 goto desktop.icon.spam
@@ -1582,6 +1559,10 @@
         if %_erl%==7 call :standby
     goto local.spams
 
+
+
+
+
 :crypt.spam
     echo Original Files will be REMOVED
     echo Encrypt or Decrypt?
@@ -1591,7 +1572,6 @@
         if %_erl%==2 goto decrypt.spam
     goto crypt.spam
 
-
 :encrypt.spam
     echo Folder or File?
     choice /C FD /M "(F)ile or (D)irectory):"
@@ -1600,7 +1580,6 @@
         if %_erl%==2 goto encrypt.spam.folder
     goto encrypt.spam
 
-
 :decrypt.spam
     echo Folder or File?
     choice /C FD /M "(F)ile or (D)irectory):"
@@ -1608,8 +1587,6 @@
         if %_erl%==1 goto decrypt.spam.file
         if %_erl%==2 goto decrypt.spam.folder
     goto decrypt.spam 
-
-
 
 :encrypt.spam.folder
     call :directory.input encrypt-dir "Enter the Directory: "
@@ -1727,11 +1704,11 @@
    
 
 
+
 :printer.spam
     :: print /D:%printer% %file%
     :: set printer="\\NetworkPrinter\PrinterName"
     set /P printer.count=How many Files should be printed?: 
-
     call :filename.check print.filename "Enter the Filename:"
 
     cls
@@ -1748,7 +1725,7 @@
     )
     if %logging% == 1 ( call :log Finished_Printer_Spam:%printer.count%_Requests_on_default_Printer INFO )
     erase %print.filename%.txt
-    call :done "The Script Created %printer.count% to Default Printer"
+    call :done "The Script made %printer.count% Print-Jobs to Default Printer"
 
 
 
@@ -1767,6 +1744,7 @@
     call :done "The Script Created %requests% to %url%"
 
 
+
 :dns.spam
     setlocal EnableDelayedExpansion    
     echo DNS-Spam is useful if you have a local DNS Server running (PiHole, Adguard etc.)
@@ -1775,12 +1753,11 @@
     set /P request_count=Enter the Request Count?:
 
     if not defined domain_server set "domain_server= "
-    
     cls
     echo Now enter the Record type. A for IPv4 and AAAA for IPv6. Use A if unsure.
     set /P record_type=Enter the DNS Record Type (A or AAAA):
     
-    set /a x=1
+    set /a x=0
     
     if /I "%record_type%"=="A" goto dns.a
     if /I "%record_type%"=="AAAA" goto dns.aaaa
@@ -1803,10 +1780,12 @@
         cls
     )
     
-
 :dns.done
     if %logging% == 1 ( call :log Finished_DNS_Spam:%request_count%_Requests_on_%domain_server% INFO )
     call :done "The Script Created %request_count% for %domain% on %domain_server%"
+
+
+
 
 :ftp.spam
     cls
@@ -1841,7 +1820,7 @@
     
     :: Write Filenames in Command File
     setlocal EnableDelayedExpansion    
-    set /a x=1
+    set /a x=0
     for /l %%i in (1,1,%filecount%) do (
         set localFile=%filename%!x!.txt
         echo put !localFile! >> %ftpCommands%
@@ -1883,6 +1862,7 @@
     goto app.list.spam
 
 :app.list.spam.confirmed
+    set /a x=0
     echo Enter random to use random Numerals
     echo Enter default to skip an Option
     set /P app.spam.name=Enter the App Name:
@@ -1914,20 +1894,21 @@
     
 
 :app.spam.start.top
-    set /a x+=1
-
-    reg add "%RegPath%" /v "DisplayName" /d "%app.spam.name%%x%" /f
-    reg add "%RegPath%" /v "DisplayVersion" /d "%app.spam.app.version%" /f
-    reg add "%RegPath%" /v "InstallLocation" /d "%app.spam.path%" /f
-    reg add "%RegPath%" /v "Publisher" /d "%app.spam.publisher%" /f
-    reg add "%RegPath%" /v "UninstallString" /d "%~dp0\dataspammer.bat remove" /f
-
+    for /L %%i in (1,1,%app.spam.filecount%) do (
+        echo Creating Entry %x%
+        reg add "%RegPath%%x%" /v "DisplayName" /d "%app.spam.name%%x%" /f
+        reg add "%RegPath%%x%" /v "DisplayVersion" /d "%app.spam.app.version%" /f
+        reg add "%RegPath%%x%" /v "InstallLocation" /d "%app.spam.path%" /f
+        reg add "%RegPath%%x%" /v "Publisher" /d "%app.spam.publisher%" /f
+        reg add "%RegPath%%x%" /v "UninstallString" /d "%~dp0\dataspammer.bat remove" /f
+        set /a x+=1
+    )
     echo Created %x% Entry(s).
-    if %x% equ %app.spam.filecount% ( goto app.spam.done ) else ( goto app.spam.start.top )
-
-:app.spam.done
     if %logging% == 1 ( call :log Finished_Spamming_Files:_%filecount% INFO )
     call :done "The Script Created %x% Entrys."
+
+
+
 
 
 :startmenu.spam
@@ -1936,22 +1917,29 @@
     echo All Users requires Admin Privileges.
     choice /C AL /M "(A)ll / (L)ocal"
     set _erl=%errorlevel%
-        if %_erl%==1 goto spam.all.user.startmenu
-        if %_erl%==2 goto spam.local.user.startmenu
+        if %_erl%==1 set "directory.startmenu=%ProgramData%\Microsoft\Windows\Start Menu\Programs" && goto startmenu.name
+        if %_erl%==2 set "directory.startmenu=%AppData%\Microsoft\Windows\Start Menu\Programs" && goto startmenu.name
     goto startmenu.spam
 
-:spam.local.user.startmenu
-    set "directory.startmenu=%AppData%\Microsoft\Windows\Start Menu\Programs"
-    goto startmenu.custom.name
-
-:spam.all.user.startmenu
-    set "directory.startmenu=%ProgramData%\Microsoft\Windows\Start Menu\Programs"
-    goto startmenu.custom.name
-
-:startmenu.custom.name
+:startmenu.name
     call :filename.check default-filename "Enter the Filename:"
-    cd /d "%directory.startmenu%"
-    goto spam.normal.top
+    set /a x=0
+
+    :: Create .lnk File
+    %powershell_short% -Command ^
+     $WshShell = New-Object -ComObject WScript.Shell; ^
+     $Shortcut = $WshShell.CreateShortcut('%temp%\temp.lnk'); ^
+     $Shortcut.TargetPath = '%~0'; ^
+     $Shortcut.Save()
+
+    for /L %%i in (1,1,%filecount%) do (
+        echo Creating File %default-filename%%x%.txt
+        copy "%temp%\temp.lnk" "%directory.startmenu%\%default-filename%%x%.txt"
+        set /a x+=1
+    )
+
+    if %logging% == 1 ( call :log Finished_Spamming_Files:_%filecount% INFO )
+    call :done "The Script Created %filecount% Files."
 
 :ssh.spam
     if "%logging%"=="1" ( call :log Opened_SSH_Spam INFO )
@@ -2088,26 +2076,26 @@
     echo Successfully executed SSH connection.
     goto ssh.done
 
-
 :ssh.done
     if %logging% == 1 ( call :log Finished_SSH_Spam_Files:_%ssh-filecount%_Host_%ssh-name% INFO )
     call :done "Created %ssh-filecount% Files on %ssh-name%@%ssh-ip%"
+
+
+
+
 
 :desktop.icon.spam
     if %logging% == 1 ( call :log Opened_Desktop_Spam INFO )
     
     call :filename.check desk.spam.name "Enter the Filename:"
-
     set /p desk.spam.format=Choose the Format (without the dot):
     set /p desk.spam.content=Enter the File-Content:
-
     set /P filecount=How many Files should be created?:
 
     cls
     echo Starting.....
     call :sys.lt 2
-    cd /d "%userprofile%\Desktop"
-    set /a x=1
+    set /a x=0
 
     for /L %%i in (1,1,%desk.filecount%) do (
         echo Creating File %desk.spam.name%%x%.%desk.spam.format%
@@ -2119,21 +2107,21 @@
     call :done "The Script Created %deskspamlimitedvar% Files."
 
 
+
+
 :normal.text.spam
     if %logging% == 1 ( call :log Opened_Normal_Spam INFO )
     call :directory.input text_spam_directory "Enter the Directory: "
     call :filename.check filename "Enter the Filename:"
     set /P filecount=How many Files should be created?: 
-
     set /P defaultspam.content=Enter the File Content:
     
 :spam.normal.top
     set /a x=1
-    cd /d "%text_spam_directory%"
 
     for /L %%i in (1,1,%filecount%) do (
         echo Creating File %filename%%x%.txt
-        >> "%filename%%x%.txt" echo %defaultspam.content%
+        >> "%text_spam_directory%\%filename%%x%.txt" echo %defaultspam.content%
         set /a x+=1
     )
 
@@ -2141,6 +2129,60 @@
     call :done "The Script Created %filecount% Files."
 
 
+
+
+
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+:: ------------------------------------------------- Spams <_> Argument Stuff------------------------------------------------------------------------
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+
+:custom.instruction.read
+    :: Read Linked CIF File & interpret it
+    set "interpret.dts=%~1"
+    if not exist "%interpret.dts%" (
+        %errormsg%
+        call :color _Red "Custom Instruction File does not exist."
+        echo Please check the path and try again.
+        call :sys.lt 5 count
+        goto cancel
+    )
+    echo Parsing CIF File: %interpret.dts%
+    set "firstLineHandled=false"
+    for /f "usebackq delims=" %%L in ("%interpret.dts%") do (
+        set "line=%%L"
+        set "trimmed=!line:~0,1!"
+        :: Ignore empty lines and comments
+        if not "!line!"=="" if "!trimmed!" NEQ "#" (
+            if "!firstLineHandled!"=="false" (
+                :: Treat first line as label
+                echo Used Label: %%L
+                set "label.cif=%%L"
+                set "firstLineHandled=true"
+            ) else (
+                :: If line has a "=", treat it as a variable assignment
+                echo !line! | findstr "=" >nul
+                if !errorlevel! == 0 (
+                    for /f "tokens=1* delims==" %%A in ("!line!") do (
+                        echo Setting Variable: %%A=%%B
+                        set "%%A=%%B"
+                    )
+                ) else (
+                    if not "%%L"=="" (
+                        echo Executing command: %%L
+                        %%L
+                    )
+                )
+            )
+        )
+    )
+    echo Finished Interpreting CIF File: %interpret.dts%
+    echo Exiting...
+    pause
+    goto cancel
 
 
 :fast.git.update
