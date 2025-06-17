@@ -2140,6 +2140,45 @@
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 
+:v6.port
+    :: Port to V6, add Registry Keys
+    echo Porting to V6...
+    echo Adding Registry Key...
+    reg add "HKCU\Software\DataSpammer" /v Installed /t REG_DWORD /d 1 /f
+    reg add "HKCU\Software\DataSpammer" /v Version /t REG_SZ /d "%current_script_version%" /f
+    echo Done. 
+    echo Consider reinstalling the Script to avoid any issues. 
+    goto restart.script
+
+:ifp.install
+    :: If Script was installed by Install Forge add Registry Stuff here
+    :: Add Script to Windows App List
+    set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
+    if defined ProgramFiles(x86) (
+        set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
+    )
+    reg add "%RegPath%" /v "DisplayName" /d "DataSpammer" /f
+    reg add "%RegPath%" /v "DisplayVersion" /d "%current_script_version%" /f
+    reg add "%RegPath%" /v "InstallLocation" /d "%directory9%" /f
+    reg add "%RegPath%" /v "Publisher" /d "PIRANY1" /f
+    reg add "%RegPath%" /v "UninstallString" /d "%directory9%\dataspammer.bat remove" /f
+
+    :: Add Reg Key - Remember Installed Status
+    reg add "HKCU\Software\DataSpammer" /v Installed /t REG_DWORD /d 1 /f
+    reg add "HKCU\Software\DataSpammer" /v Version /t REG_SZ /d "%current_script_version%" /f
+
+    :: Add Script to PATH
+    if defined addpath1 ( setx PATH "%PATH%;%directory9%\DataSpammer.bat" /M >nul )
+
+    :: Add Remember Encrypted State Token
+    call :generateRandom
+    reg add "HKCU\Software\DataSpammer" /v Token /t REG_SZ /d "%realrandom%" /f
+    reg add "HKCU\Software\DataSpammer" /v logging /t REG_SZ /d "1" /f
+    reg add "HKCU\Software\DataSpammer" /v color /t REG_SZ /d "02" /f
+    echo Successfully Installed.
+    goto restart.script
+
+
 :custom.instruction.read
     :: Read Linked CIF File & interpret it
     set "interpret.dts=%~1"
@@ -3612,10 +3651,10 @@
     if defined addpath1 ( setx PATH "%PATH%;%directory9%\DataSpammer.bat" /M >nul )
 
 :sys.main.installer.done
-    :: Encrypt Dialog
-    echo Do you want to encrypt the Script Files?
-    call :sys.lt 1
-    echo This can bypass Antivirus Detections.
+    :: Elevate Flag
+    echo Do you want the script to request admin rights?
+    echo This is recommended and can help some features work properly.
+    echo If you don't have admin rights, it's best to choose "No".
     call :sys.lt 1
     echo:
     call :sys.lt 1
@@ -3628,73 +3667,9 @@
     echo:
     choice /C 12 /M "1/2:"
         set _erl=%errorlevel%
-        if %_erl%==1 goto encrypt.script
-        if %_erl%==2 goto finish.installation
+        if %_erl%==1 reg add "HKCU\Software\DataSpammer" /v "elevation" /t REG_SZ /d "pwsh" /f >nul && finish.installation
+        if %_erl%==2 reg add "HKCU\Software\DataSpammer" /v "elevation" /t REG_SZ /d "off" /f >nul && finish.installation
     goto sys.main.installer.done
-
-:v6.port
-    :: Port to V6, add Registry Keys
-    echo Porting to V6...
-    echo Adding Registry Key...
-    reg add "HKCU\Software\DataSpammer" /v Installed /t REG_DWORD /d 1 /f
-    reg add "HKCU\Software\DataSpammer" /v Version /t REG_SZ /d "%current_script_version%" /f
-    echo Done. 
-    echo Consider reinstalling the Script to avoid any issues. 
-    goto restart.script
-
-:ifp.install
-    :: If Script was installed by Install Forge add Registry Stuff here
-    :: Add Script to Windows App List
-    set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
-    if defined ProgramFiles(x86) (
-        set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
-    )
-    reg add "%RegPath%" /v "DisplayName" /d "DataSpammer" /f
-    reg add "%RegPath%" /v "DisplayVersion" /d "%current_script_version%" /f
-    reg add "%RegPath%" /v "InstallLocation" /d "%directory9%" /f
-    reg add "%RegPath%" /v "Publisher" /d "PIRANY1" /f
-    reg add "%RegPath%" /v "UninstallString" /d "%directory9%\dataspammer.bat remove" /f
-
-    :: Add Reg Key - Remember Installed Status
-    reg add "HKCU\Software\DataSpammer" /v Installed /t REG_DWORD /d 1 /f
-    reg add "HKCU\Software\DataSpammer" /v Version /t REG_SZ /d "%current_script_version%" /f
-
-    :: Add Script to PATH
-    if defined addpath1 ( setx PATH "%PATH%;%directory9%\DataSpammer.bat" /M >nul )
-
-    :: Add Remember Encrypted State Token
-    call :generateRandom
-    reg add "HKCU\Software\DataSpammer" /v Token /t REG_SZ /d "%realrandom%" /f
-    reg add "HKCU\Software\DataSpammer" /v logging /t REG_SZ /d "1" /f
-    reg add "HKCU\Software\DataSpammer" /v color /t REG_SZ /d "02" /f
-    echo Successfully Installed.
-    goto restart.script
-
-:encrypt.script
-    :: Encrypt Script Files, bypass Antivirus Detection
-    for /f "delims=" %%a in ('where certutil') do (
-        set "where_output=%%a"
-    )  
-    if not defined where_output goto finish.installation
-    call :generateRandom
-    reg add "HKCU\Software\DataSpammer" /v Token /t REG_SZ /d "%realrandom%" /f
-    (
-        @echo off
-        echo FF FE 0D 0A 63 6C 73 0D 0A > "%directory9%\temp_hex.txt"
-        certutil -f -decodehex "%directory9%\temp_hex.txt" "%directory9%\temp_prefix.bin"
-        move "%directory9%\dataspammer.bat" "%directory9%\original_dataspammer.bat"
-        copy /b "%directory9%\temp_prefix.bin" + "%directory9%\original_dataspammer.bat" "%directory9%\dataspammer.bat"
-        erase "%directory9%\temp_hex.txt"
-        erase "%directory9%\temp_prefix.bin"
-        Cipher /E "%directory9%\dataspammer.bat"
-        start %cmdPath% /c "%directory9%\dataspammer.bat"
-        erase "%directory9%\encrypt.bat"
-        exit %errorlevel%
-    ) > "%directory9%\encrypt.bat"
-     
-    start %powershell_short% -Command "Start-Process '%directory9%\encrypt.bat' -Verb runAs"
-    goto cancel
-
 
 :finish.installation
     :: Restart Script Process 
