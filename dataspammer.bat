@@ -3495,7 +3495,7 @@
         %powershell_short% -Command "Start-Process '%~f0' -Verb runAs"
         goto cancel
     )
-
+    call :dataspammer.hash.check
     @title DataSpammer - Install
     %$Echo% "   ____        _        ____
     %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __
@@ -3550,15 +3550,12 @@
     set "addpath=Not Included"
 
 :installer.menu.select
-    echo Some Files may get flagged as Malware by Antivirus Software.
-    call :sys.lt 1
-    echo:
     call :sys.lt 1
     echo The script will install itself in the following directory: %directory%
     call :sys.lt 1
     echo:
     call :sys.lt 1
-    echo [1] (%startmenushortcut%) Startmenu Shortcut/All Apps List 
+    echo [1] (%startmenushortcut%) Startmenu Shortcut
     call :sys.lt 1
     echo: 
     call :sys.lt 1
@@ -3651,7 +3648,6 @@
         goto menu
     )
 
-
     :: Create Desktop Icon w. pre defined Variables
     set "targetShortcut=%USERPROFILE%\Desktop\DataSpammer.lnk"
     set "targetPath=%directory9%\DataSpammer.bat"
@@ -3659,9 +3655,9 @@
         %powershell_short% -Command "$WshShell = New-Object -ComObject WScript.Shell; $Shortcut = $WshShell.CreateShortcut('%targetShortcut%'); $Shortcut.TargetPath = '%targetPath%'; $Shortcut.Save()"
     ) >nul 
 
-
     :: Add Script to PATH
     if defined addpath1 ( setx PATH "%PATH%;%directory9%\DataSpammer.bat" /M >nul )
+
 
 :sys.main.installer.done
     :: Elevate Flag
