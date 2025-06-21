@@ -4,6 +4,7 @@
 *.bak
 *.swp
 *.~*
+*.lock
 
 # Logs and output files
 *.log

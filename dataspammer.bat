@@ -80,13 +80,13 @@
 ::      Add Enviroment Simulator Script for Testing.
 ::      Replace . & - with _ in Variables & Labels
 ::      Verify CIF Parser
+::      Optimize Wait.exe
 ::      Add Locales
 
 ::      V6 Requirements:
-::      Add Workflows
-::      Fix Wait.exe Delay - Hard to change
-::      Improve Window Sizing
-::      Fix Color Keeping
+::      Add Workflow
+::      Fix Verbose when disabled. 
+::      Revert Color to White
 
 :top
     @echo off
@@ -102,7 +102,7 @@
     if "%DIRNAME%"=="" set DIRNAME=.
 
     :: Set Window Size
-    mode con: cols=140 lines=40
+    mode con: cols=120 lines=35
 
     :: Development / Production Flag
     set "current_script_version=development"
@@ -464,7 +464,7 @@
             call :color _Red "Be aware that some tasks may not have finished properly."
             if !logging! == 1 call :log DataSpammer_may_have_crashed ERROR
             del "%~dp0\dataspammer.lock" >nul 2>&1
-            call :sys.lt 4 timeout
+            timeout /t 5 /nobreak >nul
         )
     ) else (
         :: No PID found in lock file. Delete it 
@@ -702,6 +702,8 @@
     echo [5] Cancel
     echo:
     echo:
+    pause
+    goto :menu
     choice /C 12345S /T 120 /D S /M "Choose an Option from Above: "
         set _erl=%errorlevel%
         if %_erl%==1 goto start
@@ -2832,6 +2834,10 @@
     :: Color output
     <nul set /p "=!esc![!code!!text!!esc![0m"
     echo:
+
+    :: Stelle die in %color% definierte Grundfarbe wieder her
+    if defined color color %color%
+    
     exit /b
 
 
@@ -2865,7 +2871,8 @@
 :sys.lt
     setlocal EnableDelayedExpansion
     :: Wait for a given time, supports wait.exe
-    if exist "%~dp0\wait.exe" ( wait.exe %~1 )
+    :: Delay until execution is ca. 300-500ms 
+    if exist "%~dp0\wait.exe" ( "%~dp0\wait.exe" %~1 )
     if /i "%~2"=="timeout" (
         %timeout% /t %~1 >nul
     )
