@@ -4,12 +4,13 @@
 
 ### Stress-Test Features
 
-ICMP, SSH, FTP, DNS, HTTP(S), Printer Spam, Desktop Spam, Folder Spam, Start Menu Spam, App List Spam
+ICMP, SSH, FTP, DNS, Telnet, HTTP(S), Printer (List) Spam, Desktop Spam, Folder Spam, Start Menu Spam, App List Spam, ZIP Bomb Creator, Encrypt / Decrypt 
 
 ### Other Features
 
-Desktop Shortcut, Autostart, Auto Update, Logging, Elevation via sudo/pwsh/gsudo, Encryption, Debugging, Secure Authentication
-Login, Monitor Socket, Debug Test, Various Functions, Coloring Support (NCS / ANSI), Settings, Registry Support, Applist Support
+Desktop Shortcut, Auto Update, Logging, Elevation via sudo/pwsh/gsudo, Encryption, Debugging, Secure Authentication
+Login, Monitor Socket, Coloring Support (NCS / ANSI), Settings via Registry, Applist Support, Emoji Suppot, 
+Custom CHCP Support, Portable Install & many more Features
 
 ## Install
 

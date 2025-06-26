@@ -74,8 +74,10 @@
 :: =============================================================
 
 :: Todo: 
-::      Add more Comments, Logs , Socket Messages, Error Handling and Coloring
-::      Implement echo Verbose Message >destination%
+::      Add more Comments, Logs , Socket Messages, Error Checks and Color
+::      Implement echo Verbose Message >%destination%
+::      Add more Emojis (emoji_info=ℹ️, emoji_warning=⚠️, emoji_error=❌, emoji_okay=✅)
+
 ::      Fix Updater - Clueless After 3 Gazillion Updates - Hopefully Fixed
 ::      Add Enviroment Simulator Script for Testing.
 ::      Replace . & - with _ in Variables & Labels
@@ -86,7 +88,7 @@
 ::      V6 Requirements:
 ::      Add Workflow
 ::      Fix Verbose when disabled. 
-::      Revert Color to White
+::      Fix Lock Ignore
 
 :top
     @echo off
@@ -324,89 +326,101 @@
     :: Parse Config
     call :parse.settings
 
+    if "%chcp%"=="65001" (
+        call :color _Green "Enabling Emoji Support"
+        set "emoji_okay=✅ "
+        set "emoji_error=❌ "
+        set "emoji_warning=⚠️ "
+        set "emoji_info=ℹ️ "
+        call :color _Green "%emoji_okay%Enabled Emoji Support"
+    ) else (
+        call :color _Green "Codepage is not set to 65001, disabling Emoji Support"
+    )
+
     if "%verbose%"=="1" (
-        call :color _Green "Verbose Output is Disabled"
+        call :color _Green "%emoji_okay%Verbose Output is Disabled"
         set "destination=CON"
     ) else (
-        call :color _Green "Verbose Output is Enabled"
+        call :color _Green "%emoji_okay%Verbose Output is Enabled"
         set "destination=nul"
     )
 
     : Apply Custom Codepage if defined
     if chcp neq 0 (
         chcp %chcp% >nul
-        call :color _Green "Codepage set to %chcp%"
+        call :color _Green "%emoji_okay%Codepage set to %chcp%"
     )
-    
+
     :: Apply Color from Settings
-    if defined color ( color %color% >nul ) else ( color 02 >nul )
+    if defined color ( color %color% >nul ) else ( color 0F >nul )
 
     :: Elevate Script with sudo, gsudo or powershell
     net session >nul 2>&1
     if %errorLevel% neq 0 (
         if "%elevation%"=="sudo" (
             for /f "delims=" %%A in ('where sudo') do set SUDO_PATH=%%A
-            %SUDO_PATH% "%cmdPath%" /c "%~f0" %b.flag% || goto elevation_failed
+            %SUDO_PATH% --new-window -- "%LocalAppData%\Microsoft\WindowsApps\wt.exe" %cmdPath% /c ""%~f0" %b.flag%%v.flag%" || goto elevation_failed
             goto cancel
         )
         if "%elevation%"=="gsudo" (
             for /f "delims=" %%A in ('where gsudo') do set GSUDO_PATH=%%A
-            %GSUDO_PATH% "%cmdPath%" /c "%~f0" %b.flag% || goto elevation_failed
+            %GSUDO_PATH% --new "%LocalAppData%\Microsoft\WindowsApps\wt.exe" %cmdPath% /c ""%~f0" %b.flag%%v.flag%" || goto elevation_failed
             goto cancel
         )
         if "%elevation%"=="pwsh" (
-            %powershell_short% -Command "Start-Process '%cmdPath%' -ArgumentList '/c \"%~f0\" %b.flag%' -Verb runAs" || goto elevation_failed
+            %powershell_short% -Command "Start-Process `"$env:LocalAppData\Microsoft\WindowsApps\wt.exe`" -ArgumentList 'cmd.exe /c ""%~f0"" %b.flag%%v.flag%' -Verb RunAs" || goto elevation_failed
             goto cancel
         )
         if "%elevation%"=="off" (
-            call :color _Green "Elevation is disabled."
+            call :color _Green "%emoji_okay%Elevation is disabled."
         ) else (
             %errormsg%
-            call :color _Red "Error while trying to elevate script."
-            call :color _Yellow "Please run the script manually as Administrator."
+            call :color _Red "%emoji_error%Error while trying to elevate script."
+            call :color _Yellow "%emoji_warning%Please run the script manually as Administrator."
             pause
             goto cancel
         )
     )
+    call :color _Green "%emoji_okay%Elevation successful."
     cd /d "%~dp0"
 
     if defined PROCESSOR_ARCHITEW6432 (
         %errormsg%
-        call :color _Red "Running as 32-Bit on 64-Bit Windows"
-        call :color _Yellow "Relaunching as 64-Bit..."
+        call :color _Red "%emoji_error%Running as 32-Bit on 64-Bit Windows"
+        call :color _Yellow "%emoji_warning%Relaunching as 64-Bit..."
         start %cmdPath% /c "%~f0" %b.flag%
         call :sys.lt 5 count
         goto cancel
     ) else (
-        call :color _Green "Running on 64-Bit Windows"
+        call :color _Green "%emoji_okay%Running on 64-Bit Windows"
     )
 
     :: Check if Temp Folder is writable
     call :rw.check "%temp%"
     if "%errorlevel%"=="1" (
         %errormsg%
-        call :color _Red "Temp Folder is not writable."
+        call :color _Red "%emoji_error%Temp Folder is not writable."
         echo Script may not work properly.
         call :sys.lt 10 count
     ) else (
-        call :color _Green "Temp Folder is writable."
+        call :color _Green "%emoji_okay%Temp Folder is writable."
     )
 
     :: Check if local dir is writable
     call :rw.check "%exec-dir%"
     if "%errorlevel%"=="1" (
         %errormsg%
-        call :color _Red "Local Directory is not writable."
+        call :color _Red "%emoji_error%Local Directory is not writable."
         echo Script may not work properly.
         call :sys.lt 10 count
     ) else (
-        call :color _Green "Local Directory is writable."
+        call :color _Green "%emoji_okay%Local Directory is writable."
     )
     goto pid.check
     
 :elevation_failed
     %errormsg%
-    call :color _Red "Failed to elevate script."
+    call :color _Red "%emoji_error%Failed to elevate script."
     echo Please run the script as Administrator.
     echo Script will exit in 5 seconds...
     call :sys.lt 5 count
@@ -420,9 +434,9 @@
     if exist "%temp%\parent_pid.txt" ( set /p PID=<"%temp%\parent_pid.txt" ) else ( set "PID=0000" && %errormsg% && call :color _Red "Failed to get Parent PID" && call :sys.lt 4 count) 
     
     :: If PID is empty, set to 0000
-    if "%PID%"=="" ( set "PID=0000" && %errormsg% && call :color _Red "Failed to Parse Parent PID" && call :sys.lt 4 count)
+    if "%PID%"=="" ( set "PID=0000" && %errormsg% && call :color _Red "%emoji_error%Failed to Parse Parent PID" && call :sys.lt 4 count)
     del "%temp%\parent_pid.txt" >nul
-    call :color _Green "Got PID: %PID%"
+    call :color _Green "%emoji_okay%Got PID: %PID%"
 
     :: Allow Better Readability
     if "%logging%"=="1" (
@@ -454,14 +468,14 @@
         tasklist /FI "PID eq !pidlock!" | findstr /i "!pidlock!" >nul
         if !errorlevel! == 0 (
             :: process is already running under pidlock, exit
-            call :color _Red "DataSpammer is already running under PID !pidlock!."
+            call :color _Red "%emoji_error%DataSpammer is already running under PID !pidlock!."
             if !logging! == 1 call :log DataSpammer_Already_Running ERROR
             echo Exiting...
             pause
             goto cancel
         ) else (
-            call :color _Red "DataSpammer may have crashed or was closed. Deleting lock file..."
-            call :color _Red "Be aware that some tasks may not have finished properly."
+            call :color _Red "%emoji_error%DataSpammer may have crashed or was closed. Deleting lock file..."
+            call :color _Red "%emoji_error%Be aware that some tasks may not have finished properly."
             if !logging! == 1 call :log DataSpammer_may_have_crashed ERROR
             del "%~dp0\dataspammer.lock" >nul 2>&1
             timeout /t 5 /nobreak >nul
@@ -476,7 +490,7 @@
     :lock.create
     :: Create a new lock & write current PID to it
     > "%~dp0\dataspammer.lock" echo %PID%
-    if "%errorlevel%"=="1" ( %errormsg% && call :color _Red "Failed to create lock file." && call :sys.lt 6 count )
+    if "%errorlevel%"=="1" ( %errormsg% && call :color _Red "%emoji_error%Failed to create lock file." && call :sys.lt 6 count )
 
     :: Start the Monitor Socket
     if "%monitoring%"=="1" (
@@ -555,7 +569,7 @@
     if %logging% == 1 ( call :log Calling_Update_Check INFO )
     :: If Script is in Development Mode, skip the update check
     if "%current_script_version%"=="development" (
-        call :color _Green "Development Version, Skipping Update"
+        call :color _Green "%emoji_okay%Development Version, Skipping Update"
         call :sys.lt 5
         if "%logging%"=="1" ( call :log Skipped_Update_Check_%current_script_version%_Development_Version WARN )
         exit /b 0
@@ -659,7 +673,7 @@
     if defined color (
         color %color% >nul
     ) else (
-        color 02 >nul
+        color 0F >nul
     )
     cd /d "%~dp0"
     if %logging% == 1 ( call :log Displaying_Menu INFO )
@@ -808,7 +822,7 @@
     call :sys.lt 1
     echo [6] Change Color
     call :sys.lt 1
-    echo [7] Change Codepage
+    echo [7] Change Codepage ( Emoji Support)
     call :sys.lt 1
     echo [8] Download Wait.exe - Improve Speed / Wait Time - Source is at PIRANY1/wait.exe (ALPHA)
     call :sys.lt 1
@@ -918,7 +932,7 @@
         echo Failed to move wait.exe. 
         exit /b 1
     )
-    call :color _Green "wait.exe installed successfully."
+    call :color _Green "%emoji_okay%wait.exe installed successfully."
     echo Restarting...
     goto restart.script
 
@@ -947,7 +961,7 @@
     echo 869	Modern Greek	 
     echo 1252	West European Latin	 
     echo 65000	UTF-7 *	 
-    echo 65001	UTF-8 *
+    echo 65001	UTF-8 * (Enabling this will enable Emojis Too)
     set /p chcp.var=Please enter the Codepage:
     call :update_config "chcp" "" "%chcp.var%" 
     goto restart.script
@@ -2224,7 +2238,7 @@
     call :generateRandom
     reg add "HKCU\Software\DataSpammer" /v Token /t REG_SZ /d "%realrandom%" /f
     reg add "HKCU\Software\DataSpammer" /v logging /t REG_SZ /d "1" /f
-    reg add "HKCU\Software\DataSpammer" /v color /t REG_SZ /d "02" /f
+    reg add "HKCU\Software\DataSpammer" /v color /t REG_SZ /d "0F" /f
     echo Successfully Installed.
     goto restart.script
 
@@ -2234,7 +2248,7 @@
     set "interpret.dts=%~1"
     if not exist "%interpret.dts%" (
         %errormsg%
-        call :color _Red "Custom Instruction File does not exist."
+        call :color _Red "%emoji_error%Custom Instruction File does not exist."
         echo Please check the path and try again.
         call :sys.lt 5 count
         goto cancel
@@ -2688,22 +2702,22 @@
     set "testfilename=tmpcheck_%random%"
     set "testfile=%rw.path%\%testfilename%.tmp"
     echo. > "%testfile%" 2>nul || (
-        call :color _Red "Could not create a temporary file in the directory "%rw.path%"."
+        call :color _Red "%emoji_error%Could not create a temporary file in the directory "%rw.path%"."
         exit /b 1
     )
     if not exist "%rw.path%\" (
-        call :color _Red "The directory "%rw.path%" does not exist."
+        call :color _Red "%emoji_error%The directory "%rw.path%" does not exist."
         exit /b 1
     )
 
     ren "%testfile%" "%testfilename%.locked" 2>nul || (
-        call :color _Red "The directory "%rw.path%" is not writable."
+        call :color _Red "%emoji_error%The directory "%rw.path%" is not writable."
         del "%testfile%" 2>nul
         exit /b 1
     )
 
     del "%rw.path%\%testfilename%.locked" 2>nul
-    call :color _Green "The directory "%rw.path%" exists and is writable."
+    call :color _Green "%emoji_okay%The directory "%rw.path%" exists and is writable."
     exit /b 0
 
 
@@ -2835,7 +2849,7 @@
     <nul set /p "=!esc![!code!!text!!esc![0m"
     echo:
 
-    :: Stelle die in %color% definierte Grundfarbe wieder her
+    :: Reset Base Color
     if defined color color %color%
     
     exit /b
@@ -2872,7 +2886,10 @@
     setlocal EnableDelayedExpansion
     :: Wait for a given time, supports wait.exe
     :: Delay until execution is ca. 300-500ms 
-    if exist "%~dp0\wait.exe" ( "%~dp0\wait.exe" %~1 )
+    if exist "%~dp0\wait.exe" ( 
+        set /a "wait_time=%~1 * 500"
+        "%~dp0\wait.exe" -s %wait_time%ms
+    )
     if /i "%~2"=="timeout" (
         %timeout% /t %~1 >nul
     )
@@ -2913,7 +2930,7 @@
     if not defined logging set "logging=1"
     if not defined elevation set "elevation=pwsh"
     if not defined verbose set "verbose=0"
-    set "color=02"
+    if not defined color set "color=0F"
 
     for /f "tokens=2 delims=:" %%A in ('chcp') do (
         set "chcp.value=%%A"
@@ -2939,6 +2956,21 @@
 
     if "%logging%"==2 if "%~2"=="INFO" exit /b 0
 
+    :: Log with Emoji
+    if defined emoji_okay (
+        if "%~2"=="WARN" (
+            set "emoji_log=⚠️ %~2"
+        ) else if "%~2"=="ERROR" (
+            set "emoji_log=❌ %~2"
+        ) else if "%~2"=="INFO" (
+            set "emoji_log=ℹ️ %~2"
+        ) else (
+            set "emoji_log=%~2"
+        )
+    ) else (
+        set "emoji_log=%~2"
+    )
+
     call :check_args :log "%~1"
     set "log.content=%~1"
     set "logfile=DataSpammer.log"
@@ -2957,9 +2989,9 @@
 
 
     for /f "tokens=1-3 delims=:." %%a in ("%time%") do set formatted_time=%%a:%%b:%%c
-    echo [ DataSpammer / %~2 ][%date% - %formatted_time%]: %log.content.clean% >> "%folder%\%logfile%"
+    echo [ DataSpammer / %emoji_log% ][%date% - %formatted_time%]: %log.content.clean% >> "%folder%\%logfile%"
     :: If Verbose is On Display Log to Screen
-    if "%verbose%"=="1" echo Writing Log: [ DataSpammer / %~2 ][%date% - %formatted_time%]: %log.content.clean%
+    if "%verbose%"=="1" echo Writing Log: [ DataSpammer / %emoji_log% ][%date% - %formatted_time%]: %log.content.clean%
     exit /b %errorlevel%
     
 
@@ -2994,10 +3026,10 @@
     :: Check if the registry command was successful
     if errorlevel 1 (
         %errormsg%
-        call :color _Red "Error updating registry key %key%."
+        call :color _Red "%emoji_error%Error updating registry key %key%."
         exit /b 1
     ) else (
-        call :color _Green "Successfully updated %key% to '%new_value%'."
+        call :color _Green "%emoji_okay%Successfully updated %key% to '%new_value%'."
     )
 
     exit /b 0
@@ -3692,7 +3724,7 @@
     reg add "HKCU\Software\DataSpammer" /v Installed /t REG_DWORD /d "1" /f
     reg add "HKCU\Software\DataSpammer" /v Version /t REG_SZ /d "%current_script_version%" /f
     reg add "HKCU\Software\DataSpammer" /v logging /t REG_SZ /d "1" /f
-    reg add "HKCU\Software\DataSpammer" /v color /t REG_SZ /d "02" /f
+    reg add "HKCU\Software\DataSpammer" /v color /t REG_SZ /d "0F" /f
     echo Is the Script in a directory that requires Administrative Privileges?
     choice /C YN /M "(Y)es/(N)o"
         set _erl=%errorlevel%
