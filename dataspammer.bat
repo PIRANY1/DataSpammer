@@ -1,8 +1,7 @@
 :: Use only under License
 :: Contribute under https://github.com/PIRANY1/DataSpammer
 :: Version v6 - DEVELOPMENT
-:: Last edited on 12.06.2025 by PIRANY
-:: SHA256 Hash: 
+:: Last edited on 27.06.2025 by PIRANY
 
 :: Some Functions are inspired from the MAS Script. 
 
@@ -87,8 +86,6 @@
 
 ::      V6 Requirements:
 ::      Add Workflow
-::      Fix Verbose when disabled. 
-::      Fix Lock Ignore
 
 :top
     @echo off
@@ -337,6 +334,7 @@
         call :color _Green "Codepage is not set to 65001, disabling Emoji Support"
     )
 
+    :: Check if Verbose is enabled
     if "%verbose%"=="1" (
         call :color _Green "%emoji_okay%Verbose Output is Disabled"
         set "destination=CON"
@@ -344,6 +342,8 @@
         call :color _Green "%emoji_okay%Verbose Output is Enabled"
         set "destination=nul"
     )
+    :: Be Extra Safe
+    if not defined destination ( set "destination=nul")
 
     : Apply Custom Codepage if defined
     if chcp neq 0 (
@@ -353,6 +353,20 @@
 
     :: Apply Color from Settings
     if defined color ( color %color% >nul ) else ( color 0F >nul )
+
+    :: Check if Terminal is installed
+    for /f "delims=" %%a in ('where wt') do (
+        set "WT_PATH=%%a"
+    )
+    if not defined WT_PATH (
+        call :color _Red "%emoji_error%wt.exe not found in PATH."
+        call :color _Yellow "%emoji_warning%Falling back to cmd.exe"
+        set "elevPath=cmd.exe"
+    ) else (
+        call :color _Green "%emoji_okay%wt.exe found at: !WT_PATH!"
+        set "elevPath=wt"
+    )
+
 
     :: Elevate Script with sudo, gsudo or powershell
     net session >nul 2>&1
@@ -368,7 +382,7 @@
             goto cancel
         )
         if "%elevation%"=="pwsh" (
-            %powershell_short% -Command "Start-Process `"$env:LocalAppData\Microsoft\WindowsApps\wt.exe`" -ArgumentList 'cmd.exe /c ""%~f0"" %b.flag%%v.flag%' -Verb RunAs" || goto elevation_failed
+            %powershell_short% -Command "Start-Process '%elevPath%' -ArgumentList 'cmd.exe /c ""%~f0"" %b.flag%%v.flag%' -Verb RunAs" || goto elevation_failed
             goto cancel
         )
         if "%elevation%"=="off" (
@@ -463,6 +477,10 @@
 
     if "%logging%"=="1" call :log PID-Check_Results:PID:!PID!_PIDlock:!pidlock! INFO
     
+    echo PID: %pid% >%destination%
+    echo Lock PID: %pidlock% >%destination%
+ 
+
     :: If Lock could be parsed check if process is running
     if defined pidlock (
         tasklist /FI "PID eq !pidlock!" | findstr /i "!pidlock!" >nul
