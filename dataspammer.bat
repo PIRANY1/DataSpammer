@@ -85,7 +85,7 @@
 ::      Add Locales
 
 ::      V6 Stuff:
-::      Verify Script
+::      Verify Basis Functions & Custom Dir Install
 ::      Add Emoji Exception in :color
 
 :top
@@ -2382,7 +2382,12 @@
     if exist "%~dp0\LICENSE" del "%~dp0\LICENSE"
     if exist "%~dp0\README.md" del "%~dp0\README.md"
     if exist "%USERPROFILE%\Desktop\DataSpammer.lnk" "erase %USERPROFILE%\Desktop\DataSpammer.lnk"
-    if exist ""%ProgramData%\Microsoft\Windows\Start Menu\Programs\Dataspammer.bat"" erase "%ProgramData%\Microsoft\Windows\Start Menu\Programs\Dataspammer.bat"
+    set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
+    if defined ProgramFiles(x86) (
+        set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
+    )
+    reg delete "%RegPath%" /f >nul 2>&1
+    if exist "%ProgramData%\Microsoft\Windows\Start Menu\Programs\Dataspammer.bat" erase "%ProgramData%\Microsoft\Windows\Start Menu\Programs\Dataspammer.bat"
     if exist "%userprofile%\Documents\DataSpammerLog\" del /S /Q "%userprofile%\Documents\DataSpammerLog"
     reg query "HKCU\Software\DataSpammer" /v Installed >nul 2>&1
     if not %errorlevel% neq 0 ( reg delete "HKCU\Software\DataSpammer" /f )
@@ -3640,7 +3645,7 @@
     w32tm /resync >nul 2>&1 
     :: Main Install Code
     set "directory9=%directory%DataSpammer\"
-    mkdir "%directory9%" 
+    mkdir "%directory9%" >nul
     cd /d "%~dp0"
     copy "%~dp0dataspammer.bat" "%directory9%\" >nul 2>&1
     move "%~dp0README.md" "%directory9%\" >nul 2>&1
@@ -3676,28 +3681,21 @@
     if defined ProgramFiles(x86) (
         set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
     )
-    reg add "%RegPath%" /v "DisplayName" /d "DataSpammer" /f
-    reg add "%RegPath%" /v "DisplayVersion" /d "%current_script_version%" /f
-    reg add "%RegPath%" /v "InstallLocation" /d "%directory9%" /f
-    reg add "%RegPath%" /v "Publisher" /d "PIRANY1" /f
-    reg add "%RegPath%" /v "UninstallString" /d "%directory9%\dataspammer.bat remove" /f
+    reg add "%RegPath%" /v "DisplayName" /d "DataSpammer" /f >nul
+    reg add "%RegPath%" /v "DisplayVersion" /d "%current_script_version%" /f >nul
+    reg add "%RegPath%" /v "InstallLocation" /d "%directory9%" /f >nul
+    reg add "%RegPath%" /v "Publisher" /d "PIRANY1" /f >nul
+    reg add "%RegPath%" /v "UninstallString" /d "%directory9%\dataspammer.bat remove" /f >nul
 
     :: Add Reg Key - Remember Installed Status
-    reg add "HKCU\Software\DataSpammer" /v Installed /t REG_DWORD /d 1 /f
-    reg add "HKCU\Software\DataSpammer" /v Version /t REG_SZ /d "%current_script_version%" /f
+    reg add "HKCU\Software\DataSpammer" /v Installed /t REG_DWORD /d 1 /f >nul
+    reg add "HKCU\Software\DataSpammer" /v Version /t REG_SZ /d "%current_script_version%" /f >nul
 
     :: Create Startmenu Shortcut
     if defined startmenushortcut1 (
-        echo Adding Startmenu Shortcut
-        %powershell_short% -Command ^
-         $WshShell = New-Object -ComObject WScript.Shell; ^
-         $Shortcut = $WshShell.CreateShortcut('%ProgramData%\Microsoft\Windows\Start Menu\Programs\DataSpammer.lnk'); ^
-         $Shortcut.TargetPath = '%directory9%\dataspammer.bat'; ^
-         $Shortcut.Save()
-        echo Added Startmenu Shortcut
-        call :sys.lt 4
-        goto menu
-    )
+        %powershell_short% -Command "$s=New-Object -ComObject WScript.Shell;$sc=$s.CreateShortcut('%ProgramData%\Microsoft\Windows\Start Menu\Programs\DataSpammer.lnk');$sc.TargetPath='%directory9%\dataspammer.bat';$sc.Save()"
+        echo Startmenu Shortcut created.
+    ) >nul
 
     :: Create Desktop Icon w. pre defined Variables
     set "targetShortcut=%USERPROFILE%\Desktop\DataSpammer.lnk"
@@ -3712,6 +3710,7 @@
 
 :sys.main.installer.done
     :: Elevate Flag
+    cls
     echo Do you want the script to request admin rights?
     echo This is recommended and can help some features work properly.
     echo If you don't have admin rights, it's best to choose "No".
@@ -3727,8 +3726,8 @@
     echo:
     choice /C 12 /M "1/2:"
         set _erl=%errorlevel%
-        if %_erl%==1 reg add "HKCU\Software\DataSpammer" /v "elevation" /t REG_SZ /d "pwsh" /f >nul && finish.installation
-        if %_erl%==2 reg add "HKCU\Software\DataSpammer" /v "elevation" /t REG_SZ /d "off" /f >nul && finish.installation
+        if %_erl%==1 reg add "HKCU\Software\DataSpammer" /v "elevation" /t REG_SZ /d "pwsh" /f >nul && goto finish.installation
+        if %_erl%==2 reg add "HKCU\Software\DataSpammer" /v "elevation" /t REG_SZ /d "off" /f >nul && goto finish.installation
     goto sys.main.installer.done
 
 :finish.installation
