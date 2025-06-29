@@ -9,7 +9,7 @@ permissions:
   security-events: write
 
 jobs:
-  convert-and-analyze:
+  Compile:
     runs-on: windows-latest
 
     steps:
@@ -28,4 +28,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: dataspammer.exe
-        path: ./build/dataspammer.exe
+        path: dataspammer.exe
