@@ -86,6 +86,7 @@
 
 ::      V6 Stuff:
 ::      Verify Script
+::      Add Emoji Exception in :color
 
 :top
     @echo off
