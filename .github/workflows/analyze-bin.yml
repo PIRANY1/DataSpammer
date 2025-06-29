@@ -24,14 +24,17 @@ jobs:
     - name: Convert dataspammer.bat to dataspammer.exe
       run: |
         .\BatToExe.exe /bat dataspammer.bat /exe dataspammer.exe /x64 /invisible /uac-admin
+    
+    - name: Setup MSVC developer environment
+      uses: ilammy/msvc-dev-cmd@v1
 
     - name: Apply ASLR flags with editbin
       run: |
-        & (Get-ChildItem "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\" -Directory | Sort-Object Name -Descending | Select-Object -First 1 | ForEach-Object { Join-Path $_.FullName "bin\Hostx64\x64\editbin.exe" }) /DYNAMICBASE /HIGHENTROPYVA dataspammer.exe
+        editbin.exe /DYNAMICBASE /HIGHENTROPYVA dataspammer.exe
 
     - name: Download BinSkim from NuGet
       run: |
-        Invoke-WebRequest \
+        Invoke-WebRequest `
           https://www.nuget.org/api/v2/package/Microsoft.CodeAnalysis.BinSkim -OutFile binskim.nupkg
 
     - name: Extract BinSkim
