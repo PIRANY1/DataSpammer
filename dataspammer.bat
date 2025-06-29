@@ -708,7 +708,7 @@
 
 
     call :sys.lt 1
-    echo Made by PIRANY - %current_script_version% - Logged in as %username.script% - Batch - CMD Version %CMD_VERSION%
+    echo Made by PIRANY - %current_script_version% - Logged in as %username.script% - Batch - CMD-Version %CMD_VERSION%
     call :sys.lt 1
     echo:
     call :sys.lt 1

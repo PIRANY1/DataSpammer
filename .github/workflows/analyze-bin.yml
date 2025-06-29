@@ -1,5 +1,4 @@
-name: Convert BAT to EXE, Patch & Analyze
-
+name: Compile DataSpammer.bat
 on:
   push:
     paths:
@@ -25,32 +24,8 @@ jobs:
       run: |
         .\BatToExe.exe /bat dataspammer.bat /exe dataspammer.exe /x64 /invisible /uac-admin
     
-    - name: Setup MSVC developer environment
-      uses: ilammy/msvc-dev-cmd@v1
-
-    - name: Apply security flags with editbin
-      shell: cmd
-      run: |
-        rem The .exe is created with /FIXED, which is incompatible with /DYNAMICBASE.
-        rem First, we remove /FIXED, then apply the ASLR flags.
-        editbin.exe /FIXED:NO dataspammer.exe
-        editbin.exe /DYNAMICBASE /HIGHENTROPYVA dataspammer.exe
-
-    - name: Download BinSkim from NuGet
-      run: |
-        Invoke-WebRequest `
-          https://www.nuget.org/api/v2/package/Microsoft.CodeAnalysis.BinSkim -OutFile binskim.nupkg
-
-    - name: Extract BinSkim
-      run: |
-        Rename-Item binskim.nupkg binskim.zip
-        Expand-Archive binskim.zip -DestinationPath binskim
-
-    - name: Run BinSkim analysis
-      run: |
-        .\binskim\tools\net9.0\win-x64\BinSkim.exe analyze dataspammer.exe --recurse --output results.sarif
-
-    - name: Upload SARIF report
-      uses: github/codeql-action/upload-sarif@v3
+    - name: Upload .exe as artifact
+      uses: actions/upload-artifact@v4
       with:
-        sarif_file: results.sarif
+        name: dataspammer.exe
+        path: ./build/dataspammer.exe
