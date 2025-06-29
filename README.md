@@ -1,6 +1,9 @@
 # DataSpammer
 
 ## Features
+> [!IMPORTANT]  
+> The entire script is currently being reworked in this [PR](https://github.com/PIRANY1/DataSpammer/pull/27).  
+> Because of this, the `main` branch is not receiving any updates at the moment.
 
 ### Stress-Test Features
 
