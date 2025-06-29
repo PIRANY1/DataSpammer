@@ -19,9 +19,7 @@ jobs:
 
     - name: Download Bat To Exe Converter
       run: |
-        Invoke-WebRequest \
-          https://github.com/l-urk/Bat-To-Exe-Converter-64-Bit/releases/download/3.2/Bat_To_Exe_Converter_x64.exe \
-          -OutFile BatToExe.exe
+        Invoke-WebRequest https://github.com/l-urk/Bat-To-Exe-Converter-64-Bit/releases/download/3.2/Bat_To_Exe_Converter_x64.exe -OutFile BatToExe.exe
 
     - name: Convert dataspammer.bat to dataspammer.exe
       run: |
@@ -29,14 +27,12 @@ jobs:
 
     - name: Apply ASLR flags with editbin
       run: |
-        '"C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\*\bin\Hostx64\x64\editbin.exe"' \
-        /DYNAMICBASE /HIGHENTROPYVA dataspammer.exe
+        '"C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\*\bin\Hostx64\x64\editbin.exe"' /DYNAMICBASE /HIGHENTROPYVA dataspammer.exe
 
     - name: Download BinSkim from NuGet
       run: |
         Invoke-WebRequest \
-          https://www.nuget.org/api/v2/package/Microsoft.CodeAnalysis.BinSkim \
-          -OutFile binskim.nupkg
+          https://www.nuget.org/api/v2/package/Microsoft.CodeAnalysis.BinSkim -OutFile binskim.nupkg
 
     - name: Extract BinSkim
       run: |
@@ -45,8 +41,7 @@ jobs:
 
     - name: Run BinSkim analysis
       run: |
-        .\binskim\tools\net9.0\win-x64\BinSkim.exe \
-          analyze dataspammer.exe --recurse --output results.sarif
+        .\binskim\tools\net9.0\win-x64\BinSkim.exe analyze dataspammer.exe --recurse --output results.sarif
 
     - name: Upload SARIF report
       uses: github/codeql-action/upload-sarif@v3

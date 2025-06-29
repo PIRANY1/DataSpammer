@@ -84,8 +84,7 @@
 ::      Optimize Wait.exe
 ::      Add Locales
 
-::      V6 Requirements:
-::      Add Workflow
+:: V6 : Check & Verify
 
 :top
     @echo off
