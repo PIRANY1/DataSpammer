@@ -26,13 +26,8 @@ jobs:
         .\BatToExe.exe /bat dataspammer.bat /exe dataspammer.exe /x64 /invisible /uac-admin
 
     - name: Apply ASLR flags with editbin
-      shell: pwsh
       run: |
-        $editbinPath = Get-ChildItem "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\" -Directory | 
-        Sort-Object Name -Descending | 
-        Select-Object -First 1 |
-        ForEach-Object { Join-Path $_.FullName "bin\Hostx64\x64\editbin.exe" }
-        & "$editbinPath" /DYNAMICBASE /HIGHENTROPYVA dataspammer.exe
+        & (Get-ChildItem "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\" -Directory | Sort-Object Name -Descending | Select-Object -First 1 | ForEach-Object { Join-Path $_.FullName "bin\Hostx64\x64\editbin.exe" }) /DYNAMICBASE /HIGHENTROPYVA dataspammer.exe
 
     - name: Download BinSkim from NuGet
       run: |
