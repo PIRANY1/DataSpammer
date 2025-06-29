@@ -84,7 +84,7 @@
 ::      Optimize Wait.exe
 ::      Add Locales
 
-:: V6 : Check & Verify
+::  V6 : Check & Verify
 
 :top
     @echo off
