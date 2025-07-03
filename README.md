@@ -1,5 +1,9 @@
 # DataSpammer
 
+![Tests](https://github.com/PIRANY1/wait-exe/actions/workflows/workflow.yml/badge.svg)
+
+Read this in: [German](https://github.com/PIRANY1/DataSpammerDE)
+
 ## Features
 > [!IMPORTANT]  
 > The entire script is currently being reworked in this [PR](https://github.com/PIRANY1/DataSpammer/pull/27).  

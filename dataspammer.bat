@@ -86,7 +86,8 @@
 
 ::      V6 Stuff:
 ::      Verify Basis Functions & Custom Dir Install
-::      Add Emoji Exception in :color
+::      Check WT Launching with same PID
+::      Use Emojis
 
 :top
     @echo off
@@ -2882,9 +2883,9 @@
     echo:
 
     :: Reset Base Color
-    if defined color color %color%
-    
-    exit /b
+    if defined color ( color %color% )
+
+    exit /b 0
 
 
 
