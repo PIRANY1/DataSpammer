@@ -124,7 +124,7 @@
     :: NCS is required for ANSI / Color Support
     call :check_NCS
     if "%_NCS%"=="1" ( 
-        call :color _Green "ANSI Color Support is enabled"
+        call :color _Green "ANSI Color Support is enabled" okay
     ) else (
         echo ANSI Color Support is not enabled.
     )
@@ -133,23 +133,23 @@
     for /f "delims=" %%P in ('where ping.exe 2^>nul') do set "ping=%%P"
     if not defined PING (
         %errormsg%
-        call :color _Red "Ping is not found."
-        call :color _Red "Please verify that PING is available in your PATH."
+        call :color _Red "Ping is not found." error
+        call :color _Red "Please verify that PING is available in your PATH." error
         call :sys.lt 10 count
         goto cancel
     ) else (
-        call :color _Green "Ping found at: !PING!"
+        call :color _Green "Ping found at: !PING!" okay
     )
     
     for /f "delims=" %%T in ('where timeout.exe 2^>nul') do set "timeout=%%T"
     if not defined TIMEOUT (
         %errormsg%
-        call :color _Red "Timeout is not found."
-        call :color _Red "Please verify that TIMEOUT is available in your PATH."
+        call :color _Red "Timeout is not found." error
+        call :color _Red "Please verify that TIMEOUT is available in your PATH." error
         call :sys.lt 10 count
         goto cancel
     ) else (
-        call :color _Green "Timeout found at: !TIMEOUT!"
+        call :color _Green "Timeout found at: !TIMEOUT!" okay
     )
 
     :: Set CMD Path based on Context - 64bit or 32bit
@@ -164,8 +164,8 @@
     if /I "%~dp0"=="%TEMP%" (
         cls
         %errormsg%
-        call :color _Red "The script was launched from the temp folder."
-        call :color _Yellow "You are most likely running the script directly from the archive file."
+        call :color _Red "The script was launched from the temp folder." error
+        call :color _Yellow "You are most likely running the script directly from the archive file." warning
         call :sys.lt 10 count
         goto cancel
     )
@@ -173,16 +173,16 @@
     :: Check if Script is running from Network Drive
     if /I "%~d0"=="\\\\" (
         %errormsg%
-        call :color _Red "The script was launched from a network drive."
-        call :color _Yellow "Installation may not work properly."
+        call :color _Red "The script was launched from a network drive." error
+        call :color _Yellow "Installation may not work properly." warning
         call :sys.lt 10 count
     )
 
     :: Check if Script is running from a UNC Path
     if /I "%~d0"=="\\" (
         %errormsg%
-        call :color _Red "The script was launched from a UNC path."
-        call :color _Yellow "Installation may not work properly."
+        call :color _Red "The script was launched from a UNC path." error
+        call :color _Yellow "Installation may not work properly." warning
         call :sys.lt 10 count
     )
 
@@ -204,12 +204,12 @@
         cls
         %errormsg%
         echo Detected Windows %winver%
-        call :color _Yellow "Warning: Some features may not work on this version."
-        call :color _Red "For full compatibility, please update to Windows 10 or 11."
-        call :color _Yellow "Note: certutil and other tools may be missing on older Windows versions."
+        call :color _Yellow "Warning: Some features may not work on this version." warning
+        call :color _Red "For full compatibility, please update to Windows 10 or 11." error
+        call :color _Yellow "Note: certutil and other tools may be missing on older Windows versions." warning
         call :sys.lt 10 count
     ) else (
-        call :color _Green "Windows Version is sufficient: %ver_full%"
+        call :color _Green "Windows Version is sufficient: %ver_full%" okay
     )    
 
 
@@ -220,12 +220,12 @@
     )
     if not defined powershell_location (
         %errormsg%
-        call :color _Red "Powershell is not found."
-        call :color _Red "Please verify that Powershell is installed & available in your PATH."
+        call :color _Red "Powershell is not found." error
+        call :color _Red "Please verify that Powershell is installed & available in your PATH." error
         call :sys.lt 10 count
         goto cancel
     ) else (
-        call :color _Green "Powershell found at: !powershell_location!"
+        call :color _Green "Powershell found at: !powershell_location!" okay
     )
     set "powershell_short=%powershell_location% -ExecutionPolicy Bypass -NoProfile -NoLogo"
     set "powershell_short_alternative=powershell -ExecutionPolicy Bypass -NoProfile -NoLogo"
@@ -234,34 +234,34 @@
     for /f "delims=." %%V in ('%powershell_short_alternative% "$PSVersionTable.PSVersion.Major"') do set "PS_MAJOR=%%V"
     if !PS_MAJOR! LSS 4 (
         %errormsg%
-        call :color _Red "PowerShell version is too old."
-        call :color _Red "Current version: !PS_MAJOR!.x"
-        echo Please update Powershell to at least version 4.
+        call :color _Red "PowerShell version is too old." error
+        call :color _Red "Current version: !PS_MAJOR!.x" error
+        call :color _Yellow "Please update Powershell to at least version 4." warning
         call :sys.lt 6 count
         goto cancel
     ) else (
-        call :color _Green "Powershell Version is sufficient: !PS_MAJOR!.x"
+        call :color _Green "Powershell Version is sufficient: !PS_MAJOR!.x" okay
     )
 
     :: Check for Line Issues
     findstr /v "$" "%~nx0" >nul
     if errorlevel 1 (
-        call :color _Green "Line endings are correct."
+        call :color _Green "Line endings are correct." okay
     ) else (
         %errormsg%
-        echo Script either has LF line ending issue or an empty line at the end of the script is missing.
-        call :sys.lt 20
+        call :color _Red "Script either has LF line ending issue or an empty line at the end of the script is missing. " error 
+        call :sys.lt 20 count
         goto cancel
     )
 
+    :: Check if Null Kernel Service is running
     sc query Null | find /i "RUNNING" >nul
     if %errorlevel% NEQ 0 (
         %errormsg%
-        echo Null Kernel service is not running, script may crash...
-        echo:
-        call :sys.lt 20
+        call :color _Red "Null Kernel service is not running, script may crash. " error
+        call :sys.lt 20 count
     ) else (
-        call :color _Green "Null Kernel service is running."
+        call :color _Green "Null Kernel service is running." okay
     )
 
     :: If no arguments are given, start the script normally
@@ -299,8 +299,8 @@
     :: Check for Install Reg Key
     reg query "HKCU\Software\DataSpammer" /v Installed >nul 2>&1
     if %errorlevel% neq 0 (
-        call :color _Red "Installation was not executed."
-        call :color _Green "Opening installer..."
+        call :color _Red "Installation was not executed." error
+        call :color _Green "Opening installer..." okay
         goto installer.main.window
     )
 
@@ -316,7 +316,7 @@
     
     :: Check if RegKey is outdated
     if not "%reg_version%"=="%current_script_version%" (
-        call :color _Red "Script Version Registry Key is outdated."
+        call :color _Red "Script Version Registry Key is outdated." error
         choice /C YN /M "Do you want to update the Registry Key? (Y/N)"
         set "_erl=%errorlevel%"
         if "%_erl%"=="1" ( goto sys.new.update.installed )
@@ -328,7 +328,7 @@
     if "%chcp%"=="65001" (
         call :color _Green "Enabled Emoji Support" okay
     ) else (
-        call :color _Green "Codepage is not set to 65001, disabling Emoji Support"
+        call :color _Green "Codepage is not set to 65001, disabling Emoji Support" error
     )
 
     :: Check if Verbose is enabled
@@ -411,7 +411,7 @@
     if "%errorlevel%"=="1" (
         %errormsg%
         call :color _Red "Temp Folder is not writable." error
-        echo Script may not work properly.
+        call :color _Yellow "Script may not work properly." warning
         call :sys.lt 10 count
     ) else (
         call :color _Green "Temp Folder is writable." okay
@@ -422,7 +422,7 @@
     if "%errorlevel%"=="1" (
         %errormsg%
         call :color _Red "Local Directory is not writable." error
-        echo Script may not work properly.
+        call :color _Yellow "Script may not work properly." warning
         call :sys.lt 10 count
     ) else (
         call :color _Green "Local Directory is writable." okay
@@ -432,8 +432,8 @@
 :elevation_failed
     %errormsg%
     call :color _Red "Failed to elevate script." error
-    echo Please run the script as Administrator.
-    echo Script will exit in 5 seconds...
+    call :color _Yellow "Please run the script manually as Administrator." warning
+    echo :color _Yellow "Exiting in 5 Seconds " warning
     call :sys.lt 5 count
     goto cancel
 
@@ -476,7 +476,6 @@
     
     echo PID: %pid% >%destination%
     echo Lock PID: %pidlock% >%destination%
- 
 
     :: If Lock could be parsed check if process is running
     if defined pidlock (
@@ -497,7 +496,7 @@
         )
     ) else (
         :: No PID found in lock file. Delete it 
-        echo No PID Found - Deleting Lock...
+        call :color _Yellow "No PID Found - Deleting Lock..." warning
         if %logging% == 1 ( call :log PID_Empty ERROR )
         del "%~dp0\dataspammer.lock" >nul
     )
@@ -524,7 +523,27 @@
     :: Username and Password Input
     set /p "username.script=Please enter your Username: "
     set "username.script=%username.script: =%"
+    :: Check if the input is a SHA256 hash (64 hex chars)
+    for /f "delims=" %%h in ('%powershell_short% -Command "if ('%username.script%' -match '^[a-fA-F0-9]{64}$') { Write-Output 'HASH' }"') do set "is_hash=%%h"
+    if /i "%is_hash%"=="HASH" (
+        echo You entered a SHA256 hash as username.
+        echo This is not allowed, please enter a normal username.
+        if %logging% == 1 ( call :log Username_Is_Hash ERROR )
+        pause
+        goto login.input
+    )
+
     for /f "delims=" %%a in ('%powershell_short% -Command "$pass = Read-Host 'Please enter your Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($pass))"') do set "password=%%a"
+    
+    :: Check if the input is a SHA256 hash (64 hex chars)
+    for /f "delims=" %%h in ('%powershell_short% -Command "if ('%password%' -match '^[a-fA-F0-9]{64}$') { Write-Output 'HASH' }"') do set "is_hash=%%h"
+    if /i "%is_hash%"=="HASH" (
+        echo You entered a SHA256 hash as Password.
+        echo This is not allowed, please enter a normal password.
+        if %logging% == 1 ( call :log Password_Is_Hash ERROR )
+        pause
+        goto login.input
+    )
 
     :: Convert Username and Password to Hash
     echo Converting to Hash...
@@ -1088,7 +1107,27 @@
     :: Input Password & Username
     set /p "username.script=Please enter a Username: "
     set "username.script=%username.script: =%"
+    :: Check if the input is a SHA256 hash (64 hex chars)
+    for /f "delims=" %%h in ('%powershell_short% -Command "if ('%username.script%' -match '^[a-fA-F0-9]{64}$') { Write-Output 'HASH' }"') do set "is_hash=%%h"
+    if /i "%is_hash%"=="HASH" (
+        echo You entered a SHA256 hash as username.
+        echo This is not allowed, please enter a normal username.
+        if %logging% == 1 ( call :log Username_Is_Hash ERROR )
+        pause
+        goto login.input
+    )
+
     for /f "delims=" %%a in ('%powershell_short% -Command "$pass = Read-Host 'Please enter your Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($pass))"') do set "password=%%a"
+    :: Check if the input is a SHA256 hash (64 hex chars)
+    for /f "delims=" %%h in ('%powershell_short% -Command "if ('%password%' -match '^[a-fA-F0-9]{64}$') { Write-Output 'HASH' }"') do set "is_hash=%%h"
+    if /i "%is_hash%"=="HASH" (
+        echo You entered a SHA256 hash as Password.
+        echo This is not allowed, please enter a normal password.
+        if %logging% == 1 ( call :log Password_Is_Hash ERROR )
+        pause
+        goto login.input
+    )
+
 
     echo Hashing the Username and Password...
     for /f "delims=" %%a in ('%powershell_short% -Command "[Text.Encoding]::UTF8.GetBytes('%username.script%') | ForEach-Object { (New-Object -TypeName Security.Cryptography.SHA256Managed).ComputeHash($_) } | ForEach-Object { $_.ToString('x2') } -join '' "') do set "username_hash=%%a"
