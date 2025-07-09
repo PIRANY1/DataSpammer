@@ -1,6 +1,6 @@
 # DataSpammer
 
-![Tests](https://github.com/PIRANY1/wait-exe/actions/workflows/workflow.yml/badge.svg)
+![Tests](https://github.com/PIRANY1/DataSpammer/actions/workflows/workflow.yml/badge.svg)
 
 Read this in: [German](https://github.com/PIRANY1/DataSpammerDE)
 

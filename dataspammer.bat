@@ -81,13 +81,19 @@
 ::      Add Enviroment Simulator Script for Testing.
 ::      Replace . & - with _ in Variables & Labels
 ::      Verify CIF Parser
-::      Optimize Wait.exe
-::      Add Locales
+::      Finish DE Translation
 
 ::      V6 Stuff:
+::      Integrate DE Version
 ::      Verify Basis Functions & Custom Dir Install
-::      Check WT Launching with same PID
-::      Use Emojis
+::      Add more Emojis
+::      Fix not Writing Registry when creating Login
+::      Fix when Reg empty login goes through
+::      Replace all downloads with new release attachments
+::      Check Color Keeping after :color
+::      Add Emoji Menu
+::      Add all Reg Settings to spam.settings
+
 
 :top
     @echo off
@@ -399,7 +405,7 @@
         %errormsg%
         call :color _Red "Running as 32-Bit on 64-Bit Windows" error
         call :color _Yellow "Relaunching as 64-Bit..." warning
-        start %cmdPath% /c "%~f0" %b.flag%
+        start %elevPath% cmd.exe /c "%~f0" %b.flag%%v.flag%
         call :sys.lt 5 count
         goto cancel
     ) else (
@@ -750,8 +756,6 @@
     echo [5] Cancel
     echo:
     echo:
-    pause
-    goto :menu
     choice /C 12345S /T 120 /D S /M "Choose an Option from Above: "
         set _erl=%errorlevel%
         if %_erl%==1 goto start
@@ -1102,32 +1106,13 @@
 :login.create
     :: Create new Login Hashes
     for /f "tokens=3" %%A in ('reg query "HKCU\Software\DataSpammer" /v UsernameHash 2^>nul') do set "storedhash=%%A"
-    if not defined storedhash echo Account already exists. && call :sys.lt 4 && goto login.setup
+    if defined storedhash echo Account already exists. && call :sys.lt 4 && goto login.setup
 
     :: Input Password & Username
     set /p "username.script=Please enter a Username: "
     set "username.script=%username.script: =%"
-    :: Check if the input is a SHA256 hash (64 hex chars)
-    for /f "delims=" %%h in ('%powershell_short% -Command "if ('%username.script%' -match '^[a-fA-F0-9]{64}$') { Write-Output 'HASH' }"') do set "is_hash=%%h"
-    if /i "%is_hash%"=="HASH" (
-        echo You entered a SHA256 hash as username.
-        echo This is not allowed, please enter a normal username.
-        if %logging% == 1 ( call :log Username_Is_Hash ERROR )
-        pause
-        goto login.input
-    )
 
     for /f "delims=" %%a in ('%powershell_short% -Command "$pass = Read-Host 'Please enter your Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($pass))"') do set "password=%%a"
-    :: Check if the input is a SHA256 hash (64 hex chars)
-    for /f "delims=" %%h in ('%powershell_short% -Command "if ('%password%' -match '^[a-fA-F0-9]{64}$') { Write-Output 'HASH' }"') do set "is_hash=%%h"
-    if /i "%is_hash%"=="HASH" (
-        echo You entered a SHA256 hash as Password.
-        echo This is not allowed, please enter a normal password.
-        if %logging% == 1 ( call :log Password_Is_Hash ERROR )
-        pause
-        goto login.input
-    )
-
 
     echo Hashing the Username and Password...
     for /f "delims=" %%a in ('%powershell_short% -Command "[Text.Encoding]::UTF8.GetBytes('%username.script%') | ForEach-Object { (New-Object -TypeName Security.Cryptography.SHA256Managed).ComputeHash($_) } | ForEach-Object { $_.ToString('x2') } -join '' "') do set "username_hash=%%a"
@@ -2438,7 +2423,7 @@
     call :send_message Script is restarting
     call :send_message Terminating %PID%
     echo: > %temp%\DataSpammerClose.txt
-    start %cmdPath% /c "%~f0"
+    start %elevPath% cmd.exe /c "%~f0" %b.flag%%v.flag%
     goto cancel
 
 
@@ -2782,25 +2767,29 @@
 
 
 :dataspammer.hash.check
-    :: Compare local and remote script hash
-    if "%current_script_version%"=="v6" (
-        set "remote=https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/v6/dataspammer.bat"
-    ) else (
-        set "remote=https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat"
+    if "%current_script_version%"=="development" (
+        call :color _Yellow "Development Version Detected, Skipping Hash Check" warning
+        exit /b 0
     )
+    :: Compare local and remote script hash
+
+    set "remote=https://github.com/PIRANY1/DataSpammer/releases/download/%current_script_version%/dataspammer.bat"
     
     curl -s -o "%TEMP%\dataspammer_remote.bat" "%remote%"
-    for /f "tokens=1" %%A in ('certutil -hashfile "%TEMP%\dataspammer_remote.bat" SHA256 ^| find /i /v "SHA256" ^| find /i /v "certutil"') do set "REMOTE_HASH=%%A"
-    for /f "tokens=1" %%A in ('certutil -hashfile "%~0" SHA256 ^| find /i /v "SHA256" ^| find /i /v "certutil"') do set "LOCAL_HASH=%%A"
-    :: echo Local File: !LOCAL_HASH!
-    :: echo Upstream File: !REMOTE_HASH!
-    
-    if not"!REMOTE_HASH!"=="!LOCAL_HASH!" (
+    fc /b "%~f0" "%TEMP%\dataspammer_remote.bat" >nul 2>&1
+    if errorlevel 1 (
         %errormsg%
-        echo The GitHub version of the script differs from your local version.
-        echo This could be due to a failed update or manual modifications.
-        echo If you did not make these changes, consider redownloading the script to avoid potential issues.
+        call :color _Red "The GitHub version of the script differs from your local version." error
+        call :color _Yellow "This could be due to a failed update or manual modifications." warning
+        call :color _Yellow "If you did not make these changes, consider redownloading the script to avoid potential issues." warning
         call :sys.lt 5 count
+        pause
+        del "%TEMP%\dataspammer_remote.bat" >nul 2>&1
+        exit /b 1
+    ) else (
+        call :color _Green "The local script matches the remote version." okay
+        del "%TEMP%\dataspammer_remote.bat" >nul 2>&1
+        exit /b 0
     )
 
 :: Generate real random numbers ( default %random% is limited to 32767)
@@ -2844,24 +2833,27 @@
 :: =====================================
 
 :color
-    :: Parameter: color text
+    :: Parameter: color text [emoji-keyword]
+    setlocal EnableDelayedExpansion
     set "color.func=%~1"
+    set "emoji.key=%~3"
+
     shift
-    set "text=%*"
-    set "text=!text:"=!"   
-    
+    set "text=%~1" 
+    set "text=!text:"=!" 
+
     for %%F in (Red Gray Green Blue White _Red _White _Green _Yellow) do (
         set "text=!text:%%F=!"
     )
-    
+
     if "%chcp%"=="65001" (
-        if "%~3"=="" (
+        if "!emoji.key!"=="" (
             set "emoji="
         ) else (
-            if "%~3"=="okay" ( set "emoji=✅ " )
-            if "%~3"=="error" ( set "emoji=❌ " )
-            if "%~3"=="warning" ( set "emoji=⚠️ " )
-            if "%~3"=="info" ( set "emoji=ℹ️ " )
+            if /I "!emoji.key!"=="okay" set "emoji=✅ "
+            if /I "!emoji.key!"=="error" set "emoji=❌ "
+            if /I "!emoji.key!"=="warning" set "emoji=⚠️ "
+            if /I "!emoji.key!"=="info" set "emoji=ℹ️ "
         )
     ) else (
         set "emoji="
@@ -3199,7 +3191,7 @@
     echo:
     echo    monitor     Opens the Monitor Socket
     echo:
-    echo    update.script [ stable / beta ]     Force Update the Script
+    echo    update.script     Force Update the Script
     echo:
     echo    version     Show Version
     echo:
@@ -3218,51 +3210,92 @@
     cls
     :: Updated in v6
     :: Old one used seperate file / wget & curl & iwr
-    :: Usage: call :update.script [stable / beta]
     if %logging% == 1 ( call :log Creating_Update_Script INFO )
-    call :check_args :generate_random "%~1"
-    if "%errorlevel%"=="1" (
-        %errormsg%
-        exit /b 1
-    )    
     
-    :: Check Arguments
-    if "%~1"=="stable" set "update_url=https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/"
-    if "%~1"=="beta" set "update_url=https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/v6/"
+    set "api_url=https://api.github.com/repos/PIRANY1/DataSpammer/releases/latest"
+    curl -s %api_url% > apianswer.txt
+    for /f "tokens=2 delims=:, " %%a in ('findstr /R /C:"\"tag_name\"" apianswer.txt') do (
+        set "latest_release_tag=%%a"
+    )
 
-    :: Installer Preps
+    set "update_url=https://github.com/PIRANY1/DataSpammer/releases/download/%latest_release_tag%/"
+
     cd /d "%~dp0"
     erase README.md && erase LICENSE >nul 2>&1
     set "TMP_DIR=%temp%\dts.update"
     rd /s /q "%TMP_DIR%" 2>nul
     mkdir "%TMP_DIR%"
-    echo Downloading...
+
+
     :: Download Files via BITS
-    bitsadmin /transfer upd "%update_url%dataspammer.bat" "%TMP_DIR%\dataspammer.bat"
-    if errorlevel 1 (
+    for %%F in (dataspammer.bat README.md LICENSE) do (
+        bitsadmin /transfer upd "%update_url%%%F" "%TMP_DIR%\%%F"
+        if errorlevel 1 (
+            %errormsg%
+            call :color _Red "Download failed for %%F." error
+            pause
+            exit /b 1
+        )
+    )
+
+    :: Download Hashes
+    for %%F in (dataspammer.bat README.md LICENSE) do (
+        bitsadmin /transfer upd "%update_url%%%F.hash" "%TMP_DIR%\%%F.hash"
+        if errorlevel 1 (
+            %errormsg%
+            call :color _Red "Download failed for %%F.hash." error
+            pause
+            exit /b 1
+        )
+    )
+
+    setlocal EnableDelayedExpansion
+    set "files=dataspammer.bat readme.md license"
+    set "failcount=0"
+
+    for %%F in (%files%) do (
+        :: Calculate Hash of Local Files
+        certutil -hashfile "%TMP_DIR%\%%F" SHA256 > "%TMP_DIR%\%%F.calc"
+
+        :: Parse Hash from .calc File
+        for /f "delims=" %%A in ('%powershell_short% -Command "(Get-Content '%TMP_DIR%\%%F.calc' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do (
+            set "sha256_actual=%%A"
+        )
+
+        :: Pull Hash from Remote File
+        for /f "delims=" %%A in ('%powershell_short% -Command "(Get-Content '%TMP_DIR%\%%F.hash' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do (
+            set "sha256_expected=%%A"
+        )
+
+        :: Compare
+        if /i "!sha256_actual!" neq "!sha256_expected!" (
+            %errormsg%
+            echo Hash mismatch at %%F:
+            echo    Expected: !sha256_expected!
+            echo    Found   : !sha256_actual!
+            echo Download Failed.
+            pause
+            set /a failcount+=1
+        ) else (
+            echo %%F OK!
+        )
+    )
+
+    if !failcount! gtr 0 (
         %errormsg%
-        echo Download failed. 
-        exit /b 1
-    )    
-    bitsadmin /transfer upd "%update_url%README.md" "%TMP_DIR%\README.md"
-    if errorlevel 1 (
-        %errormsg%
-        echo Download failed. 
-        exit /b 1
-    )      
-    bitsadmin /transfer upd "%update_url%LICENSE" "%TMP_DIR%\LICENSE"
-    if errorlevel 1 (
-        %errormsg%
-        echo Download failed. 
-        exit /b 1
-    )  
-    cls
-    echo Downloaded Files.
+        call :color _Red "Hash Check failed for !failcount! files." error
+        call :color _Red "Exiting Updater." error
+        pause
+        goto cancel
+    ) else (
+        call :color _Green "All files passed the Hash Check." okay
+    )
 
     :: Check for Certutil, Required for Encryption
     for /f "delims=" %%a in ('where certutil') do (
         set "where_output=%%a"
     )  
+
     if not defined where_output goto move.new.files
     :: Encrypt new Files, when current Version is already encrypted
     reg query "HKCU\Software\DataSpammer" /v Token >nul 2>&1 || goto move.new.files
@@ -3282,8 +3315,9 @@
     move /Y "%TMP_DIR%\README.md" "%~dp0README.md"
     move /Y "%TMP_DIR%\LICENSE" "%~dp0LICENSE"
     rd /s /q "%TMP_DIR%"
-    start %cmdPath% /c "%~f0" update-install
+    start %elevPath% cmd.exe /c "%~f0" update-install
     goto cancel
+
 
 :version
     :: Fast Extract Version
@@ -3701,7 +3735,7 @@
 
     :: Download LICENSE and README.md if only dataspammer.bat is present
     cd /d "%directory9%"
-    set "update_url=https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/"
+    set "update_url=https://github.com/PIRANY1/DataSpammer/releases/download/%current_script_version%/"
     echo Downloading...
     :: Download Files via BITS
     if not exist README.md ( 
@@ -3782,7 +3816,7 @@
     :: Restart Script Process 
     echo Finished Installation.
     echo Starting...
-    start %cmdPath% /c "%directory9%\dataspammer.bat"
+    start wt cmd.exe /c "%directory9%\dataspammer.bat"
     erase "%~dp0\dataspammer.bat" > nul
     goto cancel
 
