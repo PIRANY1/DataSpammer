@@ -1,6 +1,7 @@
 # DataSpammer
 
-![Tests](https://github.com/PIRANY1/DataSpammer/actions/workflows/workflow.yml/badge.svg)
+![Functionality Tests](https://github.com/PIRANY1/DataSpammer/actions/workflows/workflow.yml/badge.svg)
+![Compile DataSpammer.bat](https://github.com/PIRANY1/DataSpammer/actions/workflows/analyze-bin.yml/badge.svg)
 
 Read this in: [German](https://github.com/PIRANY1/DataSpammerDE)
 

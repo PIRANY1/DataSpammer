@@ -72,9 +72,17 @@
 :: Elevation: elevation = (pwsh/gsudo/sudo/off)
 :: =============================================================
 
+
+:: Release Checklist:
+::      - Add README, LICENSE & dataspammer.bat to Release
+::      - Add Version to Release
+::      - Remove development Flags
+::      - Remove Debugging Flags
+::      - Add new Script Version Number to dataspammer.bat
+
 :: Todo: 
 ::      Add more Comments, Logs , Socket Messages, Error Checks and Color
-::      Implement echo Verbose Message >%destination%
+::      Implement echo Verbose Message >%destination% %cls.debug%
 ::      Add more Emojis (emoji_info=ℹ️, emoji_warning=⚠️, emoji_error=❌, emoji_okay=✅)
 
 ::      Fix Updater - Clueless After 3 Gazillion Updates - Hopefully Fixed
@@ -86,14 +94,10 @@
 ::      V6 Stuff:
 ::      Integrate DE Version
 ::      Verify Basis Functions & Custom Dir Install
+::      Check New Download Logic, and new URLs
 ::      Add more Emojis
-::      Fix not Writing Registry when creating Login
-::      Fix when Reg empty login goes through
-::      Replace all downloads with new release attachments
 ::      Check Color Keeping after :color
-::      Add Emoji Menu
 ::      Add all Reg Settings to spam.settings
-
 
 :top
     @echo off
@@ -113,6 +117,8 @@
 
     :: Development / Production Flag
     set "current_script_version=development"
+
+    set "cls.debug=cls"
 
     set "exec-dir=%~dp0"
 
@@ -168,7 +174,7 @@
 
     :: Check if Script is running from Temp Folder
     if /I "%~dp0"=="%TEMP%" (
-        cls
+        %cls.debug%
         %errormsg%
         call :color _Red "The script was launched from the temp folder." error
         call :color _Yellow "You are most likely running the script directly from the archive file." warning
@@ -207,7 +213,7 @@
     if "%ver%" == "6.3" set "winver=8.1"
 
     if defined winver (
-        cls
+        %cls.debug%
         %errormsg%
         echo Detected Windows %winver%
         call :color _Yellow "Warning: Some features may not work on this version." warning
@@ -274,12 +280,15 @@
     if "%~1"=="" goto startup
 
     :: Check for /b or /v
-    for %%A in (%1 %2 %3 %4) do (
+    for %%A in (%1 %2 %3 %4 %5) do (
         if /I "%%~A"=="/b" (
             set "b.flag=/b "
         )
         if /I "%%~A"=="/v" (
             set "verbose=1"
+        )
+        if /I "%%~A"=="/unsecure" (
+            set "unsecure=1"
         )
     )
 
@@ -331,6 +340,12 @@
     :: Parse Config
     call :parse.settings
 
+    :: Apply Custom Codepage if defined
+    if chcp neq 0 (
+        chcp %chcp% >nul
+        call :color _Green "Codepage set to %chcp%" okay
+    )
+
     if "%chcp%"=="65001" (
         call :color _Green "Enabled Emoji Support" okay
     ) else (
@@ -341,18 +356,14 @@
     if "%verbose%"=="1" (
         call :color _Green "Verbose Output is Disabled" okay
         set "destination=CON"
+        set "cls.debug=echo: "
     ) else (
         call :color _Green "Verbose Output is Enabled" okay
         set "destination=nul"
+        set "cls.debug=cls"
     )
     :: Be Extra Safe
     if not defined destination ( set "destination=nul")
-
-    : Apply Custom Codepage if defined
-    if chcp neq 0 (
-        chcp %chcp% >nul
-        call :color _Green "Codepage set to %chcp%" okay
-    )
 
     :: Apply Color from Settings
     if defined color ( color %color% >nul ) else ( color 0F >nul )
@@ -524,7 +535,7 @@
 
 :login.input
     if %logging% == 1 ( call :log Starting_Login INFO )
-    cls && title DataSpammer - Login
+    %cls.debug% && title DataSpammer - Login
 
     :: Username and Password Input
     set /p "username.script=Please enter your Username: "
@@ -553,17 +564,24 @@
 
     :: Convert Username and Password to Hash
     echo Converting to Hash...
-    for /f "delims=" %%a in ('%powershell_short% -Command "[Text.Encoding]::UTF8.GetBytes('%username.script%') | % { (New-Object -TypeName Security.Cryptography.SHA256Managed).ComputeHash($_) } | ForEach-Object { $_.ToString('x2') } -join '' "') do set "username_hash=%%a"
-    for /f "delims=" %%a in ('%powershell_short% -Command "[Text.Encoding]::UTF8.GetBytes('%password%') | % { (New-Object -TypeName Security.Cryptography.SHA256Managed).ComputeHash($_) } | ForEach-Object { $_.ToString('x2') } -join '' "') do set "password_hash=%%a"
+
+    set "pscmd= $input = '%username.script%'; $bytes = [System.Text.Encoding]::UTF8.GetBytes($input); $sha = [System.Security.Cryptography.SHA256]::Create(); $hash = $sha.ComputeHash($bytes); ($hash | ForEach-Object { $_.ToString('x2') }) -join ''"
+    for /f "usebackq delims=" %%a in (`%powershell_short% -Command "%pscmd%"`) do set "username_hash=%%a"
+
+
+    set "pscmd= $input = '%password%'; $bytes = [System.Text.Encoding]::UTF8.GetBytes($input); $sha = [System.Security.Cryptography.SHA256]::Create(); $hash = $sha.ComputeHash($bytes); ($hash | ForEach-Object { $_.ToString('x2') }) -join ''"
+    for /f "usebackq delims=" %%a in (`%powershell_short% -Command "%pscmd%"`) do set "password_hash=%%a"
 
     :: Extract Stored Username and Password
     echo Extracting Hash from Registry...
     for /f "tokens=3" %%A in ('reg query "HKCU\Software\DataSpammer" /v UsernameHash 2^>nul') do set "stored_username_hash=%%A"
     for /f "tokens=3" %%A in ('reg query "HKCU\Software\DataSpammer" /v PasswordHash 2^>nul') do set "stored_password_hash=%%A"
 
-    :: echo Calc Username: "%username_hash%"  Stored Username: "%stored_username_hash%"
-    :: echo Calc Password: "%password_hash%"  Stored Password: "%stored_password_hash%"
-    
+    echo Calc Username: "%username_hash%"  Stored Username: "%stored_username_hash%"
+    echo Calc Password: "%password_hash%"  Stored Password: "%stored_password_hash%"
+    pause
+    :: >%destination%
+
     :: Remove Whitespaces
     set "username_hash=%username_hash: =%"
     set "stored_username_hash=%stored_username_hash: =%"
@@ -718,7 +736,7 @@
     cd /d "%~dp0"
     if %logging% == 1 ( call :log Displaying_Menu INFO )
     title DataSpammer %current_script_version% - Menu - Development
-    cls
+    %cls.debug%
 
     %$Echo% "   ____        _        ____
     %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __
@@ -761,7 +779,7 @@
         if %_erl%==1 goto start
         if %_erl%==2 goto settings
         if %_erl%==3 goto desktop.settings
-        if %_erl%==4 explorer https://github.com/PIRANY1/DataSpammer && cls && goto menu
+        if %_erl%==4 explorer https://github.com/PIRANY1/DataSpammer && %cls.debug% && goto menu
         if %_erl%==5 goto cancel
         if %_erl%==6 call :standby
     goto menu
@@ -779,7 +797,7 @@
 :settings
     if %logging% == 1 ( call :log Opened_Settings_%dev-mode%_dev_mode INFO )
     color
-    cls 
+    %cls.debug% 
     %$Echo% "    ____       _   _   _ 
     %$Echo% "   / ___|  ___| |_| |_(_)_ __   __ _ ___
     %$Echo% "   \___ \ / _ \ __| __| | '_ \ / _` / __|
@@ -860,7 +878,7 @@
     call :sys.lt 1
     echo [6] Change Color
     call :sys.lt 1
-    echo [7] Change Codepage ( Emoji Support)
+    echo [7] Change Codepage ( Emoji Support^! )
     call :sys.lt 1
     echo [8] Download Wait.exe - Improve Speed / Wait Time - Source is at PIRANY1/wait.exe (ALPHA)
     call :sys.lt 1
@@ -1060,7 +1078,7 @@
     goto monitor.settings
 
 :login.setup
-    cls
+    %cls.debug%
     echo Logged in as %username.script%
     echo:
     echo [1] Create Account
@@ -1115,15 +1133,20 @@
     for /f "delims=" %%a in ('%powershell_short% -Command "$pass = Read-Host 'Please enter your Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($pass))"') do set "password=%%a"
 
     echo Hashing the Username and Password...
-    for /f "delims=" %%a in ('%powershell_short% -Command "[Text.Encoding]::UTF8.GetBytes('%username.script%') | ForEach-Object { (New-Object -TypeName Security.Cryptography.SHA256Managed).ComputeHash($_) } | ForEach-Object { $_.ToString('x2') } -join '' "') do set "username_hash=%%a"
-    for /f "delims=" %%a in ('%powershell_short% -Command "[Text.Encoding]::UTF8.GetBytes('%password%') | ForEach-Object { (New-Object -TypeName Security.Cryptography.SHA256Managed).ComputeHash($_) } | ForEach-Object { $_.ToString('x2') } -join '' "') do set "password_hash=%%a"
+    set "pscmd= $input = '%username.script%'; $bytes = [System.Text.Encoding]::UTF8.GetBytes($input); $sha = [System.Security.Cryptography.SHA256]::Create(); $hash = $sha.ComputeHash($bytes); ($hash | ForEach-Object { $_.ToString('x2') }) -join ''"
+    for /f "usebackq delims=" %%a in (`%powershell_short% -Command "%pscmd%"`) do set "username_hash=%%a"
 
-    :: Save the hashed values in a secure location
+    set "pscmd= $input = '%password%'; $bytes = [System.Text.Encoding]::UTF8.GetBytes($input); $sha = [System.Security.Cryptography.SHA256]::Create(); $hash = $sha.ComputeHash($bytes); ($hash | ForEach-Object { $_.ToString('x2') }) -join ''"
+    for /f "usebackq delims=" %%a in (`%powershell_short% -Command "%pscmd%"`) do set "password_hash=%%a"
+
+    :: Save the hashed values in a secure location>%destination%
+    echo UsernameHash: %username_hash% >%destination%
+    echo PasswordHash: %password_hash% >%destination%
+
     echo Saving Secure Data...
     reg add "HKCU\Software\DataSpammer" /v UsernameHash /t REG_SZ /d "%username_hash%" /f
     reg add "HKCU\Software\DataSpammer" /v PasswordHash /t REG_SZ /d "%password_hash%" /f
-
-    cls
+    %cls.debug%
     echo Account created successfully.
     call :sys.lt 1
     goto restart.script
@@ -1334,7 +1357,7 @@
 
 :settings.logging
     if %logging% == 1 ( call :log Opened_Logging_Settings INFO )
-    cls
+    %cls.debug%
     if %logging% == 0 set "settings.logging=Disabled"
     if %logging% == 1 set "settings.logging=Enabled"
     if %logging% == 2 set "settings.logging=Enabled (Only Critical)"
@@ -1365,8 +1388,8 @@
         set _erl=%errorlevel%
         if %_erl%==1 goto enable.logging
         if %_erl%==2 goto disable.logging
-        if %_erl%==3 cls && echo Opening Log... & notepad %userprofile%\Documents\DataSpammerLog\DataSpammer.log && pause && goto settings.logging
-        if %_erl%==4 cls && erase %userprofile%\Documents\DataSpammerLog\DataSpammer.log && echo Log Cleared. && pause && goto settings.logging
+        if %_erl%==3 %cls.debug% && echo Opening Log... & notepad %userprofile%\Documents\DataSpammerLog\DataSpammer.log && pause && goto settings.logging
+        if %_erl%==4 %cls.debug% && erase %userprofile%\Documents\DataSpammerLog\DataSpammer.log && echo Log Cleared. && pause && goto settings.logging
         if %_erl%==5 goto settings
         if %_erl%==6 call :standby
     goto settings.logging
@@ -1391,7 +1414,7 @@
     goto restart.script
 
 :desktop.settings
-    cls
+    %cls.debug%
     echo:
     echo =====================
     echo Desktop Icon Settings
@@ -1415,7 +1438,7 @@
 
 :desktop.icon.setup
     echo Adding Desktop Icon
-    cls
+    %cls.debug%
     %powershell_short% -Command ^
      $WshShell = New-Object -ComObject WScript.Shell; ^
      $Shortcut = $WshShell.CreateShortcut('%USERPROFILE%\Desktop\DataSpammer.lnk'); ^
@@ -1440,7 +1463,7 @@
     if %logging% == 1 ( call :log Opened_Start INFO )
     call :sys.verify.execution
     if %logging% == 1 ( call :log Start_Verified INFO )
-    cls
+    %cls.debug%
 
     for /f "delims=" %%a in ('where python') do (
         set "where_output=%%a"
@@ -1814,7 +1837,7 @@
     set /P printer.count=How many Files should be printed?: 
     call :filename.check print.filename "Enter the Filename:"
 
-    cls
+    %cls.debug%
     wmic printer get Name
     set /P printer-device=Choose a Device (full name):
 
@@ -1856,7 +1879,7 @@
     set /P request_count=Enter the Request Count?:
 
     if not defined domain_server set "domain_server= "
-    cls
+    %cls.debug%
     echo Now enter the Record type. A for IPv4 and AAAA for IPv6. Use A if unsure.
     set /P record_type=Enter the DNS Record Type (A or AAAA):
     
@@ -1871,7 +1894,7 @@
         echo Created !x! DNS Request for !record_type! record.
         set /a x+=1
         nslookup -type=A %domain% %domain_server% > nul
-        cls
+        %cls.debug%
     )
     goto dns.done
     
@@ -1880,7 +1903,7 @@
         echo Created !x! DNS Request for !record_type! record.
         set /a x+=1
         nslookup -type=AAAA %domain% %domain_server% > nul
-        cls
+        %cls.debug%
     )
     
 :dns.done
@@ -1891,7 +1914,7 @@
 
 
 :ftp.spam
-    cls
+    %cls.debug%
     set /P ftpserver=Enter a Domain or IP:
     set /P username=Enter the Username:
     set /P password=Enter the Password:
@@ -1932,7 +1955,7 @@
     
     :: Finish Command File & Execute on Host
     echo bye >> %ftpCommands%
-    cls && echo Establishing FTP Connection to %ftpserver%...
+    %cls.debug% && echo Establishing FTP Connection to %ftpserver%...
     ftp -n -s:%ftpCommands%
     
     :: Remove Files on local Machine
@@ -1950,7 +1973,7 @@
 
 
 :app.list.spam
-    cls
+    %cls.debug%
     echo This Function will spam the Applist under "Settings > Apps > Installed Apps" with Entrys of your choice.
     echo:
     echo [1] Continue
@@ -2066,7 +2089,7 @@
     set /P ssh-filecount=Enter the Filecount:
     set /P ssh-key=Enter the SSH-Key:
     call :sys.verify.execution
-    cls
+    %cls.debug%
 
 :ssh.hijack
     echo Should the SSH-Keys be regenerated?
@@ -2195,7 +2218,7 @@
     set /p desk.spam.content=Enter the File-Content:
     set /P filecount=How many Files should be created?:
 
-    cls
+    %cls.debug%
     echo Starting.....
     call :sys.lt 2
     set /a x=0
@@ -2418,6 +2441,8 @@
     
 :restart.script
     :: Restart Script
+    :: Clear CHCP to prevent display issues
+    set "chcp="
     if "%logging%"=="1" ( call :log Restarting_Script WARN )
     erase "%~dp0\dataspammer.lock" >nul 2>&1
     call :send_message Script is restarting
@@ -2432,7 +2457,7 @@
     :: Monitor is still Experimental & may cause problems
     @echo off
     setlocal EnableDelayedExpansion
-    cls
+    %cls.debug%
     del "%temp%\DataSpammerCrashed.txt" > nul
     del "%temp%\DataSpammerClose.txt" > nul
     title Monitoring DataSpammer PID: %~2
@@ -2526,11 +2551,11 @@
     choice /C 12345678S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto dev.options.call.sign
-        if %_erl%==2 @echo on && cls && goto dev.options
-        if %_erl%==3 set /P var=Enter the Variable Name: && set /P value=Enter the Value: && set %var%=%value% && cls && goto dev.options
+        if %_erl%==2 @echo on && %cls.debug% && goto dev.options
+        if %_erl%==3 set /P var=Enter the Variable Name: && set /P value=Enter the Value: && set %var%=%value% && %cls.debug% && goto dev.options
         if %_erl%==4 goto top
         if %_erl%==5 goto restart.script
-        if %_erl%==6 call :list.vars && pause && cls
+        if %_erl%==6 call :list.vars && pause && %cls.debug%
         if %_erl%==7 goto settings
         if %_erl%==8 goto debug.info     
         if %_erl%==9 call :standby
@@ -2553,8 +2578,8 @@
     echo List all Call Signs?
     choice /C YN /M "(Y)es / (N)o"
         set _erl=%errorlevel%
-        if %_erl%==1 call :list.vars && cls && set /P jumpto=Enter the Call Sign: && goto %jumpto% 
-        if %_erl%==2 cls && set /P jumpto=Enter the Call Sign: && goto %jumpto%
+        if %_erl%==1 call :list.vars && %cls.debug% && set /P jumpto=Enter the Call Sign: && goto %jumpto% 
+        if %_erl%==2 %cls.debug% && set /P jumpto=Enter the Call Sign: && goto %jumpto%
     goto dev.options.call.sign
 
 :sys.new.update.installed
@@ -2565,8 +2590,8 @@
     )
     reg delete "%RegPath%" /v "DisplayVersion" /f
     reg add "%RegPath%" /v "DisplayVersion" /d "%current_script_version%" /f
-    cls && echo Updated Settings.
-    cls && echo Successfully updated the Registry Key for the Version.
+    %cls.debug% && echo Updated Settings.
+    %cls.debug% && echo Successfully updated the Registry Key for the Version.
     if %logging% == 1 ( call :log Updated_Script_Version:%current_script_version% INFO )
     if %logging% == 1 ( call :log Errorlevel_after_Update:_%errorlevel% INFO )
     echo Successfully Updated to %current_script_version%
@@ -2767,6 +2792,10 @@
 
 
 :dataspammer.hash.check
+    if "%unsecure%"=="1" (
+        call :color _Red "Unsecure Mode Detected, Skipping Hash Check" warning
+        exit /b 0
+    )
     if "%current_script_version%"=="development" (
         call :color _Yellow "Development Version Detected, Skipping Hash Check" warning
         exit /b 0
@@ -2781,11 +2810,9 @@
         %errormsg%
         call :color _Red "The GitHub version of the script differs from your local version." error
         call :color _Yellow "This could be due to a failed update or manual modifications." warning
-        call :color _Yellow "If you did not make these changes, consider redownloading the script to avoid potential issues." warning
-        call :sys.lt 5 count
-        pause
+        call :color _Green "Run the script with the /unsecure flag to skip this check." okay
         del "%TEMP%\dataspammer_remote.bat" >nul 2>&1
-        exit /b 1
+        goto cancel
     ) else (
         call :color _Green "The local script matches the remote version." okay
         del "%TEMP%\dataspammer_remote.bat" >nul 2>&1
@@ -3104,7 +3131,7 @@
     if "%errorlevel%"=="1" (
         %errormsg%
     )
-    cls
+    %cls.debug%
     echo:
     %$Echo% "   ____        _        ____                                           
     %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __
@@ -3207,7 +3234,7 @@
     exit /b %errorlevel%
 
 :update.script
-    cls
+    %cls.debug%
     :: Updated in v6
     :: Old one used seperate file / wget & curl & iwr
     if %logging% == 1 ( call :log Creating_Update_Script INFO )
@@ -3532,7 +3559,7 @@
     :main_loop
     for /L %%C in (1,1,%count%) do (
         for %%A in (0 1 2 3) do (
-            cls
+            %cls.debug%
             set "char=!spinner:~%%A,1!"
             echo !char!
             powershell -command "Start-Sleep -Milliseconds %wait%"
@@ -3542,7 +3569,7 @@
 
 :standby
     :: Display Standby Screen & Exit after 10 minutes
-    cls
+    %cls.debug%
     echo ==================================================
     %$Echo% "    ____  _                  _ _
     %$Echo% "   / ___|| |_ __ _ _ __   __| | |__  _   _
@@ -3714,9 +3741,9 @@
     echo:
     choice /C 12345S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 cls && set "startmenushortcut=Included" && set "startmenushortcut1=1" && goto installer.menu.select
-        if %_erl%==2 cls && set "desktopicon=Included" && set "desktopic1=1" && goto installer.menu.select
-        if %_erl%==3 cls && set "addpath=Included" && set "addpath1=1" && goto installer.menu.select
+        if %_erl%==1 %cls.debug% && set "startmenushortcut=Included" && set "startmenushortcut1=1" && goto installer.menu.select
+        if %_erl%==2 %cls.debug% && set "desktopicon=Included" && set "desktopic1=1" && goto installer.menu.select
+        if %_erl%==3 %cls.debug% && set "addpath=Included" && set "addpath1=1" && goto installer.menu.select
         if %_erl%==4 goto installer.start.copy
         if %_erl%==5 set "startmenushortcut=Not Included" && set "desktopicon=Not Included" && set "addpath=Not Included" && goto installer.menu.select
         if %_erl%==6 call :standby
@@ -3792,7 +3819,7 @@
 
 :sys.main.installer.done
     :: Elevate Flag
-    cls
+    %cls.debug%
     echo Do you want the script to request admin rights?
     echo This is recommended and can help some features work properly.
     echo If you don't have admin rights, it's best to choose "No".
