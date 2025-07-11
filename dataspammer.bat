@@ -1,7 +1,7 @@
 :: Use only under License
 :: Contribute under https://github.com/PIRANY1/DataSpammer
 :: Version v6 - DEVELOPMENT
-:: Last edited on 29.06.2025 by PIRANY
+:: Last edited on 11.07.2025 by PIRANY
 
 :: Some Functions are inspired from the MAS Script. 
 
@@ -95,9 +95,9 @@
 ::      Integrate DE Version
 ::      Verify Basis Functions & Custom Dir Install
 ::      Check New Download Logic, and new URLs
-::      Add more Emojis
-::      Check Color Keeping after :color
 ::      Add all Reg Settings to spam.settings
+::      Implement loading.animation
+::      Full Check Script with 65001 and then set default
 
 :top
     @echo off
@@ -577,10 +577,8 @@
     for /f "tokens=3" %%A in ('reg query "HKCU\Software\DataSpammer" /v UsernameHash 2^>nul') do set "stored_username_hash=%%A"
     for /f "tokens=3" %%A in ('reg query "HKCU\Software\DataSpammer" /v PasswordHash 2^>nul') do set "stored_password_hash=%%A"
 
-    echo Calc Username: "%username_hash%"  Stored Username: "%stored_username_hash%"
-    echo Calc Password: "%password_hash%"  Stored Password: "%stored_password_hash%"
-    pause
-    :: >%destination%
+    echo Calc Username: "%username_hash%"  Stored Username: "%stored_username_hash%" >%destination%
+    echo Calc Password: "%password_hash%"  Stored Password: "%stored_password_hash%" >%destination%
 
     :: Remove Whitespaces
     set "username_hash=%username_hash: =%"
@@ -956,14 +954,14 @@
     bitsadmin /transfer upd "https://github.com/PIRANY1/wait-exe/raw/refs/heads/main/bin/wait.exe" "%temp%\wait.exe" >nul
     if errorlevel 1 (
         %errormsg%
-        echo Download failed. 
+        call :color _Red "Download failed. " error
         exit /b 1
     )   
     echo Downloading Hash...
     bitsadmin /transfer upd "https://github.com/PIRANY1/wait-exe/raw/refs/heads/main/bin/wait.exe.sha256" "%temp%\wait.exe.sha256" >nul
     if errorlevel 1 (
         %errormsg%
-        echo Download failed. 
+        call :color _Red "Download failed. " error
         exit /b 1
     )  
     :: Extract Hashes
@@ -974,8 +972,8 @@
     :: Compare Hashes
     if "%sha256_expected%" neq "%sha256_actual%" (
         %errormsg%
-        echo Hash mismatch! Expected: %sha256_expected%, but got: %sha256_actual%
-        echo Download Failed.
+        call :color _Red "Download failed. " error
+        call :color _Yellow "Hash mismatch! Expected: %sha256_expected%, but got: %sha256_actual%" warning
         goto menu
     )
     del "%temp%\wait.hash"
@@ -985,7 +983,7 @@
     move /Y "%temp%\wait.exe" "%~dp0\wait.exe" 
     if errorlevel 1 (
         %errormsg%
-        echo Failed to move wait.exe. 
+        call :color _Red "Failed to move wait.exe to script directory." error
         exit /b 1
     )
     call :color _Green "wait.exe installed successfully." okay
@@ -1067,13 +1065,13 @@
 
 :monitor.enable
     call :update_config "monitoring" "" "1"
-    echo Monitor Socket Enabled.
+    call :color _Green "Monitor Socket Enabled." okay
     call :sys.lt 2
     goto monitor.settings
 
 :monitor.disable
     call :update_config "monitoring" "" "0"
-    echo Monitor Socket Disabled.
+    call :color _Green "Monitor Socket Disabled." okay
     call :sys.lt 2
     goto monitor.settings
 
@@ -1116,7 +1114,7 @@
     :: Delete User Account
     reg delete "HKCU\Software\DataSpammer" /v UsernameHash /f
     reg delete "HKCU\Software\DataSpammer" /v PasswordHash /f
-    echo Account deleted successfully.
+    call :color _Green "Login Deleted Successfully." warning
     echo Restarting Script...
     call :sys.lt 1
     goto restart.script
@@ -1147,7 +1145,7 @@
     reg add "HKCU\Software\DataSpammer" /v UsernameHash /t REG_SZ /d "%username_hash%" /f
     reg add "HKCU\Software\DataSpammer" /v PasswordHash /t REG_SZ /d "%password_hash%" /f
     %cls.debug%
-    echo Account created successfully.
+    call :color _Green "Login Created Successfully." okay
     call :sys.lt 1
     goto restart.script
 
@@ -1223,40 +1221,36 @@
     set /a min_build=25900
     if not %build% geq %min_build% (
         :: is lower than 24H2
-        echo You dont have Version 24H2 && pause && goto advanced.options
+        call :color _Yellow "You dont have 24H2" warning && pause && goto advanced.options
     )
     
     :: Check if Sudo is installed
     for /f "delims=" %%a in ('where sudo') do (
         set "where_output=%%a"
     )
-    if not defined where_output (echo You dont have sudo enabled. && pause && goto advanced.options)
+    if not defined where_output (call :color _Yellow "You dont have sudo enabled" warning && pause && goto advanced.options)
 
     :: Switch to Sudo
     if %logging% == 1 ( call :log Chaning_Elevation_to_sudo WARN )
     call :update_config "elevation" "" "sudo"
-    echo Switched to Sudo.
+    call :color _Green "Switched to Sudo Elevation." okay
     call :sys.lt 2
     goto restart.script
 
 
 :switch.pwsh.elevation
-    :: Switch to Powershell Elevation
-    echo Switching to Powershell Elevation...
     call :sys.lt 2
     if %logging% == 1 ( call :log Chaning_Elevation_to_pwsh WARN )
     call :update_config "elevation" "" "pwsh"
-    echo Switched to Powershell.
+    call :color _Green "Switched to Powershell Elevation." okay
     call :sys.lt 2
     goto restart.script
 
 :switch.gsudo.elevation
-    :: Switch to GSudo Elevation
-    echo Switching to GSUDO Elevation...
     call :sys.lt 2
     if %logging% == 1 ( call :log Chaning_Elevation_to_gsudo WARN )
     call :update_config "elevation" "" "gsudo"
-    echo Switched to GSudo.
+    call :color _Green "Switched to GSudo Elevation." okay
     call :sys.lt 2
     goto restart.script
 
@@ -1349,8 +1343,8 @@
     if %logging% == 1 ( call :log Activating_Dev_Options WARN )
     cd /d "%~dp0"
     call :update_config "developermode" "" "1"
-    echo Developer Options have been activated!
-    echo Script will now restart
+    call :color _Green "Developer Options Activated." okay
+    call :color _Yellow "Restarting Script..." warning
     call :sys.lt 2
     goto restart.script
 
@@ -1401,7 +1395,7 @@
     choice /C CG /M "(C)ritical / (G)eneral"
         if %_erl%==1 call :update_config "logging" "" "2"
         if %_erl%==2 call :update_config "logging" "" "1"
-    echo Enabled Logging.
+    call :color _Green "Logging Enabled." okay
     call :sys.lt 2
     goto restart.script
 
@@ -1409,7 +1403,7 @@
     if %logging% == 0 ( goto settings.logging )
     if %logging% == 1 ( call :log Disabling_Logging WARN )
     call :update_config "logging" "" "0"
-    echo Disabled Logging.
+    call :color _Green "Logging Disabled." okay
     call :sys.lt 2
     goto restart.script
 
@@ -1437,14 +1431,13 @@
     goto desktop.settings
 
 :desktop.icon.setup
-    echo Adding Desktop Icon
     %cls.debug%
     %powershell_short% -Command ^
      $WshShell = New-Object -ComObject WScript.Shell; ^
      $Shortcut = $WshShell.CreateShortcut('%USERPROFILE%\Desktop\DataSpammer.lnk'); ^
      $Shortcut.TargetPath = '%~0'; ^
      $Shortcut.Save()
-    echo Added Desktop Icon
+    call :color _Green "Desktop Icon Created Successfully." okay
     call :sys.lt 4
     goto menu
 
@@ -1744,7 +1737,7 @@
         )
     )
     
-    echo All files encrypted.
+    call :color _Green "All files in %encrypt-dir% encrypted with %crypt.method%." okay
     
     echo Waiting 2 Seconds...
     call :sys.lt 4
@@ -1798,8 +1791,8 @@
     
         echo File "%%f" decrypted to "%%f.dec".
     )
-    
-    echo All files decrypted.
+
+    call :color _Green "All files in %encrypt-dir% decrypted with %crypt.method%." okay
 
     echo Waiting 2 Seconds...
     call :sys.lt 4
@@ -1823,7 +1816,7 @@
         openssl enc -d -chacha20 -in "%encrypt-dir%" -out "%encrypt-dir%.dec" -pass pass:%encrypt-key% -iter 100000
     )
     
-    echo File "%encrypt-dir%" decrypted to "%encrypt-dir%.dec".  
+    call :color _Green "File "%encrypt-dir%" decrypted to "%encrypt-dir%.dec"" okay
     echo Waiting 2 Seconds...    
     call :sys.lt 4c
     goto menu
@@ -2034,9 +2027,6 @@
     call :done "The Script Created %x% Entrys."
 
 
-
-
-
 :startmenu.spam
     set /P filecount=How many Files should be created?:
     echo Only for Local User or For All Users?
@@ -2126,7 +2116,7 @@
     if "%logging%"=="1" ( call :log Spamming_Windows_SSH_Target INFO )
 
     if "%ssh.regen%"=="1" (
-        echo Regenerating SSH keys on target...
+        call :color _Green "Regenerating SSH keys on target..." okay
         :: Generate New Keys
         if defined ssh-key (
             ssh -i "%ssh-key%" %ssh-name%@%ssh-ip% "del /Q C:\Users\%ssh-name%\.ssh\* && ssh-keygen -t rsa -b 4096 -f C:\Users\%ssh-name%\.ssh\id_rsa -N \"\" && type C:\Users\%ssh-name%\.ssh\id_rsa" > new_ssh_key.txt
@@ -2134,7 +2124,8 @@
             ssh %ssh-name%@%ssh-ip% "del /Q C:\Users\%ssh-name%\.ssh\* && ssh-keygen -t rsa -b 4096 -f C:\Users\%ssh-name%\.ssh\id_rsa -N \"\" && type C:\Users\%ssh-name%\.ssh\id_rsa" > new_ssh_key.txt
         )
         if errorlevel 1 (
-            echo [ERROR] SSH key regeneration failed!
+            %errormsg%
+            call :color _Red "SSH key regeneration failed!" error
             goto ssh.done
         )
         echo New SSH private key generated and saved to new_ssh_key.txt:
@@ -2154,11 +2145,12 @@
     )
     color %color%
     if errorlevel 1 (
-        echo [ERROR] SSH connection failed!
+        %errormsg%
+        call :color _Red "SSH connection failed!" error
         goto ssh.done
     )
 
-    echo Successfully executed SSH connection.
+    call :color _Green "Successfully executed SSH connection." okay
     goto ssh.done
 
 
@@ -2167,7 +2159,7 @@
     if "%logging%"=="1" ( call :log Spamming_Linux_SSH_Target INFO )
 
     if "%ssh.regen%"=="1" (
-        echo Regenerating SSH keys on target...
+        call :color _Green "Regenerating SSH keys on target..." okay
         :: Generate New Keys
         if defined ssh-key (
             ssh -i "%ssh-key%" %ssh-name%@%ssh-ip% "rm -f ~/.ssh/id_rsa ~/.ssh/id_rsa.pub && ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -N \"\" && cat ~/.ssh/id_rsa" > new_ssh_key.txt
@@ -2175,7 +2167,8 @@
             ssh %ssh-name%@%ssh-ip% "rm -f ~/.ssh/id_rsa ~/.ssh/id_rsa.pub && ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -N \"\" && cat ~/.ssh/id_rsa" > new_ssh_key.txt
         )
         if errorlevel 1 (
-            echo [ERROR] SSH key regeneration failed!
+            %errormsg%
+            call :color _Red "SSH key regeneration failed!" error
             goto ssh.done
         )
         echo New SSH private key generated and saved to new_ssh_key.txt:
@@ -2195,19 +2188,17 @@
     )
     color %color%
     if errorlevel 1 (
-        echo [ERROR] SSH connection failed!
+        %errormsg%
+        call :color _Red "SSH connection failed!" error
         goto ssh.done
     )
 
-    echo Successfully executed SSH connection.
+    call :color _Green "Successfully executed SSH connection." okay
     goto ssh.done
 
 :ssh.done
     if %logging% == 1 ( call :log Finished_SSH_Spam_Files:_%ssh-filecount%_Host_%ssh-name% INFO )
     call :done "Created %ssh-filecount% Files on %ssh-name%@%ssh-ip%"
-
-
-
 
 
 :desktop.icon.spam
@@ -2256,8 +2247,6 @@
 
 
 
-
-
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2272,8 +2261,8 @@
     echo Adding Registry Key...
     reg add "HKCU\Software\DataSpammer" /v Installed /t REG_DWORD /d 1 /f
     reg add "HKCU\Software\DataSpammer" /v Version /t REG_SZ /d "%current_script_version%" /f
-    echo Done. 
-    echo Consider reinstalling the Script to avoid any issues. 
+    call :color _Green "Done"
+    call :color _Yellow "Consider reinstalling to prevent any issues with migration. " warning
     goto restart.script
 
 :ifp.install
@@ -2301,7 +2290,7 @@
     reg add "HKCU\Software\DataSpammer" /v Token /t REG_SZ /d "%realrandom%" /f
     reg add "HKCU\Software\DataSpammer" /v logging /t REG_SZ /d "1" /f
     reg add "HKCU\Software\DataSpammer" /v color /t REG_SZ /d "0F" /f
-    echo Successfully Installed.
+    call :color _Green "DataSpammer was successfully installed." okay
     goto restart.script
 
 
@@ -2311,7 +2300,7 @@
     if not exist "%interpret.dts%" (
         %errormsg%
         call :color _Red "Custom Instruction File does not exist." error
-        echo Please check the path and try again.
+        call :color _Yellow "Please check the path and try again." warning
         call :sys.lt 5 count
         goto cancel
     )
@@ -2344,7 +2333,7 @@
             )
         )
     )
-    echo Finished Interpreting CIF File: %interpret.dts%
+    call :color _Green "Finished Parsing %interpret.dts%. " okay
     echo Exiting...
     pause
     goto cancel
@@ -2437,7 +2426,8 @@
     ASSOC .dts=
     FTYPE dtsfile=
     if exist "%~dp0\dataspammer.bat" del "%~dp0\dataspammer.bat"
-    echo Uninstall Successfulled
+    call :color _Green "DataSpammer was successfully deleted." okay
+    exit /b 0
     
 :restart.script
     :: Restart Script
@@ -2669,7 +2659,7 @@
     set /p "!key!=!prompt!"
 
     if not defined !key! (
-        echo No filename specified. Please provide a filename.
+        call :color _Red "No filename specified. Please provide a filename." error
         goto filename.check.sub
     )
 
@@ -2680,7 +2670,7 @@
         goto filename.check.sub
     )
 
-    echo The file "!f.path!" exists and is writable.
+    call :color _Green "The file !f.path! exists and is writable." okay
     exit /b 0
 
 :fd.check
@@ -2694,14 +2684,16 @@
     if "%type%"=="file" (
         echo.%filename% | findstr /R "[\\/:*?\"<>|]" >nul
         if %errorlevel%==0 (
-            echo Invalid characters in filename: %filepath%
+            %errormsg%
+            call :color _Red "Invalid characters found in filename: %filepath%" error
             exit /b 1
         )
     ) else if "%type%"=="directory" (
         for %%F in ("%filepath%") do (
             echo.%%~nF | findstr /R "[\\/:*?\"<>|]" >nul
             if not errorlevel 1 (
-                echo Invalid characters found in filename: %%~nF
+                %errormsg%
+                call :color _Red "Invalid characters found in filename: %%~nF" error
                 exit /b 1
             )
         )        
@@ -2733,10 +2725,10 @@
     set "prompt=%~2"
     
     :directory.input.sub
-    set /p "!key!"=!prompt!
+    set /p "!key!"="!prompt!"
     
     if not defined !key! (
-        echo No directory specified. Please provide a directory.
+        call :color _Red "No directory specified. Please provide a directory." error
         goto directory.input.sub
     )
     
@@ -2747,7 +2739,7 @@
         goto directory.input.sub
     )
     
-    echo The directory "!dir.path!" exists and is writable.
+    call :color _Green "The directory "!dir.path!" exists and is writable. " okay
     exit /b 0
 
 
@@ -3147,7 +3139,7 @@
     call :sys.lt 1
     echo:
     call :sys.lt 1
-    echo %~1
+    call :color _Green "%~1" okay
     echo:
     call :sys.lt 1
     echo:
@@ -3297,14 +3289,14 @@
         :: Compare
         if /i "!sha256_actual!" neq "!sha256_expected!" (
             %errormsg%
-            echo Hash mismatch at %%F:
-            echo    Expected: !sha256_expected!
-            echo    Found   : !sha256_actual!
-            echo Download Failed.
+            call :color _Red "Hash mismatch at %%F:" error
+            call :color _Red "    Expected: !sha256_expected!" error
+            call :color _Red "    Found   : !sha256_actual!" error
+            call :color _Red "Download Failed." error
             pause
             set /a failcount+=1
         ) else (
-            echo %%F OK!
+            call :color _Green "%%F OK!" okay
         )
     )
 
@@ -3417,7 +3409,7 @@
     call set "arg=%%~%i%%"
     if "!arg!"=="" (
         %errormsg%
-        echo [Error][%~1] Argument #%i% is missing. Please report this Issue on GitHub.
+        call :color _Red "[Error][%~1] Argument #%i% is missing. Please report this Issue on GitHub." error
         echo Waiting 2 Seconds...
         call :sys.lt 4 
         if defined logging if "!logging!"=="1" (
