@@ -96,7 +96,6 @@
 ::      Verify Basis Functions & Custom Dir Install
 ::      Check New Download Logic, and new URLs
 ::      Add all Reg Settings to spam.settings
-::      Implement loading.animation
 ::      Full Check Script with 65001 and then set default
 
 :top
@@ -115,17 +114,11 @@
     :: Set Window Size
     mode con: cols=120 lines=35
 
-    :: Development / Production Flag
+    :: Some Essential Variables
     set "current_script_version=development"
-
     set "cls.debug=cls"
-
     set "exec-dir=%~dp0"
-
-    :: Can be Implemented along if errorlevel ...
     set "errormsg=echo: &call :color _Red "====== ERROR ======" &echo:"
-    
-    :: Predefine _erl to ensure errorlevel or choice inputs function correctly
     set "_erl=FFFF"
 
     :: Allows ASCII stuff without Codepage Settings - Not My Work - Credits to ?
@@ -206,8 +199,6 @@
         set "ver_minor=%%b"
         set "ver=%%a.%%b"
     )
-
-    :: Compare
     if "%ver%" == "6.1" set "winver=7"
     if "%ver%" == "6.2" set "winver=8"
     if "%ver%" == "6.3" set "winver=8.1"
@@ -279,7 +270,7 @@
     :: If no arguments are given, start the script normally
     if "%~1"=="" goto startup
 
-    :: Check for /b or /v
+    :: Check for Flags
     for %%A in (%1 %2 %3 %4 %5) do (
         if /I "%%~A"=="/b" (
             set "b.flag=/b "
@@ -354,16 +345,14 @@
 
     :: Check if Verbose is enabled
     if "%verbose%"=="1" (
-        call :color _Green "Verbose Output is Disabled" okay
+        call :color _Green "Verbose Output is Enabled" warning
         set "destination=CON"
         set "cls.debug=echo: "
     ) else (
-        call :color _Green "Verbose Output is Enabled" okay
+        call :color _Green "Verbose Output is Disabled" error
         set "destination=nul"
         set "cls.debug=cls"
     )
-    :: Be Extra Safe
-    if not defined destination ( set "destination=nul")
 
     :: Apply Color from Settings
     if defined color ( color %color% >nul ) else ( color 0F >nul )
@@ -450,7 +439,7 @@
     %errormsg%
     call :color _Red "Failed to elevate script." error
     call :color _Yellow "Please run the script manually as Administrator." warning
-    echo :color _Yellow "Exiting in 5 Seconds " warning
+    call :color _Yellow "Exiting in 5 Seconds " warning
     call :sys.lt 5 count
     goto cancel
 
@@ -469,16 +458,15 @@
     :: Allow Better Readability
     if "%logging%"=="1" (
         call :log . INFO
-        call :log =================== INFO
+        call :log ------------------- INFO
         call :log DataSpammer_Startup INFO
         call :log Current_PID:_%PID% INFO
-        call :log =================== INFO
+        call :log ------------------- INFO
         call :log . INFO
     )
 
     :: If lockfile exists, extract PID 
     if exist "%~dp0\dataspammer.lock" (
-        set "pidlock="
         for /f "usebackq delims=" %%L in ("%~dp0\dataspammer.lock") do set "pidlock=%%L"
     ) else (
         if "%logging%"=="1" call :log No_Lock_Exists INFO
@@ -1629,7 +1617,7 @@
     call :sys.lt 3
     
     :icmp.loop
-    ping %icmp.target% -n 1 -w %icmp.rate%
+    %ping% %icmp.target% -n 1 -w %icmp.rate%
     if %logging% == 1 ( call :log Sending_ICMP_Request_to_%icmp.target% INFO )
     goto icmp.loop
 
@@ -2256,14 +2244,11 @@
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 
 :v6.port
-    :: Port to V6, add Registry Keys
-    echo Porting to V6...
-    echo Adding Registry Key...
-    reg add "HKCU\Software\DataSpammer" /v Installed /t REG_DWORD /d 1 /f
-    reg add "HKCU\Software\DataSpammer" /v Version /t REG_SZ /d "%current_script_version%" /f
-    call :color _Green "Done"
-    call :color _Yellow "Consider reinstalling to prevent any issues with migration. " warning
-    goto restart.script
+    echo Script update from v5 detected.
+    echo A reinstall is recommended to avoid issues.
+    echo If you did not upgrade from v5 or older, please ignore this message.
+    call :sys.lt 10 count
+
 
 :ifp.install
     :: If Script was installed by Install Forge add Registry Stuff here
@@ -3541,24 +3526,6 @@
     set /a "timeDiffMs=endMs - startMs"
     exit /b
 
-
-:loading.animation
-    :: Display Loading Animation, currently unused
-    set "count=%~1"
-    set "wait=1"
-    set "spinner=|/-\"
-    
-    :main_loop
-    for /L %%C in (1,1,%count%) do (
-        for %%A in (0 1 2 3) do (
-            %cls.debug%
-            set "char=!spinner:~%%A,1!"
-            echo !char!
-            powershell -command "Start-Sleep -Milliseconds %wait%"
-        )
-    )
-    exit /b
-
 :standby
     :: Display Standby Screen & Exit after 10 minutes
     %cls.debug%
@@ -3575,7 +3542,7 @@
     echo (The script will auto-exit in 10 minutes if no key is pressed)
     echo ==================================================
 
-    timeout /t 600 >nul
+    %timeout% /t 600 >nul
     if errorlevel 1 (
         echo Timeout reached. Exiting...
         goto cancel
