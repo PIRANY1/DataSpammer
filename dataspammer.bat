@@ -95,8 +95,8 @@
 ::      Integrate DE Version
 ::      Verify Basis Functions & Custom Dir Install
 ::      Check New Download Logic, and new URLs
-::      Add all Reg Settings to spam.settings
 ::      Full Check Script with 65001 and then set default
+::      Readd desktop.remove
 
 :top
     @echo off
@@ -795,7 +795,7 @@
     call :sys.lt 1
     echo: 
     call :sys.lt 1
-    call :color _White "[1] Spam Settings"
+    call :color _White "[1] Main Settings"
     call :sys.lt 1
     echo: 
     call :sys.lt 1
@@ -840,7 +840,7 @@
 
     choice /C 1234567S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 goto spam.settings
+        if %_erl%==1 goto main.settings
         if %_erl%==2 goto activate.dev.options
         if %_erl%==3 goto settings.version.control
         if %_erl%==4 goto login.setup
@@ -852,43 +852,62 @@
 
 
 :advanced.options
-    echo [1] Switch Elevation Method (pswh / sudo / gsudo)
+    echo:
     call :sys.lt 1
-    echo [2] Encrypt Files (Bypass most Antivirus detections)
+    echo: 
     call :sys.lt 1
-    echo [3] Verbose Output
+    echo [1] Encrypt Files (Bypass most Antivirus detections)
     call :sys.lt 1
-    echo [4] Logging
-    call :sys.lt 1
-    echo [5] Monitor
-    call :sys.lt 1
-    echo [6] Change Color
-    call :sys.lt 1
-    echo [7] Change Codepage ( Emoji Support^! )
-    call :sys.lt 1
-    echo [8] Download Wait.exe - Improve Speed / Wait Time - Source is at PIRANY1/wait.exe (ALPHA)
-    call :sys.lt 1
-    echo [9] Enable Custom Instruction File (Experimental)
-    call :sys.lt 1
-    echo [U] Uninstall
+    echo: 
     call :sys.lt 1
     echo:
     call :sys.lt 1
-    echo [C] Go back
-    choice /C 123456789UCS /T 120 /D S  /M "Choose an Option from Above:"
+    echo [2] Verbose Output
+    call :sys.lt 1
+    echo: 
+    call :sys.lt 1
+    echo:
+    call :sys.lt 1
+    echo [3] Monitor
+    call :sys.lt 1
+    echo: 
+    call :sys.lt 1
+    echo:
+    call :sys.lt 1
+    echo [4] Download Wait.exe - Improve Speed / Wait Time - Source is at PIRANY1/wait.exe (ALPHA)
+    call :sys.lt 1
+    echo: 
+    call :sys.lt 1
+    echo:
+    call :sys.lt 1
+    echo [5] Enable Custom Instruction File (Experimental)
+    call :sys.lt 1
+    echo: 
+    call :sys.lt 1
+    echo:
+    call :sys.lt 1
+    echo [6] Uninstall
+    call :sys.lt 1
+    echo: 
+    call :sys.lt 1
+    echo:
+    call :sys.lt 1
+    echo [7] Go back
+    call :sys.lt 1
+    echo: 
+    call :sys.lt 1
+    echo:
+    call :sys.lt 1
+    choice /C 1234567S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 goto switch.elevation
-        if %_erl%==2 goto encrypt
-        if %_erl%==3 goto verbose.output.settings
-        if %_erl%==4 goto settings.logging
-        if %_erl%==5 goto monitor.settings
-        if %_erl%==6 goto change.color
-        if %_erl%==7 goto change.chcp
-        if %_erl%==8 goto download.wait
-        if %_erl%==9 goto custom.instruction.enable
-        if %_erl%==10 goto sys.delete.script
-        if %_erl%==11 goto settings
-        if %_erl%==12 call :standby
+        if %_erl%==1 goto encrypt
+        if %_erl%==2 goto verbose.output.settings
+        if %_erl%==3 goto monitor.settings
+        if %_erl%==4 goto download.wait
+        if %_erl%==5 goto custom.instruction.enable
+        if %_erl%==6 goto sys.delete.script
+        if %_erl%==7 goto settings
+        if %_erl%==8 call :standby
     goto advanced.options
 
 :verbose.output.settings
@@ -909,22 +928,20 @@
     echo:
     choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 goto verbose.enable
-        if %_erl%==2 goto verbose.disable
+        if %_erl%==1 (
+            call :update_config "verbose" "" "1"
+            echo Verbose Output Enabled.
+            call :sys.lt 2
+            goto verbose.output.settings
+        )
+        if %_erl%==2 (
+            call :update_config "verbose" "" "0"
+            echo Verbose Output Disabled.
+            call :sys.lt 2
+            goto verbose.output.settings
+        )
         if %_erl%==3 goto advanced.options
         if %_erl%==4 call :standby
-    goto verbose.output.settings
-
-:verbose.enable
-    call :update_config "verbose" "" "1"
-    echo Verbose Output Enabled.
-    call :sys.lt 2
-    goto verbose.output.settings
-
-:verbose.disable
-    call :update_config "verbose" "" "0"
-    echo Verbose Output Disabled.
-    call :sys.lt 2
     goto verbose.output.settings
 
 :custom.instruction.enable
@@ -1045,23 +1062,22 @@
     echo:
     choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 goto monitor.enable
-        if %_erl%==2 goto monitor.disable
+        if %_erl%==1 (
+            call :update_config "monitoring" "" "1"
+            call :color _Green "Monitor Socket Enabled." okay
+            call :sys.lt 2
+            goto monitor.settings
+        )
+        if %_erl%==2 (
+            call :update_config "monitoring" "" "0"
+            call :color _Green "Monitor Socket Disabled." okay
+            call :sys.lt 2
+            goto monitor.settings
+        )
         if %_erl%==3 goto advanced.options
         if %_erl%==4 call :standby
     goto monitor.settings
 
-:monitor.enable
-    call :update_config "monitoring" "" "1"
-    call :color _Green "Monitor Socket Enabled." okay
-    call :sys.lt 2
-    goto monitor.settings
-
-:monitor.disable
-    call :update_config "monitoring" "" "0"
-    call :color _Green "Monitor Socket Disabled." okay
-    call :sys.lt 2
-    goto monitor.settings
 
 :login.setup
     %cls.debug%
@@ -1085,28 +1101,24 @@
     choice /C 1234S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto login.create
-        if %_erl%==2 goto login.change
-        if %_erl%==3 goto login.delete
+        if %_erl%==2 (
+            echo Changing Login...
+            reg delete "HKCU\Software\DataSpammer" /v UsernameHash /f
+            reg delete "HKCU\Software\DataSpammer" /v PasswordHash /f
+            goto login.create
+        )
+        if %_erl%==3 (
+            reg delete "HKCU\Software\DataSpammer" /v UsernameHash /f
+            reg delete "HKCU\Software\DataSpammer" /v PasswordHash /f
+            call :color _Green "Login Deleted Successfully." warning
+            echo Restarting Script...
+            call :sys.lt 1
+            goto restart.script
+        )
         if %_erl%==4 goto settings
         if %_erl%==5 call :standby
     goto login.setup
     
-:login.change
-    :: Delete User Account, then create a new one
-    echo Changing Login...
-    reg delete "HKCU\Software\DataSpammer" /v UsernameHash /f
-    reg delete "HKCU\Software\DataSpammer" /v PasswordHash /f
-    goto login.create
-
-:login.delete
-    :: Delete User Account
-    reg delete "HKCU\Software\DataSpammer" /v UsernameHash /f
-    reg delete "HKCU\Software\DataSpammer" /v PasswordHash /f
-    call :color _Green "Login Deleted Successfully." warning
-    echo Restarting Script...
-    call :sys.lt 1
-    goto restart.script
-
 :login.create
     :: Create new Login Hashes
     for /f "tokens=3" %%A in ('reg query "HKCU\Software\DataSpammer" /v UsernameHash 2^>nul') do set "storedhash=%%A"
@@ -1185,9 +1197,21 @@
     echo: 
     choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 goto switch.pwsh.elevation
+        if %_erl%==1 goto (
+            if %logging% == 1 ( call :log Chaning_Elevation_to_pwsh WARN )
+            call :update_config "elevation" "" "pwsh"
+            call :color _Green "Switched to Powershell Elevation." okay
+            call :sys.lt 2
+            goto restart.script
+        )
         if %_erl%==2 goto switch.sudo.elevation
-        if %_erl%==3 goto switch.gsudo.elevation
+        if %_erl%==3 (
+            if %logging% == 1 ( call :log Chaning_Elevation_to_gsudo WARN )
+            call :update_config "elevation" "" "gsudo"
+            call :color _Green "Switched to GSudo Elevation." okay
+            call :sys.lt 2
+            goto restart.script
+        )
         if %_erl%==4 call :standby
     goto switch.elevation
 
@@ -1225,24 +1249,7 @@
     call :sys.lt 2
     goto restart.script
 
-
-:switch.pwsh.elevation
-    call :sys.lt 2
-    if %logging% == 1 ( call :log Chaning_Elevation_to_pwsh WARN )
-    call :update_config "elevation" "" "pwsh"
-    call :color _Green "Switched to Powershell Elevation." okay
-    call :sys.lt 2
-    goto restart.script
-
-:switch.gsudo.elevation
-    call :sys.lt 2
-    if %logging% == 1 ( call :log Chaning_Elevation_to_gsudo WARN )
-    call :update_config "elevation" "" "gsudo"
-    call :color _Green "Switched to GSudo Elevation." okay
-    call :sys.lt 2
-    goto restart.script
-
-:spam.settings
+:main.settings
     echo [1] Default Filename
     call :sys.lt 1
     echo: 
@@ -1251,8 +1258,24 @@
     call :sys.lt 1
     echo: 
     call :sys.lt 1
-    echo [3] Go back
-    choice /C 1234S /T 120 /D S  /M "Choose an Option from Above:"
+    echo [3] Switch Elevation Method (pswh / sudo / gsudo)
+    call :sys.lt 1
+    echo: 
+    call :sys.lt 1
+    echo [4] Logging
+    call :sys.lt 1
+    echo: 
+    call :sys.lt 1
+    echo [5] Change Color
+    call :sys.lt 1
+    echo: 
+    call :sys.lt 1
+    echo [6] Change Codepage ( Emoji Support^! ) 
+    call :sys.lt 1
+    echo: 
+    call :sys.lt 1
+    echo [7] Go back
+    choice /C 1234567S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 (
             if %logging% == 1 ( call :log Chaning_Default_Filename WARN )
@@ -1264,9 +1287,13 @@
             goto restart.script
         )
         if %_erl%==2 goto settings.skip.sec
-        if %_erl%==3 goto settings
-        if %_erl%==4 call :standby
-    goto spam.settings
+        if %_erl%==3 goto switch.elevation
+        if %_erl%==4 goto settings.logging
+        if %_erl%==5 goto change.color
+        if %_erl%==6 goto change.chcp
+        if %_erl%==7 goto settings
+        if %_erl%==8 call :standby
+    goto main.settings
 
 :settings.skip.sec
     if %logging% == 1 (
@@ -1368,32 +1395,29 @@
     echo:
     choice /C 12345S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 goto enable.logging
-        if %_erl%==2 goto disable.logging
+        if %_erl%==1 (
+            if %logging% == 1 ( goto settings.logging )
+            echo Do you want to set Logging to Only ERRORs / WARNs or General?
+            choice /C CG /M "(C)ritical / (G)eneral"
+                if %_erl%==1 call :update_config "logging" "" "2"
+                if %_erl%==2 call :update_config "logging" "" "1"
+            call :color _Green "Logging Enabled." okay
+            call :sys.lt 2
+            goto restart.script
+        )
+        if %_erl%==2 (
+            if %logging% == 0 ( goto settings.logging )
+            if %logging% == 1 ( call :log Disabling_Logging WARN )
+            call :update_config "logging" "" "0"
+            call :color _Green "Logging Disabled." okay
+            call :sys.lt 2
+            goto restart.script
+        )
         if %_erl%==3 %cls.debug% && echo Opening Log... & notepad %userprofile%\Documents\DataSpammerLog\DataSpammer.log && pause && goto settings.logging
         if %_erl%==4 %cls.debug% && erase %userprofile%\Documents\DataSpammerLog\DataSpammer.log && echo Log Cleared. && pause && goto settings.logging
         if %_erl%==5 goto settings
         if %_erl%==6 call :standby
     goto settings.logging
-
-
-:enable.logging
-    if %logging% == 1 ( goto settings.logging )
-    echo Do you want to set Logging to Only ERRORs / WARNs or General?
-    choice /C CG /M "(C)ritical / (G)eneral"
-        if %_erl%==1 call :update_config "logging" "" "2"
-        if %_erl%==2 call :update_config "logging" "" "1"
-    call :color _Green "Logging Enabled." okay
-    call :sys.lt 2
-    goto restart.script
-
-:disable.logging
-    if %logging% == 0 ( goto settings.logging )
-    if %logging% == 1 ( call :log Disabling_Logging WARN )
-    call :update_config "logging" "" "0"
-    call :color _Green "Logging Disabled." okay
-    call :sys.lt 2
-    goto restart.script
 
 :desktop.settings
     %cls.debug%
@@ -1412,23 +1436,25 @@
 
     choice /C 12S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 goto desktop.setup
-        if %_erl%==2 goto desktop.remove
+        if %_erl%==1 (
+            %cls.debug%
+            %powershell_short% -Command ^
+             $WshShell = New-Object -ComObject WScript.Shell; ^
+             $Shortcut = $WshShell.CreateShortcut('%USERPROFILE%\Desktop\DataSpammer.lnk'); ^
+             $Shortcut.TargetPath = '%~0'; ^
+             $Shortcut.Save()
+            call :color _Green "Desktop Icon Created Successfully." okay
+            goto menu
+        )
+        if %_erl%==2 (
+            %cls.debug%
+            erase "%USERPROFILE%\Desktop\DataSpammer.lnk" >nul
+            echo Desktop Icon Removed Successfully.
+            goto settings
+        )
         if %_erl%==3 goto menu
         if %_erl%==4 call :standby
     goto desktop.settings
-
-:desktop.icon.setup
-    %cls.debug%
-    %powershell_short% -Command ^
-     $WshShell = New-Object -ComObject WScript.Shell; ^
-     $Shortcut = $WshShell.CreateShortcut('%USERPROFILE%\Desktop\DataSpammer.lnk'); ^
-     $Shortcut.TargetPath = '%~0'; ^
-     $Shortcut.Save()
-    call :color _Green "Desktop Icon Created Successfully." okay
-    call :sys.lt 4
-    goto menu
-
 
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1675,25 +1701,21 @@
     echo Encrypt or Decrypt?
     choice /C ED /M "(E)ncrypt or (D)ecrypt):"
         set _erl=%errorlevel%
-        if %_erl%==1 goto encrypt.spam
-        if %_erl%==2 goto decrypt.spam
+        if %_erl%==1 (
+            echo Folder or File?
+            choice /C FD /M "(F)ile or (D)irectory):"
+                set _erl=%errorlevel%
+                if %_erl%==1 goto encrypt.spam.file
+                if %_erl%==2 goto encrypt.spam.folder
+        )
+        if %_erl%==2 (
+            echo Folder or File?
+            choice /C FD /M "(F)ile or (D)irectory):"
+                set _erl=%errorlevel%
+                if %_erl%==1 goto decrypt.spam.file
+                if %_erl%==2 goto decrypt.spam.folder
+        )
     goto crypt.spam
-
-:encrypt.spam
-    echo Folder or File?
-    choice /C FD /M "(F)ile or (D)irectory):"
-        set _erl=%errorlevel%
-        if %_erl%==1 goto encrypt.spam.file
-        if %_erl%==2 goto encrypt.spam.folder
-    goto encrypt.spam
-
-:decrypt.spam
-    echo Folder or File?
-    choice /C FD /M "(F)ile or (D)irectory):"
-        set _erl=%errorlevel%
-        if %_erl%==1 goto decrypt.spam.file
-        if %_erl%==2 goto decrypt.spam.folder
-    goto decrypt.spam 
 
 :encrypt.spam.folder
     call :directory.input encrypt-dir "Enter the Directory: "
@@ -2525,7 +2547,13 @@
     echo [8] Go Back
     choice /C 12345678S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 goto dev.options.call.sign
+        if %_erl%==1 (
+            echo List all Call Signs?
+            choice /C YN /M "(Y)es / (N)o"
+                set _erl=%errorlevel%
+                if %_erl%==1 call :list.vars && %cls.debug% && set /P jumpto=Enter the Call Sign: && goto %jumpto% 
+                if %_erl%==2 %cls.debug% && set /P jumpto=Enter the Call Sign: && goto %jumpto%
+        )
         if %_erl%==2 @echo on && %cls.debug% && goto dev.options
         if %_erl%==3 set /P var=Enter the Variable Name: && set /P value=Enter the Value: && set %var%=%value% && %cls.debug% && goto dev.options
         if %_erl%==4 goto top
@@ -2547,15 +2575,6 @@
     echo Elevation: %elevation%
     echo Skip Security Check: %skip-sec%
     goto dev.options
-
-:dev.options.call.sign
-    :: List all Call Signs
-    echo List all Call Signs?
-    choice /C YN /M "(Y)es / (N)o"
-        set _erl=%errorlevel%
-        if %_erl%==1 call :list.vars && %cls.debug% && set /P jumpto=Enter the Call Sign: && goto %jumpto% 
-        if %_erl%==2 %cls.debug% && set /P jumpto=Enter the Call Sign: && goto %jumpto%
-    goto dev.options.call.sign
 
 :sys.new.update.installed
     :: Renew Version Registry Key
