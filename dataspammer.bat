@@ -1,7 +1,7 @@
 :: Use only under License
 :: Contribute under https://github.com/PIRANY1/DataSpammer
 :: Version v6 - DEVELOPMENT
-:: Last edited on 11.07.2025 by PIRANY
+:: Last edited on 17.07.2025 by PIRANY
 
 :: Some Functions are inspired from the MAS Script. 
 
@@ -96,7 +96,10 @@
 ::      Verify Basis Functions & Custom Dir Install
 ::      Check New Download Logic, and new URLs
 ::      Full Check Script with 65001 and then set default
-::      Readd desktop.remove
+::      Fix Warning Emoji
+::      Add Info Emoji to :color
+::      Add List settings to dev.options
+::      Fix Some Settings Disapperaring
 
 :top
     @echo off
@@ -118,8 +121,9 @@
     set "current_script_version=development"
     set "cls.debug=cls"
     set "exec-dir=%~dp0"
-    set "errormsg=echo: &call :color _Red "====== ERROR ======" &echo:"
+    set "errormsg=echo: &call :color _Red "====== ERROR ======" error &echo:"
     set "_erl=FFFF"
+    set "cmdPath=%ComSpec%"
 
     :: Allows ASCII stuff without Codepage Settings - Not My Work - Credits to ?
     :: Properly Escape Symbols like | ! & ^ > < etc. when using echo (%$Echo% " Text)
@@ -140,7 +144,7 @@
         %errormsg%
         call :color _Red "Ping is not found." error
         call :color _Red "Please verify that PING is available in your PATH." error
-        call :sys.lt 10 count
+        timeout /t 10 /nobreak >nul
         goto cancel
     ) else (
         call :color _Green "Ping found at: !PING!" okay
@@ -156,9 +160,6 @@
     ) else (
         call :color _Green "Timeout found at: !TIMEOUT!" okay
     )
-
-    :: Set CMD Path based on Context - 64bit or 32bit
-    set "cmdPath=%ComSpec%"
 
     :: No Dependency Functions (Arguments) - Documented at help.startup
     if "%~1"=="version" title DataSpammer && goto version
@@ -191,6 +192,7 @@
         call :sys.lt 10 count
     )
 
+
     :: Check Windows Version - Win 10 & 11 have certutil and other commands needed. Win 8.1 and below not have them
     call :win.version.check
     for /f "tokens=2 delims=[]" %%a in ('ver') do set "ver_full=%%a"
@@ -215,9 +217,8 @@
         call :color _Green "Windows Version is sufficient: %ver_full%" okay
     )    
 
-
     :: Parse Powershell Location
-    for /f "tokens=* delims=" %%O in ('where powershell') do (
+    for /f "tokens=* delims=" %%O in ('where powershell 2^>nul') do (
         set "line_powershell=%%O"
         for /f "tokens=* delims=" %%A in ("!line_powershell!") do set "powershell_location=%%A"
     )
@@ -246,6 +247,8 @@
         call :color _Green "Powershell Version is sufficient: !PS_MAJOR!.x" okay
     )
 
+
+
     :: Check for Line Issues
     findstr /v "$" "%~nx0" >nul
     if errorlevel 1 (
@@ -269,19 +272,6 @@
 
     :: If no arguments are given, start the script normally
     if "%~1"=="" goto startup
-
-    :: Check for Flags
-    for %%A in (%1 %2 %3 %4 %5) do (
-        if /I "%%~A"=="/b" (
-            set "b.flag=/b "
-        )
-        if /I "%%~A"=="/v" (
-            set "verbose=1"
-        )
-        if /I "%%~A"=="/unsecure" (
-            set "unsecure=1"
-        )
-    )
 
     :: Regular Argument Checks - Documented at help.startup
     if "%~1"=="faststart" title DataSpammer && goto sys.enable.ascii.tweak
@@ -358,7 +348,7 @@
     if defined color ( color %color% >nul ) else ( color 0F >nul )
 
     :: Check if Terminal is installed
-    for /f "delims=" %%a in ('where wt') do (
+    for /f "delims=" %%a in ('where wt 2^>nul') do (
         set "WT_PATH=%%a"
     )
     if not defined WT_PATH (
@@ -370,17 +360,32 @@
         set "elevPath=wt"
     )
 
+    :: Check for Flags
+    for %%A in (%1 %2 %3 %4 %5) do (
+        if /I "%%~A"=="/b" (
+            set "b.flag=/b "
+            call :color _Green "Dont Exit Mode is enabled" warning
+        )
+        if /I "%%~A"=="/v" (
+            set "verbose=1"
+            call :color _Green "Verbose Mode is enabled" warning
+        )
+        if /I "%%~A"=="/unsecure" (
+            set "unsecure=1"
+            call :color _Green "Unsecure Mode is enabled" warning
+        )
+    )
 
     :: Elevate Script with sudo, gsudo or powershell
     net session >nul 2>&1
     if %errorLevel% neq 0 (
         if "%elevation%"=="sudo" (
-            for /f "delims=" %%A in ('where sudo') do set SUDO_PATH=%%A
+            for /f "delims=" %%A in ('where sudo 2^>nul') do set SUDO_PATH=%%A
             %SUDO_PATH% --new-window -- "%LocalAppData%\Microsoft\WindowsApps\wt.exe" %cmdPath% /c ""%~f0" %b.flag%%v.flag%" || goto elevation_failed
             goto cancel
         )
         if "%elevation%"=="gsudo" (
-            for /f "delims=" %%A in ('where gsudo') do set GSUDO_PATH=%%A
+            for /f "delims=" %%A in ('where gsudo 2^>nul') do set GSUDO_PATH=%%A
             %GSUDO_PATH% --new "%LocalAppData%\Microsoft\WindowsApps\wt.exe" %cmdPath% /c ""%~f0" %b.flag%%v.flag%" || goto elevation_failed
             goto cancel
         )
@@ -487,12 +492,16 @@
         tasklist /FI "PID eq !pidlock!" | findstr /i "!pidlock!" >nul
         if !errorlevel! == 0 (
             :: process is already running under pidlock, exit
+            %cls.debug%
+            %errormsg%
             call :color _Red "DataSpammer is already running under PID !pidlock!." error
             if !logging! == 1 call :log DataSpammer_Already_Running ERROR
             echo Exiting...
             pause
             goto cancel
         ) else (
+            %cls.debug%
+            %errormsg%
             call :color _Red "DataSpammer may have crashed or was closed. Deleting lock file..." error
             call :color _Red "Be aware that some tasks may not have finished properly." error
             if !logging! == 1 call :log DataSpammer_may_have_crashed ERROR
@@ -1042,7 +1051,7 @@
     echo:
     set /p color.var=Please enter the Color Combination:
     call :update_config "color" "" "%color.var%"
-
+    goto main.settings
 
 :monitor.settings
     if "%monitoring%"=="1" set "monitoring-status=Enabled"
@@ -1237,7 +1246,7 @@
     )
     
     :: Check if Sudo is installed
-    for /f "delims=" %%a in ('where sudo') do (
+    for /f "delims=" %%a in ('where sudo 2^>nul') do (
         set "where_output=%%a"
     )
     if not defined where_output (call :color _Yellow "You dont have sudo enabled" warning && pause && goto advanced.options)
@@ -1342,7 +1351,7 @@
 
 
 :activate.dev.options   
-    if %developermode% == 1 goto dev.options
+    if "%developermode%"=="1" goto dev.options
     echo Do you want to activate the Developer Options?
     echo Developer Options include some advanced features like logging etc.
     echo These Features are experimental can be unstable.
@@ -1438,11 +1447,9 @@
         set _erl=%errorlevel%
         if %_erl%==1 (
             %cls.debug%
-            %powershell_short% -Command ^
-             $WshShell = New-Object -ComObject WScript.Shell; ^
-             $Shortcut = $WshShell.CreateShortcut('%USERPROFILE%\Desktop\DataSpammer.lnk'); ^
-             $Shortcut.TargetPath = '%~0'; ^
-             $Shortcut.Save()
+            set "targetShortcut=%USERPROFILE%\Desktop\DataSpammer.lnk"
+            set "targetPath=%~0"
+            %powershell_short% -Command "$WshShell = New-Object -ComObject WScript.Shell; $Shortcut = $WshShell.CreateShortcut('%targetShortcut%'); $Shortcut.TargetPath = '%targetPath%'; $Shortcut.Save()"
             call :color _Green "Desktop Icon Created Successfully." okay
             goto menu
         )
@@ -1472,7 +1479,7 @@
     if %logging% == 1 ( call :log Start_Verified INFO )
     %cls.debug%
 
-    for /f "delims=" %%a in ('where python') do (
+    for /f "delims=" %%a in ('where python 2^>nul') do (
         set "where_output=%%a"
     )
     if not defined where_output (set "python.line=echo:") else ( set "python.line=echo [4] Python Scripts (Experimental)" ) 
@@ -1643,7 +1650,7 @@
     call :sys.lt 3
     
     :icmp.loop
-    %ping% %icmp.target% -n 1 -w %icmp.rate%
+    %ping% %icmp.target% -n 1 -w %icmp.rate% >%destination%
     if %logging% == 1 ( call :log Sending_ICMP_Request_to_%icmp.target% INFO )
     goto icmp.loop
 
@@ -1697,6 +1704,9 @@
 
 
 :crypt.spam
+    for /f "delims=" %%a in ('where openssl 2^>nul') do ( set "where_output=%%a" )
+    if not defined where_output ( echo OpenSSL is not installed. && timeout /t 5 /nobreak >nul && goto start.verified )
+
     echo Original Files will be REMOVED
     echo Encrypt or Decrypt?
     choice /C ED /M "(E)ncrypt or (D)ecrypt):"
@@ -1768,6 +1778,7 @@
     if not "%encrypt-key%"=="%encrypt-key-2%" goto encrypt.spam.file.passwd
 
     echo Encrypting file: %encrypt-dir%
+
     if "%crypt.method%"=="aes-256-cbc" (
         openssl enc -aes-256-cbc -salt -in "%encrypt-dir%" -out "%encrypt-dir%.enc" -pass pass:%encrypt-key%  -iter 100000
     ) else (
@@ -1776,8 +1787,8 @@
     erase "%encrypt-dir%" >nul 2>&1
     echo File "%encrypt-dir%" encrypted to "%encrypt-dir%.enc".
     echo Encrypted with %crypt.method%
-    echo Waiting 2 Seconds...    
-    call :sys.lt 4
+    echo Waiting 10 Seconds...    
+    timeout /t 10 /nobreak >nul
     goto menu
 
 :decrypt.spam.folder
@@ -1870,7 +1881,7 @@
     )
 
     if %logging% == 1 ( call :log Finished_HTTPS_Spam:%requests%_Requests_on_%url% INFO )
-    call :done "The Script Created %requests% to %url%"
+    call :done "The Script Created %requests% Requests to %url%"
 
 
 
@@ -2076,7 +2087,7 @@
     echo:
     echo:
     :: Use nmap to find local IPs
-    for /f "delims=" %%a in ('where nmap') do (
+    for /f "delims=" %%a in ('where nmap 2^>nul') do (
         set "where_output=%%a"
     )
     if defined where_output ( echo Scanning Local Subnet for IPs (takes ca. 10secs) && where_output nmap -sn 192.168.1.0/24 ) else ( echo Listing ARP Cache IPs && arp -a )
@@ -2542,7 +2553,7 @@
     echo:
     echo [6] List all :signs
     echo:
-    echo [7] List all :signs
+    echo [7] List all Settings
     echo:
     echo [8] Go Back
     choice /C 12345678S /T 120 /D S  /M "Choose an Option from Above:"
@@ -2559,8 +2570,8 @@
         if %_erl%==4 goto top
         if %_erl%==5 goto restart.script
         if %_erl%==6 call :list.vars && pause && %cls.debug%
-        if %_erl%==7 goto settings
-        if %_erl%==8 goto debug.info     
+        if %_erl%==7 goto debug.info
+        if %_erl%==8 goto settings  
         if %_erl%==9 call :standby
     goto dev.options
 
@@ -2743,7 +2754,7 @@
         goto directory.input.sub
     )
     
-    call :color _Green "The directory "!dir.path!" exists and is writable. " okay
+    call :color _Green "The directory !dir.path! exists and is writable. " okay
     exit /b 0
 
 
@@ -2767,22 +2778,22 @@
     set "testfilename=tmpcheck_%random%"
     set "testfile=%rw.path%\%testfilename%.tmp"
     echo. > "%testfile%" 2>nul || (
-        call :color _Red "Could not create a temporary file in the directory "%rw.path%"." error
+        call :color _Red "Could not create a temporary file in the directory %rw.path%." error
         exit /b 1
     )
     if not exist "%rw.path%\" (
-        call :color _Red "The directory "%rw.path%" does not exist." error
+        call :color _Red "The directory %rw.path% does not exist." error
         exit /b 1
     )
 
     ren "%testfile%" "%testfilename%.locked" 2>nul || (
-        call :color _Red "The directory "%rw.path%" is not writable." error
+        call :color _Red "The directory %rw.path% is not writable." error
         del "%testfile%" 2>nul
         exit /b 1
     )
 
     del "%rw.path%\%testfilename%.locked" 2>nul
-    call :color _Green "The directory "%rw.path%" exists and is writable." okay
+    call :color _Green "The directory %rw.path% exists and is writable." okay
     exit /b 0
 
 
@@ -3187,6 +3198,7 @@
     exit /b
 
 :help.startup
+    cls
     :: Display Help Message
     echo:
     echo:
@@ -3315,7 +3327,7 @@
     )
 
     :: Check for Certutil, Required for Encryption
-    for /f "delims=" %%a in ('where certutil') do (
+    for /f "delims=" %%a in ('where certutil 2^>nul') do (
         set "where_output=%%a"
     )  
 
@@ -3839,7 +3851,7 @@
 
 :cancel 
     :: Exit Script, compatible with NT
-    EVENTCREATE /T INFORMATION /ID 200 /L APPLICATION /SO DataSpammer /D "DataSpammer Exiting %ERRORLEVEL%"
+    EVENTCREATE /T INFORMATION /ID 200 /L APPLICATION /SO DataSpammer /D "DataSpammer Exiting %ERRORLEVEL%" >nul
     set EXIT_CODE=%ERRORLEVEL%
     if not "%~1"=="" set "EXIT_CODE=%~1"
     if "%EXIT_CODE%"=="" set EXIT_CODE=0
