@@ -1,7 +1,7 @@
 :: Use only under License
 :: Contribute under https://github.com/PIRANY1/DataSpammer
 :: Version v6 - DEVELOPMENT
-:: Last edited on 17.07.2025 by PIRANY
+:: Last edited on 18.07.2025 by PIRANY
 
 :: Some Functions are inspired from the MAS Script. 
 
@@ -79,27 +79,27 @@
 ::      - Remove development Flags
 ::      - Remove Debugging Flags
 ::      - Add new Script Version Number to dataspammer.bat
+::      - Update Scoop Bucket & hash
 
 :: Todo: 
 ::      Add more Comments, Logs , Socket Messages, Error Checks and Color
-::      Implement echo Verbose Message >%destination% %cls.debug%
-::      Add more Emojis (emoji_info=ℹ️, emoji_warning=⚠️, emoji_error=❌, emoji_okay=✅)
+::      Implement more Verbose Message ( >%destination% ) or ( %cls.debug% )
+::      Add more Color Messages with Emojis ( Docs at :color)
 
 ::      Fix Updater - Clueless After 3 Gazillion Updates - Hopefully Fixed
-::      Add Enviroment Simulator Script for Testing.
 ::      Replace . & - with _ in Variables & Labels
 ::      Verify CIF Parser
 ::      Finish DE Translation
 
 ::      V6 Stuff:
 ::      Integrate DE Version
-::      Verify Basis Functions & Custom Dir Install
-::      Check New Download Logic, and new URLs
+::      Check all Spams
+::      Check New Download Logic, and new URLs - README + LICENSE got removed
 ::      Full Check Script with 65001 and then set default
 ::      Fix Warning Emoji
-::      Add Info Emoji to :color
-::      Add List settings to dev.options
-::      Fix Some Settings Disapperaring
+::      Fix Setting 5,6 and 7 disapperaring in some cases
+::      Check IFP install ( directory9 etc.)
+::      Check Scoop, IFP etc.
 
 :top
     @echo off
@@ -290,6 +290,7 @@
     :: Undocumented Arguments
     if "%~1"=="update-install" ( goto sys.new.update.installed )
     if "%~1"=="ifp.install" ( goto ifp.install )
+    if "%~1"=="scoop.install" ( goto scoop.install )
 
 :startup
     :: Check for Install Reg Key
@@ -1332,21 +1333,16 @@
     call :sys.lt 1
     echo:
     call :sys.lt 1
-    echo [3] Switch to Develop Branch (v6)
-    call :sys.lt 1
-    echo:
-    call :sys.lt 1
-    echo [4] Go Back
+    echo [3] Go Back
     call :sys.lt 1
     echo:
     echo:
-    choice /C 1234S /T 120 /D S  /M "Choose an Option from Above:"
+    choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 call :update.script stable && goto cancel
         if %_erl%==2 call :update.script stable && goto cancel
-        if %_erl%==3 call :update.script beta && goto cancel
-        if %_erl%==4 goto settings
-        if %_erl%==5 call :standby
+        if %_erl%==3 goto settings
+        if %_erl%==4 call :standby
     goto settings.version.control
 
 
@@ -2286,6 +2282,7 @@
 :ifp.install
     :: If Script was installed by Install Forge add Registry Stuff here
     :: Add Script to Windows App List
+    set "elevPath=wt"
     set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
     if defined ProgramFiles(x86) (
         set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
@@ -2301,11 +2298,30 @@
     reg add "HKCU\Software\DataSpammer" /v Version /t REG_SZ /d "%current_script_version%" /f
 
     :: Add Script to PATH
-    if defined addpath1 ( setx PATH "%PATH%;%directory9%\DataSpammer.bat" /M >nul )
+    setx PATH "%PATH%;%directory9%\DataSpammer.bat" /M >nul
 
     :: Add Remember Encrypted State Token
-    call :generateRandom
-    reg add "HKCU\Software\DataSpammer" /v Token /t REG_SZ /d "%realrandom%" /f
+    reg add "HKCU\Software\DataSpammer" /v logging /t REG_SZ /d "1" /f
+    reg add "HKCU\Software\DataSpammer" /v color /t REG_SZ /d "0F" /f
+    call :color _Green "DataSpammer was successfully installed." okay
+    goto restart.script
+
+
+:scoop.install
+    reg query "HKCU\Software\DataSpammer" /v Installed >nul 2>&1
+    if %errorlevel% neq 0 (
+        call :color _Red "DataSpammmer is already installed" error
+        call :color _Green "Starting Update" okay
+        goto update.script
+    )
+
+    :: If Script was installed by Scoop add Registry Stuff here
+    :: Add Reg Key - Remember Installed Status
+    set "elevPath=wt"
+    reg add "HKCU\Software\DataSpammer" /v Installed /t REG_DWORD /d 1 /f
+    reg add "HKCU\Software\DataSpammer" /v Version /t REG_SZ /d "%current_script_version%" /f
+
+    :: Add Remember Encrypted State Token
     reg add "HKCU\Software\DataSpammer" /v logging /t REG_SZ /d "1" /f
     reg add "HKCU\Software\DataSpammer" /v color /t REG_SZ /d "0F" /f
     call :color _Green "DataSpammer was successfully installed." okay
@@ -2384,14 +2400,11 @@
 
 
 :sys.delete.script  
-    :: Delete Script Dialog
     echo: 
     call :sys.lt 1
     echo You are about to delete the whole script. Are you sure?
     call :sys.lt 1
     echo:
-    call :sys.lt 1
-    echo You are about to delete the whole script. Are you sure?
     call :sys.lt 1
     echo:
     call :sys.lt 1
@@ -2411,12 +2424,11 @@
         set _erl=%errorlevel%
         if %_erl%==1 goto sys.delete.script.check.elevation
         if %_erl%==2 explorer "https://github.com/PIRANY1/DataSpammer" && goto sys.delete.script
-        if %_erl%==3 goto cancel
+        if %_erl%==3 goto menu
         if %_erl%==4 call :standby
     goto sys.delete.script
 
 :sys.delete.script.check.elevation
-    :: Check if Script is elevated
     net session >nul 2>&1
     if %errorLevel% == 0 ( 
         goto sys.delete.script.confirmed 
@@ -2428,7 +2440,6 @@
     )
    
 :sys.delete.script.confirmed
-    :: Delete Script
     if exist "%~dp0\LICENSE" del "%~dp0\LICENSE"
     if exist "%~dp0\README.md" del "%~dp0\README.md"
     if exist "%USERPROFILE%\Desktop\DataSpammer.lnk" "erase %USERPROFILE%\Desktop\DataSpammer.lnk"
@@ -2595,11 +2606,11 @@
     )
     reg delete "%RegPath%" /v "DisplayVersion" /f
     reg add "%RegPath%" /v "DisplayVersion" /d "%current_script_version%" /f
-    %cls.debug% && echo Updated Settings.
-    %cls.debug% && echo Successfully updated the Registry Key for the Version.
+    call :color _Green "Updated Settings." okay
+    echo Successfully updated the Registry Key for the Version.
     if %logging% == 1 ( call :log Updated_Script_Version:%current_script_version% INFO )
     if %logging% == 1 ( call :log Errorlevel_after_Update:_%errorlevel% INFO )
-    echo Successfully Updated to %current_script_version%
+    call :color _Green "Successfully Updated to %current_script_version%" okay
     echo Restarting...
     call :sys.lt 4 count
     goto restart.script
@@ -2853,7 +2864,12 @@
     
 
 :: =====================================
-:: call :color "ERROR"
+:: call :color "ERROR" error
+:: ❌ ERROR
+::
+:: Supported Emojis: okay, error, warning, info ( ✅, ❌, ⚠️, ℹ️ ) 
+:: Example: call :color Red "This is red text" okay -> ✅ This is red text
+::
 :: Supported Colors: Red, Green, Blue, Gray, White, _Red, _White, _Green, _Yellow
 :: call :color Red      "This is red on light white"
 :: call :color _Red     "This is red on black"
@@ -3252,7 +3268,7 @@
     for /f "tokens=2 delims=:, " %%a in ('findstr /R /C:"\"tag_name\"" apianswer.txt') do (
         set "latest_release_tag=%%a"
     )
-
+    del apianswer.txt
     set "update_url=https://github.com/PIRANY1/DataSpammer/releases/download/%latest_release_tag%/"
 
     cd /d "%~dp0"
@@ -3693,7 +3709,7 @@
     if not "%directory:~-1%"=="\" set "directory=%directory%\"
 
     cd /d "%directory%"
-    :: Check RW Permissions
+    :: Check ReadWrite Permissions
     call :rw.check "%directory%"
     if %errorlevel% neq 0 (
         echo Please choose a different directory.
@@ -3753,9 +3769,8 @@
     :: Download LICENSE and README.md if only dataspammer.bat is present
     cd /d "%directory9%"
     set "update_url=https://github.com/PIRANY1/DataSpammer/releases/download/%current_script_version%/"
-    echo Downloading...
     :: Download Files via BITS
-    if not exist README.md ( 
+    if not exist "%directory9%README.md" ( 
         echo Downloading README.md...
         bitsadmin /transfer upd "%update_url%README.md" "%directory9%\README.md" >nul
         if errorlevel 1 (
@@ -3765,7 +3780,7 @@
         )   
     )
 
-    if not exist LICENSE (
+    if not exist "%directory9%LICENSE" (
         echo Downloading LICENSE...
         bitsadmin /transfer upd "%update_url%LICENSE" "%directory9%\LICENSE" >nul
         if errorlevel 1 (
@@ -3843,11 +3858,21 @@
     reg add "HKCU\Software\DataSpammer" /v logging /t REG_SZ /d "1" /f
     reg add "HKCU\Software\DataSpammer" /v color /t REG_SZ /d "0F" /f
     echo Is the Script in a directory that requires Administrative Privileges?
+    set "elevPath=wt"
     choice /C YN /M "(Y)es/(N)o"
         set _erl=%errorlevel%
         if %_erl%==1 reg add "HKCU\Software\DataSpammer" /v elevation /t REG_SZ /d "pwsh" /f
         if %_erl%==2 reg add "HKCU\Software\DataSpammer" /v elevation /t REG_SZ /d "off" /f
     goto restart.script
+
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+:: -------------------------------------------------Install.bat End ---------------------------------------------------------------------------------
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+:: --------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 :cancel 
     :: Exit Script, compatible with NT
@@ -3864,4 +3889,4 @@
 goto cancel
 exit %errorlevel%
 
-:: Leave empty line below 
+:: Leave empty line below ( for LF line ending check)

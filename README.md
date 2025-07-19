@@ -24,10 +24,17 @@ Custom CHCP Support, Portable Install & many more Features
 
 Use one of the methods below or download the [Latest Version](https://github.com/PIRANY1/DataSpammer/releases/latest)
 
-### One-Line Install
+### One-Line Command
 
 ``` batch
-curl -sSLO https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/dataspammer.bat && dataspammer.bat install
+curl -sSLO https://github.com/PIRANY1/DataSpammer/releases/download/v6/dataspammer.bat && dataspammer.bat install
+```
+
+### Scoop
+
+``` batch
+scoop bucket add dts-bucket https://github.com/PIRANY1/dataspammer-bucket
+scoop install dataspammer
 ```
 
 ### Git
