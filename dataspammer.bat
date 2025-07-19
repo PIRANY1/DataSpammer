@@ -1,7 +1,7 @@
 :: Use only under License
 :: Contribute under https://github.com/PIRANY1/DataSpammer
-:: Version v6 - DEVELOPMENT
-:: Last edited on 18.07.2025 by PIRANY
+:: Version v6 - RELEASE
+:: Last edited on 19.07.2025 by PIRANY
 
 :: Some Functions are inspired from the MAS Script. 
 
@@ -90,15 +90,11 @@
 ::      Replace . & - with _ in Variables & Labels
 ::      Verify CIF Parser
 ::      Finish DE Translation
+::      Add Color Saving with non overwrite
 
 ::      V6 Stuff:
 ::      Integrate DE Version
 ::      Check all Spams
-::      Check New Download Logic, and new URLs - README + LICENSE got removed
-::      Full Check Script with 65001 and then set default
-::      Fix Warning Emoji
-::      Fix Setting 5,6 and 7 disapperaring in some cases
-::      Check IFP install ( directory9 etc.)
 ::      Check Scoop, IFP etc.
 
 :top
@@ -118,7 +114,7 @@
     mode con: cols=120 lines=35
 
     :: Some Essential Variables
-    set "current_script_version=development"
+    set "current_script_version=v6"
     set "cls.debug=cls"
     set "exec-dir=%~dp0"
     set "errormsg=echo: &call :color _Red "====== ERROR ======" error &echo:"
@@ -323,9 +319,12 @@
     call :parse.settings
 
     :: Apply Custom Codepage if defined
-    if chcp neq 0 (
+    if defined chcp (
         chcp %chcp% >nul
         call :color _Green "Codepage set to %chcp%" okay
+    ) else (
+        chcp 65001 >nul
+        set "chcp=65001"
     )
 
     if "%chcp%"=="65001" (
@@ -731,7 +730,7 @@
     )
     cd /d "%~dp0"
     if %logging% == 1 ( call :log Displaying_Menu INFO )
-    title DataSpammer %current_script_version% - Menu - Development
+    title DataSpammer %current_script_version% - Menu - v6
     %cls.debug%
 
     %$Echo% "   ____        _        ____
@@ -743,7 +742,7 @@
 
 
     call :sys.lt 1
-    echo Made by PIRANY - %current_script_version% - Logged in as %username.script% - CMD-Version %CMD_VERSION%
+    call :color _Red "Made by PIRANY - %current_script_version% - Logged in as %username.script% - CMD-Version %CMD_VERSION%"
     call :sys.lt 1
     echo:
     call :sys.lt 1
@@ -939,15 +938,17 @@
     choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 (
+            %cls.debug%
             call :update_config "verbose" "" "1"
             echo Verbose Output Enabled.
-            call :sys.lt 2
+            call :sys.lt 5
             goto verbose.output.settings
         )
         if %_erl%==2 (
+            %cls.debug%
             call :update_config "verbose" "" "0"
             echo Verbose Output Disabled.
-            call :sys.lt 2
+            call :sys.lt 5
             goto verbose.output.settings
         )
         if %_erl%==3 goto advanced.options
@@ -1015,6 +1016,7 @@
 
 
     echo Current Codepage: !chcp.clean!
+    echo Default Codepage: 65001
     echo:
     echo CHCP Values:
     echo 437	United States
@@ -2289,16 +2291,16 @@
     )
     reg add "%RegPath%" /v "DisplayName" /d "DataSpammer" /f
     reg add "%RegPath%" /v "DisplayVersion" /d "%current_script_version%" /f
-    reg add "%RegPath%" /v "InstallLocation" /d "%directory9%" /f
+    reg add "%RegPath%" /v "InstallLocation" /d "%~dp0" /f
     reg add "%RegPath%" /v "Publisher" /d "PIRANY1" /f
-    reg add "%RegPath%" /v "UninstallString" /d "%directory9%\dataspammer.bat remove" /f
+    reg add "%RegPath%" /v "UninstallString" /d "%~dp0dataspammer.bat remove" /f
 
     :: Add Reg Key - Remember Installed Status
     reg add "HKCU\Software\DataSpammer" /v Installed /t REG_DWORD /d 1 /f
     reg add "HKCU\Software\DataSpammer" /v Version /t REG_SZ /d "%current_script_version%" /f
 
     :: Add Script to PATH
-    setx PATH "%PATH%;%directory9%\DataSpammer.bat" /M >nul
+    setx PATH "%PATH%;%~dp0DataSpammer.bat" /M >nul
 
     :: Add Remember Encrypted State Token
     reg add "HKCU\Software\DataSpammer" /v logging /t REG_SZ /d "1" /f
@@ -2812,10 +2814,12 @@
 :dataspammer.hash.check
     if "%unsecure%"=="1" (
         call :color _Red "Unsecure Mode Detected, Skipping Hash Check" warning
+        call :sys.lt 2
         exit /b 0
     )
     if "%current_script_version%"=="development" (
         call :color _Yellow "Development Version Detected, Skipping Hash Check" warning
+        call :sys.lt 2
         exit /b 0
     )
     :: Compare local and remote script hash
@@ -2830,6 +2834,7 @@
         call :color _Yellow "This could be due to a failed update or manual modifications." warning
         call :color _Green "Run the script with the /unsecure flag to skip this check." okay
         del "%TEMP%\dataspammer_remote.bat" >nul 2>&1
+        timeout /t 10 >nul
         goto cancel
     ) else (
         call :color _Green "The local script matches the remote version." okay
@@ -2940,6 +2945,7 @@
     set "Gray=100;97m"
     set "Green=42;97m"
     set "Blue=44;97m"
+    set "_Blue=40;94m"
     set "White=107;91m"
     set "_Red=40;91m"
     set "_White=40;37m"
@@ -2963,8 +2969,8 @@
     <nul set /p "=!esc![!code!!emoji!!text!!esc![0m"
     echo:
 
-    :: Reset Base Color
-    if defined color ( color %color% )
+    :: Reset Base Color ( overwrites everything)
+    :: if defined color ( color %color% )
 
     exit /b 0
 
@@ -3045,6 +3051,7 @@
     if not defined elevation set "elevation=pwsh"
     if not defined verbose set "verbose=0"
     if not defined color set "color=0F"
+    if not defined chcp set "chcp=65001"
 
     for /f "tokens=2 delims=:" %%A in ('chcp') do (
         set "chcp.value=%%A"

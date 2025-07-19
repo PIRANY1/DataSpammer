@@ -2,13 +2,9 @@
 
 ![Functionality Tests](https://github.com/PIRANY1/DataSpammer/actions/workflows/workflow.yml/badge.svg)
 ![Compile DataSpammer.bat](https://github.com/PIRANY1/DataSpammer/actions/workflows/analyze-bin.yml/badge.svg)
-
 Read this in: [German](https://github.com/PIRANY1/DataSpammerDE)
 
 ## Features
-> [!IMPORTANT]  
-> The entire script is currently being reworked in this [PR](https://github.com/PIRANY1/DataSpammer/pull/27).  
-> Because of this, the `main` branch is not receiving any updates at the moment.
 
 ### Stress-Test Features
 
@@ -27,7 +23,7 @@ Use one of the methods below or download the [Latest Version](https://github.com
 ### One-Line Command
 
 ``` batch
-curl -sSLO https://github.com/PIRANY1/DataSpammer/releases/download/v6/dataspammer.bat && dataspammer.bat install
+curl -sSLO https://github.com/PIRANY1/DataSpammer/releases/download/v6/dataspammer.bat && dataspammer.bat
 ```
 
 ### Scoop
