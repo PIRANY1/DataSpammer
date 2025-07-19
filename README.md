@@ -1,26 +1,36 @@
 # DataSpammer
 
+![Functionality Tests](https://github.com/PIRANY1/DataSpammer/actions/workflows/workflow.yml/badge.svg)
+![Compile DataSpammer.bat](https://github.com/PIRANY1/DataSpammer/actions/workflows/analyze-bin.yml/badge.svg)
+Read this in: [German](https://github.com/PIRANY1/DataSpammerDE)
+
 ## Features
-> [!IMPORTANT]  
-> The entire script is currently being reworked in this [PR](https://github.com/PIRANY1/DataSpammer/pull/27).  
-> Because of this, the `main` branch is not receiving any updates at the moment.
 
 ### Stress-Test Features
 
-ICMP, SSH, FTP, DNS, HTTP(S), Printer Spam, Desktop Spam, Folder Spam, Start Menu Spam, App List Spam
+ICMP, SSH, FTP, DNS, Telnet, HTTP(S), Printer (List) Spam, Desktop Spam, Folder Spam, Start Menu Spam, App List Spam, ZIP Bomb Creator, Encrypt / Decrypt 
 
 ### Other Features
 
-Desktop Shortcut, Autostart, Auto Update, Logging, Elevation via sudo/pwsh/gsudo, Encryption, Debugging, Secure Authentication
+Desktop Shortcut, Auto Update, Logging, Elevation via sudo/pwsh/gsudo, Encryption, Debugging, Secure Authentication
+Login, Monitor Socket, Coloring Support (NCS / ANSI), Settings via Registry, Applist Support, Emoji Suppot, 
+Custom CHCP Support, Portable Install & many more Features
 
 ## Install
 
 Use one of the methods below or download the [Latest Version](https://github.com/PIRANY1/DataSpammer/releases/latest)
 
-### One-Line Install
+### One-Line Command
 
-``` cmd
-curl -sSLo install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/main/install.bat && install.bat
+``` batch
+curl -sSLO https://github.com/PIRANY1/DataSpammer/releases/download/v6/dataspammer.bat && dataspammer.bat
+```
+
+### Scoop
+
+``` batch
+scoop bucket add dts-bucket https://github.com/PIRANY1/dataspammer-bucket
+scoop install dataspammer
 ```
 
 ### Git
@@ -28,7 +38,7 @@ curl -sSLo install.bat https://raw.githubusercontent.com/PIRANY1/DataSpammer/mai
 ``` batch
 git clone https://github.com/PIRANY1/DataSpammer.git
 cd DataSpammer
-install.bat
+dataspammer.bat install
 ```
 
 ### GitHub CLI
@@ -36,17 +46,12 @@ install.bat
 ``` batch
 gh repo clone PIRANY1/DataSpammer
 cd DataSpammer
-install.bat
+dataspammer.bat install
 ```
 
 ## Known Bugs
 
-Updater doesn't work 100% reliably.
-
-## Encrypt
-
-Files in the Release tab are encrypted to prevent anti-virus detection when writing in the Program Files folder.
-When you are downloading the files elsewhere, you can encrypt them later on.
+The updater occasionally corrupts files; redownloading the application resolves this issue.
 
 ## About
 
@@ -55,7 +60,3 @@ I created this script to learn more about Batch and how cmd.exe operates.
 Good Resource:
 
 [A detailed overview of CMD Commands](https://ss64.com/nt/)
-
-## Reporting a Bug
-
-If you encountered a bug, please create an [Issue](https://github.com/PIRANY1/DataSpammer/issues)

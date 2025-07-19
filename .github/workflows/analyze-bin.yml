@@ -1,0 +1,31 @@
+name: Compile DataSpammer.bat
+on:
+  push:
+    paths:
+      - 'dataspammer.bat'
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  Compile:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Download Bat To Exe Converter
+      run: |
+        Invoke-WebRequest https://github.com/l-urk/Bat-To-Exe-Converter-64-Bit/releases/download/3.2/Bat_To_Exe_Converter_x64.exe -OutFile BatToExe.exe
+
+    - name: Convert dataspammer.bat to dataspammer.exe
+      run: |
+        .\BatToExe.exe /bat dataspammer.bat /exe dataspammer.exe /x64 /invisible /uac-admin
+    
+    - name: Upload .exe as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: dataspammer.exe
+        path: dataspammer.exe

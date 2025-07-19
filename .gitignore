@@ -1,0 +1,43 @@
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*.~*
+*.lock
+
+# Logs and output files
+*.log
+*.out
+
+# Backup files
+*.old
+*.backup
+
+# Windows system files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Environment/config files
+.env
+
+# Project-generated folders
+logs/
+output/
+temp/
+cache/
+
+# Editor-specific settings
+*.sublime-workspace
+*.code-workspace
+
+# VS Code settings folder
+.vscode/
+
+# VS Code history and state
+.history/
+*.code-workspace
+
+# Ignore all files with prefix `output-`
+output-*.txt
