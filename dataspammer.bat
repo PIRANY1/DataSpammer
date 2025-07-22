@@ -91,11 +91,11 @@
 ::      Verify CIF Parser
 ::      Finish DE Translation
 ::      Add Color Saving with non overwrite
-
-::      V6 Stuff:
 ::      Integrate DE Version
-::      Check all Spams
-::      Check Scoop, IFP etc.
+::      Add .exe Support
+::      Add .git dev folder detection & dont delete readme & license
+::      Add destination 2%>1 mode
+::      Add Color to Installer
 
 :top
     @echo off
@@ -132,6 +132,13 @@
         call :color _Green "ANSI Color Support is enabled" okay
     ) else (
         echo ANSI Color Support is not enabled.
+    )
+
+    :: Check if Script is a compiled Executable
+    if "%~x0"==".exe" (
+        %errormsg%
+        call :color _Green "Script is compiled as an Executable." okay
+        
     )
 
     :: Parse Correct Timeout & Ping Locations otherwise WOW64 May cause issues.
@@ -243,7 +250,21 @@
         call :color _Green "Powershell Version is sufficient: !PS_MAJOR!.x" okay
     )
 
-
+    :: Check for Flags
+    for %%A in (%1 %2 %3 %4 %5) do (
+        if /I "%%~A"=="/b" (
+            set "b.flag=/b "
+            call :color _Green "Dont Exit Mode is enabled" warning
+        )
+        if /I "%%~A"=="/v" (
+            set "verbose=1"
+            call :color _Green "Verbose Mode is enabled" warning
+        )
+        if /I "%%~A"=="/unsecure" (
+            set "unsecure=1"
+            call :color _Green "Unsecure Mode is enabled" warning
+        )
+    )
 
     :: Check for Line Issues
     findstr /v "$" "%~nx0" >nul
@@ -358,22 +379,6 @@
     ) else (
         call :color _Green "wt.exe found at: !WT_PATH!" okay
         set "elevPath=wt"
-    )
-
-    :: Check for Flags
-    for %%A in (%1 %2 %3 %4 %5) do (
-        if /I "%%~A"=="/b" (
-            set "b.flag=/b "
-            call :color _Green "Dont Exit Mode is enabled" warning
-        )
-        if /I "%%~A"=="/v" (
-            set "verbose=1"
-            call :color _Green "Verbose Mode is enabled" warning
-        )
-        if /I "%%~A"=="/unsecure" (
-            set "unsecure=1"
-            call :color _Green "Unsecure Mode is enabled" warning
-        )
     )
 
     :: Elevate Script with sudo, gsudo or powershell
@@ -2812,7 +2817,7 @@
 
 
 :dataspammer.hash.check
-    if "%unsecure%"=="1" (
+    if defined unsecure (
         call :color _Red "Unsecure Mode Detected, Skipping Hash Check" warning
         call :sys.lt 2
         exit /b 0
@@ -3673,6 +3678,17 @@
         %powershell_short% -Command "Start-Process '%~f0' -Verb runAs"
         goto cancel
     )
+    :: Check if Verbose is enabled
+    if "%verbose%"=="1" (
+        call :color _Green "Verbose Output is Enabled" warning
+        set "destination=CON"
+        set "cls.debug=echo: "
+    ) else (
+        call :color _Green "Verbose Output is Disabled" error
+        set "destination=nul"
+        set "cls.debug=cls"
+    )
+
     call :dataspammer.hash.check
     @title DataSpammer - Install
     %$Echo% "   ____        _        ____
@@ -3683,22 +3699,22 @@
     %$Echo% "                             |_|
 
 
-    echo Made by PIRANY - %current_script_version% - Batch
+    call :color _Red "Made by PIRANY - %current_script_version% - Batch"
     echo:
     call :sys.lt 1
-    echo This Installer will lead you through the process of installing the DataSpammer Utility.
-    call :sys.lt 1
-    echo:
-    call :sys.lt 1
-    echo [1] Use Program Files as Installation Directory 
+    call :color _White "This Installer will lead you through the process of installing the DataSpammer Utility."
     call :sys.lt 1
     echo:
     call :sys.lt 1
-    echo [2] Use Custom Directory
+    call :color _Green "[1] Use Program Files as Installation Directory"
     call :sys.lt 1
     echo:
     call :sys.lt 1
-    echo [3] Portable Install (only add required Registry Keys)
+    call :color _Blue "[2] Use Custom Directory"
+    call :sys.lt 1
+    echo:
+    call :sys.lt 1
+    call :color _Yellow "[3] Portable Install (only add required Registry Keys)"
     echo: 
     call :sys.lt 1
     echo:
@@ -3719,13 +3735,13 @@
     :: Check ReadWrite Permissions
     call :rw.check "%directory%"
     if %errorlevel% neq 0 (
-        echo Please choose a different directory.
+        call :color _Red "Please choose a different directory." error
         call :sys.lt 6
         goto installer.main.window
     )
-    set "startmenushortcut=Not Included"
-    set "desktopicon=Not Included"
-    set "addpath=Not Included"
+    set "startmenushortcut=call :color _Red ""[1] (Not Included) Startmenu Shortcut"""
+    set "desktopicon=call :color _Red ""[2] (Not Included) Desktop Shortcut"""
+    set "addpath=call :color _Red ""[3] (Not Included) Add to Path"""
 
 :installer.menu.select
     call :sys.lt 1
@@ -3733,32 +3749,52 @@
     call :sys.lt 1
     echo:
     call :sys.lt 1
-    echo [1] (%startmenushortcut%) Startmenu Shortcut
+    %startmenushortcut%
     call :sys.lt 1
     echo: 
     call :sys.lt 1
-    echo [2] (%desktopicon%) Desktop Shortcut
+    %desktopicon%
     call :sys.lt 1
     echo: 
     call :sys.lt 1
-    echo [3] (%addpath%) Add to Path
+    %addpath%
     call :sys.lt 1
     echo:
     call :sys.lt 1
-    echo [4] Done/Skip
+    call :color _Green "[4] Done/Skip"
     call :sys.lt 1
     echo:
     call :sys.lt 1
-    echo [5] De-select All Options
+    call :color _Blue "[5] De-select All Options"
     echo:
     echo:
     choice /C 12345S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 %cls.debug% && set "startmenushortcut=Included" && set "startmenushortcut1=1" && goto installer.menu.select
-        if %_erl%==2 %cls.debug% && set "desktopicon=Included" && set "desktopic1=1" && goto installer.menu.select
-        if %_erl%==3 %cls.debug% && set "addpath=Included" && set "addpath1=1" && goto installer.menu.select
+        if %_erl%==1 (
+            %cls.debug%
+            set "startmenushortcut=call :color _Green ""[1] (Included) Startmenu Shortcut"""
+            set "startmenushortcut1=1" 
+            goto installer.menu.select
+        )
+        if %_erl%==2 (
+            %cls.debug%
+            set "desktopicon=call :color _Green ""[2] (Included) Desktop Shortcut"""
+            set "desktopic1=1"
+            goto installer.menu.select
+        )
+        if %_erl%==3 (
+            %cls.debug%
+            set "addpath=call :color _Green ""[3] (Included) Add to Path"""
+            set "addpath1=1"
+            goto installer.menu.select
+        )
         if %_erl%==4 goto installer.start.copy
-        if %_erl%==5 set "startmenushortcut=Not Included" && set "desktopicon=Not Included" && set "addpath=Not Included" && goto installer.menu.select
+        if %_erl%==5 (
+            set "startmenushortcut=call :color _Red ""[1] (Not Included) Startmenu Shortcut"""
+            set "desktopicon=call :color _Red ""[2] (Not Included) Desktop Shortcut"""
+            set "addpath=call :color _Red ""[3] (Not Included) Add to Path"""
+            goto installer.menu.select
+        )
         if %_erl%==6 call :standby
     goto installer.menu.select
 
@@ -3769,7 +3805,7 @@
     set "directory9=%directory%DataSpammer\"
     mkdir "%directory9%" >nul
     cd /d "%~dp0"
-    copy "%~dp0dataspammer.bat" "%directory9%\" >nul 2>&1
+    copy "%~dp0dataspammer%~x0" "%directory9%\" >nul 2>&1
     move "%~dp0README.md" "%directory9%\" >nul 2>&1
     move "%~dp0LICENSE" "%directory9%\" >nul 2>&1
 
@@ -3778,21 +3814,21 @@
     set "update_url=https://github.com/PIRANY1/DataSpammer/releases/download/%current_script_version%/"
     :: Download Files via BITS
     if not exist "%directory9%README.md" ( 
-        echo Downloading README.md...
-        bitsadmin /transfer upd "%update_url%README.md" "%directory9%\README.md" >nul
+        call :color _Green "Downloading README.md..." okay
+        bitsadmin /transfer upd "%update_url%README.md" "%directory9%\README.md" >%destination%
         if errorlevel 1 (
             %errormsg%
-            echo README.md Download failed. This is not critical.
+            call :color _Red "README.md Download failed. This is not critical." warning
             call :sys.lt 5
         )   
     )
 
     if not exist "%directory9%LICENSE" (
-        echo Downloading LICENSE...
-        bitsadmin /transfer upd "%update_url%LICENSE" "%directory9%\LICENSE" >nul
+        call :color _Green "Downloading LICENSE..." okay
+        bitsadmin /transfer upd "%update_url%LICENSE" "%directory9%\LICENSE" >%destination%
         if errorlevel 1 (
             %errormsg%
-            echo LICENSE Download failed. This is not critical.
+            call :color _Red "LICENSE Download failed. This is not critical." warning
             call :sys.lt 5
         )  
     )
@@ -3802,47 +3838,48 @@
     if defined ProgramFiles(x86) (
         set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
     )
-    reg add "%RegPath%" /v "DisplayName" /d "DataSpammer" /f >nul
-    reg add "%RegPath%" /v "DisplayVersion" /d "%current_script_version%" /f >nul
-    reg add "%RegPath%" /v "InstallLocation" /d "%directory9%" /f >nul
-    reg add "%RegPath%" /v "Publisher" /d "PIRANY1" /f >nul
-    reg add "%RegPath%" /v "UninstallString" /d "%directory9%\dataspammer.bat remove" /f >nul
+    reg add "%RegPath%" /f >%destination%
+    reg add "%RegPath%" /v "DisplayName" /d "DataSpammer" /f >%destination%
+    reg add "%RegPath%" /v "DisplayVersion" /d "%current_script_version%" /f >%destination%
+    reg add "%RegPath%" /v "InstallLocation" /t REG_SZ /d "%directory9%" /f >%destination%
+    reg add "%RegPath%" /v "Publisher" /d "PIRANY1" /f >%destination%
+    reg add "%RegPath%" /v "UninstallString" /d "%directory9%\dataspammer%~x0 remove" /f >%destination%
 
     :: Add Reg Key - Remember Installed Status
-    reg add "HKCU\Software\DataSpammer" /v Installed /t REG_DWORD /d 1 /f >nul
-    reg add "HKCU\Software\DataSpammer" /v Version /t REG_SZ /d "%current_script_version%" /f >nul
+    reg add "HKCU\Software\DataSpammer" /v Installed /t REG_DWORD /d 1 /f >%destination%
+    reg add "HKCU\Software\DataSpammer" /v Version /t REG_SZ /d "%current_script_version%" /f >%destination%
 
     :: Create Startmenu Shortcut
     if defined startmenushortcut1 (
-        %powershell_short% -Command "$s=New-Object -ComObject WScript.Shell;$sc=$s.CreateShortcut('%ProgramData%\Microsoft\Windows\Start Menu\Programs\DataSpammer.lnk');$sc.TargetPath='%directory9%\dataspammer.bat';$sc.Save()"
-        echo Startmenu Shortcut created.
-    ) >nul
+        %powershell_short% -Command "$s=New-Object -ComObject WScript.Shell;$sc=$s.CreateShortcut('%ProgramData%\Microsoft\Windows\Start Menu\Programs\DataSpammer.lnk');$sc.TargetPath='%directory9%\dataspammer%~x0';$sc.Save()"
+        call :color _Green "Startmenu Shortcut created." okay
+    ) >%destination%
 
     :: Create Desktop Icon w. pre defined Variables
     set "targetShortcut=%USERPROFILE%\Desktop\DataSpammer.lnk"
-    set "targetPath=%directory9%\DataSpammer.bat"
+    set "targetPath=%directory9%\DataSpammer%~x0"
     if defined desktopic1 (
         %powershell_short% -Command "$WshShell = New-Object -ComObject WScript.Shell; $Shortcut = $WshShell.CreateShortcut('%targetShortcut%'); $Shortcut.TargetPath = '%targetPath%'; $Shortcut.Save()"
-    ) >nul 
+    ) >%destination%
 
     :: Add Script to PATH
-    if defined addpath1 ( setx PATH "%PATH%;%directory9%\DataSpammer.bat" /M >nul )
+    if defined addpath1 ( setx PATH "%PATH%;%directory9%\DataSpammer%~x0" /M >%destination% )
 
 
 :sys.main.installer.done
     :: Elevate Flag
     %cls.debug%
-    echo Do you want the script to request admin rights?
-    echo This is recommended and can help some features work properly.
-    echo If you don't have admin rights, it's best to choose "No".
+    call :color _White "Do you want the script to request admin rights?"
+    call :color _White "This is recommended and can help some features work properly."
+    call :color _White "If you don't have admin rights, it's best to choose "No"."
     call :sys.lt 1
     echo:
     call :sys.lt 1
-    echo [1] Yes
+    call :color _Green "[1] Yes"
     call :sys.lt 1
     echo:
     call :sys.lt 1
-    echo [2] No
+    call :color _Red "[2] No"
     call :sys.lt 1
     echo:
     choice /C 12 /M "1/2:"
@@ -3853,10 +3890,10 @@
 
 :finish.installation
     :: Restart Script Process 
-    echo Finished Installation.
-    echo Starting...
-    start wt cmd.exe /c "%directory9%\dataspammer.bat"
-    erase "%~dp0\dataspammer.bat" > nul
+    call :color _Green "Finished Installation." okay
+    call :color _Green "Starting..." okay
+    start wt cmd.exe /c "%directory9%\dataspammer%~x0"
+    erase "%~dp0\dataspammer%~x0" > nul
     goto cancel
 
 :portable.install
@@ -3864,7 +3901,7 @@
     reg add "HKCU\Software\DataSpammer" /v Version /t REG_SZ /d "%current_script_version%" /f
     reg add "HKCU\Software\DataSpammer" /v logging /t REG_SZ /d "1" /f
     reg add "HKCU\Software\DataSpammer" /v color /t REG_SZ /d "0F" /f
-    echo Is the Script in a directory that requires Administrative Privileges?
+    call :color _White "Is the Script in a directory that requires Administrative Privileges?"
     set "elevPath=wt"
     choice /C YN /M "(Y)es/(N)o"
         set _erl=%errorlevel%
