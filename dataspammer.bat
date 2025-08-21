@@ -323,7 +323,7 @@
 
 :startup
     :: Check for Install Reg Key
-    reg query "HKCU\Software\DataSpammer" /v Installed >nul 2>&1
+    reg query "HKCU\Software\DataSpammer" /v Installed >%destination21%
     if %errorlevel% neq 0 (
         call :color _Red "Installation was not executed." error
         call :color _Green "Opening installer..." okay
@@ -370,10 +370,12 @@
     if "%verbose%"=="1" (
         call :color _Green "Verbose Output is Enabled" warning
         set "destination=CON"
+        set "destination21=CON"
         set "cls.debug=echo: "
     ) else (
         call :color _Green "Verbose Output is Disabled" error
         set "destination=nul"
+        set "destination21=nul 2>&1"
         set "cls.debug=cls"
     )
 
@@ -394,7 +396,7 @@
     )
 
     :: Elevate Script with sudo, gsudo or powershell
-    net session >nul 2>&1
+    net session >%destination21%
     if %errorLevel% neq 0 (
         if "%elevation%"=="sudo" (
             for /f "delims=" %%A in ('where sudo 2^>nul') do set SUDO_PATH=%%A
@@ -522,7 +524,7 @@
             call :color _Red "DataSpammer may have crashed or was closed. Deleting lock file..." error
             call :color _Red "Be aware that some tasks may not have finished properly." error
             if !logging! == 1 call :log DataSpammer_may_have_crashed ERROR
-            del "%~dp0\dataspammer.lock" >nul 2>&1
+            del "%~dp0\dataspammer.lock" >%destination21%
             timeout /t 5 /nobreak >nul
         )
     ) else (
@@ -545,7 +547,7 @@
     )
 
     :: Check if Login is Setup
-    reg query "HKCU\Software\DataSpammer" /v UsernameHash >nul 2>&1 || goto file.check
+    reg query "HKCU\Software\DataSpammer" /v UsernameHash >%destination21% || goto file.check
 
 :login.input
     if %logging% == 1 ( call :log Starting_Login INFO )
@@ -722,7 +724,7 @@
         )
     )
     :: Remove encrypt File from Installer
-    if exist "%~dp0\encrypt.bat" erase "%~dp0\encrypt.bat" >nul 2>&1
+    if exist "%~dp0\encrypt.bat" erase "%~dp0\encrypt.bat" >%destination21%
 
     :: Check Developermode
     if "%developermode%"=="1" ( set "dev-mode=1" & call :color _Yellow "Activated Developer Mode" warning ) else ( set "dev-mode=0" )
@@ -1766,7 +1768,7 @@
             ) else (
                 openssl enc -chacha20 -salt -in "%%f" -out "%%f.enc" -pass pass:%encrypt-key% -iter 100000
             )
-            erase "%%f" >nul 2>&1
+            erase "%%f" >%destination21%
             call :color _Green "File ""%%f"" encrypted to ""%%f.enc""." okay
         )
     )
@@ -1798,7 +1800,7 @@
     ) else (
         openssl enc -chacha20 -salt -in "%encrypt-dir%" -out "%encrypt-dir%.enc" -pass pass:%encrypt-key% -iter 100000
     )
-    erase "%encrypt-dir%" >nul 2>&1
+    erase "%encrypt-dir%" >%destination21%
     call :color _Green "File ""%encrypt-dir%"" encrypted to ""%encrypt-dir%.enc""." okay
     call :color _Blue "Encrypted with %crypt.method%"
     call :color _Yellow "Waiting 10 Seconds..." pending
@@ -2326,7 +2328,7 @@
 
 
 :scoop.install
-    reg query "HKCU\Software\DataSpammer" /v Installed >nul 2>&1
+    reg query "HKCU\Software\DataSpammer" /v Installed >%destination21%
     if %errorlevel% neq 0 (
         call :color _Red "DataSpammmer is already installed" error
         call :color _Green "Starting Update" okay
@@ -2447,7 +2449,7 @@
     goto sys.delete.script
 
 :sys.delete.script.check.elevation
-    net session >nul 2>&1
+    net session >%destination21%
     if %errorLevel% == 0 ( 
         goto sys.delete.script.confirmed 
     ) else ( 
@@ -2465,10 +2467,10 @@
     if defined ProgramFiles(x86) (
         set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
     )
-    reg delete "%RegPath%" /f >nul 2>&1
+    reg delete "%RegPath%" /f >%destination21%
     if exist "%ProgramData%\Microsoft\Windows\Start Menu\Programs\Dataspammer.bat" erase "%ProgramData%\Microsoft\Windows\Start Menu\Programs\Dataspammer.bat"
     if exist "%userprofile%\Documents\DataSpammerLog\" del /S /Q "%userprofile%\Documents\DataSpammerLog"
-    reg query "HKCU\Software\DataSpammer" /v Installed >nul 2>&1
+    reg query "HKCU\Software\DataSpammer" /v Installed >%destination21%
     if not %errorlevel% neq 0 ( reg delete "HKCU\Software\DataSpammer" /f )
     ASSOC .dts=
     FTYPE dtsfile=
@@ -2481,7 +2483,7 @@
     :: Clear CHCP to prevent display issues
     set "chcp="
     if "%logging%"=="1" ( call :log Restarting_Script WARN )
-    erase "%~dp0\dataspammer.lock" >nul 2>&1
+    erase "%~dp0\dataspammer.lock" >%destination21%
     call :send_message Script is restarting
     call :send_message Terminating %PID%
     echo: > %temp%\DataSpammerClose.txt
@@ -3309,7 +3311,7 @@
     set "update_url=https://github.com/PIRANY1/DataSpammer/releases/download/%latest_release_tag%/"
 
     cd /d "%~dp0"
-    erase README.md && erase LICENSE >nul 2>&1
+    erase README.md && erase LICENSE >%destination21%
     set "TMP_DIR=%temp%\dts.update"
     rd /s /q "%TMP_DIR%" 2>nul
     mkdir "%TMP_DIR%"
@@ -3386,7 +3388,7 @@
 
     if not defined where_output goto move.new.files
     :: Encrypt new Files, when current Version is already encrypted
-    reg query "HKCU\Software\DataSpammer" /v Token >nul 2>&1 || goto move.new.files
+    reg query "HKCU\Software\DataSpammer" /v Token >%destination21% || goto move.new.files
 
     call :color _Green "Encrypting newly downloaded Files..." okay
     echo FF FE 0D 0A 63 6C 73 0D 0A >  "%temp%\dts.update\temp_hex.txt"
@@ -3699,7 +3701,7 @@
 :installer.main.window
     if exist "%~dp0\install.bat" ( goto v6.port )
     :: Check Elevation
-    net session >nul 2>&1
+    net session >%destination21%
     if %errorLevel% neq 0 (
         %powershell_short% -Command "Start-Process '%~f0' -Verb runAs"
         goto cancel
@@ -3826,14 +3828,14 @@
 
 :installer.start.copy
     :: Resync Time to avoid issues with BITS
-    w32tm /resync >nul 2>&1 
+    w32tm /resync >%destination21%
     :: Main Install Code
     set "directory9=%directory%DataSpammer\"
     mkdir "%directory9%" >nul
     cd /d "%~dp0"
-    copy "%~dp0dataspammer%~x0" "%directory9%\" >nul 2>&1
-    %move_short% "%~dp0README.md" "%directory9%\" >nul 2>&1
-    %move_short% "%~dp0LICENSE" "%directory9%\" >nul 2>&1
+    copy "%~dp0dataspammer%~x0" "%directory9%\" >%destination21%
+    %move_short% "%~dp0README.md" "%directory9%\" >%destination21%
+    %move_short% "%~dp0LICENSE" "%directory9%\" >%destination21%
 
     :: Download LICENSE and README.md if only dataspammer.bat is present
     cd /d "%directory9%"
@@ -3952,7 +3954,7 @@
     if "%EXIT_CODE%"=="" set EXIT_CODE=0
     if "%OS%"=="Windows_NT" endlocal
     echo: > %temp%\DataSpammerClose.txt
-    erase "%~dp0\dataspammer.lock" >nul 2>&1
+    erase "%~dp0\dataspammer.lock" >%destination21%
     popd
     exit %b.flag%%EXIT_CODE%
 
