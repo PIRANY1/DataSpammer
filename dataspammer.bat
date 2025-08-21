@@ -84,7 +84,7 @@
 
 :: Todo: 
 ::      Add more Comments, Logs , Socket Messages, Error Checks and Color
-::      Implement more Verbose Message ( >%destination% ) or ( %cls.debug% )
+::      Implement more Verbose Message ( >%destination% / %destination21% ) or ( %cls.debug% )
 ::      Add more Color Messages with Emojis ( Docs at :color)
 
 ::      Fix Updater - Clueless After 3 Gazillion Updates - Hopefully Fixed
@@ -95,7 +95,6 @@
 ::      Integrate DE Version
 ::      Add .exe Support
 ::      Add skip remove if dev_env
-::      Add destination 2%>1 mode
 ::      Threading, Benchmarking, No-Crash-Mode
 ::      Bypass Github API Rate Limit
 ::      Bypass Defender
@@ -3948,13 +3947,13 @@
 
 :cancel 
     :: Exit Script, compatible with NT
-    EVENTCREATE /T INFORMATION /ID 200 /L APPLICATION /SO DataSpammer /D "DataSpammer Exiting %ERRORLEVEL%" >nul
+    EVENTCREATE /T INFORMATION /ID 200 /L APPLICATION /SO DataSpammer /D "DataSpammer Exiting %ERRORLEVEL%" >%destination%
     set EXIT_CODE=%ERRORLEVEL%
     if not "%~1"=="" set "EXIT_CODE=%~1"
     if "%EXIT_CODE%"=="" set EXIT_CODE=0
     if "%OS%"=="Windows_NT" endlocal
-    echo: > %temp%\DataSpammerClose.txt
-    erase "%~dp0\dataspammer.lock" >%destination21%
+    echo: > "%temp%\DataSpammerClose.txt"
+    erase "%~dp0\dataspammer.lock" >nul
     popd
     exit %b.flag%%EXIT_CODE%
 
