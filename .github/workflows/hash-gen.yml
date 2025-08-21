@@ -1,0 +1,49 @@
+name: Append File Hash to List and Commit
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'dataspammer.bat'
+
+permissions:
+  # Required to be able to commit changes back to the repository
+  contents: write
+
+jobs:
+  append-and-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Update hash list
+        # This step calculates the SHA256 hash of the target file.
+        # It then checks if the hash already exists in the list.
+        # If the hash is not found, it appends it to the list.
+        # The 'grep || echo' pattern is a concise way to perform this check and append.
+        run: |
+          TARGET_FILE="dataspammer.bat"
+          HASH_FILE=".github/dataspammer-hash.list"
+          
+          # Calculate the hash
+          HASH=$(sha256sum "$TARGET_FILE" | awk '{print $1}')
+          echo "Calculated hash for $TARGET_FILE: $HASH"
+          
+          # Append the hash to the list if it's not already there
+          # The command fails if grep finds the hash, so the echo part is skipped.
+          # The command succeeds if grep doesn't find the hash, so the echo part runs.
+          grep -Fxq "$HASH" "$HASH_FILE" || echo "$HASH" >> "$HASH_FILE"
+
+      - name: Commit changes
+        # Use a dedicated action to automatically commit and push changes.
+        # This is cleaner than manual git commands and handles edge cases,
+        # such as not creating a commit if there are no changes.
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          # Required commit message
+          commit_message: "ci: Add new SHA256 hash for dataspammer.bat"
+          
+          # Optional: Specify the file pattern to commit
+          file_pattern: .github/dataspammer-hash.list
