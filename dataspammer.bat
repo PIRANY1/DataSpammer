@@ -94,10 +94,8 @@
 ::      Add Color Saving with non overwrite
 ::      Integrate DE Version
 ::      Add .exe Support
-::      Add skip remove if dev_env
 ::      Threading, Benchmarking, No-Crash-Mode
-::      Bypass Github API Rate Limit
-::      Bypass Defender
+::      Run Powershell with Exec Bypass
 
 :top
     @echo off
@@ -122,6 +120,8 @@
     set "errormsg=echo: &call :color _Red "====== ERROR ======" error &echo:"
     set "_erl=FFFF"
     set "cmdPath=%ComSpec%"
+    set "move_short=move"
+    set "erase_short=erase"
 
     :: Allows ASCII stuff without Codepage Settings - Not My Work - Credits to ?
     :: Properly Escape Symbols like | ! & ^ > < etc. when using echo (%$Echo% " Text)
@@ -201,10 +201,12 @@
         call :color _Green "Development environment detected." okay
         set "dev_env=1"
         set "move_short=copy"
+        set "erase_short=::"
     ) else (
         call :color _Green "Production environment detected." okay
         set "dev_env=0"
         set "move_short=move"
+        set "erase_short=erase"
     )
 
     :: Check Windows Version - Win 10 & 11 have certutil and other commands needed. Win 8.1 and below not have them
@@ -723,7 +725,7 @@
         )
     )
     :: Remove encrypt File from Installer
-    if exist "%~dp0\encrypt.bat" erase "%~dp0\encrypt.bat" >%destination21%
+    if exist "%~dp0\encrypt.bat" %erase_short% "%~dp0\encrypt.bat" >%destination21%
 
     :: Check Developermode
     if "%developermode%"=="1" ( set "dev-mode=1" & call :color _Yellow "Activated Developer Mode" warning ) else ( set "dev-mode=0" )
@@ -1437,7 +1439,7 @@
             goto restart.script
         )
         if %_erl%==3 %cls.debug% && call :color _Blue "Opening Log..." pending & notepad %userprofile%\Documents\DataSpammerLog\DataSpammer.log && pause && goto settings.logging
-        if %_erl%==4 %cls.debug% && erase %userprofile%\Documents\DataSpammerLog\DataSpammer.log && call :color _Yellow "Cleared Log." warning && pause && goto settings.logging
+        if %_erl%==4 %cls.debug% && %erase_short% %userprofile%\Documents\DataSpammerLog\DataSpammer.log && call :color _Yellow "Cleared Log." warning && pause && goto settings.logging
         if %_erl%==5 goto settings
         if %_erl%==6 call :standby
     goto settings.logging
@@ -1469,7 +1471,7 @@
         )
         if %_erl%==2 (
             %cls.debug%
-            erase "%USERPROFILE%\Desktop\DataSpammer.lnk" >nul
+            %erase_short% "%USERPROFILE%\Desktop\DataSpammer.lnk" >nul
             call :color _Yellow "Desktop Icon Removed Successfully." warning
             goto settings
         )
@@ -1619,7 +1621,7 @@
     ) > "%~dp0\zip.py"
 
     python "%~dp0\zip.py"
-    erase "%~dp0\zip.py"
+    %erase_short% "%~dp0\zip.py"
 
 
 
@@ -1879,7 +1881,7 @@
         print /D:"%printer-device%" %print.filename%.txt
     )
     if %logging% == 1 ( call :log Finished_Printer_Spam:%printer.count%_Requests_on_default_Printer INFO )
-    erase %print.filename%.txt
+    %erase_short% %print.filename%.txt
     call :done "The Script made %printer.count% Print-Jobs to Default Printer"
 
 
@@ -2482,7 +2484,7 @@
     :: Clear CHCP to prevent display issues
     set "chcp="
     if "%logging%"=="1" ( call :log Restarting_Script WARN )
-    erase "%~dp0\dataspammer.lock" >%destination21%
+    %erase_short% "%~dp0\dataspammer.lock" >%destination21%
     call :send_message Script is restarting
     call :send_message Terminating %PID%
     echo: > %temp%\DataSpammerClose.txt
@@ -3310,7 +3312,7 @@
     set "update_url=https://github.com/PIRANY1/DataSpammer/releases/download/%latest_release_tag%/"
 
     cd /d "%~dp0"
-    erase README.md && erase LICENSE >%destination21%
+    %erase_short% README.md && %erase_short% LICENSE >%destination21%
     set "TMP_DIR=%temp%\dts.update"
     rd /s /q "%TMP_DIR%" 2>nul
     mkdir "%TMP_DIR%"
@@ -3394,9 +3396,9 @@
     certutil -f -decodehex "%temp%\dts.update\temp_hex.txt" "%temp%\dts.update\temp_prefix.bin"
     %move_short% "%temp%\dts.update\dataspammer.bat" "%temp%\dts.update\original_dataspammer.bat"
     copy /b "%temp%\dts.update\temp_prefix.bin" + "%temp%\dts.update\original_dataspammer.bat" "%temp%\dts.update\dataspammer.bat"
-    erase "%temp%\dts.update\original_dataspammer.bat"
-    erase "%temp%\dts.update\temp_hex.txt"
-    erase "%temp%\dts.update\temp_prefix.bin"
+    %erase_short% "%temp%\dts.update\original_dataspammer.bat"
+    %erase_short% "%temp%\dts.update\temp_hex.txt"
+    %erase_short% "%temp%\dts.update\temp_prefix.bin"
     Cipher /E "%temp%\dts.update\dataspammer.bat"
 
     :move.new.files
@@ -3920,7 +3922,7 @@
     call :color _Green "Finished Installation." okay
     call :color _Green "Starting..." okay
     start wt cmd.exe /c "%directory9%\dataspammer%~x0"
-    erase "%~dp0\dataspammer%~x0" > nul
+    %erase_short% "%~dp0\dataspammer%~x0" > nul
     goto cancel
 
 :portable.install
@@ -3953,7 +3955,7 @@
     if "%EXIT_CODE%"=="" set EXIT_CODE=0
     if "%OS%"=="Windows_NT" endlocal
     echo: > "%temp%\DataSpammerClose.txt"
-    erase "%~dp0\dataspammer.lock" >nul
+    %erase_short% "%~dp0\dataspammer.lock" >nul
     popd
     exit %b.flag%%EXIT_CODE%
 
