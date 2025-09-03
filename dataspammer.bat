@@ -94,7 +94,8 @@
 ::      Add Color Saving with non overwrite
 ::      Integrate DE Version
 ::      Threading, Benchmarking, No-Crash-Mode
-
+::      Add beta branch support for hash list check
+::      Fix Login Protection
 
 :top
     @echo off
@@ -122,6 +123,10 @@
     set "move_short=move"
     set "erase_short=erase"
     set "lang="
+    set "destination=nul"
+    set "destination21=nul 2>&1"
+    set "cls.debug=cls"
+    set "ending=bat"
 
     :: Allows ASCII stuff without Codepage Settings - Not My Work - Credits to ?
     :: Properly Escape Symbols like | ! & ^ > < etc. when using echo (%$Echo% " Text)
@@ -331,7 +336,7 @@
 :startup
     :: Check for Install Reg Key
     reg query "HKCU\Software\DataSpammer" /v Installed >%destination21%
-    if %errorlevel% neq 0 (
+    if "%errorlevel%" neq "0" (
         call :color _Red "Installation was not executed." error
         call :color _Green "Opening installer..." okay
         goto installer.main.window
@@ -512,6 +517,12 @@
 
     call :color _White "PID: %pid%" debug >%destination%
     call :color _White "Lock PID: %pidlock%" debug >%destination%
+
+    if "%dev_env%"=="1" (
+        call :color _Yellow "Development Directory Detected, Skipping Lock Check" warning
+        call :sys.lt 2
+        goto login.input
+    )
 
     :: If Lock could be parsed check if process is running
     if defined pidlock (
@@ -732,7 +743,7 @@
     )
     :: Remove encrypt File from Installer
     if exist "%~dp0\encrypt.bat" %erase_short% "%~dp0\encrypt.bat" >%destination21%
-
+pause
     :: Check Developermode
     if "%developermode%"=="1" ( set "dev-mode=1" & call :color _Yellow "Activated Developer Mode" warning ) else ( set "dev-mode=0" )
 

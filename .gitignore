@@ -5,6 +5,8 @@
 *.swp
 *.~*
 *.lock
+dev
+dataspammer.lock
 
 # Logs and output files
 *.log
