@@ -95,7 +95,8 @@
 ::      Integrate DE Version
 ::      Add .exe Support
 ::      Threading, Benchmarking, No-Crash-Mode
-::      Run Powershell with Exec Bypass
+::      Run PowerShell with Exec Bypass
+::      Add Scoop and .exe Logic
 
 :top
     @echo off
@@ -122,6 +123,7 @@
     set "cmdPath=%ComSpec%"
     set "move_short=move"
     set "erase_short=erase"
+    set "lang="
 
     :: Allows ASCII stuff without Codepage Settings - Not My Work - Credits to ?
     :: Properly Escape Symbols like | ! & ^ > < etc. when using echo (%$Echo% " Text)
@@ -2342,6 +2344,8 @@
     reg add "HKCU\Software\DataSpammer" /v Installed /t REG_DWORD /d 1 /f
     reg add "HKCU\Software\DataSpammer" /v Version /t REG_SZ /d "%current_script_version%" /f
 
+    reg add "HKCU\Software\DataSpammer" /v scoopinstall /t REG_DWORD /d 1 /f
+
     :: Add Remember Encrypted State Token
     reg add "HKCU\Software\DataSpammer" /v logging /t REG_SZ /d "1" /f
     reg add "HKCU\Software\DataSpammer" /v color /t REG_SZ /d "0F" /f
@@ -3066,7 +3070,7 @@
 
 :parse.settings
     :: Parse Settings from Registry
-    set "ignoreKeys=Token UsernameHash Version Installed PasswordHash"
+    set "ignoreKeys=Token UsernameHash Version Installed PasswordHash scoopinstall"
     set "settings.count=0"
     :: Read Registry keys from HKCU\Software\DataSpammer
     for /f "skip=2 tokens=1,2,*" %%A in ('reg query "HKCU\Software\DataSpammer" 2^>nul') do (
@@ -3298,6 +3302,7 @@
     exit /b %errorlevel%
 
 :update.script
+    reg query "HKCU\Software\DataSpammer" /v scoopinstall >%destination21% && call :color _Green "Detected Scoop installed Script." okay & start wt cmd.exe /c "scoop update dataspammer%LANG%"
     %cls.debug%
     :: Updated in v6
     :: Old one used seperate file / wget & curl & iwr
