@@ -93,10 +93,8 @@
 ::      Finish DE Translation
 ::      Add Color Saving with non overwrite
 ::      Integrate DE Version
-::      Add .exe Support
 ::      Threading, Benchmarking, No-Crash-Mode
-::      Run PowerShell with Exec Bypass
-::      Add Scoop and .exe Logic
+
 
 :top
     @echo off
@@ -142,7 +140,12 @@
     if "%~x0"==".exe" (
         %errormsg%
         call :color _Green "Script is compiled as an Executable." okay
-        
+        set "is_compiled=1"
+        set "ending=exe"
+    ) else (
+        set "ending=bat"
+        set "is_compiled=0"
+        call :color _Green "Script is not compiled as an Executable." error
     )
 
     :: Parse Correct Timeout & Ping Locations otherwise WOW64 May cause issues.
@@ -323,6 +326,7 @@
     if "%~1"=="update-install" ( goto sys.new.update.installed )
     if "%~1"=="ifp.install" ( goto ifp.install )
     if "%~1"=="scoop.install" ( goto scoop.install )
+    if "%~1"=="scoop.remove" ( goto scoop.remove )
 
 :startup
     :: Check for Install Reg Key
@@ -1182,6 +1186,12 @@
     goto restart.script
 
 :encrypt
+    if "%is_compiled%"=="1" (
+        call :color _Red "Script is compiled as an Executable." error
+        call :color _Red "This Option is only available for uncompiled scripts." error
+        call :color _Yellow "Returning..." pending
+        goto advanced.options
+    )
     :: Encrypt Script Files, to bypass Antivirus
     if %logging% == 1 ( call :log Encrypting_Script WARN )
     call :color _Blue "Encrypting..." pending
@@ -2059,7 +2069,7 @@
         reg add "%RegPath%%x%" /v "DisplayVersion" /d "%app.spam.app.version%" /f
         reg add "%RegPath%%x%" /v "InstallLocation" /d "%app.spam.path%" /f
         reg add "%RegPath%%x%" /v "Publisher" /d "%app.spam.publisher%" /f
-        reg add "%RegPath%%x%" /v "UninstallString" /d "%~dp0\dataspammer.bat remove" /f
+        reg add "%RegPath%%x%" /v "UninstallString" /d "%~dp0\dataspammer.%ending% remove" /f
         set /a x+=1
     )
     echo Created %x% Entry(s).
@@ -2331,15 +2341,24 @@
 
 
 :scoop.install
-    reg query "HKCU\Software\DataSpammer" /v Installed >%destination21%
-    if %errorlevel% neq 0 (
+    reg query "HKCU\Software\DataSpammer" /v Installed >%destination21% && (
         call :color _Red "DataSpammmer is already installed" error
         call :color _Green "Starting Update" okay
         goto update.script
     )
 
-    :: If Script was installed by Scoop add Registry Stuff here
-    :: Add Reg Key - Remember Installed Status
+    set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
+    if defined ProgramFiles(x86) (
+        set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
+    )
+
+    reg delete "%RegPath%" /f
+    reg add "%RegPath%" /v "DisplayName" /d "DataSpammer" /f
+    reg add "%RegPath%" /v "DisplayVersion" /d "%current_script_version%" /f
+    reg add "%RegPath%" /v "InstallLocation" /d "%~dp0" /f
+    reg add "%RegPath%" /v "Publisher" /d "PIRANY1" /f
+    reg add "%RegPath%" /v "UninstallString" /d "%~dp0dataspammer.bat remove" /f
+
     set "elevPath=wt"
     reg add "HKCU\Software\DataSpammer" /v Installed /t REG_DWORD /d 1 /f
     reg add "HKCU\Software\DataSpammer" /v Version /t REG_SZ /d "%current_script_version%" /f
@@ -2350,9 +2369,28 @@
     reg add "HKCU\Software\DataSpammer" /v logging /t REG_SZ /d "1" /f
     reg add "HKCU\Software\DataSpammer" /v color /t REG_SZ /d "0F" /f
     call :color _Green "DataSpammer was successfully installed." okay
+    call :color _Yellow "Restarting..." pending
+    call :sys.lt 4 count
     goto restart.script
 
+:scoop.remove
+    set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
+    if defined ProgramFiles(x86) (
+        set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
+    )
 
+    reg delete "%RegPath%" /f >%destination21%
+    reg delete "HKCU\Software\DataSpammer" /f >%destination21%
+
+    if exist "%USERPROFILE%\Desktop\DataSpammer.lnk" "erase %USERPROFILE%\Desktop\DataSpammer.lnk"
+    if exist "%userprofile%\Documents\DataSpammerLog\" del /S /Q "%userprofile%\Documents\DataSpammerLog"
+    ASSOC .dts= >%destination21%
+    FTYPE dtsfile= >%destination21%
+
+    call :color _Green "DataSpammer was successfully uninstalled." okay
+    call :color _Yellow "Exiting..." pending
+    goto cancel
+    
 :custom.instruction.read
     :: Read Linked CIF File & interpret it
     set "interpret.dts=%~1"
@@ -2425,6 +2463,13 @@
 
 
 :sys.delete.script  
+    reg query "HKCU\Software\DataSpammer" /v scoopinstall >%destination21% && (
+        call :color _Green "Detected Scoop installed Script." okay
+        call :color _Red "Remove Script manually by running ^'scoop remove dataspammer^' " error
+        pause
+        echo Exiting...
+        goto cancel
+    )
     echo: 
     call :sys.lt 1
     echo You are about to delete the whole script. Are you sure?
@@ -2467,22 +2512,24 @@
 :sys.delete.script.confirmed
     if exist "%~dp0\LICENSE" del "%~dp0\LICENSE"
     if exist "%~dp0\README.md" del "%~dp0\README.md"
+
+    if exist "%ProgramData%\Microsoft\Windows\Start Menu\Programs\Dataspammer.%ending%" erase "%ProgramData%\Microsoft\Windows\Start Menu\Programs\Dataspammer.%ending%"
     if exist "%USERPROFILE%\Desktop\DataSpammer.lnk" "erase %USERPROFILE%\Desktop\DataSpammer.lnk"
+
     set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
     if defined ProgramFiles(x86) (
         set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
     )
     reg delete "%RegPath%" /f >%destination21%
-    if exist "%ProgramData%\Microsoft\Windows\Start Menu\Programs\Dataspammer.bat" erase "%ProgramData%\Microsoft\Windows\Start Menu\Programs\Dataspammer.bat"
+
     if exist "%userprofile%\Documents\DataSpammerLog\" del /S /Q "%userprofile%\Documents\DataSpammerLog"
-    reg query "HKCU\Software\DataSpammer" /v Installed >%destination21%
-    if not %errorlevel% neq 0 ( reg delete "HKCU\Software\DataSpammer" /f )
+    reg delete "HKCU\Software\DataSpammer" /f >%destination21%
     ASSOC .dts=
     FTYPE dtsfile=
-    if exist "%~dp0\dataspammer.bat" del "%~dp0\dataspammer.bat"
+    if exist "%~dp0\dataspammer.%ending%" del "%~dp0\dataspammer.%ending%"
     call :color _Green "DataSpammer was successfully deleted." okay
-    exit /b 0
-    
+    goto cancel
+
 :restart.script
     :: Restart Script
     :: Clear CHCP to prevent display issues
@@ -3246,7 +3293,7 @@
     cd "%~dp0"
     call :color _Green "Listing all :Signs in the Script" okay
     echo: 
-    for /f "delims=" %%a in ('findstr /b ":" "dataspammer.bat" ^| findstr /v "^::" ^| findstr /v "^:REM"') do ( echo %%a )
+    for /f "delims=" %%a in ('findstr /b ":" "dataspammer.%ending%" ^| findstr /v "^::" ^| findstr /v "^:REM"') do ( echo %%a )
     pause
 
 :send_message
@@ -3267,7 +3314,7 @@
     echo    For educational purposes only.
     echo:
     echo Usage dataspammer [Argument] 
-    echo       dataspammer.bat [Argument]
+    echo       dataspammer.%ending% [Argument]
     echo:
     echo Parameters: 
     echo    help    Show this Help Dialog
@@ -3324,7 +3371,7 @@
 
 
     :: Download Files via BITS
-    for %%F in (dataspammer.bat README.md LICENSE) do (
+    for %%F in (dataspammer.%ending% README.md LICENSE) do (
         bitsadmin /transfer upd "%update_url%%%F" "%TMP_DIR%\%%F"
         if errorlevel 1 (
             %errormsg%
@@ -3335,7 +3382,7 @@
     )
 
     :: Download Hashes
-    for %%F in (dataspammer.bat README.md LICENSE) do (
+    for %%F in (dataspammer.%ending% README.md LICENSE) do (
         bitsadmin /transfer upd "%update_url%%%F.hash" "%TMP_DIR%\%%F.hash"
         if errorlevel 1 (
             %errormsg%
@@ -3346,7 +3393,7 @@
     )
 
     setlocal EnableDelayedExpansion
-    set "files=dataspammer.bat readme.md license"
+    set "files=dataspammer.%ending% readme.md license"
     set "failcount=0"
 
     for %%F in (%files%) do (
@@ -3407,7 +3454,7 @@
     Cipher /E "%temp%\dts.update\dataspammer.bat"
 
     :move.new.files
-    %move_short% /Y "%TMP_DIR%\dataspammer.bat" "%~dp0dataspammer.bat"
+    %move_short% /Y "%TMP_DIR%\dataspammer.%ending%" "%~dp0dataspammer.%ending%"
     %move_short% /Y "%TMP_DIR%\README.md" "%~dp0README.md"
     %move_short% /Y "%TMP_DIR%\LICENSE" "%~dp0LICENSE"
     rd /s /q "%TMP_DIR%"
