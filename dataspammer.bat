@@ -120,7 +120,7 @@
     set "_erl=FFFF"
     set "cmdPath=%ComSpec%"
     set "move_short=move"
-    set "erase_short=erase"
+    set "erase_short=del /f /q"
     set "lang="
     set "destination=nul"
     set "destination21=nul 2>&1"

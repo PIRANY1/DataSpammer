@@ -32,6 +32,7 @@ jobs:
 
       - name: Install Scoop Bucket and Setup App
         uses: MinoruSekine/setup-scoop@v4.0.2
+        if: ${{ always() }}
         with:
           buckets: https://github.com/PIRANY1/dataspammer-bucket
           apps: dataspammer
