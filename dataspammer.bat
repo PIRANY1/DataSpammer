@@ -1697,7 +1697,7 @@
     call :sys_lt 3
     
     :icmp_loop
-    %ping% %icmp.target% -n 1 -w %icmp.rate% >%destination%
+    "%ping%" %icmp.target% -n 1 -w %icmp.rate% >%destination%
     call :color _Red "Press CTRL+C to stop"
     if %logging% == 1 ( call :log Sending_ICMP_Request_to_%icmp.target% INFO )
     goto icmp_loop
@@ -3163,7 +3163,7 @@
         "%~dp0\wait.exe" -s %wait_time%ms
     )
     if /i "%~2"=="timeout" (
-        %timeout% /t %~1 >nul
+        "%timeout%" /t %~1 >nul
     )
     if /i "%~2"=="count" (
         for /L %%i in (%~1,-1,0) do (
@@ -3174,7 +3174,7 @@
         echo:
     ) else (
         set /a "wait_time=%~1 * 500"
-        %ping% -n 1 -w %wait_time% 127.0.0.1 >nul
+        "%ping%" -n 1 -w %wait_time% 127.0.0.1 >nul
     )
     endlocal
     exit /b 0
