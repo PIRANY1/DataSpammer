@@ -87,7 +87,6 @@
 ::      Implement more Verbose Message ( >%destination% / %destination21% ) or ( %cls.debug% )
 ::      Add more Color Messages with Emojis ( Docs at :color)
 
-::      Fix Updater - Clueless After 3 Gazillion Updates - Hopefully Fixed
 ::      Replace . & - with _ in Variables & Labels
 ::      Verify CIF Parser
 ::      Finish DE Translation
@@ -170,7 +169,7 @@
         %errormsg%
         call :color _Red "Timeout is not found." error
         call :color _Red "Please verify that TIMEOUT is available in your PATH." error
-        call :sys.lt 10 count
+        call :sys_lt 10 count
         goto cancel
     ) else (
         call :color _Green "Timeout found at: !TIMEOUT!" okay
@@ -178,8 +177,8 @@
 
     :: No Dependency Functions (Arguments) - Documented at help.startup
     if "%~1"=="version" title DataSpammer && goto version
-    if "%~1"=="--help" title DataSpammer && goto help.startup
-    if "%~1"=="help" title DataSpammer && goto help.startup
+    if "%~1"=="--help" title DataSpammer && goto help_startup
+    if "%~1"=="help" title DataSpammer && goto help_startup
 
     :: Check if Script is running from Temp Folder
     if /I "%~dp0"=="%TEMP%" (
@@ -187,7 +186,7 @@
         %errormsg%
         call :color _Red "The script was launched from the temp folder." error
         call :color _Yellow "You are most likely running the script directly from the archive file." warning
-        call :sys.lt 10 count
+        call :sys_lt 10 count
         goto cancel
     )
     
@@ -196,7 +195,7 @@
         %errormsg%
         call :color _Red "The script was launched from a network drive." error
         call :color _Yellow "Installation may not work properly." warning
-        call :sys.lt 10 count
+        call :sys_lt 10 count
     )
 
     :: Check if Script is running from a UNC Path
@@ -204,7 +203,7 @@
         %errormsg%
         call :color _Red "The script was launched from a UNC path." error
         call :color _Yellow "Installation may not work properly." warning
-        call :sys.lt 10 count
+        call :sys_lt 10 count
     )
 
     if exist dev (
@@ -220,7 +219,7 @@
     )
 
     :: Check Windows Version - Win 10 & 11 have certutil and other commands needed. Win 8.1 and below not have them
-    call :win.version.check
+    call :win_version.check
     for /f "tokens=2 delims=[]" %%a in ('ver') do set "ver_full=%%a"
     for /f "tokens=1-4 delims=." %%a in ("%ver_full%") do (
         set "ver_major=%%a"
@@ -238,7 +237,7 @@
         call :color _Yellow "Warning: Some features may not work on this version." warning
         call :color _Red "For full compatibility, please update to Windows 10 or 11." error
         call :color _Yellow "Note: certutil and other tools may be missing on older Windows versions." warning
-        call :sys.lt 10 count
+        call :sys_lt 10 count
     ) else (
         call :color _Green "Windows Version is sufficient: %ver_full%" okay
     )    
@@ -252,7 +251,7 @@
         %errormsg%
         call :color _Red "Powershell is not found." error
         call :color _Red "Please verify that Powershell is installed & available in your PATH." error
-        call :sys.lt 10 count
+        call :sys_lt 10 count
         goto cancel
     ) else (
         call :color _Green "Powershell found at: !powershell_location!" okay
@@ -267,7 +266,7 @@
         call :color _Red "PowerShell version is too old." error
         call :color _Red "Current version: !PS_MAJOR!.x" error
         call :color _Yellow "Please update Powershell to at least version 4." warning
-        call :sys.lt 6 count
+        call :sys_lt 6 count
         goto cancel
     ) else (
         call :color _Green "Powershell Version is sufficient: !PS_MAJOR!.x" okay
@@ -296,7 +295,7 @@
     ) else (
         %errormsg%
         call :color _Red "Script either has LF line ending issue or an empty line at the end of the script is missing. " error 
-        call :sys.lt 20 count
+        call :sys_lt 20 count
         goto cancel
     )
 
@@ -305,7 +304,7 @@
     if %errorlevel% NEQ 0 (
         %errormsg%
         call :color _Red "Null Kernel service is not running, script may crash. " error
-        call :sys.lt 20 count
+        call :sys_lt 20 count
     ) else (
         call :color _Green "Null Kernel service is running." okay
     )
@@ -314,24 +313,24 @@
     if "%~1"=="" goto startup
 
     :: Regular Argument Checks - Documented at help.startup
-    if "%~1"=="faststart" title DataSpammer && goto sys.enable.ascii.tweak
-    if "%~1"=="update" title DataSpammer && goto fast.git.update
-    if "%~1"=="update.script" title DataSpammer && call :update.script "%~2" && goto cancel
-    if "%~1"=="remove" title DataSpammer && goto sys.delete.script
+    if "%~1"=="faststart" title DataSpammer && goto sys_enable.ascii.tweak
+    if "%~1"=="update" title DataSpammer && goto fast_git.update
+    if "%~1"=="update.script" title DataSpammer && call :update_script "%~2" && goto cancel
+    if "%~1"=="remove" title DataSpammer && goto sys_delete.script
     if "%~1"=="debug" title DataSpammer && goto debuglog
     if "%~1"=="debugtest" title DataSpammer && goto debugtest
     if "%~1"=="monitor" title DataSpammer && goto monitor
-    if "%~1"=="start" title DataSpammer && goto start.verified
-    if "%~1"=="install" title DataSpammer && goto installer.main.window
+    if "%~1"=="start" title DataSpammer && goto start_verified
+    if "%~1"=="install" title DataSpammer && goto installer_main.window
     
     :: Check if Argument is a Path, then execute it as CIF
-    if /i "%~x1"==".dts" goto custom.instruction.read
+    if /i "%~x1"==".dts" goto custom_instruction.read
 
     :: Undocumented Arguments
-    if "%~1"=="update-install" ( goto sys.new.update.installed )
-    if "%~1"=="ifp.install" ( goto ifp.install )
-    if "%~1"=="scoop.install" ( goto scoop.install )
-    if "%~1"=="scoop.remove" ( goto scoop.remove )
+    if "%~1"=="update-install" ( goto sys_new.update.installed )
+    if "%~1"=="ifp.install" ( goto ifp_install )
+    if "%~1"=="scoop.install" ( goto scoop_install )
+    if "%~1"=="scoop.remove" ( goto scoop_remove )
 
 :startup
     :: Check for Install Reg Key
@@ -339,7 +338,7 @@
     if "%errorlevel%" neq "0" (
         call :color _Red "Installation was not executed." error
         call :color _Green "Opening installer..." okay
-        goto installer.main.window
+        goto installer_main.window
     )
 
     :: Check for Install Reg Key
@@ -349,7 +348,7 @@
     
     :: If no Reg Key is found, port to v6
     if not defined reg_version (
-        goto v6.port
+        goto v6_port
     )
     
     :: Check if RegKey is outdated
@@ -357,11 +356,11 @@
         call :color _Red "Script Version Registry Key is outdated." error
         choice /C YN /M "Do you want to update the Registry Key? (Y/N)"
         set "_erl=%errorlevel%"
-        if "%_erl%"=="1" ( goto sys.new.update.installed )
+        if "%_erl%"=="1" ( goto sys_new.update.installed )
     )
 
     :: Parse Config
-    call :parse.settings
+    call :parse_settings
 
     :: Apply Custom Codepage if defined
     if defined chcp (
@@ -442,52 +441,52 @@
         call :color _Red "Running as 32-Bit on 64-Bit Windows" error
         call :color _Yellow "Relaunching as 64-Bit..." warning
         start %elevPath% cmd.exe /c "%~f0" %b.flag%%v.flag%
-        call :sys.lt 5 count
+        call :sys_lt 5 count
         goto cancel
     ) else (
         call :color _Green "Running on 64-Bit Windows" okay
     )
 
     :: Check if Temp Folder is writable
-    call :rw.check "%temp%"
+    call :rw_check "%temp%"
     if "%errorlevel%"=="1" (
         %errormsg%
         call :color _Red "Temp Folder is not writable." error
         call :color _Yellow "Script may not work properly." warning
-        call :sys.lt 10 count
+        call :sys_lt 10 count
     ) else (
         call :color _Green "Temp Folder is writable." okay
     )
 
     :: Check if local dir is writable
-    call :rw.check "%exec-dir%"
+    call :rw_check "%exec-dir%"
     if "%errorlevel%"=="1" (
         %errormsg%
         call :color _Red "Local Directory is not writable." error
         call :color _Yellow "Script may not work properly." warning
-        call :sys.lt 10 count
+        call :sys_lt 10 count
     ) else (
         call :color _Green "Local Directory is writable." okay
     )
-    goto pid.check
+    goto pid_check
     
 :elevation_failed
     %errormsg%
     call :color _Red "Failed to elevate script." error
     call :color _Yellow "Please run the script manually as Administrator." warning
     call :color _Yellow "Exiting in 5 Seconds " warning
-    call :sys.lt 5 count
+    call :sys_lt 5 count
     goto cancel
 
-:pid.check
+:pid_check
     :: Get the Parent Process ID of the current script - Needed for Monitor & Lock
     %powershell_short% -Command "(Get-CimInstance Win32_Process -Filter \"ProcessId=$PID\").ParentProcessId" > "%temp%\parent_pid.txt"
 
     :: Parse Parent PID Content & if empty set to 0000
-    if exist "%temp%\parent_pid.txt" ( set /p PID=<"%temp%\parent_pid.txt" ) else ( set "PID=0000" && %errormsg% && call :color _Red "Failed to get Parent PID" && call :sys.lt 4 count) 
+    if exist "%temp%\parent_pid.txt" ( set /p PID=<"%temp%\parent_pid.txt" ) else ( set "PID=0000" && %errormsg% && call :color _Red "Failed to get Parent PID" && call :sys_lt 4 count) 
     
     :: If PID is empty, set to 0000
-    if "%PID%"=="" ( set "PID=0000" && %errormsg% && call :color _Red "Failed to Parse Parent PID" error && call :sys.lt 4 count)
+    if "%PID%"=="" ( set "PID=0000" && %errormsg% && call :color _Red "Failed to Parse Parent PID" error && call :sys_lt 4 count)
     del "%temp%\parent_pid.txt" >nul
     call :color _Green "Got PID: %PID%" okay
 
@@ -506,7 +505,7 @@
         for /f "usebackq delims=" %%L in ("%~dp0\dataspammer.lock") do set "pidlock=%%L"
     ) else (
         if "%logging%"=="1" call :log No_Lock_Exists INFO
-        goto lock.create
+        goto lock_create
     )
 
     :: Remove spaces from Variables
@@ -520,8 +519,8 @@
 
     if "%dev_env%"=="1" (
         call :color _Yellow "Development Directory Detected, Skipping Lock Check" warning
-        call :sys.lt 2
-        goto login.input
+        call :sys_lt 2
+        goto login_input
     )
 
     :: If Lock could be parsed check if process is running
@@ -555,7 +554,7 @@
     :lock.create
     :: Create a new lock & write current PID to it
     > "%~dp0\dataspammer.lock" echo %PID%
-    if "%errorlevel%"=="1" ( %errormsg% && call :color _Red "Failed to create lock file." error && call :sys.lt 6 count )
+    if "%errorlevel%"=="1" ( %errormsg% && call :color _Red "Failed to create lock file." error && call :sys_lt 6 count )
 
     :: Start the Monitor Socket
     if "%monitoring%"=="1" (
@@ -565,9 +564,10 @@
     )
 
     :: Check if Login is Setup
-    reg query "HKCU\Software\DataSpammer" /v UsernameHash >%destination21% || goto file.check
+    reg query "HKCU\Software\DataSpammer" /v UsernameHash >%destination21% || goto file_check
 
-:login.input
+
+:login_input
     if %logging% == 1 ( call :log Starting_Login INFO )
     %cls.debug% && title DataSpammer - Login
 
@@ -581,7 +581,7 @@
         call :color _Yellow "This is not allowed, please enter a normal username." warning
         if %logging% == 1 ( call :log Username_Is_Hash ERROR )
         pause
-        goto login.input
+        goto login_input
     )
 
     for /f "delims=" %%a in ('%powershell_short% -Command "$pass = Read-Host 'Please enter your Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($pass))"') do set "password=%%a"
@@ -593,7 +593,7 @@
         call :color _Yellow "This is not allowed, please enter a normal password." warning
         if %logging% == 1 ( call :log Password_Is_Hash ERROR )
         pause
-        goto login.input
+        goto login_input
     )
 
     :: Convert Username and Password to Hash
@@ -625,24 +625,24 @@
         call :color _Green "Username Matches" okay
         if "%password_hash%" EQU "%stored_password_hash%" (
             call :color _Green "Password Matches" okay
-            goto file.check
+            goto file_check
         ) else (
             call :color _Red "Authentication failed. Password does not match." error
             call :color _Red "Credentials do not match!" error
             if %logging% == 1 ( call :log Password_Not_Matching WARN )
             pause
-            goto login.input
+            goto login_input
         )
     ) else (
         call :color _Red "Authentication failed. Username does not match." error
         call :color _Red "Credentials do not match!" error
         if %logging% == 1 ( call :log Username_Not_Matching WARN )
         pause
-        goto login.input
+        goto login_input
     )    
 
 
-:file.check
+:file_check
     title DataSpammer - Starting
     :: Establish Socket Connection
     call :send_message Started DataSpammer
@@ -651,30 +651,30 @@
     if %logging% == 1 ( call :log Checking_Settings_for_Update_Command INFO )
 
     :: Start Update Check
-    call :gitcall.sys
-    goto dts.startup.done
+    call :gitcall_sys
+    goto dts_startup_done
 
-:gitcall.sys
+:gitcall_sys
     :: Update Function Logic
     if %logging% == 1 ( call :log Calling_Update_Check INFO )
     :: If Script is in Development Mode, skip the update check
     if "%current_script_version%"=="development" (
         call :color _Green "Development Version, Skipping Update" okay
-        call :sys.lt 5
+        call :sys_lt 5
         if "%logging%"=="1" ( call :log Skipped_Update_Check_%current_script_version%_Development_Version WARN )
         exit /b 0
     )
-    call :git.version.check
-    if "%uptodate%"=="up" ( call :git.version.clean ) else ( call :git.version.outdated )
+    call :git_version_check
+    if "%uptodate%"=="up" ( call :git_version_clean ) else ( call :git_version_outdated )
     exit /b
 
-:git.version.check
+:git_version_check
     :: Curl GitHub API, extract latest version & compare with current script version
     if %logging% == 1 ( call :log Curling_Github_API INFO )
     call :color _Green "Checking for Updates..." pending
     set "api_url=https://api.github.com/repos/PIRANY1/DataSpammer/releases/latest"
     curl -s %api_url% > apianswer.txt
-    call :sys.lt 2
+    call :sys_lt 2
     :: Extract Tag Name from JSON Response
     for /f "tokens=2 delims=:, " %%a in ('findstr /R /C:"\"tag_name\"" apianswer.txt') do (
         set "latest_version=%%a"
@@ -686,34 +686,34 @@
     del apianswer.txt
     exit /b
     
-:git.version.clean
+:git_version_clean
     if %logging% == 1 ( call :log Version_Is_Up_To_Date INFO )
     call :color _Green "The Version you are currently using is the newest one (%latest_version%)" okay
-    call :sys.lt 1
+    call :sys_lt 1
     exit /b
 
-:git.version.outdated
+:git_version_outdated
     if %logging% == 1 ( call :log Version_Outdated WARN )
     call :color _Red "Version Outdated ^!" error
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Yellow "The Version you are currently using is %current_script_version%" warning
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Yellow "The newest Version avaiable is %latest_version%" warning
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
     call :color _Green "[1] Update"
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Red "[2] Continue Anyways"
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     choice /C 12 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 call :update.script stable && exit
+        if %_erl%==1 call :update_script stable && exit
         if %_erl%==2 exit /b
-    goto git.version.outdated
+    goto git_version_outdated
 
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -723,12 +723,12 @@
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 
-:dts.startup.done
+:dts_startup_done
     :: Create Event Log Entry
     EVENTCREATE /T INFORMATION /ID 100 /L APPLICATION /SO DataSpammer /D "Successfully started DataSpammer-%current_script_version% %errorlevel%" >nul
 
     :: Compare Hash
-    call :dataspammer.hash.check
+    call :dataspammer_hash.check
 
     title DataSpammer - Finishing Startup
 
@@ -743,7 +743,7 @@
     )
     :: Remove encrypt File from Installer
     if exist "%~dp0\encrypt.bat" %erase_short% "%~dp0\encrypt.bat" >%destination21%
-pause
+
     :: Check Developermode
     if "%developermode%"=="1" ( set "dev-mode=1" & call :color _Yellow "Activated Developer Mode" warning ) else ( set "dev-mode=0" )
 
@@ -776,31 +776,31 @@ pause
     %$Echo% "                             |_|
 
 
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Red "Made by PIRANY - %current_script_version% - Logged in as %username.script% - CMD-Version %CMD_VERSION%"
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Green "[1] Start"
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Blue "[2] Settings"
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Yellow "[3] Desktop Icon"
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _White "[4] Open GitHub-Repo"
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Red "[5] Cancel"
     echo:
     echo:
@@ -808,7 +808,7 @@ pause
         set _erl=%errorlevel%
         if %_erl%==1 goto start
         if %_erl%==2 goto settings
-        if %_erl%==3 goto desktop.settings
+        if %_erl%==3 goto desktop_settings
         if %_erl%==4 explorer https://github.com/PIRANY1/DataSpammer && %cls.debug% && goto menu
         if %_erl%==5 goto cancel
         if %_erl%==6 call :standby
@@ -836,125 +836,125 @@ pause
     %$Echo% "                               |___/
 
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo: 
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _White "[1] Main Settings"
-    call :sys.lt 1
+    call :sys_lt 1
     echo: 
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Red "[2] Developer Options"
-    call :sys.lt 1
+    call :sys_lt 1
     echo: 
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Yellow "[3] Version Control"
-    call :sys.lt 1
+    call :sys_lt 1
     echo: 
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Blue "[4] Account"
-    call :sys.lt 1
+    call :sys_lt 1
     echo: 
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Green "[5] Restart Script"
-    call :sys.lt 1
+    call :sys_lt 1
     echo: 
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Red "[6] Advanced Options"    
-    call :sys.lt 1
+    call :sys_lt 1
     echo: 
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo [7] Go back
-    call :sys.lt 1
+    call :sys_lt 1
     echo: 
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
 
     choice /C 1234567S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 goto main.settings
-        if %_erl%==2 goto activate.dev.options
-        if %_erl%==3 goto settings.version.control
-        if %_erl%==4 goto login.setup
-        if %_erl%==5 goto restart.script
-        if %_erl%==6 goto advanced.options
+        if %_erl%==1 goto main_settings
+        if %_erl%==2 goto activate_dev.options
+        if %_erl%==3 goto settings_version.control
+        if %_erl%==4 goto login_setup
+        if %_erl%==5 goto restart_script
+        if %_erl%==6 goto advanced_options
         if %_erl%==7 goto menu
         if %_erl%==8 call :standby
     goto settings
 
 
-:advanced.options
+:advanced_options
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo: 
-    call :sys.lt 1
+    call :sys_lt 1
     echo [1] Encrypt Files (Bypass most Antivirus detections)
-    call :sys.lt 1
+    call :sys_lt 1
     echo: 
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo [2] Verbose Output
-    call :sys.lt 1
+    call :sys_lt 1
     echo: 
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo [3] Monitor
-    call :sys.lt 1
+    call :sys_lt 1
     echo: 
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo [4] Download Wait.exe - Improve Speed / Wait Time - Source is at PIRANY1/wait.exe (ALPHA)
-    call :sys.lt 1
+    call :sys_lt 1
     echo: 
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo [5] Enable Custom Instruction File (Experimental)
-    call :sys.lt 1
+    call :sys_lt 1
     echo: 
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo [6] Uninstall
-    call :sys.lt 1
+    call :sys_lt 1
     echo: 
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo [7] Go back
-    call :sys.lt 1
+    call :sys_lt 1
     echo: 
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     choice /C 1234567S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto encrypt
-        if %_erl%==2 goto verbose.output.settings
-        if %_erl%==3 goto monitor.settings
-        if %_erl%==4 goto download.wait
-        if %_erl%==5 goto custom.instruction.enable
-        if %_erl%==6 goto sys.delete.script
+        if %_erl%==2 goto verbose_output_settings
+        if %_erl%==3 goto monitor_settings
+        if %_erl%==4 goto download_wait
+        if %_erl%==5 goto custom_instruction_enable
+        if %_erl%==6 goto sys_delete_script
         if %_erl%==7 goto settings
         if %_erl%==8 call :standby
-    goto advanced.options
+    goto advanced_options
 
-:verbose.output.settings
+:verbose_output_settings
     if "%verbose%"=="1" set "verbose.status=call :color _Green ""Verbose Output is currently Enabled"" okay"
     if "%verbose%"=="0" set "verbose.status=call :color _Red ""Verbose Output is currently Disabled"" error"
     
@@ -966,9 +966,9 @@ pause
     %verbose.status%
     echo:
     call :color _Green "[1] Enable Verbose Output"
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Red "[2] Disable Verbose Output"
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Blue "[3] Go back"
     echo:
     choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
@@ -977,21 +977,21 @@ pause
             %cls.debug%
             call :update_config "verbose" "" "1"
             call :color _Green "Verbose Output Enabled." okay
-            call :sys.lt 5
-            goto verbose.output.settings
+            call :sys_lt 5
+            goto verbose_output_settings
         )
         if %_erl%==2 (
             %cls.debug%
             call :update_config "verbose" "" "0"
             call :color _Red "Verbose Output Disabled." error
-            call :sys.lt 5
-            goto verbose.output.settings
+            call :sys_lt 5
+            goto verbose_output_settings
         )
-        if %_erl%==3 goto advanced.options
+        if %_erl%==3 goto advanced_options
         if %_erl%==4 call :standby
-    goto verbose.output.settings
+    goto verbose_output_settings
 
-:custom.instruction.enable
+:custom_instruction_enable
     set "ftypedir=%~0"
     :: Connect .dts with dtsfile type
     ASSOC .dts=dtsfile
@@ -999,7 +999,7 @@ pause
     FTYPE dtsfile=cmd.exe /c "\"%ftypedir%\" \"%%1\""
     call :color _Green "Enabled Custom Instructions" okay
 
-:download.wait
+:download_wait
     :: Download Wait.exe and Wait.exe Hash
     call :color _Green "Downloading wait.exe" pending
     bitsadmin /transfer upd "https://github.com/PIRANY1/wait-exe/raw/refs/heads/main/bin/wait.exe" "%temp%\wait.exe" >nul
@@ -1039,9 +1039,9 @@ pause
     )
     call :color _Green "wait.exe installed successfully." okay
     call :color _Green "Restarting..." pending
-    goto restart.script
+    goto restart_script
 
-:change.chcp
+:change_chcp
     :: Change Codepage to allow for different character sets
     for /f "tokens=2 delims=:" %%A in ('chcp') do (
         set "chcp.value=%%A"
@@ -1070,9 +1070,9 @@ pause
     echo 65001	UTF-8 * (Enabling this will enable Emojis Too)
     set /p chcp.var=Please enter the Codepage:
     call :update_config "chcp" "" "%chcp.var%" 
-    goto restart.script
+    goto restart_script
 
-:change.color
+:change_color
     :: Set Color Dialog
     echo:
     echo Currently Using Color: %color%
@@ -1089,9 +1089,9 @@ pause
     echo:
     set /p color.var=Please enter the Color Combination:
     call :update_config "color" "" "%color.var%"
-    goto main.settings
+    goto main_settings
 
-:monitor.settings
+:monitor_settings
     if "%monitoring%"=="1" set "monitoring-status=call :color _Green "Monitoring is currently enabled." okay"
     if "%monitoring%"=="0" set "monitoring-status=call :color _Red "Monitoring is currently disabled." error"
     call :color _White "-----------------------"
@@ -1102,9 +1102,9 @@ pause
     %monitoring-status%
     echo:
     call :color _Green "[1] Enable Monitor Socket"
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Red "[2] Disable Monitor Socket"
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _White "[3] Go back"
     echo:
     choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
@@ -1112,64 +1112,66 @@ pause
         if %_erl%==1 (
             call :update_config "monitoring" "" "1"
             call :color _Green "Monitor Socket Enabled." okay
-            call :sys.lt 2
-            goto monitor.settings
+            call :sys_lt 2
+            goto monitor_settings
         )
         if %_erl%==2 (
             call :update_config "monitoring" "" "0"
             call :color _Green "Monitor Socket Disabled." okay
-            call :sys.lt 2
-            goto monitor.settings
+            call :sys_lt 2
+            goto monitor_settings
         )
-        if %_erl%==3 goto advanced.options
+        if %_erl%==3 goto advanced_options
         if %_erl%==4 call :standby
-    goto monitor.settings
+    goto monitor_settings
 
 
-:login.setup
+
+:login_setup
     %cls.debug%
     call :color _White "Logged in as %username.script%"
     echo:
     call :color _Green "[1] Create Account"
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _White "[2] Change Login"
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Red "[3] Delete Login"
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _White "[4] Discard"
     echo:
     echo:
     choice /C 1234S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 goto login.create
+        if %_erl%==1 goto login_create
         if %_erl%==2 (
             call :color _Yellow "Changing Login..." warning
             reg delete "HKCU\Software\DataSpammer" /v UsernameHash /f
             reg delete "HKCU\Software\DataSpammer" /v PasswordHash /f
-            goto login.create
+            goto login_create
         )
         if %_erl%==3 (
             reg delete "HKCU\Software\DataSpammer" /v UsernameHash /f
             reg delete "HKCU\Software\DataSpammer" /v PasswordHash /f
             call :color _Green "Login Deleted Successfully." warning
             call :color _Yellow "Restarting Script..." warning
-            call :sys.lt 1
-            goto restart.script
+            call :sys_lt 1
+            goto restart_script
         )
         if %_erl%==4 goto settings
         if %_erl%==5 call :standby
-    goto login.setup
+    goto login_setup
     
-:login.create
+
+:login_create
     :: Create new Login Hashes
     for /f "tokens=3" %%A in ('reg query "HKCU\Software\DataSpammer" /v UsernameHash 2^>nul') do set "storedhash=%%A"
-    if defined storedhash call :color _Red "Account already exists." error && call :sys.lt 4 && goto login.setup
+    if defined storedhash call :color _Red "Account already exists." error && call :sys_lt 4 && goto login_setup
 
     :: Input Password & Username
     set /p "username.script=Please enter a Username: "
@@ -1193,20 +1195,20 @@ pause
     reg add "HKCU\Software\DataSpammer" /v PasswordHash /t REG_SZ /d "%password_hash%" /f
     %cls.debug%
     call :color _Green "Login Created Successfully." okay
-    call :sys.lt 1
-    goto restart.script
+    call :sys_lt 1
+    goto restart_script
 
 :encrypt
     if "%is_compiled%"=="1" (
         call :color _Red "Script is compiled as an Executable." error
         call :color _Red "This Option is only available for uncompiled scripts." error
         call :color _Yellow "Returning..." pending
-        goto advanced.options
+        goto advanced_options
     )
     :: Encrypt Script Files, to bypass Antivirus
     if %logging% == 1 ( call :log Encrypting_Script WARN )
     call :color _Blue "Encrypting..." pending
-    call :sys.lt 1
+    call :sys_lt 1
     cd /d "%~dp0 "
     :: Version Update checks for this File
     call :generateRandom
@@ -1233,7 +1235,8 @@ pause
 
 
 
-:switch.elevation
+
+:switch_elevation
     :: Switch Elevation Method
     echo Choose an Elevation method.
     echo: 
@@ -1254,22 +1257,21 @@ pause
             if %logging% == 1 ( call :log Chaning_Elevation_to_pwsh WARN )
             call :update_config "elevation" "" "pwsh"
             call :color _Green "Switched to Powershell Elevation." okay
-            call :sys.lt 2
-            goto restart.script
+            call :sys_lt 2
+            goto restart_script
         )
-        if %_erl%==2 goto switch.sudo.elevation
+        if %_erl%==2 goto switch_sudo_elevation
         if %_erl%==3 (
             if %logging% == 1 ( call :log Chaning_Elevation_to_gsudo WARN )
             call :update_config "elevation" "" "gsudo"
             call :color _Green "Switched to GSudo Elevation." okay
-            call :sys.lt 2
-            goto restart.script
+            call :sys_lt 2
+            goto restart_script
         )
         if %_erl%==4 call :standby
-    goto switch.elevation
+    goto switch_elevation
 
-
-:switch.sudo.elevation
+:switch_sudo_elevation
     :: Switch to Sudo Elevation
     :: Powershell Elevation is more reliable
     :: Windows will support sudo, starting in 24H2
@@ -1286,47 +1288,48 @@ pause
     set /a min_build=25900
     if not %build% geq %min_build% (
         :: is lower than 24H2
-        call :color _Yellow "You dont have 24H2" warning && pause && goto advanced.options
+        call :color _Yellow "You dont have 24H2" warning && pause && goto advanced_options
     )
     
     :: Check if Sudo is installed
     for /f "delims=" %%a in ('where sudo 2^>nul') do (
         set "where_output=%%a"
     )
-    if not defined where_output (call :color _Yellow "You dont have sudo enabled" warning && pause && goto advanced.options)
+    if not defined where_output (call :color _Yellow "You dont have sudo enabled" warning && pause && goto advanced_options)
 
     :: Switch to Sudo
     if %logging% == 1 ( call :log Chaning_Elevation_to_sudo WARN )
     call :update_config "elevation" "" "sudo"
     call :color _Green "Switched to Sudo Elevation." okay
-    call :sys.lt 2
-    goto restart.script
+    call :sys_lt 2
+    goto restart_script
 
-:main.settings
+
+:main_settings
     echo [1] Default Filename
-    call :sys.lt 1
+    call :sys_lt 1
     echo: 
-    call :sys.lt 1
+    call :sys_lt 1
     echo [2] Skip Security Question
-    call :sys.lt 1
+    call :sys_lt 1
     echo: 
-    call :sys.lt 1
+    call :sys_lt 1
     echo [3] Switch Elevation Method (pswh / sudo / gsudo)
-    call :sys.lt 1
+    call :sys_lt 1
     echo: 
-    call :sys.lt 1
+    call :sys_lt 1
     echo [4] Logging
-    call :sys.lt 1
+    call :sys_lt 1
     echo: 
-    call :sys.lt 1
+    call :sys_lt 1
     echo [5] Change Color
-    call :sys.lt 1
+    call :sys_lt 1
     echo: 
-    call :sys.lt 1
+    call :sys_lt 1
     echo [6] Change Codepage ( Emoji Support^! ) 
-    call :sys.lt 1
+    call :sys_lt 1
     echo: 
-    call :sys.lt 1
+    call :sys_lt 1
     echo [7] Go back
     choice /C 1234567S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
@@ -1334,21 +1337,22 @@ pause
             if %logging% == 1 ( call :log Chaning_Default_Filename WARN )
             :df.filename.input
             set /p default-filename=Type in the Filename you want to use:
-            call :fd.check file %default-filename%
-            if "%errorlevel%"=="1" goto df.filename.input
+            call :fd_check file %default-filename%
+            if "%errorlevel%"=="1" goto df_filename.input
             call :update_config "default-filename" "" "%default-filename%" 
-            goto restart.script
+            goto restart_script
         )
-        if %_erl%==2 goto settings.skip.sec
-        if %_erl%==3 goto switch.elevation
-        if %_erl%==4 goto settings.logging
-        if %_erl%==5 goto change.color
-        if %_erl%==6 goto change.chcp
+        if %_erl%==2 goto settings_skip_sec
+        if %_erl%==3 goto switch_elevation
+        if %_erl%==4 goto settings_logging
+        if %_erl%==5 goto change_color
+        if %_erl%==6 goto change_chcp
         if %_erl%==7 goto settings
         if %_erl%==8 call :standby
-    goto main.settings
+    goto main_settings
 
-:settings.skip.sec
+
+:settings_skip.sec
     if %logging% == 1 (
         call :log Chaning_Skip_security_question WARN
     )
@@ -1362,57 +1366,56 @@ pause
     if %logging% == 1 (
         call :log Skip_Security_Question_Updated_To_%settings.skip-sec% INFO
     )
-    goto restart.script
+    goto restart_script
 
-:settings.version.control
+
+:settings_version_control
     echo:
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo [1] Force Update
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo [2] Switch to Main Branch
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo [3] Go Back
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
     echo:
     choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 call :update.script stable && goto cancel
-        if %_erl%==2 call :update.script stable && goto cancel
+        if %_erl%==1 call :update_script stable && goto cancel
+        if %_erl%==2 call :update_script stable && goto cancel
         if %_erl%==3 goto settings
         if %_erl%==4 call :standby
-    goto settings.version.control
+    goto settings_version_control
 
-
-:activate.dev.options   
-    if "%developermode%"=="1" goto dev.options
+:activate_dev_options   
+    if "%developermode%"=="1" goto dev_options
     call :color _Red "Do you want to activate the Developer Options?"
     call :color _Red "Developer Options include some advanced features like logging etc."
     call :color _Red "These Features are experimental can be unstable."
     echo:
     choice /C YNS /T 120 /D S  /M "Yes/No"
         set _erl=%errorlevel%
-        if %_erl%==1 goto write-dev-options
+        if %_erl%==1 goto write_dev_options
         if %_erl%==2 goto settings
         if %_erl%==3 call :standby
-    goto activate.dev.options   
-    
-:write-dev-options
+    goto activate_dev_options
+
+:write_dev_options
     if %logging% == 1 ( call :log Activating_Dev_Options WARN )
     cd /d "%~dp0"
     call :update_config "developermode" "" "1"
     call :color _Green "Developer Options Activated." okay
     call :color _Yellow "Restarting Script..." warning
-    call :sys.lt 2
-    goto restart.script
+    call :sys_lt 2
+    goto restart_script
 
-
-:settings.logging
+:settings_logging
     if %logging% == 1 ( call :log Opened_Logging_Settings INFO )
     %cls.debug%
     if %logging% == 0 set "settings.logging=Disabled"
@@ -1420,65 +1423,65 @@ pause
     if %logging% == 2 set "settings.logging=Enabled (Only Critical)"
     echo Logging is currently: %settings.logging%
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Green "[1] Activate Logging"
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Red "[2] Disable Logging"
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Blue "[3] Open Log"
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Yellow "[4] Clear Log"
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _White "[5] Go Back"
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
     echo:
     choice /C 12345S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 (
-            if %logging% == 1 ( goto settings.logging )
+            if %logging% == 1 ( goto settings_logging )
             echo Do you want to set Logging to Only ERRORs / WARNs or General?
             choice /C CG /M "(C)ritical / (G)eneral"
                 if %_erl%==1 call :update_config "logging" "" "2"
                 if %_erl%==2 call :update_config "logging" "" "1"
             call :color _Green "Logging Enabled." okay
-            call :sys.lt 2
-            goto restart.script
+            call :sys_lt 2
+            goto restart_script
         )
         if %_erl%==2 (
-            if %logging% == 0 ( goto settings.logging )
+            if %logging% == 0 ( goto settings_logging )
             if %logging% == 1 ( call :log Disabling_Logging WARN )
             call :update_config "logging" "" "0"
             call :color _Green "Logging Disabled." okay
-            call :sys.lt 2
-            goto restart.script
+            call :sys_lt 2
+            goto restart_script
         )
-        if %_erl%==3 %cls.debug% && call :color _Blue "Opening Log..." pending & notepad %userprofile%\Documents\DataSpammerLog\DataSpammer.log && pause && goto settings.logging
-        if %_erl%==4 %cls.debug% && %erase_short% %userprofile%\Documents\DataSpammerLog\DataSpammer.log && call :color _Yellow "Cleared Log." warning && pause && goto settings.logging
+        if %_erl%==3 %cls.debug% && call :color _Blue "Opening Log..." pending & notepad %userprofile%\Documents\DataSpammerLog\DataSpammer.log && pause && goto settings_logging
+        if %_erl%==4 %cls.debug% && %erase_short% %userprofile%\Documents\DataSpammerLog\DataSpammer.log && call :color _Yellow "Cleared Log." warning && pause && goto settings_logging
         if %_erl%==5 goto settings
         if %_erl%==6 call :standby
-    goto settings.logging
+    goto settings_logging
 
-:desktop.settings
+:desktop_settings
     %cls.debug%
     echo:
     echo =====================
     echo Desktop Icon Settings
     echo =====================
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Green "[1] Setup"
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Blue"[2] Back"
     echo:
 
@@ -1500,7 +1503,7 @@ pause
         )
         if %_erl%==3 goto menu
         if %_erl%==4 call :standby
-    goto desktop.settings
+    goto desktop_settings
 
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1514,7 +1517,7 @@ pause
 
 :start
     if %logging% == 1 ( call :log Opened_Start INFO )
-    call :sys.verify.execution
+    call :sys_verify.execution
     if %logging% == 1 ( call :log Start_Verified INFO )
     %cls.debug%
 
@@ -1523,7 +1526,8 @@ pause
     )
     if not defined where_output (set "python.line=echo:") else ( set "python.line=call :color _Yellow ""[4] Python Scripts (Experimental)""" ) 
 
-:start.verified
+
+:start_verified
     %$Echo% "     ___        _   _
     %$Echo% "    / _ \ _ __ | |_(_) ___  _ __  ___ 
     %$Echo% "   | | | | '_ \| __| |/ _ \| '_ \/ __|
@@ -1532,104 +1536,107 @@ pause
     %$Echo% "         |_|
 
     call :color _Green "[1] Local Machine"
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Blue "[2] Internet ( LAN / WAN)"
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _White "[3] Go back"
-    call :sys.lt 1
+    call :sys_lt 1
     %python.line%
-    call :sys.lt 1
+    call :sys_lt 1
     choice /C 1234S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 goto local.spams
-        if %_erl%==2 goto internet.spams
+        if %_erl%==1 goto local_spams
+        if %_erl%==2 goto internet_spams
         if %_erl%==3 goto menu
-        if %_erl%==4 goto python.spams    
+        if %_erl%==4 goto python_spams    
         if %_erl%==4 call :standby
-    goto start.verified
+    goto start_verified
 
 
-:internet.spams
+
+:internet_spams
     echo [1] SSH Test (Key-Auth or No Password)
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo [2] DNS Test
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo [3] FTP Test
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo [4] HTTP(S) Test
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo [5] Printer Test
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo [6] ICMP Test (ping)
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo [7] Telnet
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo [8] Printer List Test
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo [9] Go Back
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
     choice /C 123456789S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 goto ssh.spam
-        if %_erl%==2 goto dns.spam
-        if %_erl%==3 goto ftp.spam
-        if %_erl%==4 goto https.spam
-        if %_erl%==5 goto printer.spam
-        if %_erl%==6 goto icmp.spam
-        if %_erl%==7 goto telnet.spam
-        if %_erl%==8 goto printer.list.spam
-        if %_erl%==9 goto start.verified
+        if %_erl%==1 goto ssh_spam
+        if %_erl%==2 goto dns_spam
+        if %_erl%==3 goto ftp_spam
+        if %_erl%==4 goto https_spam
+        if %_erl%==5 goto printer_spam
+        if %_erl%==6 goto icmp_spam
+        if %_erl%==7 goto telnet_spam
+        if %_erl%==8 goto printer_list_spam
+        if %_erl%==9 goto start_verified
         if %_erl%==10 call :standby
-    goto internet.spams
+    goto internet_spams
 
 
 
 
-:python.spams
+
+:python_spams
     echo [1] Zip Bomb Creator
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo [2] Go Back
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
     choice /C 12S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 goto python.zip.bomb
-        if %_erl%==2 goto start.verified
+        if %_erl%==1 goto python_zip_bomb
+        if %_erl%==2 goto start_verified
         if %_erl%==3 call :standby
-    goto python.spams
+    goto python_spams
 
-:python.zip.bomb
+
+:python_zip_bomb
     cd "%~dp0"
 
-    :python.zip.bomb.sub
-    call :filename.check zipname "Filename (with .zip): "
+    :python_zip_bomb_sub
+    call :filename_check zipname "Filename (with .zip): "
     set /P MB=Filesize (in MB): 
     set /P COUNT=How many Files in the Base layer?:
     set /A BYTES=%MB% * 1024 * 1024
@@ -1649,7 +1656,8 @@ pause
 
 
 
-:printer.list.spam
+
+:printer_list_spam
     set /P printer.name=Enter the Printer Name:
     set /P printer.model=Enter the Modell(can be anything):
     set /P printer.count=Enter the Printer Count:
@@ -1662,7 +1670,8 @@ pause
     
 
 
-:telnet.spam
+
+:telnet_spam
     echo root > temp.txt
     echo 123456 >> temp.txt
     echo exit >> temp.txt
@@ -1679,73 +1688,72 @@ pause
     call :done "The Script Tested the Telnet Server %telnet.target% with %telnet.count% Requests"
 
 
-    
-:icmp.spam
+:icmp_spam
     set /P icmp.target=Enter the Target:
     
     set /P icmp.rate=Enter the rate (milliseconds between requests):
 
     call :color _Red "Press CTRL+C to stop"
-    call :sys.lt 3
+    call :sys_lt 3
     
-    :icmp.loop
+    :icmp_loop
     %ping% %icmp.target% -n 1 -w %icmp.rate% >%destination%
     call :color _Red "Press CTRL+C to stop"
     if %logging% == 1 ( call :log Sending_ICMP_Request_to_%icmp.target% INFO )
-    goto icmp.loop
+    goto icmp_loop
 
     if %logging% == 1 ( call :log Finished_ICMP_Spam_on_%icmp.target% INFO )
     call :done "The Script Tested %icmp.target% with %icmp.rate% milliseconds interval"
 
 
 
-:local.spams
+:local_spams
     echo Choose the Method you want to use:
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo [1] .txt Spam in custom Directory
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo [2] Desktop Icon Spam
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo [3] Startmenu Spam
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo [4] App-List Spam
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo [5] Encrypt / Decrypt File/Directory
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Blue "[6] Go Back"
     echo:
     echo:
     echo:
     choice /C 123456S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 goto normal.text.spam
-        if %_erl%==2 goto desktop.icon.spam
-        if %_erl%==3 goto startmenu.spam
-        if %_erl%==4 goto app.list.spam
-        if %_erl%==5 goto crypt.spam
-        if %_erl%==6 goto start.verified
+        if %_erl%==1 goto normal_text_spam
+        if %_erl%==2 goto desktop_icon_spam
+        if %_erl%==3 goto startmenu_spam
+        if %_erl%==4 goto app_list_spam
+        if %_erl%==5 goto crypt_spam
+        if %_erl%==6 goto start_verified
         if %_erl%==7 call :standby
-    goto local.spams
+    goto local_spams
 
 
 
 
 
-:crypt.spam
+:crypt_spam
     for /f "delims=" %%a in ('where openssl 2^>nul') do ( set "where_output=%%a" )
-    if not defined where_output ( call :color _Red "OpenSSL is not installed." error && timeout /t 5 /nobreak >nul && goto start.verified )
+    if not defined where_output ( call :color _Red "OpenSSL is not installed." error && timeout /t 5 /nobreak >nul && goto start_verified )
 
     call :color _Red "Original Files will be REMOVED"
     call :color _Blue "Encrypt or Decrypt?"
@@ -1755,32 +1763,34 @@ pause
             call :color _Blue "Folder or File?"
             choice /C FD /M "(F)ile or (D)irectory):"
                 set _erl=%errorlevel%
-                if %_erl%==1 goto encrypt.spam.file
-                if %_erl%==2 goto encrypt.spam.folder
+                if %_erl%==1 goto encrypt_spam_file
+                if %_erl%==2 goto encrypt_spam_folder
         )
         if %_erl%==2 (
             call :color _Blue "Folder or File?"
             choice /C FD /M "(F)ile or (D)irectory):"
                 set _erl=%errorlevel%
-                if %_erl%==1 goto decrypt.spam.file
-                if %_erl%==2 goto decrypt.spam.folder
+                if %_erl%==1 goto decrypt_spam_file
+                if %_erl%==2 goto decrypt_spam_folder
         )
-    goto crypt.spam
+    goto crypt_spam
 
-:encrypt.spam.folder
-    call :directory.input encrypt-dir "Enter the Directory: "
+
+:encrypt_spam_folder
+    call :directory_input encrypt-dir "Enter the Directory: "
     call :color _Blue "Enter the Encryption Method"
     choice /C AC /M "(A)ES or (C)hacha):"
         set _erl=%errorlevel%
-        if %_erl%==1 set "crypt.method=aes-256-cbc"
-        if %_erl%==2 set "crypt.method=chacha20"
+        if %_erl%==1 set "crypt_method=aes-256-cbc"
+        if %_erl%==2 set "crypt_method=chacha20"
     set /p encrypt-key=Enter the Encryption Key:
     set /p encrypt-key-2=Repeat the Encryption Key:
 
-:encrypt.spam.folder.passwd
+
+:encrypt_spam_folder_passwd
     set /p encrypt-key=Enter the Encryption Key:
     set /p encrypt-key-2=Repeat the Encryption Key:
-    if not "%encrypt-key%"=="%encrypt-key-2%" goto encrypt.spam.folder.passwd
+    if not "%encrypt-key%"=="%encrypt-key-2%" goto encrypt_spam_folder_passwd
 
 
     call :color _Blue "Encrypting files in ""%encrypt-dir%""..." pending
@@ -1800,11 +1810,12 @@ pause
     call :color _Green "All files in %encrypt-dir% encrypted with %crypt.method%." okay
     
     call :color _Yellow "Waiting 2 Seconds..." pending
-    call :sys.lt 4
+    call :sys_lt 4
     goto menu
 
 
-:encrypt.spam.file
+
+:encrypt_spam__file
     set /p encrypt-dir=Enter the File Directory:
     call :color _Blue "Enter the Encryption Method"
     choice /C AC /M "(A)ES or (C)hacha):"
@@ -1812,10 +1823,11 @@ pause
         if %_erl%==1 set "crypt.method=aes-256-cbc"
         if %_erl%==2 set "crypt.method=chacha20"
 
-:encrypt.spam.file.passwd
+
+:encrypt_spam_file_passwd
     set /p encrypt-key=Enter the Encryption Key:
     set /p encrypt-key-2=Repeat the Encryption Key:
-    if not "%encrypt-key%"=="%encrypt-key-2%" goto encrypt.spam.file.passwd
+    if not "%encrypt-key%"=="%encrypt-key-2%" goto encrypt_spam_file_passwd
 
     call :color _Blue "Encrypting file: ""%encrypt-dir%""" pending
 
@@ -1831,8 +1843,9 @@ pause
     timeout /t 10 /nobreak >nul
     goto menu
 
-:decrypt.spam.folder
-    call :directory.input encrypt-dir "Enter the Directory: "
+
+:decrypt_spam.folder
+    call :directory_input encrypt-dir "Enter the Directory: "
     set /p decrypt-key=Enter the Encryption Key:
     call :color _Blue "Enter the Encryption Method"
     choice /C AC /M "(A)ES or (C)hacha):"
@@ -1856,11 +1869,12 @@ pause
     call :color _Green "All files in %encrypt-dir% decrypted with %crypt.method%." okay
 
     call :color _Yellow "Waiting 3 Seconds..." pending
-    call :sys.lt 6
+    call :sys_lt 6
     goto menu
 
 
-:decrypt.spam.file
+
+:decrypt_spam.file
     set /p decrypt-dir=Enter the File Directory:
     set /p decrypt-key=Enter the Encryption Key:
     call :color _Blue "Enter the Encryption Method"
@@ -1879,17 +1893,18 @@ pause
 
     call :color _Green "File ""%encrypt-dir%"" decrypted to ""%encrypt-dir%.dec""." okay
     call :color _Yellow "Waiting 3 Seconds..." pending
-    call :sys.lt 6
+    call :sys_lt 6
     goto menu
    
 
 
 
-:printer.spam
+
+:printer_spam
     :: print /D:%printer% %file%
     :: set printer="\\NetworkPrinter\PrinterName"
     set /P printer.count=How many Files should be printed?: 
-    call :filename.check print.filename "Enter the Filename:"
+    call :filename_check print.filename "Enter the Filename:"
 
     %cls.debug%
     wmic printer get Name
@@ -1909,7 +1924,8 @@ pause
 
 
 
-:https.spam
+
+:https_spam
     setlocal EnableDelayedExpansion
     call :color _Blue "Spam a HTTP/HTTPS Server with Requests"
     set /P url=Enter a Domain or an IP:
@@ -1925,7 +1941,8 @@ pause
 
 
 
-:dns.spam
+
+:dns_spam
     setlocal EnableDelayedExpansion    
     call :color _Blue "DNS-Spam is useful if you have a local DNS Server running (PiHole, Adguard etc.)"
     set /P domain_server=Enter the DNS-Server IP (leave empty for default):
@@ -1939,20 +1956,22 @@ pause
     
     set /a x=0
     
-    if /I "%record_type%"=="A" goto dns.a
-    if /I "%record_type%"=="AAAA" goto dns.aaaa
+    if /I "%record_type%"=="A" goto dns_a
+    if /I "%record_type%"=="AAAA" goto dns_aaaa
     
-    
-:dns.a
+
+
+:dns_a
     for /L %%i in (1, 1, %request_count%) do (
         call :color _Blue "Created !x! DNS Request for !record_type! record." pending
         set /a x+=1
         nslookup -type=A %domain% %domain_server% > nul
         %cls.debug%
     )
-    goto dns.done
+    goto dns_done
     
-:dns.aaaa
+
+:dns_aaaa
     for /L %%i in (1, 1, %request_count%) do (
         call :color _Blue "Created !x! DNS Request for !record_type! record." pending
         set /a x+=1
@@ -1960,20 +1979,22 @@ pause
         %cls.debug%
     )
     
-:dns.done
+
+:dns_done
     if %logging% == 1 ( call :log Finished_DNS_Spam:%request_count%_Requests_on_%domain_server% INFO )
     call :done "The Script Created %request_count% for %domain% on %domain_server%"
 
 
 
 
-:ftp.spam
+
+:ftp_spam
     %cls.debug%
     set /P ftpserver=Enter a Domain or IP:
     set /P username=Enter the Username:
     set /P password=Enter the Password:
     set /P remoteDir=Enter the Directory (leave empty if unsure):
-    call :filename.check filename "Enter the Filename:"
+    call :filename_check filename "Enter the Filename:"
 
     set /P content=Enter the File Content:
     set /P filecount=How many Files should be created:
@@ -2026,7 +2047,8 @@ pause
 
 
 
-:app.list.spam
+
+:app_list.spam
     %cls.debug%
     echo This Function will spam the Applist under "Settings > Apps > Installed Apps" with Entrys of your choice.
     echo:
@@ -2037,11 +2059,12 @@ pause
     echo:
     choice /C 12 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 goto app.list.spam.confirmed
-        if %_erl%==2 goto start.verified
-    goto app.list.spam
+        if %_erl%==1 goto app_list.spam.confirmed
+        if %_erl%==2 goto start_verified
+    goto app_list.spam
 
-:app.list.spam.confirmed
+
+:app_list.spam.confirmed
     set /a x=0
     echo Enter random to use random Numerals
     echo Enter default to skip an Option
@@ -2073,7 +2096,8 @@ pause
     )
     
 
-:app.spam.start.top
+
+:app_spam.start.top
     for /L %%i in (1,1,%app.spam.filecount%) do (
         echo Creating Entry %x%
         reg add "%RegPath%%x%" /v "DisplayName" /d "%app.spam.name%%x%" /f
@@ -2088,18 +2112,20 @@ pause
     call :done "The Script Created %x% Entrys."
 
 
-:startmenu.spam
+
+:startmenu_spam
     set /P filecount=How many Files should be created?:
     echo Only for Local User or For All Users?
     echo All Users requires Admin Privileges.
     choice /C AL /M "(A)ll / (L)ocal"
     set _erl=%errorlevel%
-        if %_erl%==1 set "directory.startmenu=%ProgramData%\Microsoft\Windows\Start Menu\Programs" && goto startmenu.name
-        if %_erl%==2 set "directory.startmenu=%AppData%\Microsoft\Windows\Start Menu\Programs" && goto startmenu.name
-    goto startmenu.spam
+        if %_erl%==1 set "directory.startmenu=%ProgramData%\Microsoft\Windows\Start Menu\Programs" && goto startmenu_name
+        if %_erl%==2 set "directory.startmenu=%AppData%\Microsoft\Windows\Start Menu\Programs" && goto startmenu_name
+    goto startmenu_spam
 
-:startmenu.name
-    call :filename.check default-filename "Enter the Filename:"
+
+:startmenu_name
+    call :filename_check default-filename "Enter the Filename:"
     set /a x=0
 
     :: Create .lnk File
@@ -2118,12 +2144,13 @@ pause
     if %logging% == 1 ( call :log Finished_Spamming_Files:_%filecount% INFO )
     call :done "The Script Created %filecount% Files."
 
-:ssh.spam
+
+:ssh_spam
     if "%logging%"=="1" ( call :log Opened_SSH_Spam INFO )
     if "%logging%"=="1" ( call :log Listing_Local_IPs INFO )
     
     echo Enter the IP or the Hostename of the Device
-    call :sys.lt 2
+    call :sys_lt 2
     echo:
     echo:
     :: Use nmap to find local IPs
@@ -2139,10 +2166,11 @@ pause
     set /P ssh-name=Enter the Username:
     set /P ssh-filecount=Enter the Filecount:
     set /P ssh-key=Enter the SSH-Key:
-    call :sys.verify.execution
+    call :sys_verify.execution
     %cls.debug%
 
-:ssh.hijack
+
+:ssh_hijack
     echo Should the SSH-Keys be regenerated?
     echo This will prohibit anyone with the Old Keys from Accessing the Target
     echo:
@@ -2153,11 +2181,12 @@ pause
     echo:
     choice /C 12 /M "Choose an option from above:"
         set _erl=%errorlevel%
-        if %_erl%==1 set "ssh.regen=1" && goto ssh.start.spam
-        if %_erl%==2 set "ssh.regen=0" && goto ssh.start.spam
-    goto ssh.hijack
+        if %_erl%==1 set "ssh.regen=1" && goto ssh_start.spam
+        if %_erl%==2 set "ssh.regen=0" && goto ssh_start.spam
+    goto ssh_hijack
 
-:ssh.start.spam
+
+:ssh_start.spam
     echo Is the SSH Host running Windows or Linux?
     echo:
     echo [1] Windows
@@ -2167,12 +2196,13 @@ pause
     echo:
     choice /C 12 /M "Choose an option from above:"
         set _erl=%errorlevel%
-        if %_erl%==1 goto spam.ssh.target.win
-        if %_erl%==2 goto spam.ssh.target.lx
-    goto ssh.start.spam
+        if %_erl%==1 goto spam_ssh.target.win
+        if %_erl%==2 goto spam_ssh.target.lx
+    goto ssh_start.spam
 
 
-:spam.ssh.target.win
+
+:spam_ssh.target.win
     setlocal EnableDelayedExpansion
     if "%logging%"=="1" ( call :log Spamming_Windows_SSH_Target INFO )
 
@@ -2187,7 +2217,7 @@ pause
         if errorlevel 1 (
             %errormsg%
             call :color _Red "SSH key regeneration failed!" error
-            goto ssh.done
+            goto ssh_done
         )
         echo New SSH private key generated and saved to new_ssh_key.txt:
         COPY new_ssh_key.txt CON
@@ -2208,14 +2238,15 @@ pause
     if errorlevel 1 (
         %errormsg%
         call :color _Red "SSH connection failed!" error
-        goto ssh.done
+        goto ssh_done
     )
 
     call :color _Green "Successfully executed SSH connection." okay
-    goto ssh.done
+    goto ssh_done
 
 
-:spam.ssh.target.lx
+
+:spam_ssh.target.lx
     setlocal EnableDelayedExpansion
     if "%logging%"=="1" ( call :log Spamming_Linux_SSH_Target INFO )
 
@@ -2230,7 +2261,7 @@ pause
         if errorlevel 1 (
             %errormsg%
             call :color _Red "SSH key regeneration failed!" error
-            goto ssh.done
+            goto ssh_done
         )
         echo New SSH private key generated and saved to new_ssh_key.txt:
         type new_ssh_key.txt
@@ -2251,28 +2282,30 @@ pause
     if errorlevel 1 (
         %errormsg%
         call :color _Red "SSH connection failed!" error
-        goto ssh.done
+        goto ssh_done
     )
 
     call :color _Green "Successfully executed SSH connection." okay
-    goto ssh.done
+    goto ssh_done
 
-:ssh.done
+
+:ssh_done
     if %logging% == 1 ( call :log Finished_SSH_Spam_Files:_%ssh-filecount%_Host_%ssh-name% INFO )
     call :done "Created %ssh-filecount% Files on %ssh-name%@%ssh-ip%"
 
 
-:desktop.icon.spam
+
+:desktop_icon.spam
     if %logging% == 1 ( call :log Opened_Desktop_Spam INFO )
     
-    call :filename.check desk.spam.name "Enter the Filename:"
+    call :filename_check desk.spam.name "Enter the Filename:"
     set /p desk.spam.format=Choose the Format (without the dot):
     set /p desk.spam.content=Enter the File-Content:
     set /P filecount=How many Files should be created?:
 
     %cls.debug%
     echo Starting.....
-    call :sys.lt 2
+    call :sys_lt 2
     set /a x=0
 
     for /L %%i in (1,1,%desk.filecount%) do (
@@ -2287,14 +2320,16 @@ pause
 
 
 
-:normal.text.spam
+
+:normal_text.spam
     if %logging% == 1 ( call :log Opened_Normal_Spam INFO )
-    call :directory.input text_spam_directory "Enter the Directory: "
-    call :filename.check filename "Enter the Filename:"
+    call :directory_input text_spam_directory "Enter the Directory: "
+    call :filename_check filename "Enter the Filename:"
     set /P filecount=How many Files should be created?: 
     set /P defaultspam.content=Enter the File Content:
     
-:spam.normal.top
+
+:spam_normal.top
     set /a x=1
 
     for /L %%i in (1,1,%filecount%) do (
@@ -2316,14 +2351,16 @@ pause
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 
-:v6.port
+
+:v6_port
     echo Script update from v5 detected.
     echo A reinstall is recommended to avoid issues.
     echo If you did not upgrade from v5 or older, please ignore this message.
-    call :sys.lt 10 count
+    call :sys_lt 10 count
 
 
-:ifp.install
+
+:ifp_install
     :: If Script was installed by Install Forge add Registry Stuff here
     :: Add Script to Windows App List
     set "elevPath=wt"
@@ -2348,14 +2385,15 @@ pause
     reg add "HKCU\Software\DataSpammer" /v logging /t REG_SZ /d "1" /f
     reg add "HKCU\Software\DataSpammer" /v color /t REG_SZ /d "0F" /f
     call :color _Green "DataSpammer was successfully installed." okay
-    goto restart.script
+    goto restart_script
 
 
-:scoop.install
+
+:scoop_install
     reg query "HKCU\Software\DataSpammer" /v Installed >%destination21% && (
         call :color _Red "DataSpammmer is already installed" error
         call :color _Green "Starting Update" okay
-        goto update.script
+        goto update_script
     )
 
     set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
@@ -2381,10 +2419,11 @@ pause
     reg add "HKCU\Software\DataSpammer" /v color /t REG_SZ /d "0F" /f
     call :color _Green "DataSpammer was successfully installed." okay
     call :color _Yellow "Restarting..." pending
-    call :sys.lt 4 count
-    goto restart.script
+    call :sys_lt 4 count
+    goto restart_script
 
-:scoop.remove
+
+:scoop_remove
     set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
     if defined ProgramFiles(x86) (
         set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
@@ -2401,15 +2440,16 @@ pause
     call :color _Green "DataSpammer was successfully uninstalled." okay
     call :color _Yellow "Exiting..." pending
     goto cancel
-    
-:custom.instruction.read
+
+
+:custom_instruction.read
     :: Read Linked CIF File & interpret it
     set "interpret.dts=%~1"
     if not exist "%interpret.dts%" (
         %errormsg%
         call :color _Red "Custom Instruction File does not exist." error
         call :color _Yellow "Please check the path and try again." warning
-        call :sys.lt 5 count
+        call :sys_lt 5 count
         goto cancel
     )
     echo Parsing CIF File: %interpret.dts%
@@ -2447,13 +2487,14 @@ pause
     goto cancel
 
 
-:fast.git.update
+
+:fast_git.update
     :: Fast Update
     cd /d "%temp%"
     echo Checking for Updates...
     set "api_url=https://api.github.com/repos/PIRANY1/DataSpammer/releases/latest"
     curl -s %api_url% > apianswer.txt
-    call :sys.lt 2
+    call :sys_lt 2
     for /f "tokens=2 delims=:, " %%a in ('findstr /R /C:"\"tag_name\"" apianswer.txt') do (
         set "latest_version=%%a"
     )
@@ -2473,7 +2514,7 @@ pause
     exit /b %errorlevel%
 
 
-:sys.delete.script  
+:sys_delete.script  
     reg query "HKCU\Software\DataSpammer" /v scoopinstall >%destination21% && (
         call :color _Green "Detected Scoop installed Script." okay
         call :color _Red "Remove Script manually by running ^'scoop remove dataspammer^' " error
@@ -2482,45 +2523,47 @@ pause
         goto cancel
     )
     echo: 
-    call :sys.lt 1
+    call :sys_lt 1
     echo You are about to delete the whole script. Are you sure?
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo [1] Yes, Delete the Whole Script
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo [2] Open the Github-Repo
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo [3] No Go Back
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
     echo:
     choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 goto sys.delete.script.check.elevation
-        if %_erl%==2 explorer "https://github.com/PIRANY1/DataSpammer" && goto sys.delete.script
+        if %_erl%==1 goto sys_delete.script.check.elevation
+        if %_erl%==2 explorer "https://github.com/PIRANY1/DataSpammer" && goto sys_delete.script
         if %_erl%==3 goto menu
         if %_erl%==4 call :standby
-    goto sys.delete.script
+    goto sys_delete.script
 
-:sys.delete.script.check.elevation
+
+:sys_delete.script.check.elevation
     net session >%destination21%
     if %errorLevel% == 0 ( 
-        goto sys.delete.script.confirmed 
+        goto sys_delete.script.confirmed 
     ) else ( 
         echo The Script is not running as Administrator. Please start the Script as Administrator in order to delete it.
-        call :sys.lt 4
+        call :sys_lt 4
         explorer "%~dp0"
         goto cancel
     )
    
-:sys.delete.script.confirmed
+
+:sys_delete.script.confirmed
     if exist "%~dp0\LICENSE" del "%~dp0\LICENSE"
     if exist "%~dp0\README.md" del "%~dp0\README.md"
 
@@ -2541,7 +2584,8 @@ pause
     call :color _Green "DataSpammer was successfully deleted." okay
     goto cancel
 
-:restart.script
+
+:restart_script
     :: Restart Script
     :: Clear CHCP to prevent display issues
     set "chcp="
@@ -2626,10 +2670,11 @@ pause
             exit /b %errorlevel%
         )
 
-    call :sys.lt 1
+    call :sys_lt 1
     goto fullloop
 
-:dev.options
+
+:dev_options
     :: Dev Options
     title Developer Options - DataSpammer
     echo PID: %PID%
@@ -2656,20 +2701,21 @@ pause
             echo List all Call Signs?
             choice /C YN /M "(Y)es / (N)o"
                 set _erl=%errorlevel%
-                if %_erl%==1 call :list.vars && %cls.debug% && set /P jumpto=Enter the Call Sign: && goto %jumpto% 
+                if %_erl%==1 call :list_vars && %cls.debug% && set /P jumpto=Enter the Call Sign: && goto %jumpto% 
                 if %_erl%==2 %cls.debug% && set /P jumpto=Enter the Call Sign: && goto %jumpto%
         )
-        if %_erl%==2 @echo on && %cls.debug% && goto dev.options
-        if %_erl%==3 set /P var=Enter the Variable Name: && set /P value=Enter the Value: && set %var%=%value% && %cls.debug% && goto dev.options
+        if %_erl%==2 @echo on && %cls.debug% && goto dev_options
+        if %_erl%==3 set /P var=Enter the Variable Name: && set /P value=Enter the Value: && set %var%=%value% && %cls.debug% && goto dev_options
         if %_erl%==4 goto top
-        if %_erl%==5 goto restart.script
-        if %_erl%==6 call :list.vars && pause && %cls.debug%
-        if %_erl%==7 goto debug.info
+        if %_erl%==5 goto restart_script
+        if %_erl%==6 call :list_vars && pause && %cls.debug%
+        if %_erl%==7 goto debug_info
         if %_erl%==8 goto settings  
         if %_erl%==9 call :standby
-    goto dev.options
+    goto dev_options
 
-:debug.info
+
+:debug_info
     echo Monitoring: %monitoring%
     echo Script Version: %current_script_version%
     echo Logging: %logging%
@@ -2679,9 +2725,10 @@ pause
     echo Update: %update%
     echo Elevation: %elevation%
     echo Skip Security Check: %skip-sec%
-    goto dev.options
+    goto dev_options
 
-:sys.new.update.installed
+
+:sys_new.update.installed
     :: Renew Version Registry Key
     set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
     if defined ProgramFiles(x86) (
@@ -2694,15 +2741,15 @@ pause
     if %logging% == 1 ( call :log Errorlevel_after_Update:_%errorlevel% INFO )
     call :color _Green "Successfully Updated to %current_script_version%" okay
     call :color _Yellow "Restarting..." warning
-    call :sys.lt 4 count
-    goto restart.script
+    call :sys_lt 4 count
+    goto restart_script
 
 :debugtest
     :: Start Debug Test
     echo Running Debug Test...
     set "starttime=%time%"
     echo %time%
-    call :sys.lt 10 count
+    call :sys_lt 10 count
     echo %time%
     set "endtime=%time%"
     
@@ -2712,7 +2759,7 @@ pause
     echo Time difference: %timeDiffMs%ms
 
     :: Check Win Version
-    call :win.version.check
+    call :win_version.check
     echo %OSEdition%
     echo Type: %OSType%
     echo Version: %OSVersion%
@@ -2746,14 +2793,15 @@ pause
 ::   %2 - Prompt message to display to the user
 ::
 :: Example:
-::   call :filename.check myfile "Enter the target filename: "
+::   call :filename_check myfile "Enter the target filename: "
 ::   echo You entered: !myfile!
 ::
 :: Returns:
 ::   errorlevel 0 if the directory exists and is writable
 ::   errorlevel 1 if not (loop will re-prompt)
 :: ------------------------------
-:filename.check
+
+:filename_check
     call :check_args :filename.check "%~1" "%~2"
     set "key=%~1"
     set "prompt=%~2"
@@ -2768,24 +2816,25 @@ pause
 
     if not defined !key! (
         call :color _Red "No filename specified. Please provide a filename." error
-        goto filename.check.sub
+        goto filename_check.sub
     )
 
     for /f "delims=" %%A in ('echo !%key%!') do set "f.path=%%A"
 
-    call :fd.check file "!f.path!"
+    call :fd_check file "!f.path!"
     if "!errorlevel!"=="1" (
-        goto filename.check.sub
+        goto filename_check.sub
     )
 
     call :color _Green "The file !f.path! exists and is writable." okay
     exit /b 0
 
-:fd.check
+:fd_check
+
     :: Check if a File or a Directory has a valid syntax
     :: Example:
-    :: call :fd.check file thisisinvalid//.txt
-    :: call :fd.check directory "C:\this\is\invalid\:?.txt"
+    :: call :fd_check file thisisinvalid//.txt
+    :: call :fd_check directory "C:\this\is\invalid\:?.txt"
     call :check_args :fd.check "%~1" "%~2"
     set "type=%~1"
     set "filepath=%~2"
@@ -2818,7 +2867,7 @@ pause
 ::   %2 - Prompt message to display to the user
 ::
 :: Example:
-::   call :directory.input mydir "Enter the target directory: "
+::   call :directory_input mydir "Enter the target directory: "
 ::   echo You entered: !mydir!
 ::
 :: Returns:
@@ -2827,7 +2876,8 @@ pause
 :: ------------------------------
 
 
-:directory.input
+:directory_input
+
     call :check_args :rw.check "%~1" "%~2"
     set "key=%~1"
     set "prompt=%~2"
@@ -2837,14 +2887,14 @@ pause
     
     if not defined !key! (
         call :color _Red "No directory specified. Please provide a directory." error
-        goto directory.input.sub
+        goto directory_input.sub
     )
     
     set "dir.path=!%key%!"
-    call :fd.check directory "%dir.path%"
-    call :rw.check "%dir.path%"
+    call :fd_check directory "%dir.path%"
+    call :rw_check "%dir.path%"
     if "%errorlevel%"=="1" (
-        goto directory.input.sub
+        goto directory_input.sub
     )
     
     call :color _Green "The directory !dir.path! exists and is writable. " okay
@@ -2860,13 +2910,14 @@ pause
 ::   %1 - Full path to the directory to test
 ::
 :: Example:
-::   call :rw.check "%temp%"
+::   call :rw_check "%temp%"
 ::
 :: Returns:
 ::   errorlevel 0 if the directory exists and is writable
 ::   errorlevel 1 if it does not exist or is not writable
 :: ------------------------------
-:rw.check
+:rw_check
+
     set "rw.path=%~1"
     set "testfilename=tmpcheck_%random%"
     set "testfile=%rw.path%\%testfilename%.tmp"
@@ -2891,20 +2942,21 @@ pause
 
 
 
-:dataspammer.hash.check
+:dataspammer_hash.check
+
     if defined unsecure (
         call :color _Red "Unsecure Mode Detected, Skipping Hash Check" warning
-        call :sys.lt 2
+        call :sys_lt 2
         exit /b 0
     )
     if "%current_script_version%"=="development" (
         call :color _Yellow "Development Version Detected, Skipping Hash Check" warning
-        call :sys.lt 2
+        call :sys_lt 2
         exit /b 0
     )
     if "%dev_env%"=="1" (
         call :color _Yellow "Development Directory Detected, Skipping Hash Check" warning
-        call :sys.lt 2
+        call :sys_lt 2
         exit /b 0
     )
 
@@ -3101,7 +3153,8 @@ pause
     exit /b
     
 
-:sys.lt
+
+:sys_lt
     setlocal EnableDelayedExpansion
     :: Wait for a given time, supports wait.exe
     :: Delay until execution is ca. 300-500ms 
@@ -3126,7 +3179,8 @@ pause
     endlocal
     exit /b 0
 
-:parse.settings
+
+:parse_settings
     :: Parse Settings from Registry
     set "ignoreKeys=Token UsernameHash Version Installed PasswordHash scoopinstall"
     set "settings.count=0"
@@ -3271,35 +3325,36 @@ pause
 
 
     
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Green "%~1" okay
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Blue "Do you want to Close the Script or Go to the Menu?" info
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Green "[1] Menu"  
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Red "[2] Close"
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     choice /C 12 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==2 goto cancel
         if %_erl%==1 goto menu
     goto done
 
-:list.vars
+
+:list_vars
     :: List all Goto Signs
     cd "%~dp0"
     call :color _Green "Listing all :Signs in the Script" okay
@@ -3315,7 +3370,8 @@ pause
     echo %message% > "%socket.location%"
     exit /b
 
-:help.startup
+
+:help_startup
     cls
     :: Display Help Message
     echo:
@@ -3359,7 +3415,8 @@ pause
     echo:
     exit /b %errorlevel%
 
-:update.script
+
+:update_script
     reg query "HKCU\Software\DataSpammer" /v scoopinstall >%destination21% && call :color _Green "Detected Scoop installed Script." okay & start wt cmd.exe /c "scoop update dataspammer%LANG%"
     %cls.debug%
     :: Updated in v6
@@ -3450,9 +3507,9 @@ pause
         set "where_output=%%a"
     )  
 
-    if not defined where_output goto move.new.files
+    if not defined where_output goto move_new.files
     :: Encrypt new Files, when current Version is already encrypted
-    reg query "HKCU\Software\DataSpammer" /v Token >%destination21% || goto move.new.files
+    reg query "HKCU\Software\DataSpammer" /v Token >%destination21% || goto move_new.files
 
     call :color _Green "Encrypting newly downloaded Files..." okay
     echo FF FE 0D 0A 63 6C 73 0D 0A >  "%temp%\dts.update\temp_hex.txt"
@@ -3547,7 +3604,7 @@ pause
         %errormsg%
         call :color _Red "[Error][%~1] Argument #%i% is missing. Please report this Issue on GitHub." error
         call :color _Yellow "Waiting 2 Seconds..."
-        call :sys.lt 4 
+        call :sys_lt 4 
         if defined logging if "!logging!"=="1" (
             call :log Caught_Error: ERROR
             call :log At_:check_args ERROR
@@ -3702,7 +3759,7 @@ pause
     call :color _Green "Resuming..." 
     exit /b 0
 
-:win.version.check
+:win_version.check
     :: Check for Windows Edition, OSType, Version and Build Number
     Set UseExpresssion=Reg Query "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v "ProductName"
     for /F "tokens=*" %%X IN ('%UseExpresssion%') do Set OSEdition=%%X
@@ -3729,7 +3786,8 @@ pause
 
 
 
-:sys.verify.execution
+
+:sys_verify.execution
     :: Check for Human Input by asking for random Int Input
     if %logging% == 1 ( call :log Opened_verify_tab INFO )
     if "%skip-sec%"=="1" ( exit /b %errorlevel%)
@@ -3751,7 +3809,7 @@ pause
     :: Auth Failed Popup
     set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('You have entered the wrong Code. Please try again', 'DataSpammer Verify');}"
     %powershell_short% -Command %msgBoxArgs%
-    goto sys.verify.execution
+    goto sys_verify.execution
 
 
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -3762,8 +3820,9 @@ pause
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 
-:installer.main.window
-    if exist "%~dp0\install.bat" ( goto v6.port )
+
+:installer_main.window
+    if exist "%~dp0\install.bat" ( goto v6_port )
     :: Check Elevation
     net session >%destination21%
     if %errorLevel% neq 0 (
@@ -3781,7 +3840,7 @@ pause
         set "cls.debug=cls"
     )
 
-    call :dataspammer.hash.check
+    call :dataspammer_hash.check
     @title DataSpammer - Install
     %$Echo% "   ____        _        ____
     %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __
@@ -3793,70 +3852,71 @@ pause
 
     call :color _Red "Made by PIRANY - %current_script_version% - Batch"
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _White "This Installer will lead you through the process of installing the DataSpammer Utility."
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Green "[1] Use Program Files as Installation Directory"
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Blue "[2] Use Custom Directory"
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Yellow "[3] Portable Install (only add required Registry Keys)"
     echo: 
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 set "directory=%ProgramFiles%"
         if %_erl%==2 set /p directory=Enter the Directory:
-        if %_erl%==3 goto portable.install
+        if %_erl%==3 goto portable_install
         if %_erl%==4 call :standby
-    if not defined directory ( goto installer.main.window )
+    if not defined directory ( goto installer_main.window )
 
     :: Add Backslash if not present
     if not "%directory:~-1%"=="\" set "directory=%directory%\"
 
     cd /d "%directory%"
     :: Check ReadWrite Permissions
-    call :rw.check "%directory%"
+    call :rw_check "%directory%"
     if %errorlevel% neq 0 (
         call :color _Red "Please choose a different directory." error
-        call :sys.lt 6
-        goto installer.main.window
+        call :sys_lt 6
+        goto installer_main.window
     )
     set "startmenushortcut=call :color _Red ""[1] (Not Included) Startmenu Shortcut"""
     set "desktopicon=call :color _Red ""[2] (Not Included) Desktop Shortcut"""
     set "addpath=call :color _Red ""[3] (Not Included) Add to Path"""
 
-:installer.menu.select
-    call :sys.lt 1
+
+:installer_menu.select
+    call :sys_lt 1
     call :color _Blue "The script will install itself in the following directory: ""%directory%"""
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     %startmenushortcut%
-    call :sys.lt 1
+    call :sys_lt 1
     echo: 
-    call :sys.lt 1
+    call :sys_lt 1
     %desktopicon%
-    call :sys.lt 1
+    call :sys_lt 1
     echo: 
-    call :sys.lt 1
+    call :sys_lt 1
     %addpath%
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Green "[4] Done/Skip"
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Blue "[5] De-select All Options"
     echo:
     echo:
@@ -3866,31 +3926,32 @@ pause
             %cls.debug%
             set "startmenushortcut=call :color _Green ""[1] (Included) Startmenu Shortcut"""
             set "startmenushortcut1=1" 
-            goto installer.menu.select
+            goto installer_menu.select
         )
         if %_erl%==2 (
             %cls.debug%
             set "desktopicon=call :color _Green ""[2] (Included) Desktop Shortcut"""
             set "desktopic1=1"
-            goto installer.menu.select
+            goto installer_menu.select
         )
         if %_erl%==3 (
             %cls.debug%
             set "addpath=call :color _Green ""[3] (Included) Add to Path"""
             set "addpath1=1"
-            goto installer.menu.select
+            goto installer_menu.select
         )
-        if %_erl%==4 goto installer.start.copy
+        if %_erl%==4 goto installer_start.copy
         if %_erl%==5 (
             set "startmenushortcut=call :color _Red ""[1] (Not Included) Startmenu Shortcut"""
             set "desktopicon=call :color _Red ""[2] (Not Included) Desktop Shortcut"""
             set "addpath=call :color _Red ""[3] (Not Included) Add to Path"""
-            goto installer.menu.select
+            goto installer_menu.select
         )
         if %_erl%==6 call :standby
-    goto installer.menu.select
+    goto installer_menu.select
 
-:installer.start.copy
+
+:installer_start.copy
     :: Resync Time to avoid issues with BITS
     w32tm /resync >%destination21%
     :: Main Install Code
@@ -3911,7 +3972,7 @@ pause
         if errorlevel 1 (
             %errormsg%
             call :color _Red "README.md Download failed. This is not critical." warning
-            call :sys.lt 5
+            call :sys_lt 5
         )   
     )
 
@@ -3921,7 +3982,7 @@ pause
         if errorlevel 1 (
             %errormsg%
             call :color _Red "LICENSE Download failed. This is not critical." warning
-            call :sys.lt 5
+            call :sys_lt 5
         )  
     )
 
@@ -3958,29 +4019,31 @@ pause
     if defined addpath1 ( setx PATH "%PATH%;%directory9%\DataSpammer%~x0" /M >%destination% )
 
 
-:sys.main.installer.done
+
+:sys_main.installer.done
     :: Elevate Flag
     %cls.debug%
     call :color _White "Do you want the script to request admin rights?"
     call :color _White "This is recommended and can help some features work properly."
     call :color _White "If you don't have admin rights, it's best to choose "No"."
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Green "[1] Yes"
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
-    call :sys.lt 1
+    call :sys_lt 1
     call :color _Red "[2] No"
-    call :sys.lt 1
+    call :sys_lt 1
     echo:
     choice /C 12 /M "1/2:"
         set _erl=%errorlevel%
-        if %_erl%==1 reg add "HKCU\Software\DataSpammer" /v "elevation" /t REG_SZ /d "pwsh" /f >nul && goto finish.installation
-        if %_erl%==2 reg add "HKCU\Software\DataSpammer" /v "elevation" /t REG_SZ /d "off" /f >nul && goto finish.installation
-    goto sys.main.installer.done
+        if %_erl%==1 reg add "HKCU\Software\DataSpammer" /v "elevation" /t REG_SZ /d "pwsh" /f >nul && goto finish_installation
+        if %_erl%==2 reg add "HKCU\Software\DataSpammer" /v "elevation" /t REG_SZ /d "off" /f >nul && goto finish_installation
+    goto sys_main.installer.done
 
-:finish.installation
+
+:finish_installation
     :: Restart Script Process 
     call :color _Green "Finished Installation." okay
     call :color _Green "Starting..." okay
@@ -3988,7 +4051,8 @@ pause
     %erase_short% "%~dp0\dataspammer%~x0" > nul
     goto cancel
 
-:portable.install
+
+:portable_install
     reg add "HKCU\Software\DataSpammer" /v Installed /t REG_DWORD /d "1" /f
     reg add "HKCU\Software\DataSpammer" /v Version /t REG_SZ /d "%current_script_version%" /f
     reg add "HKCU\Software\DataSpammer" /v logging /t REG_SZ /d "1" /f
@@ -3999,7 +4063,7 @@ pause
         set _erl=%errorlevel%
         if %_erl%==1 reg add "HKCU\Software\DataSpammer" /v elevation /t REG_SZ /d "pwsh" /f
         if %_erl%==2 reg add "HKCU\Software\DataSpammer" /v elevation /t REG_SZ /d "off" /f
-    goto restart.script
+    goto restart_script
 
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------

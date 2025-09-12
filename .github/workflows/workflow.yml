@@ -1,6 +1,6 @@
 name: Dataspammer Functionality Test
 
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 
 permissions:
   contents: read
@@ -29,4 +29,12 @@ jobs:
         run: |
           cd DataSpammer
           cmd.exe /c ${{ github.workspace }}\DataSpammer\dataspammer.bat debugtest
-          
+
+      - name: Install Scoop Bucket and Setup App
+        uses: MinoruSekine/setup-scoop@v4.0.2
+        with:
+          buckets: https://github.com/PIRANY1/dataspammer-bucket
+          apps: dataspammer
+          scoop_update: 'true'
+          scoop_checkup: 'true'
+          update_path: 'true'

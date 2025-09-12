@@ -1,6 +1,7 @@
 name: Append File Hash to List and Commit
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'dataspammer.bat'

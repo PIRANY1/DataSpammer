@@ -1,5 +1,6 @@
 name: Compile DataSpammer.bat
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'dataspammer.bat'
@@ -24,8 +25,17 @@ jobs:
       run: |
         .\BatToExe.exe /bat dataspammer.bat /exe dataspammer.exe /x64 /invisible /uac-admin
     
+    - name: Generate SHA256 Hash
+      run: Get-FileHash dataspammer.exe -Algorithm SHA256 | Select-Object -ExpandProperty Hash | Out-File dataspammer.exe.sha256   
+
     - name: Upload .exe as artifact
       uses: actions/upload-artifact@v4
       with:
         name: dataspammer.exe
         path: dataspammer.exe
+
+    - name: Upload Hash as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: dataspammer.exe.sha256
+        path: dataspammer.exe.sha256
