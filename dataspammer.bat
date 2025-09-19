@@ -86,14 +86,12 @@
 ::      Add more Comments, Logs , Socket Messages, Error Checks and Color
 ::      Implement more Verbose Message ( >%destination% / %destination21% ) or ( %cls.debug% )
 ::      Add more Color Messages with Emojis ( Docs at :color)
-
 ::      Replace . & - with _ in Variables & Labels
-::      Verify CIF Parser
-::      Finish DE Translation
-::      Add Color Saving with non overwrite
-::      Integrate DE Version
-::      Threading, Benchmarking, No-Crash-Mode
+
+::      Fix CIF Parser
+::      DE Translation Work
 ::      Add beta branch support for hash list check
+::      Finish argument_selector 
 ::      Fix Login Protection
 
 :top
@@ -274,6 +272,8 @@
 
     :: Check for Flags
     for %%A in (%1 %2 %3 %4 %5) do (
+        echo Given Arguments: >%destination%
+        echo %* >%destination%
         if /I "%%~A"=="/b" (
             set "b.flag=/b "
             call :color _Green "Dont Exit Mode is enabled" warning
@@ -728,7 +728,7 @@
     EVENTCREATE /T INFORMATION /ID 100 /L APPLICATION /SO DataSpammer /D "Successfully started DataSpammer-%current_script_version% %errorlevel%" >nul
 
     :: Compare Hash
-    call :dataspammer_hash.check
+    call :dataspammer_hash_check
 
     title DataSpammer - Finishing Startup
 
@@ -990,14 +990,6 @@
         if %_erl%==3 goto advanced_options
         if %_erl%==4 call :standby
     goto verbose_output_settings
-
-:custom_instruction_enable
-    set "ftypedir=%~0"
-    :: Connect .dts with dtsfile type
-    ASSOC .dts=dtsfile
-    :: Connect dtsfily type with cmd
-    FTYPE dtsfile=cmd.exe /c "\"%ftypedir%\" \"%%1\""
-    call :color _Green "Enabled Custom Instructions" okay
 
 :download_wait
     :: Download Wait.exe and Wait.exe Hash
@@ -1330,8 +1322,12 @@
     call :sys_lt 1
     echo: 
     call :sys_lt 1
-    echo [7] Go back
-    choice /C 1234567S /T 120 /D S  /M "Choose an Option from Above:"
+    echo [7] Argument Selector
+    call :sys_lt 1
+    echo: 
+    call :sys_lt 1
+    echo [8] Go back
+    choice /C 12345678S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 (
             if %logging% == 1 ( call :log Chaning_Default_Filename WARN )
@@ -1347,10 +1343,37 @@
         if %_erl%==4 goto settings_logging
         if %_erl%==5 goto change_color
         if %_erl%==6 goto change_chcp
-        if %_erl%==7 goto settings
-        if %_erl%==8 call :standby
+        if %_erl%==7 goto argument_selector
+        if %_erl%==8 goto settings        
+        if %_erl%==9 call :standby
     goto main_settings
 
+:argument_selector
+    echo Current Arguments: %1 %2 %3 %4 %5
+    call :sys_lt 1
+    echo: 
+    call :sys_lt 1
+    echo [1] Toggle Verbose
+    call :sys_lt 1
+    echo: 
+    call :sys_lt 1
+    echo [2] Toggle Insecure Mode
+    call :sys_lt 1
+    echo: 
+    call :sys_lt 1
+    echo [3] Toggle Non Exit Mode
+    call :sys_lt 1
+    echo: 
+    call :sys_lt 1
+    echo [4] Go back
+    choice /C 1234S /T 120 /D S  /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 
+        if %_erl%==2 
+        if %_erl%==3 
+        if %_erl%==4 goto main_settings
+        if %_erl%==5 call :standby
+    goto argument_selector
 
 :settings_skip.sec
     if %logging% == 1 (
@@ -2442,8 +2465,54 @@
     goto cancel
 
 
+::-------------------------------------------------------------------------
+:: Custom Instruction Parsing
+
+:: Plain Text w. CMD Compatible Formatting
+:: # : Comment
+:: = : Variable
+:: First Line : Goto Label
+:: Everything Else : Command
+
+:: Example: 
+:: normal_text.spam
+:: # The Directory
+:: text_spam_directory=C:\
+:: filecount=10
+:: defaultspam.content=FILECONTENT
+:: filename=test.txt
+:: cd explorer
+::-------------------------------------------------------------------------
+
+:custom_instruction_enable
+    set "ftypedir=%~0"
+    :: Connect .dts with dtsfile type
+    ASSOC .dts=dtsfile
+    :: Connect dtsfily type with cmd
+    FTYPE dtsfile=cmd.exe /c "\"%ftypedir%\" \"%%1\""
+    call :color _Green "Enabled Custom Instructions" okay
+    call :color _Green "Restarting" pending
+    goto restart_script
+
 :custom_instruction.read
     :: Read Linked CIF File & interpret it
+    echo DEBUG INFO for File "%~n1"
+    echo Path: %~f1
+    echo Short: %~s1
+    echo Attributes: %~a1
+    echo Timestamp: %~t1
+    echo Size: %~z1
+
+    if "%unsecure%"=="0" (
+        if "%~z1" GTR 10000 (
+            %errormsg%
+            call :color _Yellow "File size is greater than 10kb" error
+            call :color _Red "Script will probably crash when reading this file." warning
+            call :color _Green "Use /unsecure Flag to bypass" okay
+            pause
+            goto cancel
+        )
+    )
     set "interpret.dts=%~1"
     if not exist "%interpret.dts%" (
         %errormsg%
@@ -2482,10 +2551,12 @@
         )
     )
     call :color _Green "Finished Parsing %interpret.dts%. " okay
-    echo Exiting...
+    call :color _Green "Exiting..." pending
     pause
     goto cancel
 
+::-------------------------------------------------------------------------
+::-------------------------------------------------------------------------
 
 
 :fast_git.update
@@ -2942,7 +3013,7 @@
 
 
 
-:dataspammer_hash.check
+:dataspammer_hash_check
 
     if defined unsecure (
         call :color _Red "Unsecure Mode Detected, Skipping Hash Check" warning
@@ -3785,8 +3856,6 @@
     exit /b 0
 
 
-
-
 :sys_verify.execution
     :: Check for Human Input by asking for random Int Input
     if %logging% == 1 ( call :log Opened_verify_tab INFO )
@@ -3795,21 +3864,19 @@
     set "verify=%realrandom% "
     %powershell_short% -Command "& {Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.Interaction]::InputBox('Please enter Code %verify% to confirm that you want to execute this Option', 'DataSpammer Verify')}" > %TEMP%\out.tmp
     set /p OUT=<%TEMP%\out.tmp
+
     :: Fix Empty Input Bypass
-    if not defined OUT goto failed
-    if %verify%==%OUT% ( goto success ) else ( goto failed )
+    if not defined OUT set "OUT=null"
 
-:success
-    :: Auth Success Popup
-    set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('Success', 'DataSpammer Verify');}"
-    %powershell_short% -Command %msgBoxArgs%
-    exit /b
-
-:failed
-    :: Auth Failed Popup
-    set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('You have entered the wrong Code. Please try again', 'DataSpammer Verify');}"
-    %powershell_short% -Command %msgBoxArgs%
-    goto sys_verify.execution
+    if %verify%==%OUT% ( 
+        set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('Success', 'DataSpammer Verify');}"
+        %powershell_short% -Command %msgBoxArgs%
+        exit /b
+    ) else ( 
+        set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('You have entered the wrong Code. Please try again', 'DataSpammer Verify');}"
+        %powershell_short% -Command %msgBoxArgs%
+        goto sys_verify.execution
+    )
 
 
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -3823,24 +3890,26 @@
 
 :installer_main.window
     if exist "%~dp0\install.bat" ( goto v6_port )
-    :: Check Elevation
+
     net session >%destination21%
     if %errorLevel% neq 0 (
         %powershell_short% -Command "Start-Process '%~f0' -Verb runAs"
         goto cancel
     )
-    :: Check if Verbose is enabled
     if "%verbose%"=="1" (
         call :color _Green "Verbose Output is Enabled" warning
         set "destination=CON"
+        set "destination21=CON"
         set "cls.debug=echo: "
     ) else (
         call :color _Green "Verbose Output is Disabled" error
         set "destination=nul"
+        set "destination21=nul 2>&1"
         set "cls.debug=cls"
     )
 
-    call :dataspammer_hash.check
+
+    call :dataspammer_hash_check
     @title DataSpammer - Install
     %$Echo% "   ____        _        ____
     %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __
@@ -3882,7 +3951,6 @@
     :: Add Backslash if not present
     if not "%directory:~-1%"=="\" set "directory=%directory%\"
 
-    cd /d "%directory%"
     :: Check ReadWrite Permissions
     call :rw_check "%directory%"
     if %errorlevel% neq 0 (
@@ -3958,12 +4026,11 @@
     set "directory9=%directory%DataSpammer\"
     mkdir "%directory9%" >nul
     cd /d "%~dp0"
-    copy "%~dp0dataspammer%~x0" "%directory9%\" >%destination21%
-    %move_short% "%~dp0README.md" "%directory9%\" >%destination21%
-    %move_short% "%~dp0LICENSE" "%directory9%\" >%destination21%
+    copy "%~dp0dataspammer%~x0" "%directory9%" >%destination21%
+    %move_short% "%~dp0README.md" "%directory9%" >%destination21%
+    %move_short% "%~dp0LICENSE" "%directory9%" >%destination21%
 
     :: Download LICENSE and README.md if only dataspammer.bat is present
-    cd /d "%directory9%"
     set "update_url=https://github.com/PIRANY1/DataSpammer/releases/download/%current_script_version%/"
     :: Download Files via BITS
     if not exist "%directory9%README.md" ( 
@@ -3987,9 +4054,10 @@
     )
 
     :: Add Script to Windows App List
-    set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
     if defined ProgramFiles(x86) (
         set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
+    ) else ( 
+        set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
     )
     reg add "%RegPath%" /f >%destination%
     reg add "%RegPath%" /v "DisplayName" /d "DataSpammer" /f >%destination%
@@ -4044,9 +4112,8 @@
 
 
 :finish_installation
-    :: Restart Script Process 
     call :color _Green "Finished Installation." okay
-    call :color _Green "Starting..." okay
+    call :color _Green "Starting..." pending
     start wt cmd.exe /c "%directory9%\dataspammer%~x0"
     %erase_short% "%~dp0\dataspammer%~x0" > nul
     goto cancel
@@ -4084,7 +4151,16 @@
     echo: > "%temp%\DataSpammerClose.txt"
     %erase_short% "%~dp0\dataspammer.lock" >nul
     popd
-    exit %b.flag%%EXIT_CODE%
+    if not defined b.flag (
+        tasklist /FI "PID eq %PID%" 2>NUL | find "%PID%" >NUL && (taskkill /PID %PID% /F) else ( 
+            %errormsg%
+            call :color _Red "Failed to locate Parent Process %PID%." error
+            call :color _Yellow "Closing manually..." pending
+            call :sys_lt 5
+            exit %b.flag%%EXIT_CODE%
+        )
+    )
+    exit /b %EXIT_CODE%
 
 goto cancel
 exit %errorlevel%
