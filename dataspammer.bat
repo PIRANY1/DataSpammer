@@ -91,8 +91,6 @@
 ::      Fix CIF Parser
 ::      DE Translation Work
 ::      Add beta branch support for hash list check
-::      Finish argument_selector 
-::      Fix Login Protection
 
 :top
     @echo off
@@ -209,6 +207,9 @@
         set "dev_env=1"
         set "move_short=copy"
         set "erase_short=::"
+        set "unsecure=1"
+        set "verbose=1"
+        set "b.flag=/b "
     ) else (
         call :color _Green "Production environment detected." okay
         set "dev_env=0"
@@ -376,6 +377,8 @@
     ) else (
         call :color _Green "Codepage is not set to 65001, disabling Emoji Support" error
     )
+
+
 
     :: Check if Verbose is enabled
     if "%verbose%"=="1" (
@@ -1322,12 +1325,8 @@
     call :sys_lt 1
     echo: 
     call :sys_lt 1
-    echo [7] Argument Selector
-    call :sys_lt 1
-    echo: 
-    call :sys_lt 1
-    echo [8] Go back
-    choice /C 12345678S /T 120 /D S  /M "Choose an Option from Above:"
+    echo [7] Go back
+    choice /C 1234567S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 (
             if %logging% == 1 ( call :log Chaning_Default_Filename WARN )
@@ -1343,37 +1342,10 @@
         if %_erl%==4 goto settings_logging
         if %_erl%==5 goto change_color
         if %_erl%==6 goto change_chcp
-        if %_erl%==7 goto argument_selector
-        if %_erl%==8 goto settings        
-        if %_erl%==9 call :standby
+        if %_erl%==7 goto settings        
+        if %_erl%==8 call :standby
     goto main_settings
 
-:argument_selector
-    echo Current Arguments: %1 %2 %3 %4 %5
-    call :sys_lt 1
-    echo: 
-    call :sys_lt 1
-    echo [1] Toggle Verbose
-    call :sys_lt 1
-    echo: 
-    call :sys_lt 1
-    echo [2] Toggle Insecure Mode
-    call :sys_lt 1
-    echo: 
-    call :sys_lt 1
-    echo [3] Toggle Non Exit Mode
-    call :sys_lt 1
-    echo: 
-    call :sys_lt 1
-    echo [4] Go back
-    choice /C 1234S /T 120 /D S  /M "Choose an Option from Above:"
-        set _erl=%errorlevel%
-        if %_erl%==1 
-        if %_erl%==2 
-        if %_erl%==3 
-        if %_erl%==4 goto main_settings
-        if %_erl%==5 call :standby
-    goto argument_selector
 
 :settings_skip.sec
     if %logging% == 1 (
@@ -3034,6 +3006,7 @@
     set "current_proc=%~f0"
     for /f "delims=" %%h in ('%powershell_short% -NoProfile -Command "(Get-FileHash '%current_proc%' -Algorithm SHA256).Hash"') do set "current_script_hash=%%h"
     echo SHA256 of current script: %current_script_hash% >%destination%
+    set /a counter=1
 
     :: Grab new Hashlist from Repo
     set "hashlist=%TEMP%\dataspammer_hash.list"
@@ -3042,9 +3015,17 @@
     :: Check if File exists.
     if not exist "%hashlist%" ( %errormsg% && call :color _Red "Error downloading hash list." error && exit /b 1 )
 
+    echo Current Script Hash: %current_script_hash% >%destination%
+
     :: Loop list line by line
     set "found=0"
-    for /f "usebackq delims=" %%a in ("%hashlist%") do ( if /i "%%a"=="%current_script_hash%" ( set "found=1" ) )
+    for /f "usebackq delims=" %%a in ("%hashlist%") do ( 
+        echo Comparing Attempt %counter%. >%destination%
+        echo Remote Hash: %%a >%destination%
+        echo Local  Hash: %current_script_hash% >%destination%
+        echo. >%destination%
+        if /i "%%a"=="%current_script_hash%" ( set "found=1" ) else ( set "counter+=1")
+    )
 
     if "%found%"=="1" (
         call :color _Green "The local script matches the remote version." okay
