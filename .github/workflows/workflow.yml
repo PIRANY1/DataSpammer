@@ -28,7 +28,7 @@ jobs:
       - name: Run DataSpammer Debug Test
         run: |
           cd DataSpammer
-          cmd.exe /c ${{ github.workspace }}\DataSpammer\dataspammer.bat debugtest
+          cmd.exe /c ${{ github.workspace }}\DataSpammer\dataspammer.bat debugtest /v /b /unsecure
 
       - name: Install Scoop
         uses: MinoruSekine/setup-scoop@v4.0.2

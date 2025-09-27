@@ -43,3 +43,4 @@ cache/
 
 # Ignore all files with prefix `output-`
 output-*.txt
+dataspammer.exe

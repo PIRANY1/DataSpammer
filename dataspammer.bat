@@ -91,6 +91,11 @@
 ::      Fix CIF Parser
 ::      DE Translation Work
 ::      Add beta branch support for hash list check
+::      Validate EXE Support
+::      Add EXE / PS1 Cert Support
+::      Add PS1 Wrapper for Integrity Check
+::      Fix Scoop Workflow Path Resolving & Reg Keys already existing
+::      Fix update_script unexpected "("
 
 :top
     @echo off
@@ -148,6 +153,10 @@
         call :color _Green "Script is not compiled as an Executable." error
     )
 
+    :: Check the File Name
+    set "script_name=%~n0" 
+    call :color Green "Script Name: %script_name%.%ending%" okay
+     
     :: Parse Correct Timeout & Ping Locations otherwise WOW64 May cause issues.
     for /f "delims=" %%P in ('where ping.exe 2^>nul') do set "ping=%%P"
     if not defined PING (
@@ -290,14 +299,18 @@
     )
 
     :: Check for Line Issues
-    findstr /v "$" "%~nx0" >nul
-    if errorlevel 1 (
-        call :color _Green "Line endings are correct." okay
+    if not "%is_compiled%"=="1" (
+        findstr /v "$" "%~nx0" >nul
+        if errorlevel 1 (
+            call :color _Green "Line endings are correct." okay
+        ) else (
+            %errormsg%
+            call :color _Red "Script either has LF line ending issue or an empty line at the end of the script is missing. " error 
+            call :sys_lt 20 count
+            goto cancel
+        )
     ) else (
-        %errormsg%
-        call :color _Red "Script either has LF line ending issue or an empty line at the end of the script is missing. " error 
-        call :sys_lt 20 count
-        goto cancel
+        call :color _Green "Script is compiled, skipping LF check. " okay
     )
 
     :: Check if Null Kernel Service is running
@@ -2099,7 +2112,7 @@
         reg add "%RegPath%%x%" /v "DisplayVersion" /d "%app.spam.app.version%" /f
         reg add "%RegPath%%x%" /v "InstallLocation" /d "%app.spam.path%" /f
         reg add "%RegPath%%x%" /v "Publisher" /d "%app.spam.publisher%" /f
-        reg add "%RegPath%%x%" /v "UninstallString" /d "%~dp0\dataspammer.%ending% remove" /f
+        reg add "%RegPath%%x%" /v "UninstallString" /d "%~dp0\%script_name%.%ending% remove" /f
         set /a x+=1
     )
     echo Created %x% Entry(s).
@@ -2610,7 +2623,7 @@
     if exist "%~dp0\LICENSE" del "%~dp0\LICENSE"
     if exist "%~dp0\README.md" del "%~dp0\README.md"
 
-    if exist "%ProgramData%\Microsoft\Windows\Start Menu\Programs\Dataspammer.%ending%" erase "%ProgramData%\Microsoft\Windows\Start Menu\Programs\Dataspammer.%ending%"
+    if exist "%ProgramData%\Microsoft\Windows\Start Menu\Programs\%script_name%.%ending%" erase "%ProgramData%\Microsoft\Windows\Start Menu\Programs\%script_name%.%ending%"
     if exist "%USERPROFILE%\Desktop\DataSpammer.lnk" "erase %USERPROFILE%\Desktop\DataSpammer.lnk"
 
     set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
@@ -2623,7 +2636,7 @@
     reg delete "HKCU\Software\DataSpammer" /f >%destination21%
     ASSOC .dts=
     FTYPE dtsfile=
-    if exist "%~dp0\dataspammer.%ending%" del "%~dp0\dataspammer.%ending%"
+    if exist "%~dp0\%script_name%.%ending%" del "%~dp0\%script_name%.%ending%"
     call :color _Green "DataSpammer was successfully deleted." okay
     goto cancel
 
@@ -3221,7 +3234,7 @@
         for /L %%i in (%~1,-1,0) do (
             set "msg=Waiting, %%i seconds remaining..."
             call :color _Blue "!msg!" pending
-            %timeout% /t 1 >nul
+            "%timeout%" /t 1 >nul
         )
         echo:
     ) else (
@@ -3411,7 +3424,7 @@
     cd "%~dp0"
     call :color _Green "Listing all :Signs in the Script" okay
     echo: 
-    for /f "delims=" %%a in ('findstr /b ":" "dataspammer.%ending%" ^| findstr /v "^::" ^| findstr /v "^:REM"') do ( echo %%a )
+    for /f "delims=" %%a in ('findstr /b ":" "%script_name%.%ending%" ^| findstr /v "^::" ^| findstr /v "^:REM"') do ( echo %%a )
     pause
 
 :send_message
@@ -3433,7 +3446,7 @@
     echo    For educational purposes only.
     echo:
     echo Usage dataspammer [Argument] 
-    echo       dataspammer.%ending% [Argument]
+    echo       %script_name%.%ending% [Argument]
     echo:
     echo Parameters: 
     echo    help    Show this Help Dialog
@@ -3802,7 +3815,7 @@
     call :color _Blue "(The script will auto-exit in 10 minutes if no key is pressed)"
     call :color _White "=================================================="
 
-    %timeout% /t 600 >nul
+    "%timeout%" /t 600 >nul
     if errorlevel 1 (
         call :color _Green "Timeout reached. Exiting..."
         goto cancel
