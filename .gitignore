@@ -7,6 +7,7 @@
 *.lock
 dev
 dataspammer.lock
+dataspammer.exe
 
 # Logs and output files
 *.log
@@ -43,4 +44,3 @@ cache/
 
 # Ignore all files with prefix `output-`
 output-*.txt
-dataspammer.exe

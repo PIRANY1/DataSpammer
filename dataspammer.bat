@@ -2,7 +2,7 @@
 :: Contribute under https://github.com/PIRANY1/DataSpammer
 :: Version v6 - RELEASE
 :: Pre: v6.1
-:: Last edited on 21.08.2025 by PIRANY
+:: Last edited on 14.10.2025 by PIRANY
 
 :: Some Functions are inspired from the MAS Script. 
 
@@ -96,6 +96,9 @@
 ::      Add PS1 Wrapper for Integrity Check
 ::      Fix Scoop Workflow Path Resolving & Reg Keys already existing
 ::      Fix update_script unexpected "("
+::      Check Privilege Level & Add No-Rights Mode
+::      PS1 Wrapper / Error Check
+::      Telemetry
 
 :top
     @echo off
@@ -296,6 +299,22 @@
             set "unsecure=1"
             call :color _Green "Unsecure Mode is enabled" warning
         )
+    )
+
+    call :check_rights
+    if "%RIGHTS_LEVEL%"=="low" (
+       call :color _Red "Detected Low Level Rights, many functions will be unavaiable" error
+       call :color _Yellow "Skipping to Spam Menu..." warning
+       pause
+       goto start_verified
+    ) else if "%RIGHTS_LEVEL%"=="medium" (
+        call :color _Yellow "Detected Medium Level Rights" warning
+        call :color _Yellow "Some functions may be unavaiable" warning
+    ) else if "%RIGHTS_LEVEL%"=="high" (
+        call :color _Green "Running with high Rights" okay
+        call :color _Green "Normal Operation Mode" okay
+    ) else (
+        call :color _Red "Failed to detect Rights Level" error
     )
 
     :: Check for Line Issues
@@ -1760,8 +1779,8 @@
 
 
 :crypt_spam
-    for /f "delims=" %%a in ('where openssl 2^>nul') do ( set "where_output=%%a" )
-    if not defined where_output ( call :color _Red "OpenSSL is not installed." error && timeout /t 5 /nobreak >nul && goto start_verified )
+    call :verify_command "Encrypt/Decrypt" "openssl"
+    if "%errorlevel%"=="1" ( goto local_spams )
 
     call :color _Red "Original Files will be REMOVED"
     call :color _Blue "Encrypt or Decrypt?"
@@ -1915,7 +1934,12 @@
     call :filename_check print.filename "Enter the Filename:"
 
     %cls.debug%
-    wmic printer get Name
+
+    :: replace 'wmic printer get Name' with PowerShell output
+    for /f "delims=" %%P in ('%powershell_short% -NoProfile -Command "Get-CimInstance -ClassName Win32_Printer | Select-Object -ExpandProperty Name"') do (
+        echo %%P
+    )
+
     set /P printer-device=Choose a Device (full name):
 
     set /P printer.content=Enter the Content:
@@ -1934,6 +1958,8 @@
 
 
 :https_spam
+    call :verify_command "HTTPS Spam" "curl"
+    if "%errorlevel%"=="1" ( goto start_verified )
     setlocal EnableDelayedExpansion
     call :color _Blue "Spam a HTTP/HTTPS Server with Requests"
     set /P url=Enter a Domain or an IP:
@@ -1997,6 +2023,8 @@
 
 
 :ftp_spam
+    call :verify_command "FTP Spam" "ftp"
+    if "%errorlevel%"=="1" ( goto start_verified )
     %cls.debug%
     set /P ftpserver=Enter a Domain or IP:
     set /P username=Enter the Username:
@@ -2838,6 +2866,66 @@
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
+
+:verify_command
+    :: :verify_command <function> <return> <command>
+    :: Checks if a required command is available in the system (current dir or PATH).
+    :: If found → returns 0, otherwise shows an error message and returns 1.
+    ::
+    :: Arguments:
+    ::   <function> - The name of the calling function (for context in error messages)
+    ::   <return>   - The variable to store the return code (not directly used here)
+    ::   <command>  - The command to verify (e.g., 'curl', 'ssh', 'git')
+    ::
+    :: Example:
+    ::   call :verify_command "upload_files" "ret" "curl"
+    ::   if errorlevel 1 echo Curl not found! Aborting...
+
+    setlocal 
+    call :check_args :verify_command "%~1" "%~2"
+    set "function=%~1"
+    set "command=%~2"
+
+    echo Verifying Command: %command% Args: %* >%destination%
+    for /f "delims=" %%a in ('where %command% >%destination%') do ( set "where_%command%=%%a" )  
+    if defined where_%command% (
+        endlocal & exit /b 0
+    ) else (
+        call :color _Red "The command '%command%' required for '%function%' is not available. Please install it and try again." error
+        call :color _Yellow "Returning to Menu." warning
+        pause & endlocal & exit /b 1
+    )
+    endlocal
+
+
+:: ------------------------------
+:: :check_rights
+:: Checks the current user permission level.
+:: ------------------------------
+:check_rights
+    setlocal
+    set "score=0"
+
+    %powershell_short% -command "Write-Output 'Test'" >nul 2>&1
+    if %errorlevel%==0 set /a score+=1
+
+    tasklist >nul 2>&1
+    if %errorlevel%==0 set /a score+=1
+
+    %powershell_short% -NoProfile -Command "Get-CimInstance Win32_Process | Out-Null" >nul 2>&1
+    if %errorlevel%==0 set /a score+=1
+
+    reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" >nul 2>&1
+    if %errorlevel%==0 set /a score+=1
+
+    if %score% leq 1 (
+        endlocal & set "RIGHTS_LEVEL=low" & exit /b 0
+    ) else if %score% leq 3 (
+        endlocal & set "RIGHTS_LEVEL=medium" & exit /b 0
+    ) else (
+        endlocal & set "RIGHTS_LEVEL=high" & exit /b 0
+    )
+
 
 :: ------------------------------
 :: :filename.check
