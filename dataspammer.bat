@@ -99,6 +99,7 @@
 ::      Check Privilege Level & Add No-Rights Mode
 ::      PS1 Wrapper / Error Check
 ::      Telemetry
+::      Fix .lock opening window starting on startup
 
 :top
     @echo off
@@ -214,11 +215,12 @@
         call :sys_lt 10 count
     )
 
-    if exist dev (
+    :: Check for Development Environment
+    if exist "%~dp0dev" (
         call :color _Green "Development environment detected." okay
         set "dev_env=1"
         set "move_short=copy"
-        set "erase_short=::"
+        set "erase_short=REM"
         set "unsecure=1"
         set "verbose=1"
         set "b.flag=/b "
@@ -442,7 +444,7 @@
     )
 
     :: Elevate Script with sudo, gsudo or powershell
-    net session >%destination21%
+    net session >nul 2>&1
     if %errorLevel% neq 0 (
         if "%elevation%"=="sudo" (
             for /f "delims=" %%A in ('where sudo 2^>nul') do set SUDO_PATH=%%A
@@ -598,11 +600,10 @@
         >> "%TEMP%\socket.con" echo Connection Request from %PID%
     )
 
-    :: Check if Login is Setup
-    reg query "HKCU\Software\DataSpammer" /v UsernameHash >%destination21% || goto file_check
-
-
 :login_input
+    :: Verify that Login exists.
+    reg query "HKCU\Software\DataSpammer" /v UsernameHash >nul 2>&1 || goto file_check
+    
     if %logging% == 1 ( call :log Starting_Login INFO )
     %cls.debug% && title DataSpammer - Login
 
@@ -631,15 +632,16 @@
         goto login_input
     )
 
-    :: Convert Username and Password to Hash
-    call :color _Green "Converting to Hash..." pending
+    :: Extract Stored Username and Password
+    call :color _Green "Extracting Hash from Registry..." pending
 
-    set "pscmd= $input = '%username.script%'; $bytes = [System.Text.Encoding]::UTF8.GetBytes($input); $sha = [System.Security.Cryptography.SHA256]::Create(); $hash = $sha.ComputeHash($bytes); ($hash | ForEach-Object { $_.ToString('x2') }) -join ''"
-    for /f "usebackq delims=" %%a in (`%powershell_short% -Command "%pscmd%"`) do set "username_hash=%%a"
+    :: PowerShell-Befehl für UsernameHash
+    set "pscmd_user= (Get-ItemPropertyValue -Path 'HKCU:\Software\DataSpammer' -Name 'UsernameHash' -ErrorAction SilentlyContinue)"
+    for /f "usebackq delims=" %%A in (`%powershell_short% -Command "%pscmd_user%"`) do set "stored_username_hash=%%A"
 
-
-    set "pscmd= $input = '%password%'; $bytes = [System.Text.Encoding]::UTF8.GetBytes($input); $sha = [System.Security.Cryptography.SHA256]::Create(); $hash = $sha.ComputeHash($bytes); ($hash | ForEach-Object { $_.ToString('x2') }) -join ''"
-    for /f "usebackq delims=" %%a in (`%powershell_short% -Command "%pscmd%"`) do set "password_hash=%%a"
+    :: PowerShell-Befehl für PasswordHash
+    set "pscmd_pass= (Get-ItemPropertyValue -Path 'HKCU:\Software\DataSpammer' -Name 'PasswordHash' -ErrorAction SilentlyContinue)"
+    for /f "usebackq delims=" %%A in (`%powershell_short% -Command "%pscmd_pass%"`) do set "stored_password_hash=%%A"
 
     :: Extract Stored Username and Password
     call :color _Green "Extracting Hash from Registry..." pending
@@ -777,7 +779,7 @@
         )
     )
     :: Remove encrypt File from Installer
-    if exist "%~dp0\encrypt.bat" %erase_short% "%~dp0\encrypt.bat" >%destination21%
+    if exist "%~dp0encrypt.bat" %erase_short% "%~dp0encrypt.bat" >%destination21%
 
     :: Check Developermode
     if "%developermode%"=="1" ( set "dev-mode=1" & call :color _Yellow "Activated Developer Mode" warning ) else ( set "dev-mode=0" )
@@ -1218,8 +1220,8 @@
     echo PasswordHash: %password_hash% >%destination%
 
     call :color _Blue "Saving Secure Data..." pending
-    reg add "HKCU\Software\DataSpammer" /v UsernameHash /t REG_SZ /d "%username_hash%" /f
-    reg add "HKCU\Software\DataSpammer" /v PasswordHash /t REG_SZ /d "%password_hash%" /f
+    reg add "HKCU\Software\DataSpammer" /v UsernameHash /t REG_SZ /d "%username_hash%" /f >%destination%
+    reg add "HKCU\Software\DataSpammer" /v PasswordHash /t REG_SZ /d "%password_hash%" /f >%destination%
     %cls.debug%
     call :color _Green "Login Created Successfully." okay
     call :sys_lt 1
@@ -1310,8 +1312,8 @@
     for /f "tokens=3" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v "ReleaseId"') do set "release-id=%%a"
     for /f "tokens=3" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v "CurrentBuild"') do set "build=%%a"
     
-    :: Version: %release-id%
-    :: Build-Number: %build%
+    echo: Version: %release-id% >%destination%
+    echo: Build-Number: %build% >%destination%
     set /a min_build=25900
     if not %build% geq %min_build% (
         :: is lower than 24H2
@@ -2674,7 +2676,7 @@
     :: Clear CHCP to prevent display issues
     set "chcp="
     if "%logging%"=="1" ( call :log Restarting_Script WARN )
-    %erase_short% "%~dp0\dataspammer.lock" >%destination21%
+    erase "%~dp0\dataspammer.lock" >%destination21%
     call :send_message Script is restarting
     call :send_message Terminating %PID%
     echo: > %temp%\DataSpammerClose.txt
@@ -4234,7 +4236,10 @@
     %erase_short% "%~dp0\dataspammer.lock" >nul
     popd
     if not defined b.flag (
-        tasklist /FI "PID eq %PID%" 2>NUL | find "%PID%" >NUL && (taskkill /PID %PID% /F) else ( 
+        tasklist /FI "PID eq %PID%" 2>NUL | find "%PID%" >NUL
+        if %errorlevel%==0 (
+            taskkill /PID %PID% /F
+        ) else (
             %errormsg%
             call :color _Red "Failed to locate Parent Process %PID%." error
             call :color _Yellow "Closing manually..." pending
@@ -4243,6 +4248,7 @@
         )
     )
     exit /b %EXIT_CODE%
+
 
 goto cancel
 exit %errorlevel%
