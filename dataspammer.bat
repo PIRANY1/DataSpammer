@@ -81,25 +81,20 @@
 ::      - Remove Debugging Flags
 ::      - Add new Script Version Number to dataspammer.bat
 ::      - Update Scoop Bucket & hash
+::      - Revert %branch% to main
 
 :: Todo: 
 ::      Add more Comments, Logs , Socket Messages, Error Checks and Color
 ::      Implement more Verbose Message ( >%destination% / %destination21% ) or ( %cls.debug% )
 ::      Add more Color Messages with Emojis ( Docs at :color)
 ::      Replace . & - with _ in Variables & Labels
+::      Long Term: Better Error Handling, Full DE Translation, Better Binary Support, Better Privilege Detection
 
 ::      Fix CIF Parser
-::      DE Translation Work
-::      Add beta branch support for hash list check
 ::      Validate EXE Support
-::      Add EXE / PS1 Cert Support
-::      Add PS1 Wrapper for Integrity Check
 ::      Fix Scoop Workflow Path Resolving & Reg Keys already existing
 ::      Fix update_script unexpected "("
-::      Check Privilege Level & Add No-Rights Mode
-::      PS1 Wrapper / Error Check
-::      Telemetry
-::      Fix .lock opening window starting on startup
+::      Fix when in Program Files; C:\Program cant be opened and it crashed; Likely Location Check; Directly After Elevation
 
 :top
     @echo off
@@ -131,6 +126,8 @@
     set "destination21=nul 2>&1"
     set "cls.debug=cls"
     set "ending=bat"
+    :: Replace with desired branch for hashlist & wait.exe download
+    set "branch=v6.1"
 
     :: Allows ASCII stuff without Codepage Settings - Not My Work - Credits to ?
     :: Properly Escape Symbols like | ! & ^ > < etc. when using echo (%$Echo% " Text)
@@ -159,7 +156,7 @@
 
     :: Check the File Name
     set "script_name=%~n0" 
-    call :color Green "Script Name: %script_name%.%ending%" okay
+    call :color _Green "Local Name: %script_name%.%ending%" okay
      
     :: Parse Correct Timeout & Ping Locations otherwise WOW64 May cause issues.
     for /f "delims=" %%P in ('where ping.exe 2^>nul') do set "ping=%%P"
@@ -232,7 +229,7 @@
     )
 
     :: Check Windows Version - Win 10 & 11 have certutil and other commands needed. Win 8.1 and below not have them
-    call :win_version.check
+    call :win_version_check
     for /f "tokens=2 delims=[]" %%a in ('ver') do set "ver_full=%%a"
     for /f "tokens=1-4 delims=." %%a in ("%ver_full%") do (
         set "ver_major=%%a"
@@ -348,21 +345,21 @@
     if "%~1"=="" goto startup
 
     :: Regular Argument Checks - Documented at help.startup
-    if "%~1"=="faststart" title DataSpammer && goto sys_enable.ascii.tweak
-    if "%~1"=="update" title DataSpammer && goto fast_git.update
+    if "%~1"=="faststart" title DataSpammer && goto sys_enable_ascii_tweak
+    if "%~1"=="update" title DataSpammer && goto fast_git_update
     if "%~1"=="update.script" title DataSpammer && call :update_script "%~2" && goto cancel
-    if "%~1"=="remove" title DataSpammer && goto sys_delete.script
+    if "%~1"=="remove" title DataSpammer && goto sys_delete_script
     if "%~1"=="debug" title DataSpammer && goto debuglog
     if "%~1"=="debugtest" title DataSpammer && goto debugtest
     if "%~1"=="monitor" title DataSpammer && goto monitor
     if "%~1"=="start" title DataSpammer && goto start_verified
-    if "%~1"=="install" title DataSpammer && goto installer_main.window
+    if "%~1"=="install" title DataSpammer && goto installer_main_window
     
     :: Check if Argument is a Path, then execute it as CIF
-    if /i "%~x1"==".dts" goto custom_instruction.read
+    if /i "%~x1"==".dts" goto custom_instruction_read
 
     :: Undocumented Arguments
-    if "%~1"=="update-install" ( goto sys_new.update.installed )
+    if "%~1"=="update-install" ( goto sys_new_update.installed )
     if "%~1"=="ifp.install" ( goto ifp_install )
     if "%~1"=="scoop.install" ( goto scoop_install )
     if "%~1"=="scoop.remove" ( goto scoop_remove )
@@ -373,7 +370,7 @@
     if "%errorlevel%" neq "0" (
         call :color _Red "Installation was not executed." error
         call :color _Green "Opening installer..." okay
-        goto installer_main.window
+        goto installer_main_window
     )
 
     :: Check for Install Reg Key
@@ -391,7 +388,7 @@
         call :color _Red "Script Version Registry Key is outdated." error
         choice /C YN /M "Do you want to update the Registry Key? (Y/N)"
         set "_erl=%errorlevel%"
-        if "%_erl%"=="1" ( goto sys_new.update.installed )
+        if "%_erl%"=="1" ( goto sys_new_update.installed )
     )
 
     :: Parse Config
@@ -538,8 +535,8 @@
     )
 
     :: If lockfile exists, extract PID 
-    if exist "%~dp0\dataspammer.lock" (
-        for /f "usebackq delims=" %%L in ("%~dp0\dataspammer.lock") do set "pidlock=%%L"
+    if exist "%~dp0dataspammer.lock" (
+        for /f "usebackq delims=" %%L in ("%~dp0dataspammer.lock") do set "pidlock=%%L"
     ) else (
         if "%logging%"=="1" call :log No_Lock_Exists INFO
         goto lock_create
@@ -578,19 +575,19 @@
             call :color _Red "DataSpammer may have crashed or was closed. Deleting lock file..." error
             call :color _Red "Be aware that some tasks may not have finished properly." error
             if !logging! == 1 call :log DataSpammer_may_have_crashed ERROR
-            del "%~dp0\dataspammer.lock" >%destination21%
+            del "%~dp0dataspammer.lock" >%destination21%
             timeout /t 5 /nobreak >nul
         )
     ) else (
         :: No PID found in lock file. Delete it 
         call :color _Yellow "No PID Found - Deleting Lock..." warning
         if %logging% == 1 ( call :log PID_Empty ERROR )
-        del "%~dp0\dataspammer.lock" >nul
+        del "%~dp0dataspammer.lock" >nul
     )
 
-    :lock.create
+    :lock_create
     :: Create a new lock & write current PID to it
-    > "%~dp0\dataspammer.lock" echo %PID%
+    > "%~dp0dataspammer.lock" echo %PID%
     if "%errorlevel%"=="1" ( %errormsg% && call :color _Red "Failed to create lock file." error && call :sys_lt 6 count )
 
     :: Start the Monitor Socket
@@ -637,11 +634,11 @@
 
     :: PowerShell-Befehl für UsernameHash
     set "pscmd_user= (Get-ItemPropertyValue -Path 'HKCU:\Software\DataSpammer' -Name 'UsernameHash' -ErrorAction SilentlyContinue)"
-    for /f "usebackq delims=" %%A in (`%powershell_short% -Command "%pscmd_user%"`) do set "stored_username_hash=%%A"
+    for /f "usebackq delims=" %%A in (`%powershell_short% -Command "%pscmd_user%"`) do set "username_hash=%%A"
 
     :: PowerShell-Befehl für PasswordHash
     set "pscmd_pass= (Get-ItemPropertyValue -Path 'HKCU:\Software\DataSpammer' -Name 'PasswordHash' -ErrorAction SilentlyContinue)"
-    for /f "usebackq delims=" %%A in (`%powershell_short% -Command "%pscmd_pass%"`) do set "stored_password_hash=%%A"
+    for /f "usebackq delims=" %%A in (`%powershell_short% -Command "%pscmd_pass%"`) do set "password_hash=%%A"
 
     :: Extract Stored Username and Password
     call :color _Green "Extracting Hash from Registry..." pending
@@ -922,8 +919,8 @@
     choice /C 1234567S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto main_settings
-        if %_erl%==2 goto activate_dev.options
-        if %_erl%==3 goto settings_version.control
+        if %_erl%==2 goto activate_dev_options
+        if %_erl%==3 goto settings_version_control
         if %_erl%==4 goto login_setup
         if %_erl%==5 goto restart_script
         if %_erl%==6 goto advanced_options
@@ -1031,14 +1028,14 @@
 :download_wait
     :: Download Wait.exe and Wait.exe Hash
     call :color _Green "Downloading wait.exe" pending
-    bitsadmin /transfer upd "https://github.com/PIRANY1/wait-exe/raw/refs/heads/main/bin/wait.exe" "%temp%\wait.exe" >nul
+    bitsadmin /transfer upd "https://github.com/PIRANY1/wait-exe/raw/refs/heads/%branch%/bin/wait.exe" "%temp%\wait.exe" >nul
     if errorlevel 1 (
         %errormsg%
         call :color _Red "Download failed. " error
         exit /b 1
     )   
     call :color _Green "Downloading Hash" pending
-    bitsadmin /transfer upd "https://github.com/PIRANY1/wait-exe/raw/refs/heads/main/bin/wait.exe.sha256" "%temp%\wait.exe.sha256" >nul
+    bitsadmin /transfer upd "https://github.com/PIRANY1/wait-exe/raw/refs/heads/%branch%/bin/wait.exe.sha256" "%temp%\wait.exe.sha256" >nul
     if errorlevel 1 (
         %errormsg%
         call :color _Red "Download failed. " error
@@ -1367,7 +1364,7 @@
             :df.filename.input
             set /p default-filename=Type in the Filename you want to use:
             call :fd_check file %default-filename%
-            if "%errorlevel%"=="1" goto df_filename.input
+            if "%errorlevel%"=="1" goto df_filename_input
             call :update_config "default-filename" "" "%default-filename%" 
             goto restart_script
         )
@@ -1381,7 +1378,7 @@
     goto main_settings
 
 
-:settings_skip.sec
+:settings_skip_sec    
     if %logging% == 1 (
         call :log Chaning_Skip_security_question WARN
     )
@@ -1873,7 +1870,7 @@
     goto menu
 
 
-:decrypt_spam.folder
+:decrypt_spam_folder    
     call :directory_input encrypt-dir "Enter the Directory: "
     set /p decrypt-key=Enter the Encryption Key:
     call :color _Blue "Enter the Encryption Method"
@@ -1903,7 +1900,7 @@
 
 
 
-:decrypt_spam.file
+:decrypt_spam_file    
     set /p decrypt-dir=Enter the File Directory:
     set /p decrypt-key=Enter the Encryption Key:
     call :color _Blue "Enter the Encryption Method"
@@ -2086,7 +2083,7 @@
 
 
 
-:app_list.spam
+:app_list_spam    
     %cls.debug%
     echo This Function will spam the Applist under "Settings > Apps > Installed Apps" with Entrys of your choice.
     echo:
@@ -2097,12 +2094,12 @@
     echo:
     choice /C 12 /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 goto app_list.spam.confirmed
+        if %_erl%==1 goto app_list_spam_confirmed
         if %_erl%==2 goto start_verified
-    goto app_list.spam
+    goto app_list_spam
 
 
-:app_list.spam.confirmed
+:app_list_spam_confirmed
     set /a x=0
     echo Enter random to use random Numerals
     echo Enter default to skip an Option
@@ -2129,13 +2126,13 @@
     if %app.spam.path% == default set "app.spam.path=%~f0"
     if %app.spam.publisher% == default set "app.spam.publisher=DataSpammer"
     set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\%app.spam.name%"
-    if defined ProgramFiles(x86) (
+    if defined "ProgramFiles(x86)" (
         set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\%app.spam.name%"
     )
     
 
 
-:app_spam.start.top
+:app_spam_start_top
     for /L %%i in (1,1,%app.spam.filecount%) do (
         echo Creating Entry %x%
         reg add "%RegPath%%x%" /v "DisplayName" /d "%app.spam.name%%x%" /f
@@ -2157,7 +2154,7 @@
     echo All Users requires Admin Privileges.
     choice /C AL /M "(A)ll / (L)ocal"
     set _erl=%errorlevel%
-        if %_erl%==1 set "directory.startmenu=%ProgramData%\Microsoft\Windows\Start Menu\Programs" && goto startmenu_name
+        if %_erl%==1 set "directory.startmenu=%ProgramFiles%\Microsoft\Windows\Start Menu\Programs" && goto startmenu_name
         if %_erl%==2 set "directory.startmenu=%AppData%\Microsoft\Windows\Start Menu\Programs" && goto startmenu_name
     goto startmenu_spam
 
@@ -2219,12 +2216,12 @@
     echo:
     choice /C 12 /M "Choose an option from above:"
         set _erl=%errorlevel%
-        if %_erl%==1 set "ssh.regen=1" && goto ssh_start.spam
-        if %_erl%==2 set "ssh.regen=0" && goto ssh_start.spam
+        if %_erl%==1 set "ssh.regen=1" && goto ssh_start_spam
+        if %_erl%==2 set "ssh.regen=0" && goto ssh_start_spam
     goto ssh_hijack
 
 
-:ssh_start.spam
+:ssh_start_spam
     echo Is the SSH Host running Windows or Linux?
     echo:
     echo [1] Windows
@@ -2234,13 +2231,13 @@
     echo:
     choice /C 12 /M "Choose an option from above:"
         set _erl=%errorlevel%
-        if %_erl%==1 goto spam_ssh.target.win
-        if %_erl%==2 goto spam_ssh.target.lx
-    goto ssh_start.spam
+        if %_erl%==1 goto spam_ssh_target_win
+        if %_erl%==2 goto spam_ssh_target_lx
+    goto ssh_start_spam
 
 
 
-:spam_ssh.target.win
+:spam_ssh_target_win
     setlocal EnableDelayedExpansion
     if "%logging%"=="1" ( call :log Spamming_Windows_SSH_Target INFO )
 
@@ -2284,7 +2281,7 @@
 
 
 
-:spam_ssh.target.lx
+:spam_ssh_target_lx
     setlocal EnableDelayedExpansion
     if "%logging%"=="1" ( call :log Spamming_Linux_SSH_Target INFO )
 
@@ -2333,7 +2330,7 @@
 
 
 
-:desktop_icon.spam
+:desktop_icon_spam    
     if %logging% == 1 ( call :log Opened_Desktop_Spam INFO )
     
     call :filename_check desk.spam.name "Enter the Filename:"
@@ -2359,7 +2356,7 @@
 
 
 
-:normal_text.spam
+:normal_text_spam    
     if %logging% == 1 ( call :log Opened_Normal_Spam INFO )
     call :directory_input text_spam_directory "Enter the Directory: "
     call :filename_check filename "Enter the Filename:"
@@ -2367,7 +2364,7 @@
     set /P defaultspam.content=Enter the File Content:
     
 
-:spam_normal.top
+:spam_normal_top    
     set /a x=1
 
     for /L %%i in (1,1,%filecount%) do (
@@ -2403,7 +2400,7 @@
     :: Add Script to Windows App List
     set "elevPath=wt"
     set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
-    if defined ProgramFiles(x86) (
+    if defined "ProgramFiles(x86)" (
         set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
     )
     reg add "%RegPath%" /v "DisplayName" /d "DataSpammer" /f
@@ -2435,7 +2432,7 @@
     )
 
     set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
-    if defined ProgramFiles(x86) (
+    if defined "ProgramFiles(x86)" (
         set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
     )
 
@@ -2463,7 +2460,7 @@
 
 :scoop_remove
     set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
-    if defined ProgramFiles(x86) (
+    if defined "ProgramFiles(x86)" (
         set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
     )
 
@@ -2509,8 +2506,8 @@
     call :color _Green "Restarting" pending
     goto restart_script
 
-:custom_instruction.read
-    :: Read Linked CIF File & interpret it
+:custom_instruction_read    
+:: Read Linked CIF File & interpret it
     echo DEBUG INFO for File "%~n1"
     echo Path: %~f1
     echo Short: %~s1
@@ -2574,7 +2571,7 @@
 ::-------------------------------------------------------------------------
 
 
-:fast_git.update
+:fast_git_update    
     :: Fast Update
     cd /d "%temp%"
     echo Checking for Updates...
@@ -2600,7 +2597,7 @@
     exit /b %errorlevel%
 
 
-:sys_delete.script  
+:sys_delete_script  
     reg query "HKCU\Software\DataSpammer" /v scoopinstall >%destination21% && (
         call :color _Green "Detected Scoop installed Script." okay
         call :color _Red "Remove Script manually by running ^'scoop remove dataspammer^' " error
@@ -2630,17 +2627,17 @@
     echo:
     choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 goto sys_delete.script.check.elevation
-        if %_erl%==2 explorer "https://github.com/PIRANY1/DataSpammer" && goto sys_delete.script
+        if %_erl%==1 goto sys_delete_script.check.elevation
+        if %_erl%==2 explorer "https://github.com/PIRANY1/DataSpammer" && goto sys_delete_script
         if %_erl%==3 goto menu
         if %_erl%==4 call :standby
-    goto sys_delete.script
+    goto sys_delete_script
 
 
-:sys_delete.script.check.elevation
+:sys_delete_script_check_elevation
     net session >%destination21%
     if %errorLevel% == 0 ( 
-        goto sys_delete.script.confirmed 
+        goto sys_delete_script.confirmed 
     ) else ( 
         echo The Script is not running as Administrator. Please start the Script as Administrator in order to delete it.
         call :sys_lt 4
@@ -2649,15 +2646,15 @@
     )
    
 
-:sys_delete.script.confirmed
+:sys_delete_script_confirmed
     if exist "%~dp0\LICENSE" del "%~dp0\LICENSE"
     if exist "%~dp0\README.md" del "%~dp0\README.md"
 
-    if exist "%ProgramData%\Microsoft\Windows\Start Menu\Programs\%script_name%.%ending%" erase "%ProgramData%\Microsoft\Windows\Start Menu\Programs\%script_name%.%ending%"
+    if exist "%ProgramFiles%\Microsoft\Windows\Start Menu\Programs\%script_name%.%ending%" erase "%ProgramFiles%\Microsoft\Windows\Start Menu\Programs\%script_name%.%ending%"
     if exist "%USERPROFILE%\Desktop\DataSpammer.lnk" "erase %USERPROFILE%\Desktop\DataSpammer.lnk"
 
     set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
-    if defined ProgramFiles(x86) (
+    if defined "ProgramFiles(x86)" (
         set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
     )
     reg delete "%RegPath%" /f >%destination21%
@@ -2814,10 +2811,10 @@
     goto dev_options
 
 
-:sys_new.update.installed
+:sys_new_update_installed
     :: Renew Version Registry Key
     set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
-    if defined ProgramFiles(x86) (
+    if defined "ProgramFiles(x86)" (
         set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
     )
     reg delete "%RegPath%" /v "DisplayVersion" /f
@@ -2845,7 +2842,7 @@
     echo Time difference: %timeDiffMs%ms
 
     :: Check Win Version
-    call :win_version.check
+    call :win_version_check
     echo %OSEdition%
     echo Type: %OSType%
     echo Version: %OSVersion%
@@ -2962,14 +2959,14 @@
 
     if not defined !key! (
         call :color _Red "No filename specified. Please provide a filename." error
-        goto filename_check.sub
+        goto filename_check_sub
     )
 
     for /f "delims=" %%A in ('echo !%key%!') do set "f.path=%%A"
 
     call :fd_check file "!f.path!"
     if "!errorlevel!"=="1" (
-        goto filename_check.sub
+        goto filename_check_sub
     )
 
     call :color _Green "The file !f.path! exists and is writable." okay
@@ -3033,14 +3030,14 @@
     
     if not defined !key! (
         call :color _Red "No directory specified. Please provide a directory." error
-        goto directory_input.sub
+        goto directory_input_sub
     )
     
     set "dir.path=!%key%!"
     call :fd_check directory "%dir.path%"
     call :rw_check "%dir.path%"
     if "%errorlevel%"=="1" (
-        goto directory_input.sub
+        goto directory_input_sub
     )
     
     call :color _Green "The directory !dir.path! exists and is writable. " okay
@@ -3113,7 +3110,8 @@
 
     :: Grab new Hashlist from Repo
     set "hashlist=%TEMP%\dataspammer_hash.list"
-    curl -s -o "%hashlist%" "https://github.com/PIRANY1/DataSpammer/raw/refs/heads/main/.github/dataspammer-hash.list" >%destination%
+    curl -s -o "%hashlist%" "https://github.com/PIRANY1/DataSpammer/raw/refs/heads/%branch%/.github/dataspammer-hash.list" >%destination%
+
 
     :: Check if File exists.
     if not exist "%hashlist%" ( %errormsg% && call :color _Red "Error downloading hash list." error && exit /b 1 )
@@ -3662,9 +3660,9 @@
         set "where_output=%%a"
     )  
 
-    if not defined where_output goto move_new.files
+    if not defined where_output goto move_new_files
     :: Encrypt new Files, when current Version is already encrypted
-    reg query "HKCU\Software\DataSpammer" /v Token >%destination21% || goto move_new.files
+    reg query "HKCU\Software\DataSpammer" /v Token >%destination21% || goto move_new_files
 
     call :color _Green "Encrypting newly downloaded Files..." okay
     echo FF FE 0D 0A 63 6C 73 0D 0A >  "%temp%\dts.update\temp_hex.txt"
@@ -3914,12 +3912,11 @@
     call :color _Green "Resuming..." 
     exit /b 0
 
-:win_version.check
-    :: Check for Windows Edition, OSType, Version and Build Number
+:win_version_check    :: Check for Windows Edition, OSType, Version and Build Number
     Set UseExpresssion=Reg Query "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v "ProductName"
     for /F "tokens=*" %%X IN ('%UseExpresssion%') do Set OSEdition=%%X
     Set OSEdition=%OSEdition:*REG_SZ    =%
-    If Defined ProgramFiles(x86) ( Set OSType=x64 ) Else ( Set OSType=x86 )
+    If Defined "ProgramFiles(x86)" ( Set OSType=x64 ) Else ( Set OSType=x86 )
     Set UseExpresssion=Reg Query "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v "ReleaseId"
     for /F "tokens=*" %%X IN ('%UseExpresssion%') do Set OSVersion=%%X
     Set OSVersion=%OSVersion:*REG_SZ    =%
@@ -3940,7 +3937,7 @@
     exit /b 0
 
 
-:sys_verify.execution
+:sys_verify_execution    
     :: Check for Human Input by asking for random Int Input
     if %logging% == 1 ( call :log Opened_verify_tab INFO )
     if "%skip-sec%"=="1" ( exit /b %errorlevel%)
@@ -3959,7 +3956,7 @@
     ) else ( 
         set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('You have entered the wrong Code. Please try again', 'DataSpammer Verify');}"
         %powershell_short% -Command %msgBoxArgs%
-        goto sys_verify.execution
+        goto sys_verify_execution
     )
 
 
@@ -3972,7 +3969,7 @@
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-:installer_main.window
+:installer_main_window    
     if exist "%~dp0\install.bat" ( goto v6_port )
 
     net session >%destination21%
@@ -4030,7 +4027,7 @@
         if %_erl%==2 set /p directory=Enter the Directory:
         if %_erl%==3 goto portable_install
         if %_erl%==4 call :standby
-    if not defined directory ( goto installer_main.window )
+    if not defined directory ( goto installer_main_window )
 
     :: Add Backslash if not present
     if not "%directory:~-1%"=="\" set "directory=%directory%\"
@@ -4040,14 +4037,14 @@
     if %errorlevel% neq 0 (
         call :color _Red "Please choose a different directory." error
         call :sys_lt 6
-        goto installer_main.window
+        goto installer_main_window
     )
     set "startmenushortcut=call :color _Red ""[1] (Not Included) Startmenu Shortcut"""
     set "desktopicon=call :color _Red ""[2] (Not Included) Desktop Shortcut"""
     set "addpath=call :color _Red ""[3] (Not Included) Add to Path"""
 
 
-:installer_menu.select
+:installer_menu_select    
     call :sys_lt 1
     call :color _Blue "The script will install itself in the following directory: ""%directory%"""
     call :sys_lt 1
@@ -4078,33 +4075,32 @@
             %cls.debug%
             set "startmenushortcut=call :color _Green ""[1] (Included) Startmenu Shortcut"""
             set "startmenushortcut1=1" 
-            goto installer_menu.select
+            goto installer_menu_select
         )
         if %_erl%==2 (
             %cls.debug%
             set "desktopicon=call :color _Green ""[2] (Included) Desktop Shortcut"""
             set "desktopic1=1"
-            goto installer_menu.select
+            goto installer_menu_select
         )
         if %_erl%==3 (
             %cls.debug%
             set "addpath=call :color _Green ""[3] (Included) Add to Path"""
             set "addpath1=1"
-            goto installer_menu.select
+            goto installer_menu_select
         )
-        if %_erl%==4 goto installer_start.copy
+        if %_erl%==4 goto installer_start_copy
         if %_erl%==5 (
             set "startmenushortcut=call :color _Red ""[1] (Not Included) Startmenu Shortcut"""
             set "desktopicon=call :color _Red ""[2] (Not Included) Desktop Shortcut"""
             set "addpath=call :color _Red ""[3] (Not Included) Add to Path"""
-            goto installer_menu.select
+            goto installer_menu_select
         )
         if %_erl%==6 call :standby
-    goto installer_menu.select
+    goto installer_menu_select
 
 
-:installer_start.copy
-    :: Resync Time to avoid issues with BITS
+:installer_start_copy    :: Resync Time to avoid issues with BITS
     w32tm /resync >%destination21%
     :: Main Install Code
     set "directory9=%directory%DataSpammer\"
@@ -4138,7 +4134,7 @@
     )
 
     :: Add Script to Windows App List
-    if defined ProgramFiles(x86) (
+    if defined "ProgramFiles(x86)" (
         set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
     ) else ( 
         set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
@@ -4156,7 +4152,7 @@
 
     :: Create Startmenu Shortcut
     if defined startmenushortcut1 (
-        %powershell_short% -Command "$s=New-Object -ComObject WScript.Shell;$sc=$s.CreateShortcut('%ProgramData%\Microsoft\Windows\Start Menu\Programs\DataSpammer.lnk');$sc.TargetPath='%directory9%\dataspammer%~x0';$sc.Save()"
+        %powershell_short% -Command "$s=New-Object -ComObject WScript.Shell;$sc=$s.CreateShortcut('%ProgramFiles%\Microsoft\Windows\Start Menu\Programs\DataSpammer.lnk');$sc.TargetPath='%directory9%\dataspammer%~x0';$sc.Save()"
         call :color _Green "Startmenu Shortcut created." okay
     ) >%destination%
 
@@ -4172,7 +4168,7 @@
 
 
 
-:sys_main.installer.done
+:sys_main_installer_done
     :: Elevate Flag
     %cls.debug%
     call :color _White "Do you want the script to request admin rights?"
@@ -4192,7 +4188,7 @@
         set _erl=%errorlevel%
         if %_erl%==1 reg add "HKCU\Software\DataSpammer" /v "elevation" /t REG_SZ /d "pwsh" /f >nul && goto finish_installation
         if %_erl%==2 reg add "HKCU\Software\DataSpammer" /v "elevation" /t REG_SZ /d "off" /f >nul && goto finish_installation
-    goto sys_main.installer.done
+    goto sys_main_installer_done
 
 
 :finish_installation
@@ -4233,7 +4229,7 @@
     if "%EXIT_CODE%"=="" set EXIT_CODE=0
     if "%OS%"=="Windows_NT" endlocal
     echo: > "%temp%\DataSpammerClose.txt"
-    %erase_short% "%~dp0\dataspammer.lock" >nul
+    erase "%~dp0\dataspammer.lock" >nul
     popd
     if not defined b.flag (
         tasklist /FI "PID eq %PID%" 2>NUL | find "%PID%" >NUL
