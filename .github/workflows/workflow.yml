@@ -41,4 +41,7 @@ jobs:
         run: scoop install dataspammer
 
       - name: Run DataSpammer
-        run: dataspammer.bat
+        shell: pwsh
+        run: |
+          $env:PATH = "$env:SCOOP\shims;$env:PATH"
+          dataspammer.bat

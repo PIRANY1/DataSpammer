@@ -94,7 +94,6 @@
 ::      Validate EXE Support
 ::      Fix Scoop Workflow Path Resolving & Reg Keys already existing
 ::      Fix update_script unexpected "("
-::      Fix when in Program Files; C:\Program cant be opened and it crashed; Likely Location Check; Directly After Elevation
 
 :top
     @echo off
@@ -185,6 +184,7 @@
     if "%~1"=="version" title DataSpammer && goto version
     if "%~1"=="--help" title DataSpammer && goto help_startup
     if "%~1"=="help" title DataSpammer && goto help_startup
+    if "%~1"=="scooptest" goto scoop_test
 
     :: Check if Script is running from Temp Folder
     if /I "%~dp0"=="%TEMP%" (
@@ -434,10 +434,13 @@
     if not defined WT_PATH (
         call :color _Red "wt.exe not found in PATH." error
         call :color _Yellow "Falling back to cmd.exe" warning
-        set "elevPath=cmd.exe"
+        for /f "delims=" %%a in ('where cmd 2^>nul') do (
+            set "CMD_PATH=%%a"
+        )
+        set "elevPath=!CMD_PATH!"
     ) else (
         call :color _Green "wt.exe found at: !WT_PATH!" okay
-        set "elevPath=wt"
+        set "elevPath=!WT_PATH!"
     )
 
     :: Elevate Script with sudo, gsudo or powershell
@@ -454,7 +457,7 @@
             goto cancel
         )
         if "%elevation%"=="pwsh" (
-            %powershell_short% -Command "Start-Process '%elevPath%' -ArgumentList 'cmd.exe /c ""%~f0"" %b.flag%%v.flag%' -Verb RunAs" || goto elevation_failed
+            %powershell_short% -Command "Start-Process '%elevPath%' -ArgumentList 'cmd.exe','/c',\"`\"%~f0`\" %b.flag%%v.flag%\" -Verb RunAs" || goto elevation_failed
             goto cancel
         )
         if "%elevation%"=="off" (
@@ -468,7 +471,6 @@
         )
     )
     call :color _Green "Elevation successful." okay
-    cd /d "%~dp0"
 
     if defined PROCESSOR_ARCHITEW6432 (
         %errormsg%
@@ -3514,6 +3516,19 @@
     echo: 
     for /f "delims=" %%a in ('findstr /b ":" "%script_name%.%ending%" ^| findstr /v "^::" ^| findstr /v "^:REM"') do ( echo %%a )
     pause
+
+:scoop_test
+    for /f "delims=" %%a in ('where scoop 2^>nul') do (
+        set "where_output=%%a"
+    )  
+
+    if not defined where_output (
+        echo Scoop is not installed!
+        exit /b 1
+    )
+
+    scoop search dataspammer
+    exit /b 0
 
 :send_message
     :: Send a Message to Monitor Socket
