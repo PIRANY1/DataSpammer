@@ -40,8 +40,8 @@ jobs:
       - name: Install DataSpammer
         run: scoop install dataspammer
 
-      - name: Run DataSpammer
-        shell: pwsh
+      - name: Run DataSpammer via cmd
         run: |
-          $env:PATH = "$env:SCOOP\shims;$env:PATH"
+          set PATH=%USERPROFILE%\scoop\shims;%PATH%
           dataspammer.bat
+        shell: cmd
