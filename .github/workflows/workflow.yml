@@ -43,5 +43,5 @@ jobs:
       - name: Run DataSpammer via cmd
         run: |
           set PATH=%USERPROFILE%\scoop\shims;%PATH%
-          dataspammer.bat
+          dataspammer.bat scooptest
         shell: cmd
