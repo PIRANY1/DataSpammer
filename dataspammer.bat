@@ -89,11 +89,12 @@
 ::      Add more Color Messages with Emojis ( Docs at :color)
 ::      Replace . & - with _ in Variables & Labels
 ::      Long Term: Better Error Handling, Full DE Translation, Better Binary Support, Better Privilege Detection
+::      Add Registry Testing, More Workflow Tests and Arg Options. Improve Arg Parsing. 
 
 ::      Fix CIF Parser
 ::      Validate EXE Support
-::      Fix Scoop Workflow Path Resolving & Reg Keys already existing
 ::      Fix update_script unexpected "("
+::      Fix Workflow /usr/bin/timeout usage
 
 :top
     @echo off
@@ -3879,27 +3880,64 @@
 :: exit /b 0
 :: -------------------------------------------------------------------
 :TimeDiffInMs
-    call :check_args :TimeDiffInMs "%~1" "%~2"
-    if "%errorlevel%"=="1" (
-        set "timeDiffMs=ERROR"
-        exit /b 1
-    )
-
+    setlocal
     set "start=%~1"
     set "end=%~2"
 
-    :: Check for delimiter (, or .)
-    echo(%start% | find "," >nul && set "delim=," || set "delim=."
+    set "start=%start: =0%"
+    set "end=%end: =0%"
 
-    for /f "tokens=1-4 delims=:%%delim%%" %%a in ("%start%") do (
-        set /a "startMs = (((%%a * 60 + %%b) * 60 + %%c) * 1000 + %%d * 10)"
+    call :NormalizeTime "%start%" startN
+    call :NormalizeTime "%end%" endN
+
+    for /f "tokens=1-4 delims=:,." %%h in ("%startN%") do (
+        set /a "A=((%%h*60+%%i)*60+%%j)*1000+%%k"
+    )
+    for /f "tokens=1-4 delims=:,." %%h in ("%endN%") do (
+        set /a "B=((%%h*60+%%i)*60+%%j)*1000+%%k"
     )
 
-    for /f "tokens=1-4 delims=:%%delim%%" %%a in ("%end%") do (
-        set /a "endMs = (((%%a * 60 + %%b) * 60 + %%c) * 1000 + %%d * 10)"
+    set /a diff=B-A
+    endlocal & set "timeDiffMs=%diff%"
+    exit /b
+
+
+:: -------------------------------------------------------------------
+:: Normalizes a time string to the format HH:MM:SS,MMM
+:: Accepts both DE (comma) and EN (dot) decimal separators
+:: Input:
+::   %1 - Time string (e.g. "21:32:22,32" or "21:32:22.32" or from %time%)
+:: Output:
+::   Sets the output variable (%2) to a normalized time string
+::   Always uses comma as separator and 3-digit milliseconds, e.g. "21:32:22,032"
+::
+:: Example:
+:: call :NormalizeTime "21:32:22,32" normalized
+:: echo Normalized time: %normalized%
+:: call :NormalizeTime "21:32:22.5" normalized
+:: echo Normalized time: %normalized%
+:: -------------------------------------------------------------------
+
+:NormalizeTime
+    setlocal
+    set "t=%~1"
+
+    set "t=%t:.=,%"
+
+    for /f "tokens=1-4 delims=:," %%a in ("%t%") do (
+        set "H=%%a"
+        set "M=%%b"
+        set "S=%%c"
+        set "MS=%%d"
     )
 
-    set /a "timeDiffMs=endMs - startMs"
+    if not defined MS set "MS=000"
+
+    if "%MS%"=="" set "MS=000"
+    if "%MS:~1%"=="" set "MS=%MS%00"
+    if "%MS:~2%"=="" set "MS=%MS%0"
+
+    endlocal & set "%~2=%H%:%M%:%S%,%MS%"
     exit /b
 
 :standby
