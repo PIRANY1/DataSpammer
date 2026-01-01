@@ -91,10 +91,10 @@
 ::      Long Term: Better Error Handling, Full DE Translation, Better Binary Support, Better Privilege Detection
 ::      Add Registry Testing, More Workflow Tests and Arg Options. Improve Arg Parsing. 
 
-::      Fix CIF Parser
 ::      Validate EXE Support
 ::      Fix update_script unexpected "("
 ::      Fix Workflow /usr/bin/timeout usage
+::      Update Readme
 
 :top
     @echo off
@@ -961,7 +961,7 @@
     call :sys_lt 1
     echo:
     call :sys_lt 1
-    echo [5] Enable Custom Instruction File (Experimental)
+    echo [5] Custom Instruction File Menu (Alpha)
     call :sys_lt 1
     echo: 
     call :sys_lt 1
@@ -985,11 +985,39 @@
         if %_erl%==2 goto verbose_output_settings
         if %_erl%==3 goto monitor_settings
         if %_erl%==4 goto download_wait
-        if %_erl%==5 goto custom_instruction_enable
+        if %_erl%==5 goto cif_menu
         if %_erl%==6 goto sys_delete_script
         if %_erl%==7 goto settings
         if %_erl%==8 call :standby
     goto advanced_options
+
+
+
+:cif_menu
+    echo:
+    echo:
+    echo [1] Enable Custom Instruction File Linking (Not Neccesary)
+    call :sys_lt 1
+    echo: 
+    call :sys_lt 1
+    echo:
+    call :sys_lt 1
+    echo [2] Manually Execute CIF Parsing
+    call :sys_lt 1
+    echo: 
+    call :sys_lt 1
+    echo:
+    call :sys_lt 1
+    echo [3] Go back
+    choice /C 123S /T 120 /D S /M "Choose an Option from Above:"
+        set _erl=%errorlevel%
+        if %_erl%==1 goto custom_instruction_enable
+        if %_erl%==2 (
+            set /p "cif_path=Please enter the full path to your Custom Instruction File: "
+            call :custom_instruction_read "%cif_path%" && goto cif_menu
+        )
+        if %_erl%==3 goto advanced_options
+        if %_erl%==4 call :standby
 
 :verbose_output_settings
     if "%verbose%"=="1" set "verbose.status=call :color _Green ""Verbose Output is currently Enabled"" okay"
@@ -2368,13 +2396,15 @@
     
 
 :spam_normal_top    
+    setlocal enabledelayedexpansion
     set /a x=1
 
     for /L %%i in (1,1,%filecount%) do (
-        echo Creating File %filename%%x%.txt
-        >> "%text_spam_directory%\%filename%%x%.txt" echo %defaultspam.content%
+        echo Creating File %filename%!x!.txt
+        >> "%text_spam_directory%\%filename%!x!.txt" echo !defaultspam.content!
         set /a x+=1
     )
+
 
     if %logging% == 1 ( call :log Finished_Spamming_Files:_%filecount% INFO )
     call :done "The Script Created %filecount% Files."
@@ -2481,22 +2511,71 @@
 
 
 ::-------------------------------------------------------------------------
-:: Custom Instruction Parsing
-
-:: Plain Text w. CMD Compatible Formatting
-:: # : Comment
-:: = : Variable
-:: First Line : Goto Label
-:: Everything Else : Command
-
-:: Example: 
-:: normal_text.spam
-:: # The Directory
-:: text_spam_directory=C:\
-:: filecount=10
-:: defaultspam.content=FILECONTENT
-:: filename=test.txt
-:: cd explorer
+:: .DTS FILE INTERPRETER SPECIFICATION
+::-------------------------------------------------------------------------
+::
+:: OVERVIEW:
+:: This parser reads a linear script file (.dts) line by line.
+:: It executes commands immediately, with the specific exception of 'goto',
+:: which is buffered and executed only after the file parsing is complete.
+::
+:: PARSING LOGIC & PRIORITY (Evaluated in this order):
+::
+:: 1. COMMENTS & EMPTY LINES
+::    Syntax:    # <comment text>
+::    Behavior:  Ignored completely. Must start with '#'.
+::
+:: 2. GOTO (BUFFERED)
+::    Syntax:    goto <label_name>
+::    Behavior:  NOT executed immediately. The target label is saved
+::               to a buffer variable. The jump is performed ONLY
+::               after the entire .dts file has been read.
+::
+:: 3. CALL (IMMEDIATE)
+::    Syntax:    call <target>
+::    Behavior:  Executed immediately at the current line.
+::               Control returns to the next line of the .dts file
+::               after the call finishes.
+::
+:: 4. VARIABLES
+::    Syntax:    key=value
+::    Behavior:  Identified by the presence of an '=' sign.
+::               Sets an environment variable immediately.
+::               accessible via !key! or %key% in subsequent lines.
+::
+:: 5. NATIVE COMMANDS
+::    Syntax:    <any_cmd_command>
+::    Behavior:  Any line not matching the above rules is treated
+::               as a standard Windows CMD command and executed
+::               in-place immediately (e.g., echo, mkdir, cd).
+::
+::-------------------------------------------------------------------------
+:: SYNTAX NOTES:
+:: - No special handling for the first line (unlike previous versions).
+:: - Standard Delayed Expansion rules apply within the loop.
+:: - Whitespace around '=' in variable assignment is significant.
+::-------------------------------------------------------------------------
+:: EXAMPLE .DTS FILE CONTENT:
+::
+:: # Setup Environment
+:: target_dir=C:\Logs
+:: log_file=install.log
+::
+:: # Create Structure (Native CMD)
+:: echo Starting process...
+:: mkdir !target_dir!
+::
+:: # Run Subroutines (Immediate)
+:: call module_a.bat
+::
+:: # Define Exit Strategy (Delayed)
+:: # This will happen only after the loop finishes parsing everything.
+:: goto CleanUpLabel
+::
+:: When Using a Spam Function you can use done_flag with either exit, silent or call
+:: call: Exit with exit /b 0
+:: exit: Exit using cancel
+:: silent: Exit to menu
 ::-------------------------------------------------------------------------
 
 :custom_instruction_enable
@@ -2510,13 +2589,14 @@
     goto restart_script
 
 :custom_instruction_read    
-:: Read Linked CIF File & interpret it
-    echo DEBUG INFO for File "%~n1"
-    echo Path: %~f1
-    echo Short: %~s1
-    echo Attributes: %~a1
-    echo Timestamp: %~t1
-    echo Size: %~z1
+    :: Read Linked CIF File & interpret it
+    echo DEBUG INFO for File "%~n1" >%destination%
+    echo Path: %~f1 >%destination%
+    echo Short: %~s1 >%destination%
+    echo Attributes: %~a1 >%destination%
+    echo Timestamp: %~t1 >%destination%
+    echo Size: %~z1 >%destination%
+    echo Raw: %~1 >%destination%
 
     if "%unsecure%"=="0" (
         if "%~z1" GTR 10000 (
@@ -2536,39 +2616,49 @@
         call :sys_lt 5 count
         goto cancel
     )
-    echo Parsing CIF File: %interpret.dts%
-    set "firstLineHandled=false"
+echo Parsing CIF File: %interpret.dts% >%destination%
+    set "buffered_goto="
     for /f "usebackq delims=" %%L in ("%interpret.dts%") do (
         set "line=%%L"
-        set "trimmed=!line:~0,1!"
-        :: Ignore empty lines and comments
-        if not "!line!"=="" if "!trimmed!" NEQ "#" (
-            if "!firstLineHandled!"=="false" (
-                :: Treat first line as label
-                echo Used Label: %%L
-                set "label.cif=%%L"
-                set "firstLineHandled=true"
+        set "firstChar=!line:~0,1!"
+        if not "!line!"=="" if "!firstChar!" NEQ "#" (
+            for /f "tokens=1* delims= " %%A in ("!line!") do (
+                set "keyword=%%A"
+                set "params=%%B"
+            )
+            if /i "!keyword!"=="goto" (
+                echo Buffering Goto: !params! >%destination%
+                set "buffered_goto=!params!"
             ) else (
-                :: If line has a "=", treat it as a variable assignment
-                echo !line! | findstr "=" >nul
-                if !errorlevel! == 0 (
-                    for /f "tokens=1* delims==" %%A in ("!line!") do (
-                        echo Setting Variable: %%A=%%B
-                        set "%%A=%%B"
-                    )
+                if /i "!keyword!"=="call" (
+                    echo Executing Call: !line! >%destination%
+                    call !line!
                 ) else (
-                    if not "%%L"=="" (
-                        echo Executing command: %%L
-                        %%L
+                    if "!line!"=="!line:=!" (
+                        echo Executing Command: !line! >%destination%
+                        !line!
+                    ) else (
+                        for /f "tokens=1* delims==" %%V in ("!line!") do (
+                            echo Setting Variable: %%V=%%W >%destination%
+                            set "%%V=%%W"
+                        )
                     )
                 )
             )
         )
     )
+
+    if defined buffered_goto (
+        echo Performing buffered jump to: !buffered_goto! >%destination%
+        goto !buffered_goto!
+    )
     call :color _Green "Finished Parsing %interpret.dts%. " okay
     call :color _Green "Exiting..." pending
     pause
     goto cancel
+
+    :: Sometimes when Calling, Exiting via cancel doesnt work
+    exit
 
 ::-------------------------------------------------------------------------
 ::-------------------------------------------------------------------------
@@ -2831,11 +2921,12 @@
     goto restart_script
 
 :debugtest
+    :: Pretty Useless At the Moment, verifys the top part of the Script. 
     :: Start Debug Test
     echo Running Debug Test...
     set "starttime=%time%"
     echo %time%
-    call :sys_lt 10 count
+    timeout 10
     echo %time%
     set "endtime=%time%"
     
@@ -3471,6 +3562,14 @@
         %errormsg%
     )
     %cls.debug%
+    if "%done_flag%"=="exit" (
+        goto cancel
+    ) else if "%done_flag%"=="silent" (
+        goto menu
+    ) else if "%done_flag%"=="call" (
+        exit /b 0
+    )
+
     echo:
     %$Echo% "   ____        _        ____                                           
     %$Echo% "  |  _ \  __ _| |_ __ _/ ___| _ __   __ _ _ __ ___  _ __ ___   ___ _ __
@@ -3617,7 +3716,8 @@
             exit /b 1
         )
     )
-
+    echo download Hashes
+    pause
     :: Download Hashes
     for %%F in (dataspammer.%ending% README.md LICENSE) do (
         bitsadmin /transfer upd "%update_url%%%F.hash" "%TMP_DIR%\%%F.hash"
