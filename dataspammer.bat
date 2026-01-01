@@ -92,8 +92,7 @@
 ::      Add Registry Testing, More Workflow Tests and Arg Options. Improve Arg Parsing. 
 
 ::      Validate EXE Support
-::      Fix update_script unexpected "("
-::      Fix Workflow /usr/bin/timeout usage
+::      Fix Scoop Installation
 ::      Update Readme
 
 :top

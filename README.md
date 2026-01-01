@@ -4,11 +4,16 @@
 ![Compile DataSpammer.bat](https://github.com/PIRANY1/DataSpammer/actions/workflows/analyze-bin.yml/badge.svg)
 Read this in: [German](https://github.com/PIRANY1/DataSpammerDE)
 
+## Summary
+
+A multifunctional batch-based stress-testing & automation toolkit for Windows — written to learn the ins and outs of cmd.exe, batch scripting and Windows quirks.
+Use responsibly. ⚠️ See Security & Responsible Use below.
+
 ## Features
 
 ### Stress-Test Features
 
-ICMP, SSH, FTP, DNS, Telnet, HTTP(S), Printer (List) Spam, Desktop Spam, Folder Spam, Start Menu Spam, App List Spam, ZIP Bomb Creator, Encrypt / Decrypt 
+ICMP, SSH, FTP, DNS, Telnet, HTTP(S), Printer (List) Spam, Desktop Spam, Folder Spam, Start Menu Spam, App List Spam, ZIP Bomb Creator, Encrypt / Decrypt, Internal Scripting
 
 ### Other Features
 
