@@ -1,8 +1,7 @@
 :: Use only under License
 :: Contribute under https://github.com/PIRANY1/DataSpammer
-:: Version v6 - RELEASE
-:: Pre: v6.1
-:: Last edited on 14.10.2025 by PIRANY
+:: Version v6.1 - RELEASE
+:: Last edited on 1.1.2026 by PIRANY
 
 :: Some Functions are inspired from the MAS Script. 
 
@@ -111,7 +110,7 @@
     mode con: cols=120 lines=35
 
     :: Some Essential Variables
-    set "current_script_version=v6"
+    set "current_script_version=v6.1"
     set "cls.debug=cls"
     set "exec-dir=%~dp0"
     set "errormsg=echo: &call :color _Red "====== ERROR ======" error &echo:"
@@ -125,7 +124,7 @@
     set "cls.debug=cls"
     set "ending=bat"
     :: Replace with desired branch for hashlist & wait.exe download
-    set "branch=v6.1"
+    set "branch=main"
 
     :: Allows ASCII stuff without Codepage Settings - Not My Work - Credits to ?
     :: Properly Escape Symbols like | ! & ^ > < etc. when using echo (%$Echo% " Text)
@@ -718,8 +717,8 @@
     )
     :: Compare latest version with current script version
     set "latest_version=%latest_version:"=%"
-    if "%latest_version%" equ "v6" ( set "uptodate=up" ) else ( set "uptodate=%current_script_version%" )
-    if %logging% == 1 ( call :log %latest_version%=v6 INFO )
+    if "%latest_version%" equ "v6.1" ( set "uptodate=up" ) else ( set "uptodate=%current_script_version%" )
+    if %logging% == 1 ( call :log %latest_version%=v6.1 INFO )
     del apianswer.txt
     exit /b
     
@@ -802,7 +801,7 @@
     )
     cd /d "%~dp0"
     if %logging% == 1 ( call :log Displaying_Menu INFO )
-    title DataSpammer %current_script_version% - Menu - v6
+    title DataSpammer %current_script_version% - Menu - v6.1
     %cls.debug%
 
     %$Echo% "   ____        _        ____
@@ -2676,7 +2675,7 @@ echo Parsing CIF File: %interpret.dts% >%destination%
     )
     set "latest_version=%latest_version:"=%"
 
-    if "%latest_version%" equ "v6" (
+    if "%latest_version%" equ "v6.1" (
         set "uptodate=up"
     ) else (
         set "uptodate=%current_script_version%"
@@ -3815,7 +3814,7 @@ echo Parsing CIF File: %interpret.dts% >%destination%
     set "latest_version=%latest_version:"=%"
     del apianswer.txt
     echo DataSpammer Script
-    echo Version v6 (Beta)
+    echo Version v6.1 (RELEASE)
     echo Newest Stable Release: %latest_version%
     echo: 
     exit /b %errorlevel%
