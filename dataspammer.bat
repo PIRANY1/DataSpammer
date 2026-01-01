@@ -91,7 +91,6 @@
 ::      Long Term: Better Error Handling, Full DE Translation, Better Binary Support, Better Privilege Detection
 ::      Add Registry Testing, More Workflow Tests and Arg Options. Improve Arg Parsing. 
 
-::      Validate EXE Support
 ::      Fix Scoop Installation
 ::      Update Readme
 
@@ -407,9 +406,11 @@
         call :color _Green "Enabled Emoji Support" okay
     ) else (
         call :color _Green "Codepage is not set to 65001, disabling Emoji Support" error
+    ) 
+
+    if "%is_compiled%"=="1" (
+        call :color _Green "Script is Compiled as an Executable, disabling Emoji Support" error
     )
-
-
 
     :: Check if Verbose is enabled
     if "%verbose%"=="1" (
@@ -3296,16 +3297,21 @@ echo Parsing CIF File: %interpret.dts% >%destination%
         set "text=!text:%%F=!"
     )
 
-    if "%chcp%"=="65001" (
-        if "!emoji.key!"=="" (
-            set "emoji="
+    :: Ugly Code, works tho
+    if "%is_compiled%"="1" (
+        if "%chcp%"=="65001" (
+            if "!emoji.key!"=="" (
+                set "emoji="
+            ) else (
+                if /I "!emoji.key!"=="okay" set "emoji=✅ "
+                if /I "!emoji.key!"=="error" set "emoji=❌ "
+                if /I "!emoji.key!"=="warning" set "emoji=⚠️ "
+                if /I "!emoji.key!"=="info" set "emoji=ℹ️ "
+                if /I "!emoji.key!"=="pending" set "emoji=⌛ "
+                if /I "!emoji.key!"=="debug" set "emoji=🛠️ "
+            )
         ) else (
-            if /I "!emoji.key!"=="okay" set "emoji=✅ "
-            if /I "!emoji.key!"=="error" set "emoji=❌ "
-            if /I "!emoji.key!"=="warning" set "emoji=⚠️ "
-            if /I "!emoji.key!"=="info" set "emoji=ℹ️ "
-            if /I "!emoji.key!"=="pending" set "emoji=⌛ "
-            if /I "!emoji.key!"=="debug" set "emoji=🛠️ "
+            set "emoji="
         )
     ) else (
         set "emoji="
