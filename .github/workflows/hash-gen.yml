@@ -1,9 +1,8 @@
 name: Append File Hash to List and Commit
 
 on:
+  workflow_dispatch:
   push:
-    branches:
-      - main
     paths:
       - 'dataspammer.bat'
 
@@ -26,15 +25,13 @@ jobs:
         run: |
           TARGET_FILE="dataspammer.bat"
           HASH_FILE=".github/dataspammer-hash.list"
-          
           # Calculate the hash
           HASH=$(sha256sum "$TARGET_FILE" | awk '{print $1}')
           echo "Calculated hash for $TARGET_FILE: $HASH"
-          
-          # Append the hash to the list if it's not already there
-          # The command fails if grep finds the hash, so the echo part is skipped.
-          # The command succeeds if grep doesn't find the hash, so the echo part runs.
-          grep -Fxq "$HASH" "$HASH_FILE" || echo "$HASH" >> "$HASH_FILE"
+          # Ensure file exists
+          touch "$HASH_FILE"
+          # Append with newline if not present
+          grep -Fxq "$HASH" "$HASH_FILE" || printf "\n%s\n" "$HASH" >> "$HASH_FILE"
 
       - name: Commit changes
         # Use a dedicated action to automatically commit and push changes.

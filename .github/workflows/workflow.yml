@@ -1,6 +1,6 @@
 name: Dataspammer Functionality Test
 
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 
 permissions:
   contents: read
@@ -28,5 +28,20 @@ jobs:
       - name: Run DataSpammer Debug Test
         run: |
           cd DataSpammer
-          cmd.exe /c ${{ github.workspace }}\DataSpammer\dataspammer.bat debugtest
-          
+          cmd.exe /c ${{ github.workspace }}\DataSpammer\dataspammer.bat debugtest /v /b /unsecure
+
+      - name: Install Scoop
+        uses: MinoruSekine/setup-scoop@v4.0.2
+        if: ${{ always() }}
+
+      - name: Install DataSpammer Bucket
+        run: scoop bucket add dts-bucket https://github.com/PIRANY1/dataspammer-bucket
+
+      - name: Install DataSpammer
+        run: scoop install dataspammer
+
+      - name: Run DataSpammer via cmd
+        run: |
+          set PATH=%USERPROFILE%\scoop\shims;%PATH%
+          dataspammer.bat scooptest
+        shell: cmd
