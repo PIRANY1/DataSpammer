@@ -7,7 +7,6 @@ Read this in: [German](https://github.com/PIRANY1/DataSpammerDE)
 ## Summary
 
 A multifunctional batch-based stress-testing & automation toolkit for Windows — written to learn the ins and outs of cmd.exe, batch scripting and Windows quirks.
-Use responsibly. ⚠️ See Security & Responsible Use below.
 
 ## Features
 
