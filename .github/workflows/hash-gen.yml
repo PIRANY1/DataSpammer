@@ -1,10 +1,14 @@
 name: Append File Hash to List and Commit
 
+
 on:
   workflow_dispatch:
   push:
+    branches:
+      - '**'
     paths:
       - 'dataspammer.bat'
+      
 
 permissions:
   # Required to be able to commit changes back to the repository

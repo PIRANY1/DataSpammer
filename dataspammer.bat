@@ -92,6 +92,7 @@
 
 ::      Fix Scoop Installation
 ::      Update Readme
+::      Improve exe bat support
 
 :top
     @echo off
@@ -154,7 +155,7 @@
     :: Check the File Name
     set "script_name=%~n0" 
     call :color _Green "Local Name: %script_name%.%ending%" okay
-     
+
     :: Parse Correct Timeout & Ping Locations otherwise WOW64 May cause issues.
     for /f "delims=" %%P in ('where ping.exe 2^>nul') do set "ping=%%P"
     if not defined PING (
@@ -3297,7 +3298,7 @@ echo Parsing CIF File: %interpret.dts% >%destination%
     )
 
     :: Ugly Code, works tho
-    if "%is_compiled%"="1" (
+    if "%is_compiled%"=="1" (
         if "%chcp%"=="65001" (
             if "!emoji.key!"=="" (
                 set "emoji="
