@@ -82,17 +82,35 @@
 ::      - Update Scoop Bucket & hash
 ::      - Revert %branch% to main
 
-:: Todo: 
-::      Add more Comments, Logs , Socket Messages, Error Checks and Color
-::      Implement more Verbose Message ( >%destination% / %destination21% ) or ( %cls.debug% )
-::      Add more Color Messages with Emojis ( Docs at :color)
-::      Replace . & - with _ in Variables & Labels
-::      Long Term: Better Error Handling, Full DE Translation, Better Binary Support, Better Privilege Detection
-::      Add Registry Testing, More Workflow Tests and Arg Options. Improve Arg Parsing. 
+:: Customs:
+::      These will write to CON when Verbose Mode is enabled. Otherwhise it will write to >nul or >nul 2>&1
+::      >%destination% 
+::      >%destination21%
+::
+::      %errormsg% = Write Error Header in Red
+::      Docs for Colors and Emojis are at :color, Docs for Scripting are at :custom_instruction_read
+::
+::      %cls.debug% = Clear Screen or Echo: (if Verbose)
+::
+::      Docs for Logging are at :log
+::      if %logging% == 1 ( call :log Chaning_Elevation_to_sudo WARN )
+::
 
+
+
+:: Todo: 
+::      Replace . & - with _ in Variables & Labels
+::      Long Term: Full DE Translation
+::      Add Registry Testing, More Workflow Tests and Arg Options. Improve Arg Parsing. 
+::      ADD MORE LOGGING & MONITOR SOCKET MESSAGES
+
+::      Add more Socket Messages
 ::      Fix Scoop Installation
 ::      Update Readme
 ::      Improve exe bat support
+::      Implement Privilege Checks at RW Ops
+::      Update Colors in Main Menu
+::      Support More Colors
 
 :top
     @echo off
@@ -358,7 +376,7 @@
     if /i "%~x1"==".dts" goto custom_instruction_read
 
     :: Undocumented Arguments
-    if "%~1"=="update-install" ( goto sys_new_update.installed )
+    if "%~1"=="update-install" ( goto sys_new_update_installed )
     if "%~1"=="ifp.install" ( goto ifp_install )
     if "%~1"=="scoop.install" ( goto scoop_install )
     if "%~1"=="scoop.remove" ( goto scoop_remove )
@@ -382,12 +400,14 @@
         goto v6_port
     )
     
+    :: Verify Registry Integrity
+    call :reg_hash_check
+
     :: Check if RegKey is outdated
     if not "%reg_version%"=="%current_script_version%" (
         call :color _Red "Script Version Registry Key is outdated." error
-        choice /C YN /M "Do you want to update the Registry Key? (Y/N)"
-        set "_erl=%errorlevel%"
-        if "%_erl%"=="1" ( goto sys_new_update.installed )
+        call :color _Yellow "Updating Registry Keys..." warning
+        goto sys_new_update_installed
     )
 
     :: Parse Config
@@ -608,10 +628,10 @@
     %cls.debug% && title DataSpammer - Login
 
     :: Username and Password Input
-    set /p "username.script=Please enter your Username: "
-    set "username.script=%username.script: =%"
+    set /p "username_script=Please enter your Username: "
+    set "username_script=%username_script: =%"
     :: Check if the input is a SHA256 hash (64 hex chars)
-    for /f "delims=" %%h in ('%powershell_short% -Command "if ('%username.script%' -match '^[a-fA-F0-9]{64}$') { Write-Output 'HASH' }"') do set "is_hash=%%h"
+    for /f "delims=" %%h in ('%powershell_short% -Command "if ('%username_script%' -match '^[a-fA-F0-9]{64}$') { Write-Output 'HASH' }"') do set "is_hash=%%h"
     if /i "%is_hash%"=="HASH" (
         call :color _Red "You entered a SHA256 hash as username." error
         call :color _Yellow "This is not allowed, please enter a normal username." warning
@@ -632,16 +652,9 @@
         goto login_input
     )
 
-    :: Extract Stored Username and Password
-    call :color _Green "Extracting Hash from Registry..." pending
-
-    :: PowerShell-Befehl für UsernameHash
-    set "pscmd_user= (Get-ItemPropertyValue -Path 'HKCU:\Software\DataSpammer' -Name 'UsernameHash' -ErrorAction SilentlyContinue)"
-    for /f "usebackq delims=" %%A in (`%powershell_short% -Command "%pscmd_user%"`) do set "username_hash=%%A"
-
-    :: PowerShell-Befehl für PasswordHash
-    set "pscmd_pass= (Get-ItemPropertyValue -Path 'HKCU:\Software\DataSpammer' -Name 'PasswordHash' -ErrorAction SilentlyContinue)"
-    for /f "usebackq delims=" %%A in (`%powershell_short% -Command "%pscmd_pass%"`) do set "password_hash=%%A"
+    :: Calculate SHA256 Hashes
+    for /f "delims=" %%a in ('%powershell_short% -command "$h = [BitConverter]::ToString([System.Security.Cryptography.SHA256]::Create().ComputeHash([System.Text.Encoding]::UTF8.GetBytes('%password%'))) -replace '-'; $h.ToLower()"') do set "password_hash=%%a"
+    for /f "delims=" %%a in ('%powershell_short% -command "$h = [BitConverter]::ToString([System.Security.Cryptography.SHA256]::Create().ComputeHash([System.Text.Encoding]::UTF8.GetBytes('%username_script%'))) -replace '-'; $h.ToLower()"') do set "username_hash=%%a"
 
     :: Extract Stored Username and Password
     call :color _Green "Extracting Hash from Registry..." pending
@@ -658,9 +671,9 @@
     set "stored_password_hash=%stored_password_hash: =%"
     :: Compare Hashes
     call :color _Green "Comparing Hashes..." pending
-    if "%username_hash%" EQU "%stored_username_hash%" (
+    if /I "%username_hash%"=="%stored_username_hash%" (
         call :color _Green "Username Matches" okay
-        if "%password_hash%" EQU "%stored_password_hash%" (
+        if "%password_hash%"=="%stored_password_hash%" (
             call :color _Green "Password Matches" okay
             goto file_check
         ) else (
@@ -792,7 +805,7 @@
     if %logging% == 1 ( call :log Successfully_Started_DataSpammer_%current_script_version%_Errorlevel:_%errorlevel% INFO )
 
     :: Set Username for Menu
-    if not defined username.script set "username.script=%username%"
+    if not defined username_script set "username_script=%username%"
 
 :menu
     if defined color (
@@ -814,7 +827,7 @@
 
 
     call :sys_lt 1
-    call :color _Red "Made by PIRANY - %current_script_version% - Logged in as %username.script% - CMD-Version %CMD_VERSION%"
+    call :color _Red "Made by PIRANY - %current_script_version% - Logged in as %username_script% - CMD-Version %CMD_VERSION%"
     call :sys_lt 1
     echo:
     call :sys_lt 1
@@ -1072,10 +1085,9 @@
         call :color _Red "Download failed. " error
         exit /b 1
     )  
-    :: Extract Hashes
-    certutil -hashfile "%temp%\wait.exe" SHA256 > "%temp%\wait.hash"
-    for /f "delims=" %%a in ('%powershell_short% -Command "(Get-Content '%temp%\wait.exe.sha256' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "sha256_expected=%%a"
-    for /f "delims=" %%a in ('%powershell_short% -Command "(Get-Content '%temp%\wait.hash' | Select-String -Pattern '([0-9a-fA-F]{64})').Matches.Groups[1].Value"') do set "sha256_actual=%%a"
+    :: Compute Hashes
+    call :hash_gen sha256_actual file "%temp%\wait.exe"
+    call :hash_gen sha256_expected file "%temp%\wait.exe.sha256"
 
     :: Compare Hashes
     if "%sha256_expected%" neq "%sha256_actual%" (
@@ -1084,8 +1096,6 @@
         call :color _Yellow "Hash mismatch! Expected: %sha256_expected%, but got: %sha256_actual%" warning
         goto menu
     )
-    del "%temp%\wait.hash"
-    del "%temp%\wait.exe.sha256"
         
     :: Move Wait.exe    
     %move_short% /Y "%temp%\wait.exe" "%~dp0\wait.exe" 
@@ -1186,7 +1196,7 @@
 
 :login_setup
     %cls.debug%
-    call :color _White "Logged in as %username.script%"
+    call :color _White "Logged in as %username_script%"
     echo:
     call :color _Green "[1] Create Account"
     call :sys_lt 1
@@ -1210,11 +1220,13 @@
             call :color _Yellow "Changing Login..." warning
             reg delete "HKCU\Software\DataSpammer" /v UsernameHash /f
             reg delete "HKCU\Software\DataSpammer" /v PasswordHash /f
+            if exist "%~dp0\.integrity" %erase_short% "%~dp0\.integrity" >%destination21%
             goto login_create
         )
         if %_erl%==3 (
             reg delete "HKCU\Software\DataSpammer" /v UsernameHash /f
             reg delete "HKCU\Software\DataSpammer" /v PasswordHash /f
+            if exist "%~dp0\.integrity" %erase_short% "%~dp0\.integrity" >%destination21%
             call :color _Green "Login Deleted Successfully." warning
             call :color _Yellow "Restarting Script..." warning
             call :sys_lt 1
@@ -1231,13 +1243,13 @@
     if defined storedhash call :color _Red "Account already exists." error && call :sys_lt 4 && goto login_setup
 
     :: Input Password & Username
-    set /p "username.script=Please enter a Username: "
-    set "username.script=%username.script: =%"
+    set /p "username_script=Please enter a Username: "
+    set "username_script=%username_script: =%"
 
     for /f "delims=" %%a in ('%powershell_short% -Command "$pass = Read-Host 'Please enter your Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($pass))"') do set "password=%%a"
 
     call :color _Bluee "Hashing the Username and Password..." pending
-    set "pscmd= $input = '%username.script%'; $bytes = [System.Text.Encoding]::UTF8.GetBytes($input); $sha = [System.Security.Cryptography.SHA256]::Create(); $hash = $sha.ComputeHash($bytes); ($hash | ForEach-Object { $_.ToString('x2') }) -join ''"
+    set "pscmd= $input = '%username_script%'; $bytes = [System.Text.Encoding]::UTF8.GetBytes($input); $sha = [System.Security.Cryptography.SHA256]::Create(); $hash = $sha.ComputeHash($bytes); ($hash | ForEach-Object { $_.ToString('x2') }) -join ''"
     for /f "usebackq delims=" %%a in (`%powershell_short% -Command "%pscmd%"`) do set "username_hash=%%a"
 
     set "pscmd= $input = '%password%'; $bytes = [System.Text.Encoding]::UTF8.GetBytes($input); $sha = [System.Security.Cryptography.SHA256]::Create(); $hash = $sha.ComputeHash($bytes); ($hash | ForEach-Object { $_.ToString('x2') }) -join ''"
@@ -1250,6 +1262,7 @@
     call :color _Blue "Saving Secure Data..." pending
     reg add "HKCU\Software\DataSpammer" /v UsernameHash /t REG_SZ /d "%username_hash%" /f >%destination%
     reg add "HKCU\Software\DataSpammer" /v PasswordHash /t REG_SZ /d "%password_hash%" /f >%destination%
+    if exist "%~dp0\.integrity" %erase_short% "%~dp0\.integrity" >%destination21%
     %cls.debug%
     call :color _Green "Login Created Successfully." okay
     call :sys_lt 1
@@ -1270,7 +1283,7 @@
     :: Version Update checks for this File
     call :generateRandom
     reg add "HKCU\Software\DataSpammer" /v Token /t REG_SZ /d "%realrandom%" /f
-
+    if exist "%~dp0\.integrity" %erase_short% "%~dp0\.integrity" >%destination21%
     (
         @echo off
         cd /d "%~dp0"
@@ -2452,6 +2465,7 @@
     :: Add Remember Encrypted State Token
     reg add "HKCU\Software\DataSpammer" /v logging /t REG_SZ /d "1" /f
     reg add "HKCU\Software\DataSpammer" /v color /t REG_SZ /d "0F" /f
+    if exist "%~dp0\.integrity" %erase_short% "%~dp0\.integrity" >%destination21%
     call :color _Green "DataSpammer was successfully installed." okay
     goto restart_script
 
@@ -2486,6 +2500,7 @@
     reg add "HKCU\Software\DataSpammer" /v logging /t REG_SZ /d "1" /f
     reg add "HKCU\Software\DataSpammer" /v color /t REG_SZ /d "0F" /f
     call :color _Green "DataSpammer was successfully installed." okay
+    if exist "%~dp0\.integrity" %erase_short% "%~dp0\.integrity" >%destination21%
     call :color _Yellow "Restarting..." pending
     call :sys_lt 4 count
     goto restart_script
@@ -2910,14 +2925,22 @@ echo Parsing CIF File: %interpret.dts% >%destination%
     if defined "ProgramFiles(x86)" (
         set "RegPath=HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\DataSpammer"
     )
-    reg delete "%RegPath%" /v "DisplayVersion" /f
-    reg add "%RegPath%" /v "DisplayVersion" /d "%current_script_version%" /f
+    reg delete "%RegPath%" /v "DisplayVersion" /f >%destination21%
+    reg add "%RegPath%" /v "DisplayVersion" /d "%current_script_version%" /f >%destination21%
+    reg delete "HKCU\Software\DataSpammer" /v Version /f >%destination21% 
+    reg add "HKCU\Software\DataSpammer" /v Version /t REG_SZ /d "%current_script_version%" /f >%destination21%
+
     call :color _Green "Updated Registry Keys to Version: %current_script_version%" okay
     if %logging% == 1 ( call :log Updated_Script_Version:%current_script_version% INFO )
     if %logging% == 1 ( call :log Errorlevel_after_Update:_%errorlevel% INFO )
     call :color _Green "Successfully Updated to %current_script_version%" okay
+
+    if exist "%~dp0\.integrity" %erase_short% "%~dp0\.integrity" >%destination21%
+    pause
     call :color _Yellow "Restarting..." warning
+    pause
     call :sys_lt 4 count
+    pause
     goto restart_script
 
 :debugtest
@@ -3298,7 +3321,7 @@ echo Parsing CIF File: %interpret.dts% >%destination%
     )
 
     :: Ugly Code, works tho
-    if "%is_compiled%"=="1" (
+    if "%is_compiled%"=="0" (
         if "%chcp%"=="65001" (
             if "!emoji.key!"=="" (
                 set "emoji="
@@ -3557,7 +3580,7 @@ echo Parsing CIF File: %interpret.dts% >%destination%
     ) else (
         call :color _Green "Successfully updated %key% to '%new_value%.'" okay
     )
-
+    if exist "%~dp0\.integrity" %erase_short% "%~dp0\.integrity" >%destination21%
     exit /b 0
 
 :done
@@ -4070,7 +4093,82 @@ echo Parsing CIF File: %interpret.dts% >%destination%
     call :color _Green "Resuming..." 
     exit /b 0
 
-:win_version_check    :: Check for Windows Edition, OSType, Version and Build Number
+
+:: -------------------------------------------------------------------
+:: hash_gen Batch function (callable)
+:: Purpose:
+::   Compute a SHA-256 hash using PowerShell and store the resulting
+::   lowercase hex digest in a batch variable whose name is supplied.
+::
+:: Usage:
+::   call :hash_gen resultVar input
+::     resultVar - name of the batch variable to set (do NOT include %)
+::     input     - path to file (quote if contains spaces)
+::
+:: Output:
+::   Sets %resultVar% to the SHA-256 hex digest (lowercase). On error,
+::   the variable is set to an empty string.
+::
+:: Notes:
+::   - Uses PowerShell's Get-FileHash for files and .NET SHA256 for strings.
+::   - Encoding for string hashing is UTF-8.
+::   - This is a label you can include inside any .bat/.cmd and call via CALL.
+:: -------------------------------------------------------------------
+
+:hash_gen
+    set "resultVar=%~1"
+    set "hash="
+
+    for /f "usebackq delims=" %%H in (`%powershell_short% -NoProfile -Command "Get-FileHash -LiteralPath '%~3' -Algorithm SHA256 | Select-Object -ExpandProperty Hash"`) do (
+        set "hash=%%H"
+    )
+
+    set "%resultVar%=%hash%"
+    exit /b 0
+
+
+:reg_hash_check
+    if defined unsecure (
+        call :color _Red "Unsecure Mode Detected, Skipping Registry Check" warning
+        call :sys_lt 2
+        exit /b 0
+    )
+    :: Parse All Registry Keys
+    for /f "delims=" %%a in ('reg query "HKCU\Software\DataSpammer"') do (
+        set "data=!data!%%a"
+    )
+
+    :: Generate Hash
+    echo(!data!> "%temp%\hash_input.tmp"
+    call :hash_gen reg_hash file "%temp%\hash_input.tmp"
+    %erase_short% "%temp%\hash_input.tmp"
+    echo Registry Hash: %reg_hash% >%destination%
+
+    if exist "%~dp0\.integrity" (
+        for /f "usebackq delims=" %%A in ("%~dp0\.integrity") do set "stored_hash=%%A"
+        echo Stored Hash: %stored_hash% >%destination%
+    ) else (
+        set "stored_hash=%reg_hash%"
+        echo No stored hash found. Creating new integrity file. >%destination%
+        echo %stored_hash% > "%~dp0\.integrity"
+        attrib +h +s "%~dp0\.integrity"
+    )
+
+    if "%reg_hash%"=="%stored_hash%" (
+        call :color _Green "Registry Integrity Check Passed." okay
+    ) else (
+        %errormsg%
+        call :color _Red "Registry Integrity Check Failed!" error
+        call :color _Red "The registry settings have been altered since the last run." error
+        call :color _Red "The Script may not function correctly." error
+    )
+
+
+    exit /b 0
+
+
+:win_version_check    
+    :: Check for Windows Edition, OSType, Version and Build Number
     Set UseExpresssion=Reg Query "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v "ProductName"
     for /F "tokens=*" %%X IN ('%UseExpresssion%') do Set OSEdition=%%X
     Set OSEdition=%OSEdition:*REG_SZ    =%
