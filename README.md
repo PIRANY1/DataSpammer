@@ -27,7 +27,7 @@ Use one of the methods below or download the [Latest Version](https://github.com
 ### One-Line Command
 
 ``` batch
-curl -sSLO https://github.com/PIRANY1/DataSpammer/releases/download/v6/dataspammer.bat && dataspammer.bat
+curl -sSLO https://github.com/PIRANY1/DataSpammer/releases/download/v6.2/dataspammer.bat && dataspammer.bat
 ```
 
 ### Scoop
