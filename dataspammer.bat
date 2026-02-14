@@ -1,7 +1,7 @@
 :: Use only under License
 :: Contribute under https://github.com/PIRANY1/DataSpammer
-:: Version v6.1 - RELEASE
-:: Last edited on 1.1.2026 by PIRANY
+:: Version v6.2 - RELEASE
+:: Last edited on 14.02.2026 by PIRANY
 
 :: Some Functions are inspired from the MAS Script. 
 
@@ -109,8 +109,9 @@
 ::      Update Readme
 ::      Improve exe bat support
 ::      Implement Privilege Checks at RW Ops
-::      Update Colors in Main Menu
-::      Support More Colors
+
+:: avg 10ms better
+:: from 100 average to 10ms
 
 :top
     @echo off
@@ -129,7 +130,7 @@
     mode con: cols=120 lines=35
 
     :: Some Essential Variables
-    set "current_script_version=v6.1"
+    set "current_script_version=v6.2"
     set "cls.debug=cls"
     set "exec-dir=%~dp0"
     set "errormsg=echo: &call :color _Red "====== ERROR ======" error &echo:"
@@ -148,6 +149,12 @@
     :: Allows ASCII stuff without Codepage Settings - Not My Work - Credits to ?
     :: Properly Escape Symbols like | ! & ^ > < etc. when using echo (%$Echo% " Text)
     SET $Echo=FOR %%I IN (1 2) DO IF %%I==2 (SETLOCAL EnableDelayedExpansion ^& FOR %%A IN (^^^!Text:""^^^^^=^^^^^"^^^!) DO ENDLOCAL ^& ENDLOCAL ^& ECHO %%~A) ELSE SETLOCAL DisableDelayedExpansion ^& SET Text=
+
+    :: Define esc ASCI Symbol
+    if not defined esc (
+        for /F %%a in ('echo prompt $E ^| cmd') do set "esc=%%a"
+    )
+    
 
     :: Check for NCS Support
     :: NCS is required for ANSI / Color Support
@@ -237,7 +244,7 @@
         set "erase_short=REM"
         set "unsecure=1"
         set "verbose=1"
-        set "b.flag=/b "
+        set "b_flag=/b "
     ) else (
         call :color _Green "Production environment detected." okay
         set "dev_env=0"
@@ -304,15 +311,17 @@
         echo Given Arguments: >%destination%
         echo %* >%destination%
         if /I "%%~A"=="/b" (
-            set "b.flag=/b "
+            set "b_flag=/b "
             call :color _Green "Dont Exit Mode is enabled" warning
         )
         if /I "%%~A"=="/v" (
             set "verbose=1"
+            set "v_flag=/v "
             call :color _Green "Verbose Mode is enabled" warning
         )
         if /I "%%~A"=="/unsecure" (
             set "unsecure=1"
+            set "u_flag=/unsecure "
             call :color _Green "Unsecure Mode is enabled" warning
         )
     )
@@ -469,16 +478,16 @@
     if %errorLevel% neq 0 (
         if "%elevation%"=="sudo" (
             for /f "delims=" %%A in ('where sudo 2^>nul') do set SUDO_PATH=%%A
-            %SUDO_PATH% --new-window -- "%LocalAppData%\Microsoft\WindowsApps\wt.exe" %cmdPath% /c ""%~f0" %b.flag%%v.flag%" || goto elevation_failed
+            %SUDO_PATH% --new-window -- "%LocalAppData%\Microsoft\WindowsApps\wt.exe" %cmdPath% /c ""%~f0" %b_flag%%v_flag%%u_flag%" || goto elevation_failed
             goto cancel
         )
         if "%elevation%"=="gsudo" (
             for /f "delims=" %%A in ('where gsudo 2^>nul') do set GSUDO_PATH=%%A
-            %GSUDO_PATH% --new "%LocalAppData%\Microsoft\WindowsApps\wt.exe" %cmdPath% /c ""%~f0" %b.flag%%v.flag%" || goto elevation_failed
+            %GSUDO_PATH% --new "%LocalAppData%\Microsoft\WindowsApps\wt.exe" %cmdPath% /c ""%~f0" %b_flag%%v_flag%%u_flag%" || goto elevation_failed
             goto cancel
         )
         if "%elevation%"=="pwsh" (
-            %powershell_short% -Command "Start-Process '%elevPath%' -ArgumentList 'cmd.exe','/c',\"`\"%~f0`\" %b.flag%%v.flag%\" -Verb RunAs" || goto elevation_failed
+            %powershell_short% -Command "Start-Process '%elevPath%' -ArgumentList 'cmd.exe','/c',\"`\"%~f0`\" %b_flag%%v_flag%%u_flag%\" -Verb RunAs" || goto elevation_failed
             goto cancel
         )
         if "%elevation%"=="off" (
@@ -497,7 +506,7 @@
         %errormsg%
         call :color _Red "Running as 32-Bit on 64-Bit Windows" error
         call :color _Yellow "Relaunching as 64-Bit..." warning
-        start %elevPath% cmd.exe /c "%~f0" %b.flag%%v.flag%
+        start %elevPath% cmd.exe /c "%~f0" %b_flag%%v_flag%%u_flag%
         call :sys_lt 5 count
         goto cancel
     ) else (
@@ -630,28 +639,9 @@
     :: Username and Password Input
     set /p "username_script=Please enter your Username: "
     set "username_script=%username_script: =%"
-    :: Check if the input is a SHA256 hash (64 hex chars)
-    for /f "delims=" %%h in ('%powershell_short% -Command "if ('%username_script%' -match '^[a-fA-F0-9]{64}$') { Write-Output 'HASH' }"') do set "is_hash=%%h"
-    if /i "%is_hash%"=="HASH" (
-        call :color _Red "You entered a SHA256 hash as username." error
-        call :color _Yellow "This is not allowed, please enter a normal username." warning
-        if %logging% == 1 ( call :log Username_Is_Hash ERROR )
-        pause
-        goto login_input
-    )
 
     for /f "delims=" %%a in ('%powershell_short% -Command "$pass = Read-Host 'Please enter your Password' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($pass))"') do set "password=%%a"
     
-    :: Check if the input is a SHA256 hash (64 hex chars)
-    for /f "delims=" %%h in ('%powershell_short% -Command "if ('%password%' -match '^[a-fA-F0-9]{64}$') { Write-Output 'HASH' }"') do set "is_hash=%%h"
-    if /i "%is_hash%"=="HASH" (
-        call :color _Red "You entered a SHA256 hash as password." error
-        call :color _Yellow "This is not allowed, please enter a normal password." warning
-        if %logging% == 1 ( call :log Password_Is_Hash ERROR )
-        pause
-        goto login_input
-    )
-
     :: Calculate SHA256 Hashes
     for /f "delims=" %%a in ('%powershell_short% -command "$h = [BitConverter]::ToString([System.Security.Cryptography.SHA256]::Create().ComputeHash([System.Text.Encoding]::UTF8.GetBytes('%password%'))) -replace '-'; $h.ToLower()"') do set "password_hash=%%a"
     for /f "delims=" %%a in ('%powershell_short% -command "$h = [BitConverter]::ToString([System.Security.Cryptography.SHA256]::Create().ComputeHash([System.Text.Encoding]::UTF8.GetBytes('%username_script%'))) -replace '-'; $h.ToLower()"') do set "username_hash=%%a"
@@ -669,6 +659,7 @@
     set "stored_username_hash=%stored_username_hash: =%"
     set "password_hash=%password_hash: =%"
     set "stored_password_hash=%stored_password_hash: =%"
+    
     :: Compare Hashes
     call :color _Green "Comparing Hashes..." pending
     if /I "%username_hash%"=="%stored_username_hash%" (
@@ -731,8 +722,8 @@
     )
     :: Compare latest version with current script version
     set "latest_version=%latest_version:"=%"
-    if "%latest_version%" equ "v6.1" ( set "uptodate=up" ) else ( set "uptodate=%current_script_version%" )
-    if %logging% == 1 ( call :log %latest_version%=v6.1 INFO )
+    if "%latest_version%" equ "v6.2" ( set "uptodate=up" ) else ( set "uptodate=%current_script_version%" )
+    if %logging% == 1 ( call :log %latest_version%=v6.2 INFO )
     del apianswer.txt
     exit /b
     
@@ -815,7 +806,7 @@
     )
     cd /d "%~dp0"
     if %logging% == 1 ( call :log Displaying_Menu INFO )
-    title DataSpammer %current_script_version% - Menu - v6.1
+    title DataSpammer %current_script_version% - Menu - v6.2
     %cls.debug%
 
     %$Echo% "   ____        _        ____
@@ -827,31 +818,31 @@
 
 
     call :sys_lt 1
-    call :color _Red "Made by PIRANY - %current_script_version% - Logged in as %username_script% - CMD-Version %CMD_VERSION%"
+    call :color _BrightCyan "Made by PIRANY - %current_script_version% - Logged in as %username_script% - CMD-Version %CMD_VERSION%"
     call :sys_lt 1
     echo:
     call :sys_lt 1
-    call :color _Green "[1] Start"
-    echo:
-    call :sys_lt 1
-    echo:
-    call :sys_lt 1
-    call :color _Blue "[2] Settings"
+    call :color _BrightGreen "[1] Start"
     echo:
     call :sys_lt 1
     echo:
     call :sys_lt 1
-    call :color _Yellow "[3] Desktop Icon"
+    call :color _BrightCyan "[2] Settings"
     echo:
     call :sys_lt 1
     echo:
     call :sys_lt 1
-    call :color _White "[4] Open GitHub-Repo"
+    call :color _Gray "[3] Desktop Icon"
     echo:
     call :sys_lt 1
     echo:
     call :sys_lt 1
-    call :color _Red "[5] Cancel"
+    call :color _BrightBlue "[4] Open GitHub-Repo"
+    echo:
+    call :sys_lt 1
+    echo:
+    call :sys_lt 1
+    call :color _BrightRed "[5] Exit"
     echo:
     echo:
     choice /C 12345S /T 120 /D S /M "Choose an Option from Above: "
@@ -888,47 +879,39 @@
     echo:
     call :sys_lt 1
     echo: 
-    call :sys_lt 1
-    call :color _White "[1] Main Settings"
+    call :color _Blue "[1] Main Settings"
     call :sys_lt 1
     echo: 
-    call :sys_lt 1
     echo:
     call :sys_lt 1
-    call :color _Red "[2] Developer Options"
+    call :color _BrightMagenta "[2] Developer Options"
     call :sys_lt 1
     echo: 
-    call :sys_lt 1
     echo:
     call :sys_lt 1
-    call :color _Yellow "[3] Version Control"
+    call :color _Blue "[3] Version Control"
     call :sys_lt 1
     echo: 
-    call :sys_lt 1
     echo:
     call :sys_lt 1
-    call :color _Blue "[4] Account"
+    call :color _Green "[4] Account"
     call :sys_lt 1
     echo: 
-    call :sys_lt 1
     echo:
     call :sys_lt 1
-    call :color _Green "[5] Restart Script"
+    call :color _Red "[5] Restart Script"
     call :sys_lt 1
     echo: 
-    call :sys_lt 1
     echo:
     call :sys_lt 1
-    call :color _Red "[6] Advanced Options"    
+    call :color _Yellow "[6] Advanced Options"    
     call :sys_lt 1
     echo: 
-    call :sys_lt 1
     echo:
     call :sys_lt 1
     echo [7] Go back
     call :sys_lt 1
     echo: 
-    call :sys_lt 1
     echo:
     call :sys_lt 1
 
@@ -946,6 +929,7 @@
 
 
 :advanced_options
+%cls.debug%
     echo:
     call :sys_lt 1
     echo: 
@@ -986,7 +970,13 @@
     call :sys_lt 1
     echo:
     call :sys_lt 1
-    echo [7] Go back
+    echo [7] Benchmark a Command (Unstable, Average Calculation may not work)
+    call :sys_lt 1
+    echo: 
+    call :sys_lt 1
+    echo:
+    call :sys_lt 1
+    echo [8] Go back
     call :sys_lt 1
     echo: 
     call :sys_lt 1
@@ -1000,13 +990,64 @@
         if %_erl%==4 goto download_wait
         if %_erl%==5 goto cif_menu
         if %_erl%==6 goto sys_delete_script
-        if %_erl%==7 goto settings
-        if %_erl%==8 call :standby
+        if %_erl%==7 goto benchmark
+        if %_erl%==8 goto settings
+        if %_erl%==9 call :standby
     goto advanced_options
 
 
+:benchmark
+    setlocal EnableDelayedExpansion
+    echo Please enter the command you want to benchmark.
+    echo (You can also use 'call :Label').
+    echo.
+    set /p "command=Command: "
+
+    if not defined command (
+        call :color _Red "No command provided." error
+        %cls.debug%
+        goto :benchmark
+    )
+
+    echo.
+    echo How many times should the command be executed? 
+    set /p "iterations=Iterations: "
+
+    set /a "iterations=10000%iterations% %% 10000" 2>nul
+    if !iterations! lss 1 set "iterations=1"
+
+    echo.
+    echo Benchmarking '%command%' with !iterations! iteration(s)...
+    set "total=0"
+
+    for /L %%i in (1,1,!iterations!) do (
+        set "start_time=!time!"
+        call %command%
+        set "end_time=!time!"
+
+        call :TimeDiffInMs "!start_time!" "!end_time!"
+        
+        set /a total+=timeDiffMs
+    )
+
+    if !total! gtr 0 (
+        set /a average=total / iterations
+    ) else (
+        set "average=0"
+    )
+
+    echo.
+    echo --------------------------------------
+    echo Total Time (!iterations! runs): !total! ms
+    echo Average Time per run: !average! ms
+    echo --------------------------------------
+    pause
+    call :clean_variables average total iterations command
+    goto advanced_options
+
 
 :cif_menu
+    %cls.debug%
     echo:
     echo:
     echo [1] Enable Custom Instruction File Linking (Not Neccesary)
@@ -1033,6 +1074,7 @@
         if %_erl%==4 call :standby
 
 :verbose_output_settings
+    %cls.debug%
     if "%verbose%"=="1" set "verbose.status=call :color _Green ""Verbose Output is currently Enabled"" okay"
     if "%verbose%"=="0" set "verbose.status=call :color _Red ""Verbose Output is currently Disabled"" error"
     
@@ -1070,6 +1112,7 @@
     goto verbose_output_settings
 
 :download_wait
+    %cls.debug%
     :: Download Wait.exe and Wait.exe Hash
     call :color _Green "Downloading wait.exe" pending
     bitsadmin /transfer upd "https://github.com/PIRANY1/wait-exe/raw/refs/heads/%branch%/bin/wait.exe" "%temp%\wait.exe" >nul
@@ -1109,6 +1152,7 @@
     goto restart_script
 
 :change_chcp
+    %cls.debug%
     :: Change Codepage to allow for different character sets
     for /f "tokens=2 delims=:" %%A in ('chcp') do (
         set "chcp.value=%%A"
@@ -1140,6 +1184,7 @@
     goto restart_script
 
 :change_color
+    %cls.debug%
     :: Set Color Dialog
     echo:
     echo Currently Using Color: %color%
@@ -1159,6 +1204,7 @@
     goto main_settings
 
 :monitor_settings
+    %cls.debug%
     if "%monitoring%"=="1" set "monitoring-status=call :color _Green "Monitoring is currently enabled." okay"
     if "%monitoring%"=="0" set "monitoring-status=call :color _Red "Monitoring is currently disabled." error"
     call :color _White "-----------------------"
@@ -1238,6 +1284,7 @@
     
 
 :login_create
+    %cls.debug%
     :: Create new Login Hashes
     for /f "tokens=3" %%A in ('reg query "HKCU\Software\DataSpammer" /v UsernameHash 2^>nul') do set "storedhash=%%A"
     if defined storedhash call :color _Red "Account already exists." error && call :sys_lt 4 && goto login_setup
@@ -1269,6 +1316,7 @@
     goto restart_script
 
 :encrypt
+    %cls.debug%
     if "%is_compiled%"=="1" (
         call :color _Red "Script is compiled as an Executable." error
         call :color _Red "This Option is only available for uncompiled scripts." error
@@ -1307,6 +1355,7 @@
 
 
 :switch_elevation
+    %cls.debug%
     :: Switch Elevation Method
     echo Choose an Elevation method.
     echo: 
@@ -1376,6 +1425,7 @@
 
 
 :main_settings
+    %cls.debug%
     echo [1] Default Filename
     call :sys_lt 1
     echo: 
@@ -1440,6 +1490,7 @@
 
 
 :settings_version_control
+    %cls.debug%
     echo:
     echo:
     call :sys_lt 1
@@ -1464,6 +1515,7 @@
     goto settings_version_control
 
 :activate_dev_options   
+    %cls.debug%
     if "%developermode%"=="1" goto dev_options
     call :color _Red "Do you want to activate the Developer Options?"
     call :color _Red "Developer Options include some advanced features like logging etc."
@@ -1477,6 +1529,7 @@
     goto activate_dev_options
 
 :write_dev_options
+    %cls.debug%
     if %logging% == 1 ( call :log Activating_Dev_Options WARN )
     cd /d "%~dp0"
     call :update_config "developermode" "" "1"
@@ -1486,6 +1539,7 @@
     goto restart_script
 
 :settings_logging
+    %cls.debug%
     if %logging% == 1 ( call :log Opened_Logging_Settings INFO )
     %cls.debug%
     if %logging% == 0 set "settings.logging=Disabled"
@@ -1598,6 +1652,7 @@
 
 
 :start_verified
+    %cls.debug%
     %$Echo% "     ___        _   _
     %$Echo% "    / _ \ _ __ | |_(_) ___  _ __  ___ 
     %$Echo% "   | | | | '_ \| __| |/ _ \| '_ \/ __|
@@ -1629,6 +1684,7 @@
 
 
 :internet_spams
+    %cls.debug%
     echo [1] SSH Test (Key-Auth or No Password)
     call :sys_lt 1
     echo:
@@ -1685,6 +1741,7 @@
 
 
 :python_spams
+    %cls.debug%
     echo [1] Zip Bomb Creator
     call :sys_lt 1
     echo:
@@ -1728,6 +1785,7 @@
 
 
 :printer_list_spam
+    %cls.debug%
     set /P printer.name=Enter the Printer Name:
     set /P printer.model=Enter the Modell(can be anything):
     set /P printer.count=Enter the Printer Count:
@@ -1742,6 +1800,7 @@
 
 
 :telnet_spam
+    %cls.debug%
     echo root > temp.txt
     echo 123456 >> temp.txt
     echo exit >> temp.txt
@@ -1759,6 +1818,7 @@
 
 
 :icmp_spam
+    %cls.debug%
     set /P icmp.target=Enter the Target:
     
     set /P icmp.rate=Enter the rate (milliseconds between requests):
@@ -1778,6 +1838,7 @@
 
 
 :local_spams
+    %cls.debug%
     echo Choose the Method you want to use:
     call :sys_lt 1
     echo:
@@ -1822,6 +1883,7 @@
 
 
 :crypt_spam
+    %cls.debug%
     call :verify_command "Encrypt/Decrypt" "openssl"
     if "%errorlevel%"=="1" ( goto local_spams )
 
@@ -1847,6 +1909,7 @@
 
 
 :encrypt_spam_folder
+    %cls.debug%
     call :directory_input encrypt-dir "Enter the Directory: "
     call :color _Blue "Enter the Encryption Method"
     choice /C AC /M "(A)ES or (C)hacha):"
@@ -1858,6 +1921,7 @@
 
 
 :encrypt_spam_folder_passwd
+    %cls.debug%
     set /p encrypt-key=Enter the Encryption Key:
     set /p encrypt-key-2=Repeat the Encryption Key:
     if not "%encrypt-key%"=="%encrypt-key-2%" goto encrypt_spam_folder_passwd
@@ -1886,6 +1950,7 @@
 
 
 :encrypt_spam__file
+    %cls.debug%
     set /p encrypt-dir=Enter the File Directory:
     call :color _Blue "Enter the Encryption Method"
     choice /C AC /M "(A)ES or (C)hacha):"
@@ -1895,6 +1960,7 @@
 
 
 :encrypt_spam_file_passwd
+    %cls.debug%
     set /p encrypt-key=Enter the Encryption Key:
     set /p encrypt-key-2=Repeat the Encryption Key:
     if not "%encrypt-key%"=="%encrypt-key-2%" goto encrypt_spam_file_passwd
@@ -1914,7 +1980,8 @@
     goto menu
 
 
-:decrypt_spam_folder    
+:decrypt_spam_folder 
+    %cls.debug%  
     call :directory_input encrypt-dir "Enter the Directory: "
     set /p decrypt-key=Enter the Encryption Key:
     call :color _Blue "Enter the Encryption Method"
@@ -1945,6 +2012,7 @@
 
 
 :decrypt_spam_file    
+    %cls.debug%
     set /p decrypt-dir=Enter the File Directory:
     set /p decrypt-key=Enter the Encryption Key:
     call :color _Blue "Enter the Encryption Method"
@@ -1971,6 +2039,7 @@
 
 
 :printer_spam
+    %cls.debug%
     :: print /D:%printer% %file%
     :: set printer="\\NetworkPrinter\PrinterName"
     set /P printer.count=How many Files should be printed?: 
@@ -2001,6 +2070,7 @@
 
 
 :https_spam
+    %cls.debug%
     call :verify_command "HTTPS Spam" "curl"
     if "%errorlevel%"=="1" ( goto start_verified )
     setlocal EnableDelayedExpansion
@@ -2020,6 +2090,7 @@
 
 
 :dns_spam
+    %cls.debug%
     setlocal EnableDelayedExpansion    
     call :color _Blue "DNS-Spam is useful if you have a local DNS Server running (PiHole, Adguard etc.)"
     set /P domain_server=Enter the DNS-Server IP (leave empty for default):
@@ -2039,6 +2110,7 @@
 
 
 :dns_a
+    %cls.debug%
     for /L %%i in (1, 1, %request_count%) do (
         call :color _Blue "Created !x! DNS Request for !record_type! record." pending
         set /a x+=1
@@ -2049,6 +2121,7 @@
     
 
 :dns_aaaa
+    %cls.debug%
     for /L %%i in (1, 1, %request_count%) do (
         call :color _Blue "Created !x! DNS Request for !record_type! record." pending
         set /a x+=1
@@ -2058,6 +2131,7 @@
     
 
 :dns_done
+    %cls.debug%
     if %logging% == 1 ( call :log Finished_DNS_Spam:%request_count%_Requests_on_%domain_server% INFO )
     call :done "The Script Created %request_count% for %domain% on %domain_server%"
 
@@ -2066,6 +2140,7 @@
 
 
 :ftp_spam
+    %cls.debug%
     call :verify_command "FTP Spam" "ftp"
     if "%errorlevel%"=="1" ( goto start_verified )
     %cls.debug%
@@ -2225,6 +2300,7 @@
 
 
 :ssh_spam
+    %cls.debug%
     if "%logging%"=="1" ( call :log Opened_SSH_Spam INFO )
     if "%logging%"=="1" ( call :log Listing_Local_IPs INFO )
     
@@ -2250,6 +2326,7 @@
 
 
 :ssh_hijack
+    %cls.debug%
     echo Should the SSH-Keys be regenerated?
     echo This will prohibit anyone with the Old Keys from Accessing the Target
     echo:
@@ -2266,6 +2343,7 @@
 
 
 :ssh_start_spam
+    %cls.debug%
     echo Is the SSH Host running Windows or Linux?
     echo:
     echo [1] Windows
@@ -2282,6 +2360,7 @@
 
 
 :spam_ssh_target_win
+    %cls.debug%
     setlocal EnableDelayedExpansion
     if "%logging%"=="1" ( call :log Spamming_Windows_SSH_Target INFO )
 
@@ -2326,6 +2405,7 @@
 
 
 :spam_ssh_target_lx
+    %cls.debug%
     setlocal EnableDelayedExpansion
     if "%logging%"=="1" ( call :log Spamming_Linux_SSH_Target INFO )
 
@@ -2375,6 +2455,7 @@
 
 
 :desktop_icon_spam    
+    %cls.debug%
     if %logging% == 1 ( call :log Opened_Desktop_Spam INFO )
     
     call :filename_check desk.spam.name "Enter the Filename:"
@@ -2631,7 +2712,7 @@
         call :sys_lt 5 count
         goto cancel
     )
-echo Parsing CIF File: %interpret.dts% >%destination%
+    echo Parsing CIF File: %interpret.dts% >%destination%
     set "buffered_goto="
     for /f "usebackq delims=" %%L in ("%interpret.dts%") do (
         set "line=%%L"
@@ -2691,7 +2772,7 @@ echo Parsing CIF File: %interpret.dts% >%destination%
     )
     set "latest_version=%latest_version:"=%"
 
-    if "%latest_version%" equ "v6.1" (
+    if "%latest_version%" equ "v6.2" (
         set "uptodate=up"
     ) else (
         set "uptodate=%current_script_version%"
@@ -2706,6 +2787,7 @@ echo Parsing CIF File: %interpret.dts% >%destination%
 
 
 :sys_delete_script  
+    %cls.debug%
     reg query "HKCU\Software\DataSpammer" /v scoopinstall >%destination21% && (
         call :color _Green "Detected Scoop installed Script." okay
         call :color _Red "Remove Script manually by running ^'scoop remove dataspammer^' " error
@@ -2785,7 +2867,7 @@ echo Parsing CIF File: %interpret.dts% >%destination%
     call :send_message Script is restarting
     call :send_message Terminating %PID%
     echo: > %temp%\DataSpammerClose.txt
-    start %elevPath% cmd.exe /c "%~f0" %b.flag%%v.flag%
+    start %elevPath% cmd.exe /c "%~f0" %b_flag%%v_flag%%u_flag%
     goto cancel
 
 
@@ -2866,6 +2948,7 @@ echo Parsing CIF File: %interpret.dts% >%destination%
 
 
 :dev_options
+    %cls.debug%
     :: Dev Options
     title Developer Options - DataSpammer
     echo PID: %PID%
@@ -3288,22 +3371,23 @@ echo Parsing CIF File: %interpret.dts% >%destination%
     
 
 :: =====================================
-:: call :color "ERROR" error
-:: ❌ ERROR
+:: Color Function
+:: Supported Emojis: okay, error, warning, info, pending, debug ( ✅, ❌, ⚠️, ℹ️, ⌛, 🛠️ ️ ) 
+:: Example: call :color _Red "This is red text" okay -> ✅ This is red text
 ::
-:: Supported Emojis: okay, error, warning, info, pending, debug ( ✅, ❌, ⚠️, ℹ️, ⌛, 🛠 ️ ) 
-:: Example: call :color Red "This is red text" okay -> ✅ This is red text
+:: Supported Colors:
+::   Black, Red, Green, Yellow, Blue, Magenta, Cyan, Gray, White
+::   _Black, _Red, _Green, _Yellow, _Blue, _Magenta, _Cyan, _Gray, _White
+::   BrightRed, BrightGreen, BrightYellow, BrightBlue, BrightMagenta, BrightCyan, BrightWhite
+::   _BrightRed, _BrightGreen, _BrightYellow, _BrightBlue, _BrightMagenta, _BrightCyan, _BrightWhite
 ::
-:: Supported Colors: Red, Green, Blue, Gray, White, _Red, _White, _Green, _Yellow
-:: call :color Red      "This is red on light white"
-:: call :color _Red     "This is red on black"
-:: call :color Green    "Green on white"
-:: call :color _Green   "Green on black"
-:: call :color Blue     "Blue on white"
-:: call :color Gray     "Gray background"
-:: call :color White    "Bright white"
-:: call :color _White   "White on dark gray"
-:: call :color _Yellow  "Yellow on black"
+:: Color prefix explanation:
+::   Without "_" → dark text on light background
+::   With "_"    → bright text on dark background
+::
+:: Examples:
+::   call :color Red   "Red text on light background"
+::   call :color _Red  "Red text on dark background"
 :: =====================================
 
 :color
@@ -3315,6 +3399,12 @@ echo Parsing CIF File: %interpret.dts% >%destination%
     shift
     set "text=%~1" 
     set "text=!text:"=!" 
+
+    :: Check if ANSI support is enabled
+    if not "%_NCS%"=="1" (
+        echo %text%
+        exit /b
+    )
 
     for %%F in (Red Gray Green Blue White _Red _White _Green _Yellow) do (
         set "text=!text:%%F=!"
@@ -3340,52 +3430,24 @@ echo Parsing CIF File: %interpret.dts% >%destination%
         set "emoji="
     )
 
-    call :check_args :done "%~1" "%~2"
-    if "%errorlevel%"=="1" (
-        %errormsg%
-        echo %text%
-        exit /b 1
-    )
-
-    :: Remove underscore
     set "text=!text:_=!"
-
-    :: Remove first space
     if "!text:~0,1!"==" " (
         set "text=!text:~1!"
     )
-
-    :: Check if ANSI support is enabled
-    if not "%_NCS%"=="1" (
-        echo %text%
-        exit /b
-    )
     
-    :: Set escape code
-    if not defined esc (
-        for /F %%a in ('echo prompt $E ^| cmd') do set "esc=%%a"
-    )
-    
-    :: Define Colors
-    set "Red=41;97m"
-    set "Gray=100;97m"
-    set "Green=42;97m"
-    set "Blue=44;97m"
-    set "_Blue=40;94m"
-    set "White=107;91m"
-    set "_Red=40;91m"
-    set "_White=40;37m"
-    set "_Green=40;92m"
-    set "_Yellow=40;93m"
-    
-    :: Select Colors
-    for %%F in (Red Gray Green Blue White _Red _White _Green _Yellow) do (
+    :: Lookup Table for Color Codes
+    for %%F in (
+        Black Red Green Yellow Blue Magenta Cyan Gray White
+        _Black _Red _Green _Yellow _Blue _Magenta _Cyan _Gray _White
+        BrightRed BrightGreen BrightYellow BrightBlue BrightMagenta BrightCyan BrightWhite
+        _BrightRed _BrightGreen _BrightYellow _BrightBlue _BrightMagenta _BrightCyan _BrightWhite
+    ) do (
         if /I "%color.func%"=="%%F" (
             set "code=!%%F!"
         )
     )
-    
-    :: Return normal color if no match
+
+    :: When no Valid Color Code is found, exit with normal output
     if not defined code (
         echo %text%
         exit /b
@@ -3394,9 +3456,6 @@ echo Parsing CIF File: %interpret.dts% >%destination%
     :: Color output
     <nul set /p "=!esc![!code!!emoji!!text!!esc![0m"
     echo:
-
-    :: Reset Base Color ( overwrites everything)
-    :: if defined color ( color %color% )
 
     exit /b 0
 
@@ -3422,9 +3481,48 @@ echo Parsing CIF File: %interpret.dts% >%destination%
             set "_NCS=0"
         )
     )
-    
-    :: Export NCS
-    set "_NCS=%_NCS%"
+
+    :: "Bright"  → brighter background colors (high visibility)
+    :: "_Bright" → bright text on black background
+    :: No "_"  → colored background + light text
+    :: With "_" → black background + colored text
+    if "%_NCS%"=="1" (
+        set "Black=40;97m"
+        set "Red=41;97m"
+        set "Green=42;97m"
+        set "Yellow=43;97m"
+        set "Blue=44;97m"
+        set "Magenta=45;97m"
+        set "Cyan=46;97m"
+        set "Gray=100;97m"
+        set "White=107;30m"
+
+        set "_Black=40;90m"
+        set "_Red=40;91m"
+        set "_Green=40;92m"
+        set "_Yellow=40;93m"
+        set "_Blue=40;94m"
+        set "_Magenta=40;95m"
+        set "_Cyan=40;96m"
+        set "_Gray=40;37m"
+        set "_White=40;97m"
+
+        set "BrightRed=101;97m"
+        set "BrightGreen=102;97m"
+        set "BrightYellow=103;97m"
+        set "BrightBlue=104;97m"
+        set "BrightMagenta=105;97m"
+        set "BrightCyan=106;97m"
+        set "BrightWhite=107;30m"
+
+        set "_BrightRed=40;91m"
+        set "_BrightGreen=40;92m"
+        set "_BrightYellow=40;93m"
+        set "_BrightBlue=40;94m"
+        set "_BrightMagenta=40;95m"
+        set "_BrightCyan=40;96m"
+        set "_BrightWhite=40;97m"
+    )
     exit /b
     
 
@@ -3488,7 +3586,7 @@ echo Parsing CIF File: %interpret.dts% >%destination%
     set "chcp.clean=!chcp.value:.=!"
     if not defined chcp set "chcp=!chcp.clean!"
 
-    call :color _Green "Successfully parsed %settings.count% settings from the registry."
+    call :color _Green "Successfully parsed %settings.count% settings from the registry." okay
     exit /b 0
 
 :log
@@ -3838,7 +3936,7 @@ echo Parsing CIF File: %interpret.dts% >%destination%
     set "latest_version=%latest_version:"=%"
     del apianswer.txt
     echo DataSpammer Script
-    echo Version v6.1 (RELEASE)
+    echo Version v6.2 (RELEASE)
     echo Newest Stable Release: %latest_version%
     echo: 
     exit /b %errorlevel%
@@ -4015,19 +4113,32 @@ echo Parsing CIF File: %interpret.dts% >%destination%
     set "start=%start: =0%"
     set "end=%end: =0%"
 
-    call :NormalizeTime "%start%" startN
-    call :NormalizeTime "%end%" endN
-
-    for /f "tokens=1-4 delims=:,." %%h in ("%startN%") do (
-        set /a "A=((%%h*60+%%i)*60+%%j)*1000+%%k"
+    for /f "tokens=1-4 delims=:,. " %%a in ("%start%") do (
+        set /a "h1=100%%a %% 100", "m1=100%%b %% 100", "s1=100%%c %% 100", "c1=100%%d %% 100"
     )
-    for /f "tokens=1-4 delims=:,." %%h in ("%endN%") do (
-        set /a "B=((%%h*60+%%i)*60+%%j)*1000+%%k"
+    for /f "tokens=1-4 delims=:,. " %%a in ("%end%") do (
+        set /a "h2=100%%a %% 100", "m2=100%%b %% 100", "s2=100%%c %% 100", "c2=100%%d %% 100"
     )
 
-    set /a diff=B-A
-    endlocal & set "timeDiffMs=%diff%"
+    set /a "total1=((h1*3600) + (m1*60) + s1) * 100 + c1"
+    set /a "total2=((h2*3600) + (m2*60) + s2) * 100 + c2"
+
+    set /a "diff=total2 - total1"
+
+    if %diff% lss 0 set /a "diff+=8640000"
+
+    set /a "diffMs=diff * 10"
+
+    endlocal & set "timeDiffMs=%diffMs%"
     exit /b
+
+
+:: -------------------------------------------------------------------
+:: Clears the Values of the specified variables (passed as arguments)
+:: -------------------------------------------------------------------
+:clean_variables
+    for %%V in (%*) do set "%%V="
+    exit /b 0
 
 
 :: -------------------------------------------------------------------
@@ -4487,7 +4598,7 @@ echo Parsing CIF File: %interpret.dts% >%destination%
     echo: > "%temp%\DataSpammerClose.txt"
     erase "%~dp0\dataspammer.lock" >nul
     popd
-    if not defined b.flag (
+    if not defined b_flag (
         tasklist /FI "PID eq %PID%" 2>NUL | find "%PID%" >NUL
         if %errorlevel%==0 (
             taskkill /PID %PID% /F
