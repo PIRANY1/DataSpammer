@@ -93,9 +93,8 @@
 ::      %cls.debug% = Clear Screen or Echo: (if Verbose)
 ::
 ::      Docs for Logging are at :log
-::      if %logging% == 1 ( call :log Chaning_Elevation_to_sudo WARN )
+::      call :log Chaning_Elevation_to_sudo WARN
 ::
-
 
 
 :: Todo: 
@@ -109,9 +108,9 @@
 ::      Update Readme
 ::      Improve exe bat support
 ::      Implement Privilege Checks at RW Ops
+::      Check rw ops on default locations
 
-:: avg 10ms better
-:: from 100 average to 10ms
+
 
 :top
     @echo off
@@ -121,7 +120,7 @@
     @echo Initializing...
     @setlocal ENABLEDELAYEDEXPANSION
 
-    :: Improve NT Compatabilty - Made by Gradlew
+    :: Improve NT Compatabilty - Pasted from Gradlew Compiler
     if "%OS%"=="Windows_NT" setlocal
     set "DIRNAME=%~dp0"
     if "%DIRNAME%"=="" set DIRNAME=.
@@ -325,6 +324,14 @@
             call :color _Green "Unsecure Mode is enabled" warning
         )
     )
+
+    :: REWORK NEEDED
+    :: ------------------------------------------------------------------------------------------------------------------------------------
+    :: ------------------------------------------------------------------------------------------------------------------------------------
+    :: ------------------------------------------------------------------------------------------------------------------------------------
+    :: ------------------------------------------------------------------------------------------------------------------------------------
+    :: ------------------------------------------------------------------------------------------------------------------------------------
+    :: ------------------------------------------------------------------------------------------------------------------------------------
 
     call :check_rights
     if "%RIGHTS_LEVEL%"=="low" (
@@ -557,20 +564,18 @@
     call :color _Green "Got PID: %PID%" okay
 
     :: Allow Better Readability
-    if "%logging%"=="1" (
-        call :log . INFO
-        call :log ------------------- INFO
-        call :log DataSpammer_Startup INFO
-        call :log Current_PID:_%PID% INFO
-        call :log ------------------- INFO
-        call :log . INFO
-    )
+    call :log . INFO
+    call :log ------------------- INFO
+    call :log DataSpammer_Startup INFO
+    call :log Current_PID:_%PID% INFO
+    call :log ------------------- INFO
+    call :log . INFO
 
     :: If lockfile exists, extract PID 
     if exist "%~dp0dataspammer.lock" (
         for /f "usebackq delims=" %%L in ("%~dp0dataspammer.lock") do set "pidlock=%%L"
     ) else (
-        if "%logging%"=="1" call :log No_Lock_Exists INFO
+        call :log No_Lock_Exists INFO
         goto lock_create
     )
 
@@ -578,7 +583,7 @@
     set "PID=!PID: =!"
     set "pidlock=!pidlock: =!"
 
-    if "%logging%"=="1" call :log PID-Check_Results:PID:!PID!_PIDlock:!pidlock! INFO
+    call :log PID-Check_Results:PID:!PID!_PIDlock:!pidlock! INFO
 
     call :color _White "PID: %pid%" debug >%destination%
     call :color _White "Lock PID: %pidlock%" debug >%destination%
@@ -613,7 +618,7 @@
     ) else (
         :: No PID found in lock file. Delete it 
         call :color _Yellow "No PID Found - Deleting Lock..." warning
-        if %logging% == 1 ( call :log PID_Empty ERROR )
+        call :log PID_Empty ERROR
         del "%~dp0dataspammer.lock" >nul
     )
 
@@ -625,7 +630,7 @@
     :: Start the Monitor Socket
     if "%monitoring%"=="1" (
         start /min %cmdPath% /k ""%~f0" monitor %PID%" 
-        if %logging% == 1 ( call :log Starting_Monitor_Socket INFO )
+        call :log Starting_Monitor_Socket INFO
         >> "%TEMP%\socket.con" echo Connection Request from %PID%
     )
 
@@ -633,7 +638,7 @@
     :: Verify that Login exists.
     reg query "HKCU\Software\DataSpammer" /v UsernameHash >nul 2>&1 || goto file_check
     
-    if %logging% == 1 ( call :log Starting_Login INFO )
+    call :log Starting_Login INFO
     %cls.debug% && title DataSpammer - Login
 
     :: Username and Password Input
@@ -670,14 +675,14 @@
         ) else (
             call :color _Red "Authentication failed. Password does not match." error
             call :color _Red "Credentials do not match!" error
-            if %logging% == 1 ( call :log Password_Not_Matching WARN )
+            call :log Password_Not_Matching WARN
             pause
             goto login_input
         )
     ) else (
         call :color _Red "Authentication failed. Username does not match." error
         call :color _Red "Credentials do not match!" error
-        if %logging% == 1 ( call :log Username_Not_Matching WARN )
+        call :log Username_Not_Matching WARN
         pause
         goto login_input
     )    
@@ -688,8 +693,8 @@
     :: Establish Socket Connection
     call :send_message Started DataSpammer
     call :send_message Established Socket Connection
-    if %logging% == 1 ( call :log Established_Socket_Connection INFO )
-    if %logging% == 1 ( call :log Checking_Settings_for_Update_Command INFO )
+    call :log Established_Socket_Connection INFO
+    call :log Checking_Settings_for_Update_Command INFO
 
     :: Start Update Check
     call :gitcall_sys
@@ -697,12 +702,12 @@
 
 :gitcall_sys
     :: Update Function Logic
-    if %logging% == 1 ( call :log Calling_Update_Check INFO )
+    call :log Calling_Update_Check INFO
     :: If Script is in Development Mode, skip the update check
     if "%current_script_version%"=="development" (
         call :color _Green "Development Version, Skipping Update" okay
         call :sys_lt 5
-        if "%logging%"=="1" ( call :log Skipped_Update_Check_%current_script_version%_Development_Version WARN )
+        call :log Skipped_Update_Check_%current_script_version%_Development_Version WARN )
         exit /b 0
     )
     call :git_version_check
@@ -711,7 +716,7 @@
 
 :git_version_check
     :: Curl GitHub API, extract latest version & compare with current script version
-    if %logging% == 1 ( call :log Curling_Github_API INFO )
+    call :log Curling_Github_API INFO
     call :color _Green "Checking for Updates..." pending
     set "api_url=https://api.github.com/repos/PIRANY1/DataSpammer/releases/latest"
     curl -s %api_url% > apianswer.txt
@@ -723,18 +728,18 @@
     :: Compare latest version with current script version
     set "latest_version=%latest_version:"=%"
     if "%latest_version%" equ "v6.2" ( set "uptodate=up" ) else ( set "uptodate=%current_script_version%" )
-    if %logging% == 1 ( call :log %latest_version%=v6.2 INFO )
+    call :log %latest_version%=v6.2 INFO
     del apianswer.txt
     exit /b
     
 :git_version_clean
-    if %logging% == 1 ( call :log Version_Is_Up_To_Date INFO )
+    call :log Version_Is_Up_To_Date INFO
     call :color _Green "The Version you are currently using is the newest one (%latest_version%)" okay
     call :sys_lt 1
     exit /b
 
 :git_version_outdated
-    if %logging% == 1 ( call :log Version_Outdated WARN )
+    call :log Version_Outdated WARN
     call :color _Red "Version Outdated ^!" error
     call :sys_lt 1
     call :color _Yellow "The Version you are currently using is %current_script_version%" warning
@@ -792,8 +797,8 @@
     for /f "tokens=2 delims=[]" %%v in ('ver') do set CMD_VERSION=%%v
 
     :: Logging
-    if %logging% == 1 ( call :log Startup_Complete INFO )
-    if %logging% == 1 ( call :log Successfully_Started_DataSpammer_%current_script_version%_Errorlevel:_%errorlevel% INFO )
+    call :log Startup_Complete INFO 
+    call :log Successfully_Started_DataSpammer_%current_script_version%_Errorlevel:_%errorlevel% INFO
 
     :: Set Username for Menu
     if not defined username_script set "username_script=%username%"
@@ -805,7 +810,7 @@
         color 0F >nul
     )
     cd /d "%~dp0"
-    if %logging% == 1 ( call :log Displaying_Menu INFO )
+    call :log Displaying_Menu INFO
     title DataSpammer %current_script_version% - Menu - v6.2
     %cls.debug%
 
@@ -866,7 +871,7 @@
 
 
 :settings
-    if %logging% == 1 ( call :log Opened_Settings_%dev-mode%_dev_mode INFO )
+    call :log Opened_Settings_%dev-mode%_dev_mode INFO
     color
     %cls.debug% 
     %$Echo% "    ____       _   _   _ 
@@ -1324,7 +1329,7 @@
         goto advanced_options
     )
     :: Encrypt Script Files, to bypass Antivirus
-    if %logging% == 1 ( call :log Encrypting_Script WARN )
+    call :log Encrypting_Script WARN
     call :color _Blue "Encrypting..." pending
     call :sys_lt 1
     cd /d "%~dp0 "
@@ -1362,6 +1367,7 @@
     echo Powershell is the default and recommended option.
     echo Sudo requires Windows 24H2 or higher and must be manually enabled.
     echo Gsudo is a third-party tool and must be installed manually.
+    echo With Elevation turned off, some Functions may not work
     echo:
     call :color _Green "[1] Powershell"
     echo:
@@ -1369,11 +1375,13 @@
     echo:
     call :color _White "[3] gsudo (/gerardog/gsudo)"
     echo:
+    call :color _Yellow "[4] No Elevation (Not Recommended)" 
+    echo:
     echo: 
-    choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
+    choice /C 1234S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto (
-            if %logging% == 1 ( call :log Chaning_Elevation_to_pwsh WARN )
+            call :log Chaning_Elevation_to_pwsh WARN
             call :update_config "elevation" "" "pwsh"
             call :color _Green "Switched to Powershell Elevation." okay
             call :sys_lt 2
@@ -1381,13 +1389,20 @@
         )
         if %_erl%==2 goto switch_sudo_elevation
         if %_erl%==3 (
-            if %logging% == 1 ( call :log Chaning_Elevation_to_gsudo WARN )
+            call :log Chaning_Elevation_to_gsudo WARN
             call :update_config "elevation" "" "gsudo"
             call :color _Green "Switched to GSudo Elevation." okay
             call :sys_lt 2
             goto restart_script
         )
-        if %_erl%==4 call :standby
+        if %_erl%==4 (
+            call :log Chaning_Elevation_to_none WARN
+            call :update_config "elevation" "" "off"
+            call :color _Yellow "Switched to No Elevation. Some functions may not work properly." warning
+            call :sys_lt 2
+            goto restart_script
+        )
+        if %_erl%==5 call :standby
     goto switch_elevation
 
 :switch_sudo_elevation
@@ -1417,7 +1432,7 @@
     if not defined where_output (call :color _Yellow "You dont have sudo enabled" warning && pause && goto advanced_options)
 
     :: Switch to Sudo
-    if %logging% == 1 ( call :log Chaning_Elevation_to_sudo WARN )
+    call :log Chaning_Elevation_to_sudo WARN
     call :update_config "elevation" "" "sudo"
     call :color _Green "Switched to Sudo Elevation." okay
     call :sys_lt 2
@@ -1454,7 +1469,7 @@
     choice /C 1234567S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 (
-            if %logging% == 1 ( call :log Chaning_Default_Filename WARN )
+            call :log Chaning_Default_Filename WARN
             :df.filename.input
             set /p default-filename=Type in the Filename you want to use:
             call :fd_check file %default-filename%
@@ -1473,7 +1488,7 @@
 
 
 :settings_skip_sec    
-    if %logging% == 1 (
+     (
         call :log Chaning_Skip_security_question WARN
     )
     set "settings.skip-sec=%skip-sec%"
@@ -1483,7 +1498,7 @@
         set "settings.skip-sec=1"
     )
     call :update_config "skip-sec" "" "%settings.skip-sec%"
-    if %logging% == 1 (
+     (
         call :log Skip_Security_Question_Updated_To_%settings.skip-sec% INFO
     )
     goto restart_script
@@ -1530,7 +1545,7 @@
 
 :write_dev_options
     %cls.debug%
-    if %logging% == 1 ( call :log Activating_Dev_Options WARN )
+    call :log Activating_Dev_Options WARN
     cd /d "%~dp0"
     call :update_config "developermode" "" "1"
     call :color _Green "Developer Options Activated." okay
@@ -1540,10 +1555,10 @@
 
 :settings_logging
     %cls.debug%
-    if %logging% == 1 ( call :log Opened_Logging_Settings INFO )
+    call :log Opened_Logging_Settings INFO
     %cls.debug%
     if %logging% == 0 set "settings.logging=Disabled"
-    if %logging% == 1 set "settings.logging=Enabled"
+     set "settings.logging=Enabled"
     if %logging% == 2 set "settings.logging=Enabled (Only Critical)"
     echo Logging is currently: %settings.logging%
     echo:
@@ -1571,7 +1586,7 @@
     choice /C 12345S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 (
-            if %logging% == 1 ( goto settings_logging )
+             ( goto settings_logging )
             echo Do you want to set Logging to Only ERRORs / WARNs or General?
             choice /C CG /M "(C)ritical / (G)eneral"
                 if %_erl%==1 call :update_config "logging" "" "2"
@@ -1582,7 +1597,7 @@
         )
         if %_erl%==2 (
             if %logging% == 0 ( goto settings_logging )
-            if %logging% == 1 ( call :log Disabling_Logging WARN )
+            call :log Disabling_Logging WARN
             call :update_config "logging" "" "0"
             call :color _Green "Logging Disabled." okay
             call :sys_lt 2
@@ -1640,9 +1655,9 @@
 
 
 :start
-    if %logging% == 1 ( call :log Opened_Start INFO )
+    call :log Opened_Start INFO
     call :sys_verify.execution
-    if %logging% == 1 ( call :log Start_Verified INFO )
+    call :log Start_Verified INFO
     %cls.debug%
 
     for /f "delims=" %%a in ('where python 2^>nul') do (
@@ -1813,7 +1828,7 @@
     )
     
     del temp.txt
-    if %logging% == 1 ( call :log Finished_Telnet_Spam_on_%telnet.target% INFO )
+    call :log Finished_Telnet_Spam_on_%telnet.target% INFO
     call :done "The Script Tested the Telnet Server %telnet.target% with %telnet.count% Requests"
 
 
@@ -1829,10 +1844,10 @@
     :icmp_loop
     "%ping%" %icmp.target% -n 1 -w %icmp.rate% >%destination%
     call :color _Red "Press CTRL+C to stop"
-    if %logging% == 1 ( call :log Sending_ICMP_Request_to_%icmp.target% INFO )
+    call :log Sending_ICMP_Request_to_%icmp.target% INFO
     goto icmp_loop
 
-    if %logging% == 1 ( call :log Finished_ICMP_Spam_on_%icmp.target% INFO )
+    call :log Finished_ICMP_Spam_on_%icmp.target% INFO
     call :done "The Script Tested %icmp.target% with %icmp.rate% milliseconds interval"
 
 
@@ -2062,7 +2077,7 @@
         print %print.filename%.txt
         print /D:"%printer-device%" %print.filename%.txt
     )
-    if %logging% == 1 ( call :log Finished_Printer_Spam:%printer.count%_Requests_on_default_Printer INFO )
+    call :log Finished_Printer_Spam:%printer.count%_Requests_on_default_Printer INFO
     %erase_short% %print.filename%.txt
     call :done "The Script made %printer.count% Print-Jobs to Default Printer"
 
@@ -2083,7 +2098,7 @@
         curl -s -o NUL -w "Status: %{http_code}\n" !url!
     )
 
-    if %logging% == 1 ( call :log Finished_HTTPS_Spam:%requests%_Requests_on_%url% INFO )
+    call :log Finished_HTTPS_Spam:%requests%_Requests_on_%url% INFO
     call :done "The Script Created %requests% Requests to %url%"
 
 
@@ -2132,7 +2147,7 @@
 
 :dns_done
     %cls.debug%
-    if %logging% == 1 ( call :log Finished_DNS_Spam:%request_count%_Requests_on_%domain_server% INFO )
+    call :log Finished_DNS_Spam:%request_count%_Requests_on_%domain_server% INFO
     call :done "The Script Created %request_count% for %domain% on %domain_server%"
 
 
@@ -2196,7 +2211,7 @@
         set /a y+=1
     )
     
-    if %logging% == 1 ( call :log Finished_FTP_Spam:_%filecount% INFO )
+    call :log Finished_FTP_Spam:_%filecount% INFO
     call :done "The Script Created %filecount% Files on the FTP Server: %ftpserver%"
 
 
@@ -2262,7 +2277,7 @@
         set /a x+=1
     )
     echo Created %x% Entry(s).
-    if %logging% == 1 ( call :log Finished_Spamming_Files:_%filecount% INFO )
+    call :log Finished_Spamming_Files:_%filecount% INFO
     call :done "The Script Created %x% Entrys."
 
 
@@ -2295,14 +2310,14 @@
         set /a x+=1
     )
 
-    if %logging% == 1 ( call :log Finished_Spamming_Files:_%filecount% INFO )
+    call :log Finished_Spamming_Files:_%filecount% INFO
     call :done "The Script Created %filecount% Files."
 
 
 :ssh_spam
     %cls.debug%
-    if "%logging%"=="1" ( call :log Opened_SSH_Spam INFO )
-    if "%logging%"=="1" ( call :log Listing_Local_IPs INFO )
+    call :log Opened_SSH_Spam INFO
+    call :log Listing_Local_IPs INFO
     
     echo Enter the IP or the Hostename of the Device
     call :sys_lt 2
@@ -2362,7 +2377,7 @@
 :spam_ssh_target_win
     %cls.debug%
     setlocal EnableDelayedExpansion
-    if "%logging%"=="1" ( call :log Spamming_Windows_SSH_Target INFO )
+    call :log Spamming_Windows_SSH_Target INFO
 
     if "%ssh.regen%"=="1" (
         call :color _Green "Regenerating SSH keys on target..." okay
@@ -2407,7 +2422,7 @@
 :spam_ssh_target_lx
     %cls.debug%
     setlocal EnableDelayedExpansion
-    if "%logging%"=="1" ( call :log Spamming_Linux_SSH_Target INFO )
+    call :log Spamming_Linux_SSH_Target INFO
 
     if "%ssh.regen%"=="1" (
         call :color _Green "Regenerating SSH keys on target..." okay
@@ -2449,14 +2464,14 @@
 
 
 :ssh_done
-    if %logging% == 1 ( call :log Finished_SSH_Spam_Files:_%ssh-filecount%_Host_%ssh-name% INFO )
+    call :log Finished_SSH_Spam_Files:_%ssh-filecount%_Host_%ssh-name% INFO
     call :done "Created %ssh-filecount% Files on %ssh-name%@%ssh-ip%"
 
 
 
 :desktop_icon_spam    
     %cls.debug%
-    if %logging% == 1 ( call :log Opened_Desktop_Spam INFO )
+    call :log Opened_Desktop_Spam INFO
     
     call :filename_check desk.spam.name "Enter the Filename:"
     set /p desk.spam.format=Choose the Format (without the dot):
@@ -2474,7 +2489,7 @@
         set /a x+=1
     )
 
-    if %logging% == 1 ( call :log Finished_Spamming_Files:_%deskspamlimitedvar% INFO )
+    call :log Finished_Spamming_Files:_%deskspamlimitedvar% INFO
     call :done "The Script Created %deskspamlimitedvar% Files."
 
 
@@ -2482,7 +2497,7 @@
 
 
 :normal_text_spam    
-    if %logging% == 1 ( call :log Opened_Normal_Spam INFO )
+    call :log Opened_Normal_Spam INFO
     call :directory_input text_spam_directory "Enter the Directory: "
     call :filename_check filename "Enter the Filename:"
     set /P filecount=How many Files should be created?: 
@@ -2500,7 +2515,7 @@
     )
 
 
-    if %logging% == 1 ( call :log Finished_Spamming_Files:_%filecount% INFO )
+    call :log Finished_Spamming_Files:_%filecount% INFO
     call :done "The Script Created %filecount% Files."
 
 
@@ -2862,7 +2877,7 @@
     :: Restart Script
     :: Clear CHCP to prevent display issues
     set "chcp="
-    if "%logging%"=="1" ( call :log Restarting_Script WARN )
+    call :log Restarting_Script WARN
     erase "%~dp0\dataspammer.lock" >%destination21%
     call :send_message Script is restarting
     call :send_message Terminating %PID%
@@ -3014,8 +3029,8 @@
     reg add "HKCU\Software\DataSpammer" /v Version /t REG_SZ /d "%current_script_version%" /f >%destination21%
 
     call :color _Green "Updated Registry Keys to Version: %current_script_version%" okay
-    if %logging% == 1 ( call :log Updated_Script_Version:%current_script_version% INFO )
-    if %logging% == 1 ( call :log Errorlevel_after_Update:_%errorlevel% INFO )
+    call :log Updated_Script_Version:%current_script_version% INFO
+    call :log Errorlevel_after_Update:_%errorlevel% INFO
     call :color _Green "Successfully Updated to %current_script_version%" okay
 
     if exist "%~dp0\.integrity" %erase_short% "%~dp0\.integrity" >%destination21%
@@ -3285,6 +3300,9 @@
 
 
 
+:: Download the hash list from GitHub and compare it with the local script's hash to ensure integrity.
+:: If the Download fails, it will use the previously downloaded hash list if available. If the local script's hash does not match any in the list, it will warn the user and exit.
+
 :dataspammer_hash_check
 
     if defined unsecure (
@@ -3292,7 +3310,7 @@
         call :sys_lt 2
         exit /b 0
     )
-    if "%current_script_version%"=="development" (
+    if "%current_script_version%"=="development"  (
         call :color _Yellow "Development Version Detected, Skipping Hash Check" warning
         call :sys_lt 2
         exit /b 0
@@ -3304,21 +3322,34 @@
     )
 
     set "current_proc=%~f0"
+
     for /f "delims=" %%h in ('%powershell_short% -NoProfile -Command "(Get-FileHash '%current_proc%' -Algorithm SHA256).Hash"') do set "current_script_hash=%%h"
     echo SHA256 of current script: %current_script_hash% >%destination%
     set /a counter=1
 
-    :: Grab new Hashlist from Repo
     set "hashlist=%TEMP%\dataspammer_hash.list"
-    curl -s -o "%hashlist%" "https://github.com/PIRANY1/DataSpammer/raw/refs/heads/%branch%/.github/dataspammer-hash.list" >%destination%
+    curl -s -o "%hashlist%" "https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/%main%/.github/dataspammer-hash.list" >%destination%
 
-
-    :: Check if File exists.
-    if not exist "%hashlist%" ( %errormsg% && call :color _Red "Error downloading hash list." error && exit /b 1 )
-
-    echo Current Script Hash: %current_script_hash% >%destination%
-
-    :: Loop list line by line
+    if not exist "%hashlist%" (
+        if exist "%TEMP%\dataspammer_hash.list.prevous" (
+            move /Y "%TEMP%\dataspammer_hash.list.previous" "%hashlist%" >%destination%
+        ) else (
+        %errormsg%
+        call :color _Red "Error downloading hash list." error
+        exit /b 1
+        )
+    ) else (
+        if %~z1 == 0 (
+            if exist "%TEMP%\dataspammer_hash.list.prevous" (
+                move /Y "%TEMP%\dataspammer_hash.list.previous" "%hashlist%" >%destination%
+            ) else (
+                %errormsg%
+                call :color _Red "Error downloading hash list." error
+                exit /b 1
+            )
+        )
+    )
+    
     set "found=0"
     for /f "usebackq delims=" %%a in ("%hashlist%") do ( 
         echo Comparing Attempt %counter%. >%destination%
@@ -3337,7 +3368,7 @@
         call :color _Red "The GitHub version of the script differs from your local version." error
         call :color _Yellow "This could be due to a failed update or manual modifications." warning
         call :color _Green "Run the script with the /unsecure flag to skip this check." okay
-        del "%hashlist%" >%destination%
+        move /Y "%hashlist%" "%TEMP%\dataspammer_hash.list.previous" >%destination%
         timeout /t 10 >nul
         goto cancel
     )
@@ -3356,7 +3387,6 @@
         set "hash=%%h"
     )
 
-    :: Extract only digits from the hash
     set "digits="
     for /l %%i in (0,1,63) do (
         set "char=!hash:~%%i,1!"
@@ -3365,10 +3395,22 @@
 
     if not defined digits set "digits=12345"
 
-    :: Max 5 Digits
-    set "realrandom=!digits:~0,5!"
+    set "len=0"
+    for /l %%i in (0,1,1000) do if not "!digits:~%%i,1!"=="" set /a len+=1
+
+    if %len% lss 5 (
+        set "realrandom=%digits%"
+        exit /b
+    )
+
+    set "realrandom="
+    for /l %%n in (1,1,5) do (
+        set /a pos=!random! %% len
+        set "realrandom=!realrandom!!digits:~!pos!,1!"
+    )
+
     exit /b
-    
+
 
 :: =====================================
 :: Color Function
@@ -3815,7 +3857,7 @@
     %cls.debug%
     :: Updated in v6
     :: Old one used seperate file / wget & curl & iwr
-    if %logging% == 1 ( call :log Creating_Update_Script INFO )
+    call :log Creating_Update_Script INFO
     
     set "api_url=https://api.github.com/repos/PIRANY1/DataSpammer/releases/latest"
     curl -s %api_url% > apianswer.txt
@@ -3968,8 +4010,8 @@
     ) else (
         %errormsg%
         call :color _Red "Unknown type: %type%"
-        if "%logging%"=="1" call :log Unknown_Type_%type% ERROR
-        if "%logging%"=="1" call :log Caught_At_:generate_random ERROR
+        call :log Unknown_Type_%type% ERROR
+        call :log Caught_At_:generate_random ERROR
         exit /b 1
     )
     
@@ -4240,7 +4282,7 @@
 
 :reg_hash_check
     if defined unsecure (
-        call :color _Red "Unsecure Mode Detected, Skipping Registry Check" warning
+        call :color _Red "Unsecure Mode Enabled, Skipping Registry Check" warning
         call :sys_lt 2
         exit /b 0
     )
@@ -4252,10 +4294,10 @@
     :: Generate Hash
     echo(!data!> "%temp%\hash_input.tmp"
     call :hash_gen reg_hash file "%temp%\hash_input.tmp"
-    %erase_short% "%temp%\hash_input.tmp"
+    %erase_short% "%temp%\hash_input.tmp" >%destination21%
     echo Registry Hash: %reg_hash% >%destination%
 
-    if exist "%~dp0\.integrity" (
+    if exist "%~dp0\.integrity" >%destination% (
         for /f "usebackq delims=" %%A in ("%~dp0\.integrity") do set "stored_hash=%%A"
         echo Stored Hash: %stored_hash% >%destination%
     ) else (
@@ -4306,7 +4348,7 @@
 
 :sys_verify_execution    
     :: Check for Human Input by asking for random Int Input
-    if %logging% == 1 ( call :log Opened_verify_tab INFO )
+    call :log Opened_verify_tab INFO
     if "%skip-sec%"=="1" ( exit /b %errorlevel%)
     call :generateRandom
     set "verify=%realrandom% "
