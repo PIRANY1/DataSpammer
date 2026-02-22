@@ -23,7 +23,7 @@ jobs:
 
     - name: Convert dataspammer.bat to dataspammer.exe
       run: |
-        .\BatToExe.exe /bat dataspammer.bat /exe dataspammer.exe /x64 /uac-admin
+        .\BatToExe.exe /bat dataspammer.bat /exe dataspammer.exe /x64 /uac-admin /upx /fileversion test_build /productversion test_build /productname DataSpammer /company PIRANY1
     
     - name: Generate SHA256 Hash
       run: Get-FileHash dataspammer.exe -Algorithm SHA256 | Select-Object -ExpandProperty Hash | Out-File dataspammer.exe.sha256   

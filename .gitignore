@@ -8,6 +8,7 @@
 dev
 dataspammer.lock
 dataspammer.exe
+.integrity
 
 # Logs and output files
 *.log
