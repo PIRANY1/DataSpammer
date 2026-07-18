@@ -15,7 +15,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
 
     - name: Download Bat To Exe Converter
       run: |
@@ -29,13 +29,13 @@ jobs:
       run: Get-FileHash dataspammer.exe -Algorithm SHA256 | Select-Object -ExpandProperty Hash | Out-File dataspammer.exe.sha256   
 
     - name: Upload .exe as artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: dataspammer.exe
         path: dataspammer.exe
 
     - name: Upload Hash as artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: dataspammer.exe.sha256
         path: dataspammer.exe.sha256

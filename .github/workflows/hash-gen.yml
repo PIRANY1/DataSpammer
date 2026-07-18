@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Update hash list
         # This step calculates the SHA256 hash of the target file.
@@ -38,7 +38,7 @@ jobs:
         # Use a dedicated action to automatically commit and push changes.
         # This is cleaner than manual git commands and handles edge cases,
         # such as not creating a commit if there are no changes.
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           # Required commit message
           commit_message: "ci: Add new SHA256 hash for dataspammer.bat"

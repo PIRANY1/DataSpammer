@@ -63,7 +63,6 @@
 :: =============================================================
 :: Settings:
 :: Default Filename: default_filename = (Filename)
-:: Developermode: developermode = (0/1)
 :: Change Monitoring Socket: monitoring = (0/1)
 :: Change Color: color = (Color Syntax)
 :: Skip Security Question: skip-sec = (0/1)
@@ -100,12 +99,12 @@
 :: Todo: 
 ::      Replace . & - with _ in Variables & Labels
 ::      Long Term: Full DE Translation
-::      Add Registry Testing, More Workflow Tests and Arg Options. Improve Arg Parsing. 
-::      ADD MORE LOGGING & MONITOR SOCKET MESSAGES
+::      More Workflow Tests and Improve Argument Parsing 
 
-::      Fix Scoop Installer / Workflow
 ::      Implement Privilege Check
 ::      Add exe Files to Compiled Version
+::      Replace some Advanced settings with direct console access
+::      Rework Dev Options
 
 :top
     @echo off
@@ -300,6 +299,33 @@
         call :color _Green "Powershell Version is sufficient: !PS_MAJOR!.x" okay
     )
 
+    :: Check if Terminal is installed
+    for /f "delims=" %%a in ('where wt 2^>nul') do (
+        set "WT_PATH=%%a"
+    )
+    if not defined WT_PATH (
+        call :color _Red "wt.exe not found in PATH." error
+        call :color _Yellow "Falling back to cmd.exe" warning
+        for /f "delims=" %%a in ('where cmd 2^>nul') do (
+            set "CMD_PATH=%%a"
+        )
+        set "elevPath=!CMD_PATH!"
+    ) else (
+        call :color _Green "wt.exe found at: !WT_PATH!" okay
+        set "elevPath=!WT_PATH!"
+    )
+
+    :: Check if Script is running in Windows Terminal, if not exit and relaunch in Windows Terminal, otherwise Font Styling may not work properly
+    %powershell_short% -NoProfile -Command "$p=Get-CimInstance Win32_Process -Filter \"ProcessId=$PID\";while($p){if($p.Name -eq 'WindowsTerminal.exe'){exit 2};$p=if($p.ParentProcessId){Get-CimInstance Win32_Process -Filter \"ProcessId=$($p.ParentProcessId)\"}else{$null}};exit 1"
+    if "%errorlevel%"=="1" (
+        call :color _Red "Script is not running in Windows Terminal." error
+        call :color _Yellow "Relaunching in Windows Terminal..." pending
+        "%elevPath%" %cmdPath% /k ""%~f0" %*"
+    ) else (
+        call :color _Green "Script is running in Windows Terminal." okay
+    )
+
+
     :: Check for Flags
     for %%A in (%1 %2 %3 %4 %5) do (
         echo Given Arguments: >%destination%
@@ -359,7 +385,7 @@
     if "%~1"=="remove" title DataSpammer && goto sys_delete_script
     if "%~1"=="debug" title DataSpammer && goto debuglog
     if "%~1"=="debugtest" title DataSpammer && goto debugtest
-    if "%~1"=="monitor" title DataSpammer && goto monitor
+    if "%~1"=="monitor" title DataSpammer && goto monitor 
     if "%~1"=="start" title DataSpammer && goto start_verified
     if "%~1"=="install" title DataSpammer && goto installer_main_window
     
@@ -444,33 +470,17 @@
     :: Apply Color from Settings
     if defined color ( color %color% >nul ) else ( color 0F >nul )
 
-    :: Check if Terminal is installed
-    for /f "delims=" %%a in ('where wt 2^>nul') do (
-        set "WT_PATH=%%a"
-    )
-    if not defined WT_PATH (
-        call :color _Red "wt.exe not found in PATH." error
-        call :color _Yellow "Falling back to cmd.exe" warning
-        for /f "delims=" %%a in ('where cmd 2^>nul') do (
-            set "CMD_PATH=%%a"
-        )
-        set "elevPath=!CMD_PATH!"
-    ) else (
-        call :color _Green "wt.exe found at: !WT_PATH!" okay
-        set "elevPath=!WT_PATH!"
-    )
-
     :: Elevate Script with sudo, gsudo or powershell
     net session >nul 2>&1
     if %errorLevel% neq 0 (
         if "%elevation%"=="sudo" (
             for /f "delims=" %%A in ('where sudo 2^>nul') do set SUDO_PATH=%%A
-            %SUDO_PATH% --new-window -- "%LocalAppData%\Microsoft\WindowsApps\wt.exe" %cmdPath% /c ""%~f0" %b_flag%%v_flag%%u_flag%" || goto elevation_failed
+            %SUDO_PATH% --new-window -- "%elevPath%" %cmdPath% /c ""%~f0" %b_flag%%v_flag%%u_flag%" || goto elevation_failed
             goto cancel
         )
         if "%elevation%"=="gsudo" (
             for /f "delims=" %%A in ('where gsudo 2^>nul') do set GSUDO_PATH=%%A
-            %GSUDO_PATH% --new "%LocalAppData%\Microsoft\WindowsApps\wt.exe" %cmdPath% /c ""%~f0" %b_flag%%v_flag%%u_flag%" || goto elevation_failed
+            %GSUDO_PATH% --new "%elevPath%" %cmdPath% /c ""%~f0" %b_flag%%v_flag%%u_flag%" || goto elevation_failed
             goto cancel
         )
         if "%elevation%"=="pwsh" (
@@ -488,6 +498,10 @@
         )
     )
     call :color _Green "Elevation successful." okay
+
+    if "%monitoring%"=="1" (
+        call :color _Green "Monitoring Socket is enabled." warning
+    ) 
 
     if defined PROCESSOR_ARCHITEW6432 (
         %errormsg%
@@ -640,11 +654,13 @@
     > "%~dp0dataspammer.lock" echo %PID%
     if "%errorlevel%"=="1" ( %errormsg% && call :color _Red "Failed to create lock file." error && call :sys_lt 6 count )
 
+    :: Change to WT
     :: Start the Monitor Socket
     if "%monitoring%"=="1" (
-        start /min %cmdPath% /k ""%~f0" monitor %PID%" 
+        call :color _Green "Starting Monitor Socket..." okay
         call :log Starting_Monitor_Socket INFO
-        >> "%TEMP%\socket.con" echo Connection Request from %PID%
+        set "monitor_init=1"
+        "%elevPath%" %cmdPath% /k ""%~f0" monitor %PID%"
     )
 
 :login_input
@@ -703,11 +719,6 @@
 
 :file_check
     title DataSpammer - Starting
-    :: Establish Socket Connection
-    call :send_message Started DataSpammer
-    call :send_message Established Socket Connection
-    call :log Established_Socket_Connection INFO
-    call :log Checking_Settings_for_Update_Command INFO
 
     :: Start Update Check
     call :gitcall_sys
@@ -803,9 +814,6 @@
     :: Remove encrypt File from Installer
     if exist "%~dp0encrypt.bat" %erase_short% "%~dp0encrypt.bat" >%destination21%
 
-    :: Check Developermode
-    if "%developermode%"=="1" ( set "dev-mode=1" & call :color _Yellow "Activated Developer Mode" warning && call :log Developer_Mode_Activated INFO ) else ( set "dev-mode=0" )
-
     :: Extract CMD Version
     for /f "tokens=2 delims=[]" %%v in ('ver') do set CMD_VERSION=%%v
 
@@ -884,7 +892,7 @@
 
 
 :settings
-    call :log Opened_Settings_%dev-mode%_dev_mode INFO
+    call :log Opened_Settings INFO
     color
     %cls.debug% 
     %$Echo% "    ____       _   _   _ 
@@ -907,7 +915,7 @@
     echo: 
     echo:
     call :sys_lt 1
-    call :color _Blue "[3] Version Control"
+    call :color _Blue "Force Update Script"
     call :sys_lt 1
     echo: 
     echo:
@@ -936,8 +944,8 @@
     choice /C 1234567S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto main_settings
-        if %_erl%==2 goto activate_dev_options
-        if %_erl%==3 goto settings_version_control
+        if %_erl%==2 goto developer_options
+        if %_erl%==3 call :update_script stable && goto cancel
         if %_erl%==4 goto login_setup
         if %_erl%==5 goto restart_script
         if %_erl%==6 goto advanced_options
@@ -964,19 +972,19 @@
     call :sys_lt 1
     echo:
     call :sys_lt 1
-    echo [3] Monitor
+    echo [3] Monitor / Live Log
     call :sys_lt 1
     echo: 
     call :sys_lt 1
     echo:
     call :sys_lt 1
-    echo [4] Download Wait.exe - Improve Speed / Wait Time - Source is at PIRANY1/wait.exe (ALPHA)
+    echo [4] Download Wait.exe - Improve Speed / Wait Time - Source is at PIRANY1/wait.exe (Speed Improvement is not much faster, but may be more reliable depending on your system)
     call :sys_lt 1
     echo: 
     call :sys_lt 1
     echo:
     call :sys_lt 1
-    echo [5] Custom Instruction File Menu (Alpha)
+    echo [5] Custom Instruction File Menu (Beta)
     call :sys_lt 1
     echo: 
     call :sys_lt 1
@@ -988,7 +996,7 @@
     call :sys_lt 1
     echo:
     call :sys_lt 1
-    echo [7] Benchmark a Command (Unstable, Average Calculation may not work)
+    echo [7] Benchmark a Command (Beta)
     call :sys_lt 1
     echo: 
     call :sys_lt 1
@@ -1000,7 +1008,7 @@
     call :sys_lt 1
     echo:
     call :sys_lt 1
-    choice /C 1234567S /T 120 /D S  /M "Choose an Option from Above:"
+    choice /C 12345678S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto encrypt
         if %_erl%==2 goto verbose_output_settings
@@ -1095,15 +1103,18 @@
 
 :verbose_output_settings
     %cls.debug%
-    if "%verbose%"=="1" set "verbose.status=call :color _Green ""Verbose Output is currently Enabled"" okay"
-    if "%verbose%"=="0" set "verbose.status=call :color _Red ""Verbose Output is currently Disabled"" error"
     
     echo -----------------------
     echo Verbose Output Settings
     echo -----------------------
 
     echo:
-    %verbose.status%
+    if "%verbose%"=="1" (
+        call :color _Green "Verbose Output is currently Enabled." okay
+    ) else (
+        call :color _Red "Verbose Output is currently Disabled." error
+    )
+
     echo:
     call :color _Green "[1] Enable Verbose Output"
     call :sys_lt 1
@@ -1118,14 +1129,14 @@
             call :update_config "verbose" "" "1"
             call :color _Green "Verbose Output Enabled." okay
             call :sys_lt 5
-            goto verbose_output_settings
+            goto restart_script
         )
         if %_erl%==2 (
             %cls.debug%
             call :update_config "verbose" "" "0"
             call :color _Red "Verbose Output Disabled." error
             call :sys_lt 5
-            goto verbose_output_settings
+            goto restart_script
         )
         if %_erl%==3 goto advanced_options
         if %_erl%==4 call :standby
@@ -1150,7 +1161,9 @@
     )  
     :: Compute Hashes
     call :hash_gen sha256_actual file "%temp%\wait.exe"
-    call :hash_gen sha256_expected file "%temp%\wait.exe.sha256"
+    for /f "tokens=1" %%H in ("%temp%\wait.exe.sha256") do (
+        set sha256_expected=%%H
+    )
 
     :: Compare Hashes
     if "%sha256_expected%" neq "%sha256_actual%" (
@@ -1242,22 +1255,57 @@
     echo:
     choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
-        if %_erl%==1 (
-            call :update_config "monitoring" "" "1"
-            call :color _Green "Monitor Socket Enabled." okay
-            call :sys_lt 2
-            goto monitor_settings
-        )
+        if %_erl%==1 goto monitor_enable
         if %_erl%==2 (
             call :update_config "monitoring" "" "0"
             call :color _Green "Monitor Socket Disabled." okay
             call :sys_lt 2
-            goto monitor_settings
+            goto restart_script
         )
         if %_erl%==3 goto advanced_options
         if %_erl%==4 call :standby
     goto monitor_settings
 
+
+:monitor_enable
+    %cls.debug%
+    if "%monitoring%"=="1" (
+        call :color _Green "Monitor Socket is already enabled." okay
+        call :sys_lt 2
+        goto advanced_options
+    ) else (
+        echo The Monitoring Socket is based on a FIFO (First In First Out) Server that is Open Source and can be downloaded from GitHub.
+        echo The FIFO Server manages the Inter Batch Communication which would otherwise only be possible with File I/O. 
+        echo The Source Code for the FIFO Server is available at https://github.com/PIRANY1/SFPS
+        echo The Monitoring Socket can be used to monitor the logs and output of DataSpammer in real time. 
+        echo:
+        call :color _Green "[1] Enable Monitor Socket"
+        call :sys_lt 1
+        echo:
+        call :sys_lt 1
+        call :color _Cyan "[2] Open Source Code"
+        call :sys_lt 1
+        echo:
+        call :sys_lt 1
+        call :color _White "[3] Go Back"
+        echo:
+        echo:
+        choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
+            set _erl=%errorlevel%
+            if %_erl%==1 (
+                call :update_config "monitoring" "" "1"
+                call :color _Green "Monitor Socket Enabled in Direct Mode." okay
+                call :sys_lt 2
+                goto restart_script
+            )
+            if %_erl%==2 (
+                explorer https://github.com/PIRANY1/SFPS
+                goto monitor_enable
+            )
+            if %_erl%==3 goto monitor_settings
+            if %_erl%==4 call :standby
+        goto monitor_enable
+    )
 
 
 :login_setup
@@ -1286,13 +1334,13 @@
             call :color _Yellow "Changing Login..." warning
             reg delete "HKCU\Software\DataSpammer" /v UsernameHash /f
             reg delete "HKCU\Software\DataSpammer" /v PasswordHash /f
-            if exist "%~dp0\.integrity" %erase_short% "%~dp0\.integrity" >%destination21%
+            call :reg_hash_check_clear
             goto login_create
         )
         if %_erl%==3 (
             reg delete "HKCU\Software\DataSpammer" /v UsernameHash /f
             reg delete "HKCU\Software\DataSpammer" /v PasswordHash /f
-            if exist "%~dp0\.integrity" %erase_short% "%~dp0\.integrity" >%destination21%
+            call :reg_hash_check_clear
             call :color _Green "Login Deleted Successfully." warning
             call :color _Yellow "Restarting Script..." warning
             call :sys_lt 1
@@ -1329,7 +1377,7 @@
     call :color _Blue "Saving Secure Data..." pending
     reg add "HKCU\Software\DataSpammer" /v UsernameHash /t REG_SZ /d "%username_hash%" /f >%destination%
     reg add "HKCU\Software\DataSpammer" /v PasswordHash /t REG_SZ /d "%password_hash%" /f >%destination%
-    if exist "%~dp0\.integrity" %erase_short% "%~dp0\.integrity" >%destination21%
+    call :reg_hash_check_clear
     %cls.debug%
     call :color _Green "Login Created Successfully." okay
     call :sys_lt 1
@@ -1351,7 +1399,7 @@
     :: Version Update checks for this File
     call :generateRandom
     reg add "HKCU\Software\DataSpammer" /v Token /t REG_SZ /d "%realrandom%" /f
-    if exist "%~dp0\.integrity" %erase_short% "%~dp0\.integrity" >%destination21%
+    call :reg_hash_check_clear
     (
         @echo off
         cd /d "%~dp0"
@@ -1518,56 +1566,6 @@
     )
     goto restart_script
 
-
-:settings_version_control
-    %cls.debug%
-    echo:
-    echo:
-    call :sys_lt 1
-    echo [1] Force Update
-    call :sys_lt 1
-    echo:
-    call :sys_lt 1
-    echo [2] Switch to Main Branch
-    call :sys_lt 1
-    echo:
-    call :sys_lt 1
-    echo [3] Go Back
-    call :sys_lt 1
-    echo:
-    echo:
-    choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
-        set _erl=%errorlevel%
-        if %_erl%==1 call :update_script stable && goto cancel
-        if %_erl%==2 call :update_script stable && goto cancel
-        if %_erl%==3 goto settings
-        if %_erl%==4 call :standby
-    goto settings_version_control
-
-:activate_dev_options   
-    %cls.debug%
-    if "%developermode%"=="1" goto dev_options
-    call :color _Red "Do you want to activate the Developer Options?"
-    call :color _Red "Developer Options include some advanced features like logging etc."
-    call :color _Red "These Features are experimental can be unstable."
-    echo:
-    choice /C YNS /T 120 /D S  /M "Yes/No"
-        set _erl=%errorlevel%
-        if %_erl%==1 goto write_dev_options
-        if %_erl%==2 goto settings
-        if %_erl%==3 call :standby
-    goto activate_dev_options
-
-:write_dev_options
-    %cls.debug%
-    call :log Activating_Dev_Options WARN
-    cd /d "%~dp0"
-    call :update_config "developermode" "" "1"
-    call :color _Green "Developer Options Activated." okay
-    call :color _Yellow "Restarting Script..." warning
-    call :sys_lt 2
-    goto restart_script
-
 :settings_logging
     %cls.debug%
     call :log Opened_Logging_Settings INFO
@@ -1678,7 +1676,7 @@
     for /f "delims=" %%a in ('where python 2^>nul') do (
         set "where_output=%%a"
     )
-    if not defined where_output (set "python.line=echo:") else ( set "python.line=call :color _Yellow ""[4] Python Scripts (Experimental)""" ) 
+    if not defined where_output (set "python.line=echo:") else ( set "python.line=[4] Python Scripts (Experimental)" ) 
 
 
 :start_verified
@@ -1694,13 +1692,13 @@
     call :sys_lt 1
     echo:
     call :sys_lt 1
-    call :color _Blue "[2] Internet ( LAN / WAN)"
+    call :color _Cyan "[2] Internet"
     call :sys_lt 1
     echo:
     call :sys_lt 1
     call :color _White "[3] Go back"
     call :sys_lt 1
-    %python.line%
+    echo %python.line%
     call :sys_lt 1
     choice /C 1234S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
@@ -2576,7 +2574,8 @@
     :: Add Remember Encrypted State Token
     reg add "HKCU\Software\DataSpammer" /v logging /t REG_SZ /d "1" /f
     reg add "HKCU\Software\DataSpammer" /v color /t REG_SZ /d "0F" /f
-    if exist "%~dp0\.integrity" %erase_short% "%~dp0\.integrity" >%destination21%
+    call :reg_hash_check_clear
+
     call :color _Green "DataSpammer was successfully installed." okay
     goto restart_script
 
@@ -2611,7 +2610,8 @@
     reg add "HKCU\Software\DataSpammer" /v logging /t REG_SZ /d "1" /f
     reg add "HKCU\Software\DataSpammer" /v color /t REG_SZ /d "0F" /f
     call :color _Green "DataSpammer was successfully installed." okay
-    if exist "%~dp0\.integrity" %erase_short% "%~dp0\.integrity" >%destination21%
+    call :reg_hash_check_clear
+
     call :color _Yellow "Restarting..." pending
     call :sys_lt 4 count
     goto restart_script
@@ -2894,92 +2894,92 @@
     set "chcp="
     call :log Restarting_Script WARN
     erase "%~dp0\dataspammer.lock" >%destination21%
-    call :send_message Script is restarting
-    call :send_message Terminating %PID%
-    echo: > %temp%\DataSpammerClose.txt
+    if exist "%~dp0\server.exe" ("%~dp0\server.exe" send exit)
     start %elevPath% cmd.exe /c "%~f0" %b_flag%%v_flag%%u_flag%
     goto cancel
 
 
 :monitor
-    :: When Monitor is invoked, it observes the script and provides details about its current state.
-    :: Monitor is still Experimental & may cause problems
-    @echo off
-    setlocal EnableDelayedExpansion
-    %cls.debug%
-    del "%temp%\DataSpammerCrashed.txt" >%destination%
-    del "%temp%\DataSpammerClose.txt" >%destination%
-    title Monitoring DataSpammer PID: %~2
-    echo Opened Monitor Socket.
-    echo Waiting for Startup to Finish...
-    if exist "%temp%\socket.con " (
-        del "%temp%\socket.con" >nul
-        echo Socket Connection Established.
+    cls
+    :: Check if Server.exe is present, if not download it and check hash
+    if not exist "%~dp0\server.exe" (
+        %cls.debug%
+        :: Download Server.exe and Hash
+        call :color _Green "Downloading server.exe" pending
+        bitsadmin /transfer upd "https://github.com/PIRANY1/SFPS/raw/refs/heads/main/bin/server.exe" "%temp%\server.exe" >nul
+        if errorlevel 1 (
+            %errormsg%
+            call :color _Red "Download failed. " error
+            exit /b 1
+        )   
+        call :color _Green "Downloading Hash" pending
+        bitsadmin /transfer upd "https://github.com/PIRANY1/SFPS/raw/refs/heads/main/bin/server.exe.sha256" "%temp%\server.exe.sha256" >nul
+        if errorlevel 1 (
+            %errormsg%
+            call :color _Red "Download failed. " error
+            exit /b 1
+        )  
+        :: Compute Hashes
+        call :hash_gen sha256_actual file "%temp%\server.exe"
+        for /f "tokens=1" %%H in ("%temp%\server.exe.sha256") do (
+            set sha256_expected=%%H
+        )
+
+        :: Compare Hashes
+        if "%sha256_expected%" neq "%sha256_actual%" (
+            %errormsg%
+            call :color _Red "Download failed. " error
+            call :color _Yellow "Hash mismatch! Expected: %sha256_expected%, but got: %sha256_actual%" warning
+            goto menu
+        )
+            
+        :: Move Server.exe    
+        %move_short% /Y "%temp%\server.exe" "%~dp0\server.exe" 
+        if errorlevel 1 (
+            %errormsg%
+            call :color _Red "Failed to move server.exe to script directory." error
+            exit /b 1
+        )
+        call :color _Green "server.exe installed successfully." okay
+        
+    ) else (
+        call :color _Green "FIFO Module exists" okay
     )
-    title Monitoring DataSpammer.bat
-    :: Parse PID from Main Process
-    set "PID.DTS=%~2"
-    echo PID: %PID.DTS%
-    set "batScript=%temp%\dts-monitor.bat"
-    erase "%batScript%" >nul
+
+    :: Start Server.exe 
+    call :color _Green "Starting SFPS Server.exe" pending
+    "%~dp0\server.exe" init >nul
+    echo Main Thread PID: %~2
+
+    :sfps_loop
+    for /f "tokens=1-3 delims=:." %%a in ("%time%") do set formatted_time=%%a:%%b:%%c
+    for /f "delims=" %%A in ('"%~dp0\server.exe" get -t') do set "OUTPUT=%%A"
+    if "%OUTPUT%"=="exit" (
+        call :color _Yellow "Main Thread Closed. Exiting..." warning
+        "%~dp0\server.exe" exit
+        pause
+        exit /b 0
+    ) else (
+        if not "%OUTPUT%"=="" (
+            echo %OUTPUT% 
+            set "OUTPUT="
+        ) 
+    )
+    tasklist /FI "PID eq %~2" | find "%~2" >nul
+    if not "%errorlevel%"=="0" (
+        call :color _Red "Main Thread Closed Unexpectedly. Exiting..." error
+        "%~dp0\server.exe" exit
+        pause
+        exit /b 0
+    )
+
+    timeout 1 /NOBREAK >nul
+    goto sfps_loop
 
 
-    :: Observe Process, loop and if its not running, write to a file
-    (
-        echo @echo off
-        echo setlocal
-        echo Monitoring DataSpammer.bat with PID %PID.DTS%
-        echo :check_process
-        echo tasklist /FI "PID eq %PID.DTS%" ^| findstr /R /C:" %PIDToCheck% " ^>nul
-        echo if errorlevel 1 ^(
-        echo    echo DataSpammmer with PID %PID.DTS% crashed at %%date%% %%time%% ^> "%%temp%%\DataSpammerCrashed.txt"
-        echo    echo DataSpammmer with PID %PID.DTS% crashed at %%date%% %%time%%
-        echo    exit /b %errorlevel%
-        echo ^)
-        echo timeout /t 1 ^>nul
-        echo goto check_process
-    ) > "%batScript%"
 
-    start /b "" "%batScript%"
-
-    
-    :: Start a PowerShell process to monitor the DataSpammer.bat process
-    :: Needs to be tested
-    :: start "" %powershell_short% -ExecutionPolicy Bypass -Command "& {param([int]$pid) while ($true) {try {Get-Process -Id $pid -ErrorAction Stop} catch {"DataSpammer-Process Crashed at $(Get-Date)" | Out-File -FilePath $env:temp\DataSpammerCrashed.txt; break} Start-Sleep -Seconds 0.5}} -pid %PID%"
-
-
-    :fullloop
-    :: For controlled exits use echo: > %temp%\DataSpammerClose.txt
-
-        for /f "tokens=1-3 delims=:." %%a in ("%time%") do set formatted_time=%%a:%%b:%%c
-
-        :: Check if a Message is available
-        if exist "%TEMP%\socket.message" (
-            set /p message.monitor=<"%TEMP%\socket.message"
-            del "%TEMP%\socket.message" >nul
-            echo %formatted_time%: %message.monitor%
-        )
-
-        if exist "%temp%\DataSpammerCrashed.txt" (
-            del "%temp%\DataSpammerCrashed.txt" >nul
-            echo DataSpammer.bat Crashed at !formatted_time!
-            timeout /t 5 >nul
-            exit /b %errorlevel%
-        )
-        if exist "%temp%\DataSpammerClose.txt" (
-            del "%temp%\DataSpammerClose.txt" >nul
-            echo DataSpammer.bat was Closed at !formatted_time!
-            timeout /t 5 >nul
-            exit /b %errorlevel%
-        )
-
-    call :sys_lt 1
-    goto fullloop
-
-
-:dev_options
+:developer_options
     %cls.debug%
-    :: Dev Options
     title Developer Options - DataSpammer
     echo PID: %PID%
     echo Developer Options
@@ -2992,44 +2992,55 @@
     echo:
     echo [4] Restart the Script (Variables will be kept)
     echo:
-    echo [5] Restart the Script (Variables wont be kept)
+    echo [5] List all :Labels
     echo:
-    echo [6] List all :signs
-    echo:
-    echo [7] List all Settings
+    echo [6] List all Settings
     echo:
     echo [8] Go Back
-    choice /C 12345678S /T 120 /D S  /M "Choose an Option from Above:"
+    choice /C 1234567S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 (
             echo List all Call Signs?
             choice /C YN /M "(Y)es / (N)o"
                 set _erl=%errorlevel%
-                if %_erl%==1 call :list_vars && %cls.debug% && set /P jumpto=Enter the Call Sign: && goto %jumpto% 
+                if %_erl%==1 (
+                    cd "%~dp0"
+                    call :color _Green "Listing all :Signs in the Script" okay
+                    echo: 
+                    for /f "delims=" %%a in ('findstr /b ":" "%script_name%.%ending%" ^| findstr /v "^::" ^| findstr /v "^:REM"') do ( echo %%a )
+                    %cls.debug%
+                    set /P jumpto=Enter the Call Sign:
+                    goto %jumpto% 
+                )
                 if %_erl%==2 %cls.debug% && set /P jumpto=Enter the Call Sign: && goto %jumpto%
         )
-        if %_erl%==2 @echo on && %cls.debug% && goto dev_options
-        if %_erl%==3 set /P var=Enter the Variable Name: && set /P value=Enter the Value: && set %var%=%value% && %cls.debug% && goto dev_options
+        if %_erl%==2 @echo on && %cls.debug% && goto developer_options
+        if %_erl%==3 set /P var=Enter the Variable Name: && set /P value=Enter the Value: && set %var%=%value% && %cls.debug% && goto developer_options
         if %_erl%==4 goto top
-        if %_erl%==5 goto restart_script
-        if %_erl%==6 call :list_vars && pause && %cls.debug%
-        if %_erl%==7 goto debug_info
-        if %_erl%==8 goto settings  
-        if %_erl%==9 call :standby
-    goto dev_options
+        if %_erl%==5 (
+            cd "%~dp0"
+            call :color _Green "Listing all :Signs in the Script" okay
+            echo: 
+            for /f "delims=" %%a in ('findstr /b ":" "%script_name%.%ending%" ^| findstr /v "^::" ^| findstr /v "^:REM"') do ( echo %%a )
+            goto developer_options
+            pause
+            %cls.debug%
+        )
+        if %_erl%==6 (
+            echo Monitoring: %monitoring%
+            echo Script Version: %current_script_version%
+            echo Logging: %logging%
+            echo Color: %color%
+            echo Default Filename: %default_filename%
+            echo Update: %update%
+            echo Elevation: %elevation%
+            echo Skip Security Check: %skip-sec%
+        )
+        if %_erl%==7 goto settings  
+        if %_erl%==8 call :standby
+    goto developer_options
 
 
-:debug_info
-    echo Monitoring: %monitoring%
-    echo Script Version: %current_script_version%
-    echo Logging: %logging%
-    echo Developer Mode: %developermode%
-    echo Color: %color%
-    echo Default Filename: %default_filename%
-    echo Update: %update%
-    echo Elevation: %elevation%
-    echo Skip Security Check: %skip-sec%
-    goto dev_options
 
 
 :sys_new_update_installed
@@ -3048,7 +3059,8 @@
     call :log Errorlevel_after_Update:_%errorlevel% INFO
     call :color _Green "Successfully Updated to %current_script_version%" okay
 
-    if exist "%~dp0\.integrity" %erase_short% "%~dp0\.integrity" >%destination21%
+    call :reg_hash_check_clear
+
     pause
     call :color _Yellow "Restarting..." warning
     pause
@@ -3310,7 +3322,6 @@
 
     for /f "delims=" %%h in ('%powershell_short% -NoProfile -Command "(Get-FileHash '%current_proc%' -Algorithm SHA256).Hash"') do set "current_script_hash=%%h"
     echo SHA256 of current script: %current_script_hash% >%destination%
-    set /a counter=1
 
     set "hashlist=%TEMP%\dataspammer_hash.list"
     curl -s -o "%hashlist%" "https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/%branch%/.github/dataspammer-hash.list" >%destination%
@@ -3336,12 +3347,19 @@
     )
 
     set "found=0"
-    for /f "usebackq delims=" %%a in ("%hashlist%") do ( 
-        echo Comparing Attempt %counter%. >%destination%
-        echo Remote Hash: %%a >%destination%
-        echo Local  Hash: %current_script_hash% >%destination%
-        echo. >%destination%
-        if /i "%%a"=="%current_script_hash%" ( set "found=1" ) else ( set "counter+=1")
+    set /a counter=1
+
+    for /f "usebackq delims=" %%a in ("%hashlist%") do (
+        echo Comparing Attempt !counter!. > "%destination%"
+        echo Remote Hash: %%a >> "%destination%"
+        echo Local  Hash: %current_script_hash% >> "%destination%"
+        echo. >> "%destination%"
+
+        if /i "%%a"=="%current_script_hash%" (
+            set "found=1"
+        ) else (
+            set /a counter+=1
+        )
     )
 
     if "%found%"=="1" (
@@ -3354,6 +3372,7 @@
         call :color _Yellow "This could be due to a failed update or manual modifications." warning
         call :color _Green "Run the script with the /unsecure flag to skip this check." okay
         move /Y "%hashlist%" "%TEMP%\dataspammer_hash.list.previous" >%destination%
+        echo Pausing for 10 Seconds...
         timeout /t 10 >nul
         goto cancel
     )
@@ -3639,7 +3658,11 @@
     :: Pre Checks
     if "%loggingcheck%" == "0" exit /b 0
     if "%logging%"=="0" exit /b 0
-    if "%monitoring%"=="1" call :send_message "%log.content%"
+    if "%monitoring%"=="1" (
+        if "%monitor_init%"=="1" (
+            "%~dp0server.exe" send "%~1" 
+        )
+    )
     if "%logging%"==2 if "%~2"=="INFO" exit /b 0
 
     
@@ -3721,7 +3744,7 @@
     ) else (
         call :color _Green "Successfully updated %key% to '%new_value%.'" okay
     )
-    if exist "%~dp0\.integrity" %erase_short% "%~dp0\.integrity" >%destination21%
+    call :reg_hash_check_clear
     exit /b 0
 
 :done
@@ -3778,14 +3801,6 @@
     goto done
 
 
-:list_vars
-    :: List all Goto Signs
-    cd "%~dp0"
-    call :color _Green "Listing all :Signs in the Script" okay
-    echo: 
-    for /f "delims=" %%a in ('findstr /b ":" "%script_name%.%ending%" ^| findstr /v "^::" ^| findstr /v "^:REM"') do ( echo %%a )
-    pause
-
 :scoop_test
     for /f "delims=" %%a in ('where scoop 2^>nul') do (
         set "where_output=%%a"
@@ -3798,15 +3813,6 @@
 
     scoop search dataspammer
     exit /b 0
-
-:send_message
-    :: Send a Message to Monitor Socket
-    if "%monitoring%" NEQ "1" exit /b monitoroff
-    set "socket.location=%TEMP%\socket.message"
-    set "message=%~1 %~2 %~3 %~4 %~5 %~6 %~7 %~8 %~9"
-    echo %message% > "%socket.location%"
-    exit /b
-
 
 :help_startup
     cls
@@ -4293,7 +4299,7 @@
 
 
 :reg_hash_check
-    :: No Logging here, because the logfile isnt initialized yet
+    :: No Logging here, because the settings arent loaded yet (we are verifing the integrity of the settings)
     if defined unsecure (
         call :color _Red "Unsecure Mode Enabled, Skipping Registry Check" warning
         call :sys_lt 2
@@ -4338,6 +4344,23 @@
     )
     exit /b 0
 
+:reg_hash_check_clear
+    if exist "%~dp0.integrity" (
+        attrib -h -s "%~dp0.integrity" >%destination21%
+        erase "%~dp0.integrity" >%destination21%
+        call :color _White "Waiting for Changes to Propagate..." waiting
+        call :sys_lt 4
+        if exist "%~dp0.integrity" (
+            %errormsg%
+            call :color _Red "Failed to Remove Integrity File. Please run: erase %~dp0.integrity manually in the Terminal." error
+            pause
+            goto cancel
+        ) else (
+            call :color _Green "Cleared Integrity File." okay >%destination%
+            call :color _Green "Location of Integrity File: %~dp0.integrity" info >%destination%
+        )
+    )
+    exit /b 0
 
 :win_version_check    
     :: Check for Windows Edition, OSType, Version and Build Number
@@ -4648,7 +4671,7 @@
     if not "%~1"=="" set "EXIT_CODE=%~1"
     if "%EXIT_CODE%"=="" set EXIT_CODE=0
     if "%OS%"=="Windows_NT" endlocal
-    echo: > "%temp%\DataSpammerClose.txt"
+    if exist "%~dp0\server.exe" ("%~dp0\server.exe" send exit)
     erase "%~dp0\dataspammer.lock" >nul
     popd
     exit /b %EXIT_CODE%
