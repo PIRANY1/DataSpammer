@@ -105,6 +105,10 @@
 ::      Add exe Files to Compiled Version
 ::      Replace some Advanced settings with direct console access
 ::      Rework Dev Options
+::      Config Validation before Write
+::      Add CI Check
+::      Add Update Rollback
+::      Remove Debugtast
 
 :top
     @echo off
@@ -136,6 +140,8 @@
     set "destination21=nul 2>&1"
     set "cls.debug=cls"
     set "ending=bat"
+    set "api_url=https://api.github.com/repos/PIRANY1/DataSpammer/releases/latest"
+    set "repo_url=https://github.com/PIRANY1/DataSpammer"
     :: Replace with desired branch for hashlist & wait.exe download
     set "branch=main"
     set "edition=STABLE"
@@ -315,15 +321,17 @@
         set "elevPath=!WT_PATH!"
     )
 
+    :: Check is too Inaccurate and often restarts windows terminal, so it is disabled for now.
     :: Check if Script is running in Windows Terminal, if not exit and relaunch in Windows Terminal, otherwise Font Styling may not work properly
-    %powershell_short% -NoProfile -Command "$p=Get-CimInstance Win32_Process -Filter \"ProcessId=$PID\";while($p){if($p.Name -eq 'WindowsTerminal.exe'){exit 2};$p=if($p.ParentProcessId){Get-CimInstance Win32_Process -Filter \"ProcessId=$($p.ParentProcessId)\"}else{$null}};exit 1"
-    if "%errorlevel%"=="1" (
-        call :color _Red "Script is not running in Windows Terminal." error
-        call :color _Yellow "Relaunching in Windows Terminal..." pending
-        "%elevPath%" %cmdPath% /k ""%~f0" %*"
-    ) else (
-        call :color _Green "Script is running in Windows Terminal." okay
-    )
+    :: %powershell_short% -NoProfile -Command "$p=Get-CimInstance Win32_Process -Filter \"ProcessId=$PID\";while($p){if($p.Name -eq 'WindowsTerminal.exe'){exit 2};$p=if($p.ParentProcessId){Get-CimInstance Win32_Process -Filter \"ProcessId=$($p.ParentProcessId)\"}else{$null}};exit 1"
+    :: if "%errorlevel%"=="1" (
+    ::    call :color _Red "Script is not running in Windows Terminal." error
+    ::     call :color _Yellow "Relaunching in Windows Terminal..." pending
+    ::     "%elevPath%" %cmdPath% /k ""%~f0" %*"
+    ::     goto cancel
+    :: ) else (
+    ::     call :color _Green "Script is running in Windows Terminal." okay
+    :: )
 
 
     :: Check for Flags
@@ -666,8 +674,7 @@
 :login_input
     :: Verify that Login exists.
     reg query "HKCU\Software\DataSpammer" /v UsernameHash >nul 2>&1 || goto file_check
-    
-    call :log Starting_Login INFO
+
     %cls.debug% && title DataSpammer - Login
 
     :: Username and Password Input
@@ -742,7 +749,6 @@
     :: Curl GitHub API, extract latest version & compare with current script version
     call :log Curling_Github_API INFO
     call :color _Green "Checking for Updates..." pending
-    set "api_url=https://api.github.com/repos/PIRANY1/DataSpammer/releases/latest"
     curl -s %api_url% > apianswer.txt
     call :sys_lt 2
     :: Extract Tag Name from JSON Response
@@ -751,8 +757,8 @@
     )
     :: Compare latest version with current script version
     set "latest_version=%latest_version:"=%"
-    if "%latest_version%" equ "v6.3" ( set "uptodate=up" ) else ( set "uptodate=%current_script_version%" )
-    call :log %latest_version%=v6.3 INFO
+    if "%latest_version%" equ "%current_script_version%" ( set "uptodate=up" ) else ( set "uptodate=%current_script_version%" )
+    call :log "Latest_Version:_%latest_version%_Current_Version:_%current_script_version%" INFO
     del apianswer.txt
     exit /b
     
@@ -832,7 +838,7 @@
     )
     cd /d "%~dp0"
     call :log Displaying_Main_Menu INFO
-    title DataSpammer %current_script_version% - Menu - v6.3
+    title DataSpammer %current_script_version% - Menu
     %cls.debug%
 
     %$Echo% "   ____        _        ____
@@ -876,7 +882,7 @@
         if %_erl%==1 goto start
         if %_erl%==2 goto settings
         if %_erl%==3 goto desktop_settings
-        if %_erl%==4 explorer https://github.com/PIRANY1/DataSpammer && %cls.debug% && goto menu
+        if %_erl%==4 explorer %repo_url% && %cls.debug% && goto menu
         if %_erl%==5 goto cancel
         if %_erl%==6 call :standby
     goto menu
@@ -915,7 +921,7 @@
     echo: 
     echo:
     call :sys_lt 1
-    call :color _Blue "Force Update Script"
+    call :color _Blue "[3] Force Update Script"
     call :sys_lt 1
     echo: 
     echo:
@@ -2794,7 +2800,6 @@
     :: Fast Update
     cd /d "%temp%"
     echo Checking for Updates...
-    set "api_url=https://api.github.com/repos/PIRANY1/DataSpammer/releases/latest"
     curl -s %api_url% > apianswer.txt
     call :sys_lt 2
     for /f "tokens=2 delims=:, " %%a in ('findstr /R /C:"\"tag_name\"" apianswer.txt') do (
@@ -2802,7 +2807,7 @@
     )
     set "latest_version=%latest_version:"=%"
 
-    if "%latest_version%" equ "v6.3" (
+    if "%latest_version%" equ "%current_script_version%" (
         set "uptodate=up"
     ) else (
         set "uptodate=%current_script_version%"
@@ -2848,7 +2853,7 @@
     choice /C 123S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 goto sys_delete_script.check.elevation
-        if %_erl%==2 explorer "https://github.com/PIRANY1/DataSpammer" && goto sys_delete_script
+        if %_erl%==2 explorer %repo_url% && goto sys_delete_script
         if %_erl%==3 goto menu
         if %_erl%==4 call :standby
     goto sys_delete_script
@@ -2950,39 +2955,46 @@
     call :color _Green "Starting SFPS Server.exe" pending
     "%~dp0\server.exe" init >nul
     echo Main Thread PID: %~2
+    set "counter_monitor=1"
 
     :sfps_loop
     for /f "tokens=1-3 delims=:." %%a in ("%time%") do set formatted_time=%%a:%%b:%%c
     for /f "delims=" %%A in ('"%~dp0\server.exe" get -t') do set "OUTPUT=%%A"
-    if "%OUTPUT%"=="exit" (
+    if /i "%OUTPUT:~-4%"=="exit" (
         call :color _Yellow "Main Thread Closed. Exiting..." warning
         "%~dp0\server.exe" exit
         pause
-        exit /b 0
+        goto cancel
     ) else (
         if not "%OUTPUT%"=="" (
             echo %OUTPUT% 
             set "OUTPUT="
         ) 
     )
-    tasklist /FI "PID eq %~2" | find "%~2" >nul
-    if not "%errorlevel%"=="0" (
-        call :color _Red "Main Thread Closed Unexpectedly. Exiting..." error
-        "%~dp0\server.exe" exit
-        pause
-        exit /b 0
-    )
 
+    :: Only Check Every second Loop to reduce CPU Usage and to reduce the chance of a false positive that the Main Thread is crashed.
+    set /a counter_monitor+=1
+    if "%counter_monitor%"=="2" (
+        set "counter_monitor=0"
+        tasklist /FI "PID eq %~2" | find "%~2" >nul
+        if not "%errorlevel%"=="0" (
+            call :color _Red "Main Thread Closed Unexpectedly. Exiting..." error
+            "%~dp0\server.exe" exit
+            pause
+            goto cancel
+        )
+    )
     timeout 1 /NOBREAK >nul
     goto sfps_loop
+    goto cancel
+    exit /b 0
 
 
 
 :developer_options
     %cls.debug%
     title Developer Options - DataSpammer
-    echo PID: %PID%
-    echo Developer Options
+    echo Developer Options - %PID%
     echo:
     echo [1] Custom Goto
     echo:
@@ -2996,8 +3008,11 @@
     echo:
     echo [6] List all Settings
     echo:
+    echo [7] Custom Code
+    echo:
     echo [8] Go Back
-    choice /C 1234567S /T 120 /D S  /M "Choose an Option from Above:"
+    echo 
+    choice /C 12345678S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 (
             echo List all Call Signs?
@@ -3036,8 +3051,15 @@
             echo Elevation: %elevation%
             echo Skip Security Check: %skip-sec%
         )
-        if %_erl%==7 goto settings  
-        if %_erl%==8 call :standby
+        if %_erl%==7 (
+            echo Enter the Code to Execute:
+            set /P code=Code:
+            echo Executing: %code%
+            %code%
+            pause
+        )
+        if %_erl%==8 goto settings  
+        if %_erl%==9 call :standby
     goto developer_options
 
 
@@ -3301,7 +3323,7 @@
 :: If the Download fails, it will use the previously downloaded hash list if available. If the local script's hash does not match any in the list, it will warn the user and exit.
 
 :dataspammer_hash_check
-
+    call :log Hash_Check INFO
     if defined unsecure (
         call :color _Red "Unsecure Mode Detected, Skipping Hash Check" warning
         call :sys_lt 2
@@ -3322,6 +3344,7 @@
 
     for /f "delims=" %%h in ('%powershell_short% -NoProfile -Command "(Get-FileHash '%current_proc%' -Algorithm SHA256).Hash"') do set "current_script_hash=%%h"
     echo SHA256 of current script: %current_script_hash% >%destination%
+    call :log Current_Script_Hash:%current_script_hash% INFO
 
     set "hashlist=%TEMP%\dataspammer_hash.list"
     curl -s -o "%hashlist%" "https://raw.githubusercontent.com/PIRANY1/DataSpammer/refs/heads/%branch%/.github/dataspammer-hash.list" >%destination%
@@ -3335,7 +3358,7 @@
             exit /b 1
         )
     ) else (
-        if "%~z1"=="0" (
+        for %%A in ("%hashlist%") do if "%%~zA"=="0" (
             if exist "%TEMP%\dataspammer_hash.list.previous" (
                 move /Y "%TEMP%\dataspammer_hash.list.previous" "%hashlist%" >%destination%
             ) else (
@@ -3364,7 +3387,7 @@
 
     if "%found%"=="1" (
         call :color _Green "The local script matches the remote version." okay
-        del "%hashlist%" >%destination%
+        move /Y "%hashlist%" "%TEMP%\dataspammer_hash.list.previous" >%destination%
         exit /b 0
     ) else (
         %errormsg%
@@ -3452,9 +3475,9 @@
         exit /b
     )
 
-    for %%F in (Red Gray Green Blue White _Red _White _Green _Yellow) do (
-        set "text=!text:%%F=!"
-    )
+    ::for %%F in (Red Gray Green Blue White _Red _White _Green _Yellow) do (
+    ::    set "text=!text:%%F=!"
+    ::)
 
     :: Ugly Code, works tho
     if "%is_compiled%"=="0" (
@@ -3866,7 +3889,6 @@
     :: Old one used seperate file / wget & curl & iwr
     call :log Creating_Update_Script INFO
     
-    set "api_url=https://api.github.com/repos/PIRANY1/DataSpammer/releases/latest"
     curl -s %api_url% > apianswer.txt
     for /f "tokens=2 delims=:, " %%a in ('findstr /R /C:"\"tag_name\"" apianswer.txt') do (
         set "latest_release_tag=%%a"
@@ -3891,8 +3913,7 @@
             exit /b 1
         )
     )
-    echo download Hashes
-    pause
+
     :: Download Hashes
     for %%F in (dataspammer.%ending% README.md LICENSE) do (
         bitsadmin /transfer upd "%update_url%%%F.hash" "%TMP_DIR%\%%F.hash"
@@ -3975,7 +3996,6 @@
 
 
 :version
-    set "api_url=https://api.github.com/repos/PIRANY1/DataSpammer/releases/latest"
     curl -s %api_url% > "%temp%\apianswer.txt"
     for /f "tokens=2 delims=:, " %%a in ('findstr /R /C:"\"tag_name\"" "%temp%\apianswer.txt"') do (
         set "latest_version=%%a"
@@ -3983,7 +4003,7 @@
     set "latest_version=%latest_version:"=%"
     del "%temp%\apianswer.txt"
     echo DataSpammer Script
-    echo Current Version: v6.3 (%edition%)
+    echo Current Version: %current_script_version% (%edition%)
     echo Newest Stable Release: %latest_version%
     echo: 
     exit /b %errorlevel%
@@ -4312,7 +4332,7 @@
 
     set "data=!data: =!"
     echo Raw Registry Data: !data! >%destination%
-
+    
     echo(!data!> "%temp%\hash_input.tmp"
     call :hash_gen reg_hash file "%temp%\hash_input.tmp"
     %erase_short% "%temp%\hash_input.tmp" >%destination21%
@@ -4329,8 +4349,8 @@
         attrib +h +s "%~dp0\.integrity"
     )
 
-    echo Stored Hash: !stored_hash! >%destination%
-    echo Current Hash: !reg_hash! >%destination%
+    call :log "Stored Hash:_!stored_hash!" INFO
+    call :log "Current Hash:_!reg_hash!" INFO
     set "stored_hash=%stored_hash: =%"
     
     if /i "!reg_hash!"=="!stored_hash!" (
@@ -4672,7 +4692,7 @@
     if "%EXIT_CODE%"=="" set EXIT_CODE=0
     if "%OS%"=="Windows_NT" endlocal
     if exist "%~dp0\server.exe" ("%~dp0\server.exe" send exit)
-    erase "%~dp0\dataspammer.lock" >nul
+    erase "%~dp0\dataspammer.lock" >nul 2>&1 
     popd
     exit /b %EXIT_CODE%
 
