@@ -54,9 +54,6 @@
 :: echo %PROCESSOR_ARCHITECTURE%
 :: Escape special characters
 :: ^ = escape symbol (e.g., echo 5^>3 shows "5>3" instead of redirecting)
-:: Full random numbers
-:: call :generateRandom
-:: echo %realrandom%
 :: set /p firstLine=<
 :: =============================================================
 
@@ -65,7 +62,6 @@
 :: Default Filename: default_filename = (Filename)
 :: Change Monitoring Socket: monitoring = (0/1)
 :: Change Color: color = (Color Syntax)
-:: Skip Security Question: skip-sec = (0/1)
 :: Custom Codepage: chcp = (Codepage)
 :: Logging: logging = (0/1/2)
 :: Elevation: elevation = (pwsh/gsudo/sudo/off)
@@ -1403,8 +1399,7 @@
     call :sys_lt 1
     cd /d "%~dp0 "
     :: Version Update checks for this File
-    call :generateRandom
-    reg add "HKCU\Software\DataSpammer" /v Token /t REG_SZ /d "%realrandom%" /f
+    reg add "HKCU\Software\DataSpammer" /v Token /t REG_SZ /d "%reg_hash%%random%" /f
     call :reg_hash_check_clear
     (
         @echo off
@@ -1514,10 +1509,6 @@
     call :sys_lt 1
     echo: 
     call :sys_lt 1
-    echo [2] Skip Security Question
-    call :sys_lt 1
-    echo: 
-    call :sys_lt 1
     echo [3] Switch Elevation Method (pswh / sudo / gsudo)
     call :sys_lt 1
     echo: 
@@ -1535,7 +1526,7 @@
     echo: 
     call :sys_lt 1
     echo [7] Go back
-    choice /C 1234567S /T 120 /D S  /M "Choose an Option from Above:"
+    choice /C 123456S /T 120 /D S  /M "Choose an Option from Above:"
         set _erl=%errorlevel%
         if %_erl%==1 (
             call :log Chaning_Default_Filename WARN
@@ -1546,31 +1537,14 @@
             call :update_config "default-filename" "" "%default-filename%" 
             goto restart_script
         )
-        if %_erl%==2 goto settings_skip_sec
-        if %_erl%==3 goto switch_elevation
-        if %_erl%==4 goto settings_logging
-        if %_erl%==5 goto change_color
-        if %_erl%==6 goto change_chcp
-        if %_erl%==7 goto settings        
-        if %_erl%==8 call :standby
+        if %_erl%==2 goto switch_elevation
+        if %_erl%==3 goto settings_logging
+        if %_erl%==4 goto change_color
+        if %_erl%==5 goto change_chcp
+        if %_erl%==6 goto settings        
+        if %_erl%==7 call :standby
     goto main_settings
 
-
-:settings_skip_sec    
-     (
-        call :log Chaning_Skip_security_question WARN
-    )
-    set "settings.skip-sec=%skip-sec%"
-    if "%settings.skip-sec%"=="1" (
-        set "settings.skip-sec=0"
-    ) else (
-        set "settings.skip-sec=1"
-    )
-    call :update_config "skip-sec" "" "%settings.skip-sec%"
-     (
-        call :log Skip_Security_Question_Updated_To_%settings.skip-sec% INFO
-    )
-    goto restart_script
 
 :settings_logging
     %cls.debug%
@@ -1675,8 +1649,6 @@
 
 :start
     call :log Opened_Start INFO
-    call :sys_verify.execution
-    call :log Start_Verified INFO
     %cls.debug%
 
     for /f "delims=" %%a in ('where python 2^>nul') do (
@@ -2137,40 +2109,17 @@
     set /P record_type=Enter the DNS Record Type (A or AAAA):
     
     set /a x=0
-    
-    if /I "%record_type%"=="A" goto dns_a
-    if /I "%record_type%"=="AAAA" goto dns_aaaa
-    
-
-
-:dns_a
     %cls.debug%
     for /L %%i in (1, 1, %request_count%) do (
-        call :color _Blue "Created !x! DNS Request for !record_type! record." pending
+        call :color _Blue "Created !x! DNS Request for !record_type! record on %domain_server% with %domain%" pending
         set /a x+=1
-        nslookup -type=A %domain% %domain_server% >%destination%
-        %cls.debug%
-    )
-    goto dns_done
-    
-
-:dns_aaaa
-    %cls.debug%
-    for /L %%i in (1, 1, %request_count%) do (
-        call :color _Blue "Created !x! DNS Request for !record_type! record." pending
-        set /a x+=1
-        nslookup -type=AAAA %domain% %domain_server% >%destination%
+        nslookup -type=%record_type% %domain% %domain_server% >%destination%
         %cls.debug%
     )
     
-
-:dns_done
     %cls.debug%
     call :log Finished_DNS_Spam:%request_count%_Requests_on_%domain_server% INFO
     call :done "The Script Created %request_count% for %domain% on %domain_server%"
-
-
-
 
 
 :ftp_spam
@@ -2355,7 +2304,6 @@
     set /P ssh-name=Enter the Username:
     set /P ssh-filecount=Enter the Filecount:
     set /P ssh-key=Enter the SSH-Key:
-    call :sys_verify.execution
     %cls.debug%
 
 
@@ -3049,7 +2997,6 @@
             echo Default Filename: %default_filename%
             echo Update: %update%
             echo Elevation: %elevation%
-            echo Skip Security Check: %skip-sec%
         )
         if %_erl%==7 (
             echo Enter the Code to Execute:
@@ -3399,43 +3346,6 @@
         timeout /t 10 >nul
         goto cancel
     )
-    exit /b
-
-
-:: Generate real random numbers ( default %random% is limited to 32767)
-:generateRandom
-    :: Get Random Numbers
-    set "r1=%random%"
-    set "r2=%random%"
-    set "str=%r1%_%r2%"
-
-    :: Generate Hash
-    for /f %%h in ('echo %str% ^| %powershell_short% -command "$s = $input; $h = [BitConverter]::ToString((New-Object System.Security.Cryptography.SHA256Managed).ComputeHash([System.Text.Encoding]::UTF8.GetBytes($s))).Replace('-', ''); Write-Output $h"') do (
-        set "hash=%%h"
-    )
-
-    set "digits="
-    for /l %%i in (0,1,63) do (
-        set "char=!hash:~%%i,1!"
-        if "!char!" geq "0" if "!char!" leq "9" set "digits=!digits!!char!"
-    )
-
-    if not defined digits set "digits=12345"
-
-    set "len=0"
-    for /l %%i in (0,1,1000) do if not "!digits:~%%i,1!"=="" set /a len+=1
-
-    if %len% lss 5 (
-        set "realrandom=%digits%"
-        exit /b
-    )
-
-    set "realrandom="
-    for /l %%n in (1,1,5) do (
-        set /a pos=!random! %% len
-        set "realrandom=!realrandom!!digits:~!pos!,1!"
-    )
-
     exit /b
 
 
@@ -4408,28 +4318,6 @@
     exit /b 0
 
 
-:sys_verify_execution    
-    call :log Started_Verification INFO
-    if "%skip-sec%"=="1" ( exit /b 0)
-    call :generateRandom
-    set "verify=%realrandom% "
-    %powershell_short% -Command "& {Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.Interaction]::InputBox('Please enter Code %verify% to confirm that you want to execute this Option', 'DataSpammer Verify')}" > %TEMP%\out.tmp
-    set /p OUT=<%TEMP%\out.tmp
-
-    :: Fix Empty Input Bypass
-    if not defined OUT set "OUT=null"
-
-    if %verify%==%OUT% ( 
-        set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('Success', 'DataSpammer Verify');}"
-        %powershell_short% -Command %msgBoxArgs%
-        exit /b
-    ) else ( 
-        set msgBoxArgs="& {Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('You have entered the wrong Code. Please try again', 'DataSpammer Verify');}"
-        %powershell_short% -Command %msgBoxArgs%
-        goto sys_verify_execution
-    )
-
-
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
 :: --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -4694,7 +4582,7 @@
     if exist "%~dp0\server.exe" ("%~dp0\server.exe" send exit)
     erase "%~dp0\dataspammer.lock" >nul 2>&1 
     popd
-    exit /b %EXIT_CODE%
+    exit %b_flag%%EXIT_CODE%
 
 exit 
 
