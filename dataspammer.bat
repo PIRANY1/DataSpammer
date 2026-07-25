@@ -1,7 +1,7 @@
 :: Use only under License
 :: Contribute under https://github.com/PIRANY1/DataSpammer
-:: Version v6.3 - RELEASE
-:: Last edited on 22.02.2026 by PIRANY
+:: Version v6.4 - RELEASE
+:: Last edited on 25.07.2026 by PIRANY
 
 :: Some Functions are inspired from the MAS Script. 
 
@@ -123,7 +123,7 @@
     mode con: cols=120 lines=35
 
     :: Some Essential Variables
-    set "current_script_version=v6.3"
+    set "current_script_version=v6.4"
     set "cls.debug=cls"
     set "exec-dir=%~dp0"
     set "errormsg=echo: &call :color _Red "====== ERROR ======" error &echo:"
